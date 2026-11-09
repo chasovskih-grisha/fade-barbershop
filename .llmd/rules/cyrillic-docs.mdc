@@ -1,0 +1,32 @@
+---
+description: Block non-English (Cyrillic) prose in docs/adr/ and backlog/tasks/
+globs: ["docs/adr/**", "backlog/tasks/**"]
+---
+
+Do not introduce Cyrillic script into `docs/adr/*.md` or `backlog/tasks/*.md`.
+
+The repo gate that enforces this is:
+- `platform/tools/cyrillic/docs-adr-cyrillic-lint.mjs`
+- `platform/.git/hooks/pre-commit`
+
+It runs against staged files and flags any non-English prose outside code fences in
+`platform/docs/` and `platform/backlog/` markdown.
+
+Allowed exceptions:
+- The small set of Ukrainian structural lines used by the ADR template in `docs/adr/`
+  (for example `## Status`, `## Context`, `## Decision`, `## Consequences`, `## References`).
+- Entire documents or doc sections that are deliberately authored in Ukrainian.
+
+Not allowed:
+- Cyrillic body prose, headings, tables, quotes, task metadata, or inline notes added to
+  `docs/adr/` or `backlog/tasks/` outside code fences.
+- Cyrillic inside the same-file markdown even if it looks “brief”; keep it in a code span,
+  a quote with an English gloss, or translate it.
+
+Quick check before staging:
+- `node platform/tools/cyrillic/docs-adr-cyrillic-lint.mjs` should pass for the staged set.
+- If you think a Cyrillic match is intentional, confirm whether it is the ADR structural
+  baseline or the whole document is Ukrainian; otherwise translate the line.
+
+Ancillary files that are not part of the docs/backlog markdown narrative (specimens,
+screenshots, legal PDFs, backups) are out of scope for this rule.

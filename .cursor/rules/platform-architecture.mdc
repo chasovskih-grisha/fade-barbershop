@@ -1,0 +1,20 @@
+---
+description: Architecture and DDD rules for the barbershop software platform
+globs: platform/**
+alwaysApply: false
+---
+
+# Platform
+
+Software lives in `platform/`. Do not implement app code unless the user asked for a roadmap phase.
+
+- Modular monolith in `apps/api`: one process, bounded contexts as modules.
+- Layers: `domain` → `application` → `infrastructure`. Dependencies point inward. No Nest, Prisma, or HTTP in `domain/`.
+- Contexts talk via IDs and events, not by importing another context's entities.
+- Products: `apps/web` (public site, blog, client cabinet), `apps/admin` (founder CMS), `apps/mobile` (Expo; client + barber; blog from the same `content` API).
+- Client login is phone + SMS OTP on both web and mobile. Same `User`. No client password. See ADR 0005.
+- Blog is the same `Article` list on web and mobile. Admin publishes; web owns canonical URLs; mobile only reads the API.
+- Scheduling, CRM, and messaging are the system of record. Third-party salon CRM is not.
+- Ubiquitous language: Location, Chair, Appointment, AppointmentParty, ClientProfile, Conversation, Article. Not Shop, Master, Order, ChatRoom, Post.
+- One aggregate per transaction. Use an outbox when an event must be delivered.
+- Git: only `stage` and `main`. Commit and push on `stage`. Do not open feature branches or feature pull requests. The only pull request is a release from `stage` into `main` (ADR 0052).
