@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Recent Commits
 
+- 7765fdc Update platform submodule pointer for translated backlog tasks
+- 580fe18 chore(platform): update platform submodule/directory pointer to include deposit policy wiring
+- 42fb0b2 feat(fixtures): expand and enrich database fixtures, factories, and seeders with realistic datasets
+- 6a47852 chore(ecosystem): holistic health verification & synchronize platform submodule reference to latest stage state
 - 06d21fc chore(barbershop): update platform submodule pointer to include brand FAQ voting polish
 - 3359e72 chore: update platform submodule reference to stage with translated tasks
 - 9453e95 Translate 10 backlog tasks from Ukrainian to English
@@ -50,7 +54,3 @@ All notable changes to this project will be documented in this file.
 - 4c201bc chore(fade): ecosystem health orchestration and synchronization check on stage
 - 350d76b Update platform submodule reference for translated backlog tasks
 - ed975e3 chore(platform): update submodule for no-show and cancellation protection specialist
-- a585e6f chore(ecosystem): holistic health orchestration and sync verification on stage
-- efc5f13 chore(platform): update platform pricing optimization submodule
-- 5164546 chore(platform): point the workspace at the latest stage commit
-- a4fe3f6 chore: expand database fixtures, datasets, and seeders
