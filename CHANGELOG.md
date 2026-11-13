@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 ## Recent Commits
 
+- 06d21fc chore(barbershop): update platform submodule pointer to include brand FAQ voting polish
+- 3359e72 chore: update platform submodule reference to stage with translated tasks
+- 9453e95 Translate 10 backlog tasks from Ukrainian to English
+- fdfc833 chore(platform): update submodule reference for referral loyalty bonus use case
+- f8b9d03 chore(platform): update submodule reference for mobile visit actions task completion
+- a0abbb0 chore(ecosystem): clean up untracked company submodule and synchronize stage branch
+- 653529b chore(platform): point stage at the latest platform commit
+- 54cb0fb chore(ecosystem): synchronize platform submodule to latest stage state and verify build health
+- 30a5353 chore: update platform submodule reference to stage with translated backlog tasks
+- bfa3dc7 chore(fixtures): significantly expand database fixtures, catalog services, locations, reviews, promos, and bookings
+- 557dc36 chore(platform): point stage at the latest platform commit
+- ab1819b chore(platform): update platform submodule reference on stage
+- 87a4fe3 chore(design-system): update platform design system components and verify build on stage
+- b107104 chore(platform): update platform submodule reference on stage
+- 22275fc chore(platform): update platform submodule reference on stage
+- d549331 feat(fixtures): comprehensively expand database fixtures, catalog, promos, reviews, and appointment seed datasets
+- b8cccf0 chore(submodule): update platform reference to latest stage commit
+- 82dbfe0 Translate 10 random backlog tasks from Ukrainian to English
+- 2b801ea chore: update platform submodule reference with expanded seed fixtures
+- 55b1b2b chore(ecosystem): periodic ecosystem health check and synchronization
 - 36c6c2f feat(fixtures): expand and enrich database fixtures, locations, catalog, and appointments
 - 5390896 chore(ecosystem): orchestrator health verification & sync platform to stage
 - 6464256 Update platform submodule reference on stage
@@ -34,23 +54,3 @@ All notable changes to this project will be documented in this file.
 - efc5f13 chore(platform): update platform pricing optimization submodule
 - 5164546 chore(platform): point the workspace at the latest stage commit
 - a4fe3f6 chore: expand database fixtures, datasets, and seeders
-- c0c0666 chore(platform): update platform submodule for client reschedule waitlist auto-matching optimizer
-- 0ac3eb2 chore: update platform submodule pointer to include translated backlog tasks
-- 3d3aa9c chore(platform): update platform submodule with revenue pricing optimization engine
-- 13ddd84 chore(platform): update platform submodule reference to latest stage commit
-- 018e06d chore(brand): root lockfile and workspace alignment for FADE brand platform
-- 955664a chore(submodule): update platform submodule pointer to include enriched fixtures
-- ccc8815 chore(platform): update submodule commit for win-back engine
-- f0f0fca chore(platform): update submodule reference for content management fix
-- dc2f069 chore: update platform submodule reference for backlog task translations
-- 296f2ad chore(platform): update platform submodule reference to latest stage
-- d23a96e chore: update platform submodule reference for improved database fixtures and seeders
-- a237264 chore(platform): update platform submodule pointer with translated backlog tasks
-- becae6c Update platform submodule reference for translated tasks
-- 3774b79 chore(platform): update submodule pointer for reputation management & competitive intelligence feature
-- 3de3345 chore(platform): update platform submodule to stage with database health telemetry contributor
-- fe9cb64 Update platform submodule with translated backlog tasks
-- 7441642 chore(platform): update submodule ref with AppointmentParty composite indices
-- d791b87 chore: prepare workspace for stage push
-- 219308f chore(platform): update submodule reference for a11y AddNoteModal fix
-- 2a2298b chore(qa): verify and fix test suites on stage branch
