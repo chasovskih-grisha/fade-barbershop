@@ -27,6 +27,11 @@ export const RECOMMENDED_INDICES: IndexDefinition[] = [
     columns: ['shopId', 'startTime', 'status'],
   },
   {
+    tableName: 'appointments',
+    indexName: 'idx_appointments_payment_status',
+    columns: ['paymentStatus', 'createdAt'],
+  },
+  {
     tableName: 'clients',
     indexName: 'idx_clients_phone_email',
     columns: ['phone', 'email'],
@@ -42,6 +47,11 @@ export const RECOMMENDED_INDICES: IndexDefinition[] = [
     tableName: 'audit_logs',
     indexName: 'idx_audit_logs_timestamp_actor',
     columns: ['timestamp', 'actorId'],
+  },
+  {
+    tableName: 'payments',
+    indexName: 'idx_payments_appointment_status',
+    columns: ['appointmentId', 'status'],
   },
 ];
 
