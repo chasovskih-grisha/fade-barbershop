@@ -225,4 +225,129 @@ export class PaymentBillingGateway {
       createdAt: new Date().toISOString(),
     };
   }
+
+  /**
+   * T-5006: Comprehensive Tip Splitting & Automated Payouts Ledger
+   * Calculate tip distribution and generate payout ledger items for barbers and shops.
+   */
+  public calculateTipSplit(
+    totalTipCents: number,
+    rules: {
+      barberPercentage: number; // e.g. 85 for 85% to barber, 15% house pool
+      poolAllocationType: 'hours_worked' | 'equal_split' | 'service_revenue';
+      barbers: Array<{
+        barberId: string;
+        hoursWorked: number;
+        serviceRevenueCents: number;
+      }>;
+    }
+  ): Array<{
+    barberId: string;
+    tipShareCents: number;
+    housePoolShareCents: number;
+    details: string;
+  }> {
+    if (totalTipCents < 0) {
+      throw new Error('Tip amount cannot be negative.');
+    }
+    if (rules.barberPercentage < 0 || rules.barberPercentage > 100) {
+      throw new Error('Barber percentage must be between 0 and 100.');
+    }
+    if (!rules.barbers || rules.barbers.length === 0) {
+      return [];
+    }
+
+    const directTipShare = Math.round((totalTipCents * rules.barberPercentage) / 100);
+    const housePoolShareTotal = totalTipCents - directTipShare;
+
+    // Distribute house pool according to allocation strategy
+    let totalMetric = 0;
+    if (rules.poolAllocationType === 'hours_worked') {
+      totalMetric = rules.barbers.reduce((sum, b) => sum + b.hoursWorked, 0);
+    } else if (rules.poolAllocationType === 'service_revenue') {
+      totalMetric = rules.barbers.reduce((sum, b) => sum + b.serviceRevenueCents, 0);
+    } else {
+      totalMetric = rules.barbers.length; // equal split
+    }
+
+    return rules.barbers.map(barber => {
+      let poolShare = 0;
+      if (totalMetric > 0) {
+        let barberMetric = 1;
+        if (rules.poolAllocationType === 'hours_worked') {
+          barberMetric = barber.hoursWorked;
+        } else if (rules.poolAllocationType === 'service_revenue') {
+          barberMetric = barber.serviceRevenueCents;
+        }
+        poolShare = Math.round((housePoolShareTotal * barberMetric) / totalMetric);
+      } else {
+        poolShare = Math.round(housePoolShareTotal / rules.barbers.length);
+      }
+
+      const individualDirectTip = Math.round(directTipShare / rules.barbers.length);
+      const totalBarberTipCents = individualDirectTip + poolShare;
+
+      return {
+        barberId: barber.barberId,
+        tipShareCents: totalBarberTipCents,
+        housePoolShareCents: poolShare,
+        details: `Direct share: ${individualDirectTip}¢ + Pool share: ${poolShare}¢ (Rule: ${rules.poolAllocationType})`,
+      };
+    });
+  }
+
+  /**
+   * T-5006: Generate Automated Daily Payouts Ledger
+   * Reconciles service revenue, commissions, tips, and deductions for Stripe Connect payouts.
+   */
+  public generatePayoutLedger(
+    shopId: string,
+    payoutDate: string,
+    entries: Array<{
+      barberId: string;
+      completedAppointments: number;
+      grossServiceRevenueCents: number;
+      commissionRate: number; // e.g. 0.60 for 60%
+      totalTipsCents: number;
+      deductionsCents?: number;
+    }>
+  ): {
+    shopId: string;
+    payoutDate: string;
+    totalPayoutCents: number;
+    ledgerRows: Array<{
+      barberId: string;
+      serviceEarningsCents: number;
+      tipsCents: number;
+      deductionsCents: number;
+      netPayoutCents: number;
+      status: 'pending_transfer' | 'transferred';
+    }>;
+  } {
+    let totalPayoutCents = 0;
+
+    const ledgerRows = entries.map(entry => {
+      const serviceEarningsCents = Math.round(entry.grossServiceRevenueCents * entry.commissionRate);
+      const deductions = entry.deductionsCents || 0;
+      const netPayoutCents = serviceEarningsCents + entry.totalTipsCents - deductions;
+
+      totalPayoutCents += Math.max(0, netPayoutCents);
+
+      return {
+        barberId: entry.barberId,
+        serviceEarningsCents,
+        tipsCents: entry.totalTipsCents,
+        deductionsCents: deductions,
+        netPayoutCents: Math.max(0, netPayoutCents),
+        status: 'pending_transfer' as const,
+      };
+    });
+
+    return {
+      shopId,
+      payoutDate,
+      totalPayoutCents,
+      ledgerRows,
+    };
+  }
 }

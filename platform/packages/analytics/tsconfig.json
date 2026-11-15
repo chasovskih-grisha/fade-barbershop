@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
-    "target": "es2022",
-    "module": "commonjs",
-    "lib": ["es2022"],
+    "target": "ES2022",
+    "module": "CommonJS",
+    "lib": ["DOM", "ES2022"],
+    "declaration": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "declaration": true
+    "jsx": "react",
+    "outDir": "./dist"
   },
-  "include": ["index.ts", "funnel.ts", "telemetry.ts", "test/**/*.ts"]
+  "include": ["src/**/*", "telemetry.ts", "funnel.ts", "index.ts"]
 }
