@@ -19,7 +19,7 @@ describe('API & Integration Services Specialist', () => {
       signature: 'valid-sig'
     };
 
-    const result = validateWebhook(validData, 'valid-sig', (p) => p.signature === 'valid-sig');
+    const result = validateWebhook(validData, 'valid-sig', (p: any) => p.signature === 'valid-sig');
     expect(result.valid).toBe(true);
     expect(result.payload?.event).toBe('booking.created');
 

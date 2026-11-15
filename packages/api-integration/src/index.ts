@@ -26,7 +26,7 @@ export function createApiResponse<T>(data?: T, error?: { code: string; message: 
   return { success: true, data };
 }
 
-export function validateWebhook(rawBody: unknown, expectedSignature: string, validator: (body: unknown) => boolean): { valid: boolean; payload?: WebhookPayload; error?: string } {
+export function validateWebhook(rawBody: unknown, expectedSignature: string, validator: (body: WebhookPayload) => boolean): { valid: boolean; payload?: WebhookPayload; error?: string } {
   const parseResult = WebhookPayloadSchema.safeParse(rawBody);
   if (!parseResult.success) {
     return { valid: false, error: `Invalid payload structure: ${parseResult.error.message}` };
