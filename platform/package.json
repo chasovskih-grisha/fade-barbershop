@@ -1,0 +1,23 @@
+{
+  "name": "fade-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FADE Platform Monorepo",
+  "packageManager": "pnpm@12.1.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "scripts": {
+    "build": "pnpm --recursive run build",
+    "test": "pnpm --recursive run test",
+    "lint": "pnpm --recursive run lint",
+    "clean": "pnpm --recursive run clean"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.5.2",
+    "ts-jest": "^29.4.15",
+    "typescript": "^5.9.3"
+  }
+}
