@@ -75,4 +75,33 @@ describe('ReputationEngine', () => {
         expect(benchmark.shopAverageRating).toBe(5);
         expect(benchmark.ratingRank).toBe(1);
     });
+    test('generates barber scorecards and win-back offers for negative feedback', () => {
+        engine.addReview({
+            id: 'r_elife',
+            clientId: 'c1',
+            barberId: 'barber_pro',
+            rating: 5,
+            comment: 'Incredible skin fade and clean shop vibe!',
+            source: 'GOOGLE',
+            createdAt: new Date()
+        });
+        engine.addReview({
+            id: 'r_neg',
+            clientId: 'c2',
+            barberId: 'barber_new',
+            rating: 2,
+            comment: 'Long wait time and uneven lineup.',
+            source: 'INTERNAL_APP',
+            createdAt: new Date()
+        });
+        const scorecards = engine.getBarberScorecards();
+        expect(scorecards.length).toBe(2);
+        const proCard = scorecards.find(s => s.barberId === 'barber_pro');
+        expect(proCard?.performanceTier).toBe('ELITE');
+        expect(proCard?.topStrengths).toContain('fade');
+        const winBack = engine.generateWinBackOffer('r_neg');
+        expect(winBack).not.toBeNull();
+        expect(winBack?.offerCode).toContain('WINBACK_C2');
+        expect(winBack?.message).toContain('50% discount');
+    });
 });

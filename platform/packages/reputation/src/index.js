@@ -209,5 +209,80 @@ class ReputationEngine {
             competitiveAdvantageNotes: advantages
         };
     }
+    /**
+     * Generates performance scorecards for each barber based on review history and sentiment.
+     */
+    getBarberScorecards() {
+        const barberMap = {};
+        for (const r of this.reviews) {
+            if (!barberMap[r.barberId]) {
+                barberMap[r.barberId] = [];
+            }
+            barberMap[r.barberId].push(r);
+        }
+        const scorecards = [];
+        for (const [barberId, revs] of Object.entries(barberMap)) {
+            const totalReviews = revs.length;
+            const sumRating = revs.reduce((acc, r) => acc + r.rating, 0);
+            const averageRating = totalReviews > 0 ? Math.round((sumRating / totalReviews) * 100) / 100 : 0;
+            const positiveCount = revs.filter(r => r.sentiment === 'POSITIVE').length;
+            const negativeCount = revs.filter(r => r.sentiment === 'NEGATIVE').length;
+            const respondedCount = revs.filter(r => r.responded).length;
+            const responseRate = totalReviews > 0 ? Math.round((respondedCount / totalReviews) * 100) : 0;
+            const tagCounts = {};
+            const negTagCounts = {};
+            for (const r of revs) {
+                for (const t of r.tags) {
+                    if (r.sentiment === 'POSITIVE') {
+                        tagCounts[t] = (tagCounts[t] || 0) + 1;
+                    }
+                    else if (r.sentiment === 'NEGATIVE') {
+                        negTagCounts[t] = (negTagCounts[t] || 0) + 1;
+                    }
+                }
+            }
+            const topStrengths = Object.entries(tagCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3)
+                .map(([t]) => t);
+            const areasForImprovement = Object.entries(negTagCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3)
+                .map(([t]) => t);
+            let performanceTier = 'STANDARD';
+            if (averageRating >= 4.7 && negativeCount === 0) {
+                performanceTier = 'ELITE';
+            }
+            else if (averageRating < 4.0 || negativeCount > 2) {
+                performanceTier = 'NEEDS_COACHING';
+            }
+            scorecards.push({
+                barberId,
+                totalReviews,
+                averageRating,
+                positiveCount,
+                negativeCount,
+                responseRate,
+                topStrengths,
+                areasForImprovement,
+                performanceTier
+            });
+        }
+        return scorecards.sort((a, b) => b.averageRating - a.averageRating);
+    }
+    /**
+     * Generates an automated win-back offer for clients who left negative feedback.
+     */
+    generateWinBackOffer(reviewId) {
+        const review = this.reviews.find(r => r.id === reviewId);
+        if (!review || review.rating > 3) {
+            return null;
+        }
+        const offerCode = `WINBACK_${review.clientId.toUpperCase()}_${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+        return {
+            offerCode,
+            message: `Dear Client, we sincerely apologize for your recent experience at FADE. Please accept this complimentary 50% discount on your next visit (Code: ${offerCode}) with our Master Barber.`
+        };
+    }
 }
 exports.ReputationEngine = ReputationEngine;
