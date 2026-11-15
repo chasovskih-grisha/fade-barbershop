@@ -137,4 +137,47 @@ describe('PaymentBillingGateway', () => {
       })
     ).rejects.toThrow('Invalid refund amount');
   });
+
+  test('should calculate tip split correctly across barbers using hours worked', () => {
+    const splitResults = gateway.calculateTipSplit(10000, {
+      barberPercentage: 80, // 80% direct split ($80), 20% pool ($20)
+      poolAllocationType: 'hours_worked',
+      barbers: [
+        { barberId: 'barber_1', hoursWorked: 40, serviceRevenueCents: 200000 },
+        { barberId: 'barber_2', hoursWorked: 10, serviceRevenueCents: 50000 },
+      ],
+    });
+
+    expect(splitResults.length).toBe(2);
+    // Direct split per barber: 8000 / 2 = 4000
+    // Pool split: 2000 allocated by hours (40 vs 10 -> 4:1 ratio -> 1600 vs 400)
+    expect(splitResults[0].barberId).toBe('barber_1');
+    expect(splitResults[0].tipShareCents).toBe(4000 + 1600); // 5600
+    expect(splitResults[1].barberId).toBe('barber_2');
+    expect(splitResults[1].tipShareCents).toBe(4000 + 400); // 4400
+  });
+
+  test('should generate automated payout ledger correctly', () => {
+    const ledger = gateway.generatePayoutLedger('shop_nyc_01', '2026-11-15', [
+      {
+        barberId: 'barber_1',
+        completedAppointments: 8,
+        grossServiceRevenueCents: 60000,
+        commissionRate: 0.60,
+        totalTipsCents: 5600,
+        deductionsCents: 500,
+      },
+    ]);
+
+    expect(ledger.shopId).toBe('shop_nyc_01');
+    expect(ledger.payoutDate).toBe('2026-11-15');
+    expect(ledger.ledgerRows.length).toBe(1);
+    // Service earnings: 60000 * 0.60 = 36000
+    // Tips: 5600
+    // Deductions: 500
+    // Net: 36000 + 5600 - 500 = 41100
+    expect(ledger.ledgerRows[0].serviceEarningsCents).toBe(36000);
+    expect(ledger.ledgerRows[0].netPayoutCents).toBe(41100);
+    expect(ledger.totalPayoutCents).toBe(41100);
+  });
 });
