@@ -60,16 +60,17 @@ export const CustomerBookingFlow: React.FC<CustomerBookingFlowProps> = ({
             <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50 animate-pulse" aria-hidden="true"></span>
             <h2 className="text-base font-bold tracking-tight text-zinc-100" id="booking-flow-title">FADE Studio — Appointment Booking</h2>
           </div>
-          <p className="text-xs text-zinc-300 font-medium tracking-wide" aria-live="polite">Step {step} of 4: {
+          <p className="text-xs text-zinc-200 font-medium tracking-wide" aria-live="polite" id="booking-step-status">Step {step} of 4: {
             step === 1 ? 'Select Service' :
             step === 2 ? 'Choose Your Barber' :
             step === 3 ? 'Date, Time & Extras' : 'Review & Confirm'
           }</p>
         </div>
-        <div className="flex gap-1.5" role="progressbar" aria-valuenow={step} aria-valuemin={1} aria-valuemax={4} aria-label={`Step ${step} of 4`}>
+        <div className="flex gap-1.5" role="progressbar" aria-valuenow={step} aria-valuemin={1} aria-valuemax={4} aria-describedby="booking-step-status" aria-label={`Step ${step} of 4`}>
           {[1, 2, 3, 4].map((s) => (
             <span
               key={s}
+              aria-hidden="true"
               className={`h-2 rounded-full transition-all duration-300 ${
                 step >= s ? 'bg-emerald-400 w-8 shadow-sm shadow-emerald-400/50' : 'bg-zinc-800 w-4'
               }`}
