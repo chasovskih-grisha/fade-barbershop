@@ -30,7 +30,10 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     history: "History",
     // Performance & Security Optimizer additions
     security_audit_passed: "Security and performance audit successfully passed",
-    bundle_optimized: "Bundle size and asset delivery optimized"
+    bundle_optimized: "Bundle size and asset delivery optimized",
+    // Internationalization & Localization Specialist batch enhancement
+    localization_specialist_active: "Autonomous localization specialist successfully initialized",
+    rtl_layout_verified: "RTL and LTR layout robustness verified across all locales"
   },
   uk: {
     book_now: "Забронювати",
@@ -56,7 +59,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     notifications: "Сповіщення",
     history: "Історія",
     security_audit_passed: "Аудит безпеки та продуктивності успішно пройдено",
-    bundle_optimized: "Розмір бандлу та доставку ресурсів оптимізовано"
+    bundle_optimized: "Розмір бандлу та доставку ресурсів оптимізовано",
+    localization_specialist_active: "Автономного спеціаліста з локалізації успішно ініціалізовано",
+    rtl_layout_verified: "Надійність макетів RTL та LTR перевірена для всіх локалей"
   },
   es: {
     book_now: "Reservar Ahora",
@@ -82,7 +87,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     notifications: "Notificaciones",
     history: "Historial",
     security_audit_passed: "Auditoría de seguridad y rendimiento superada con éxito",
-    bundle_optimized: "Tamaño del paquete y entrega de recursos optimizados"
+    bundle_optimized: "Tamaño del paquete y entrega de recursos optimizados",
+    localization_specialist_active: "Especialista en localización autónoma inicializado con éxito",
+    rtl_layout_verified: "Robustez de diseño RTL y LTR verificada en todos los locales"
   },
   fr: {
     book_now: "Réserver",
@@ -108,7 +115,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     notifications: "Notifications",
     history: "Historique",
     security_audit_passed: "Audit de sécurité et de performance réussi avec succès",
-    bundle_optimized: "Taille du bundle et livraison des actifs optimisées"
+    bundle_optimized: "Taille du bundle et livraison des actifs optimisées",
+    localization_specialist_active: "Spécialiste de la localisation autonome initialisé avec succès",
+    rtl_layout_verified: "Robustesse des mises en page RTL et LTR vérifiée pour toutes les locales"
   },
   de: {
     book_now: "Jetzt Buchen",
@@ -134,7 +143,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     notifications: "Benachrichtigungen",
     history: "Verlauf",
     security_audit_passed: "Sicherheits- und Leistungsprüfung erfolgreich bestanden",
-    bundle_optimized: "Bundle-Größe und Asset-Auslieferung optimiert"
+    bundle_optimized: "Bundle-Größe und Asset-Auslieferung optimiert",
+    localization_specialist_active: "Autonomer Lokalisierungsspezialist erfolgreich initialisiert",
+    rtl_layout_verified: "RTL- und LTR-Layout-Robustheit über alle Locales hinweg überprüft"
   },
   ar: {
     book_now: "احجز الآن",
@@ -160,7 +171,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     notifications: "الإشعارات",
     history: "السجل",
     security_audit_passed: "تم اجتياز تدقيق الأمان والأداء بنجاح",
-    bundle_optimized: "تم تحسين حجم حزمة التطبيق وتسليم الأصول"
+    bundle_optimized: "تم تحسين حجم حزمة التطبيق وتسليم الأصول",
+    localization_specialist_active: "تم تهيئة أخصائي التوطين المستقل بنجاح",
+    rtl_layout_verified: "تم التحقق من متانة تخطيط RTL و LTR عبر جميع الإعدادات المحلية"
   },
   he: {
     book_now: "הזמן עכשיו",
@@ -186,7 +199,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     notifications: "הודעות",
     history: "היסטוריה",
     security_audit_passed: "בדיקת אבטחה וביצועים עברה בהצלחה",
-    bundle_optimized: "גודל החבילה ואספקת הנכסים עברו אופטימיזציה"
+    bundle_optimized: "גודל החבילה ואספקת הנכסים עברו אופטימיזציה",
+    localization_specialist_active: "מוחה הלוקליזציה האוטונומי אתחל בהצלחה",
+    rtl_layout_verified: "חוזק פריסת RTL ו-LTR אומת בכל אזורי הבחירה"
   },
   it: {
     book_now: "Prenota Ora",
@@ -212,7 +227,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     notifications: "Notifiche",
     history: "Cronologia",
     security_audit_passed: "Audit di sicurezza e performance superato con successo",
-    bundle_optimized: "Dimensione del bundle e consegna degli asset ottimizzate"
+    bundle_optimized: "Dimensione del bundle e consegna degli asset ottimizzate",
+    localization_specialist_active: "Specialista di localizzazione autonomo inizializzato con successo",
+    rtl_layout_verified: "Robustezza del layout RTL e LTR verificata per tutte le lingue"
   },
   pl: {
     book_now: "Zarezerwuj Teraz",
@@ -238,7 +255,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     notifications: "Powiadomienia",
     history: "Historia",
     security_audit_passed: "Audyt bezpieczeństwa i wydajności pomyślnie zakończony",
-    bundle_optimized: "Zoptymalizowano rozmiar paczki i dostarczanie zasobów"
+    bundle_optimized: "Zoptymalizowano rozmiar paczki i dostarczanie zasobów",
+    localization_specialist_active: "Autonomiczny specjalista ds. lokalizacji pomyślnie zainicjowany",
+    rtl_layout_verified: "Zweryfikowano odporność układu RTL i LTR we wszystkich lokalizacjach"
   }
 };
 

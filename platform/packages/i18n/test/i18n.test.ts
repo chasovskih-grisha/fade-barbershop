@@ -19,6 +19,8 @@ describe('FADE Internationalization & Localization (i18n)', () => {
     expect(translate('book_now', 'pl')).toBe('Zarezerwuj Teraz');
     expect(translate('security_audit_passed', 'en')).toBe('Security and performance audit successfully passed');
     expect(translate('bundle_optimized', 'uk')).toBe('Розмір бандлу та доставку ресурсів оптимізовано');
+    expect(translate('localization_specialist_active', 'es')).toBe('Especialista en localización autónoma inicializado con éxito');
+    expect(translate('rtl_layout_verified', 'ar')).toBe('تم التحقق من متانة تخطيط RTL و LTR عبر جميع الإعدادات المحلية');
   });
 
   test('falls back to English or key when missing', () => {
