@@ -180,4 +180,64 @@ describe('PaymentBillingGateway', () => {
     expect(ledger.ledgerRows[0].netPayoutCents).toBe(41100);
     expect(ledger.totalPayoutCents).toBe(41100);
   });
+
+  test('should create recurring subscription successfully', async () => {
+    const sub = await gateway.createSubscription({
+      customerId: 'cust_vip_1',
+      customerEmail: 'vip@fade.com',
+      planId: 'plan_unlimited_haircut',
+      amountCents: 9900,
+      currency: 'usd',
+      interval: 'month',
+    });
+
+    expect(sub.subscriptionId).toContain('sub_');
+    expect(sub.status).toBe('active');
+    expect(sub.amountCents).toBe(9900);
+    expect(sub.currentPeriodEnd).toBeDefined();
+  });
+
+  test('should calculate franchise royalties and marketing fund deductions correctly', () => {
+    const statement = gateway.calculateFranchiseRoyalties('shop_la_02', 1000000, 6.0, 2.0);
+    expect(statement.shopId).toBe('shop_la_02');
+    expect(statement.grossRevenueCents).toBe(1000000);
+    expect(statement.royaltyFeeCents).toBe(60000); // 6%
+    expect(statement.marketingFundFeeCents).toBe(20000); // 2%
+    expect(statement.totalDeductionCents).toBe(80000);
+    expect(statement.netShopRevenueCents).toBe(920000);
+    expect(statement.status).toBe('calculated');
+  });
+
+  test('should track payment dispute and generate dispute evidence package', () => {
+    const event: WebhookEvent = {
+      id: 'evt_disp_1',
+      type: 'payment_intent.succeeded',
+      created: Math.floor(Date.now() / 1000),
+      data: {
+        object: {
+          id: 'pi_chargeback_99',
+          amount: 7500,
+          currency: 'usd',
+          metadata: { dispute_reason: 'fraudulent' },
+        },
+      },
+    };
+
+    const dispute = gateway.trackDispute(event);
+    expect(dispute.disputeId).toContain('dp_');
+    expect(dispute.paymentIntentId).toBe('pi_chargeback_99');
+    expect(dispute.status).toBe('needs_response');
+
+    const evidence = gateway.generateDisputeEvidence(dispute.disputeId, {
+      appointmentId: 'apt_888',
+      customerEmail: 'client@fade.com',
+      serviceName: 'Executive Haircut & Beard',
+      completedAt: '2026-11-14T14:00:00Z',
+      receiptUrl: 'https://pay.stripe.com/receipts/rcpt_123',
+    });
+
+    expect(evidence.disputeId).toBe(dispute.disputeId);
+    expect(evidence.appointmentId).toBe('apt_888');
+    expect(evidence.summary).toContain('Dispute defense package');
+  });
 });
