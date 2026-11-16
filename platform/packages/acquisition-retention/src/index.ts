@@ -21,6 +21,14 @@ export interface Client {
   pointsBalance: number;
 }
 
+export interface ReferralMilestoneTier {
+  referralCountThreshold: number;
+  milestoneName: string;
+  bonusCredit: number;
+  bonusPoints: number;
+  unlockedPerk: string;
+}
+
 export interface ReferralReward {
   referrerCredit: number;
   refereeDiscount: number;
@@ -66,6 +74,12 @@ export interface RetentionRecommendation {
 
 export class AcquisitionRetentionEngine {
   private referralReward: ReferralReward = { referrerCredit: 15.00, refereeDiscount: 10.00, referrerPoints: 150 };
+
+  private referralMilestones: ReferralMilestoneTier[] = [
+    { referralCountThreshold: 1, milestoneName: 'Advocate', bonusCredit: 10.00, bonusPoints: 100, unlockedPerk: 'Complimentary Beverage Upgrade' },
+    { referralCountThreshold: 3, milestoneName: 'Ambassador', bonusCredit: 35.00, bonusPoints: 350, unlockedPerk: 'Free Beard Trim or Styling Product' },
+    { referralCountThreshold: 5, milestoneName: 'Elite Partner', bonusCredit: 75.00, bonusPoints: 750, unlockedPerk: 'Free Full VIP Haircut & Priority Booking' }
+  ];
   
   private onboardingSequence: OnboardingStep[] = [
     { stepNumber: 1, delayHours: 0, title: 'Welcome to FADE', channel: 'SMS', template: 'Welcome to FADE, {name}! Use code FIRSTCUT for $10 off your first grooming session.' },
@@ -144,6 +158,37 @@ export class AcquisitionRetentionEngine {
       newClient,
       updatedReferrer,
       reward: earnedReward
+    };
+  }
+
+  /**
+   * Retrieves unlocked referral milestone for a given referral count.
+   */
+  public getReferralMilestone(referralCount: number): ReferralMilestoneTier | null {
+    const matched = this.referralMilestones
+      .filter(m => referralCount >= m.referralCountThreshold)
+      .sort((a, b) => b.referralCountThreshold - a.referralCountThreshold);
+    return matched.length > 0 ? matched[0] : null;
+  }
+
+  /**
+   * Processes referral milestone bonus for a client.
+   */
+  public processReferralMilestoneBonus(client: Client, referralCount: number): { updatedClient: Client; milestone: ReferralMilestoneTier | null; rewardGranted: boolean } {
+    const milestone = this.getReferralMilestone(referralCount);
+    if (!milestone) {
+      return { updatedClient: client, milestone: null, rewardGranted: false };
+    }
+
+    const updatedClient: Client = {
+      ...client,
+      pointsBalance: client.pointsBalance + milestone.bonusPoints
+    };
+
+    return {
+      updatedClient,
+      milestone,
+      rewardGranted: true
     };
   }
 

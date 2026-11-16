@@ -6,6 +6,61 @@ export interface CustomerBookingFlowProps {
   ariaLabel?: string;
 }
 
+export interface VIPMembershipBannerProps {
+  title?: string;
+  subtitle?: string;
+  onJoinVIP?: () => void;
+  className?: string;
+}
+
+export const VIPMembershipBanner: React.FC<VIPMembershipBannerProps> = ({
+  title = 'FADE Black Club — Exclusive VIP Membership',
+  subtitle = 'Unlock priority zero-wait booking, complimentary monthly hot towel shaves, 20% off all styling products, and private lounge access.',
+  onJoinVIP,
+  className = ''
+}) => {
+  const [joined, setJoined] = useState(false);
+
+  const handleJoin = () => {
+    setJoined(true);
+    onJoinVIP?.();
+  };
+
+  return (
+    <div 
+      role="region"
+      aria-label="FADE Black Club VIP Membership Promotion"
+      className={`relative overflow-hidden bg-gradient-to-r from-zinc-950 via-zinc-900 to-emerald-950 text-white p-8 rounded-3xl shadow-2xl border border-emerald-500/30 ${className}`}
+    >
+      <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+      <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="space-y-2 text-center md:text-left">
+          <div className="inline-flex items-center gap-2 bg-emerald-900/60 border border-emerald-700/50 text-emerald-300 text-xs font-extrabold uppercase px-3 py-1 rounded-full shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true"></span>
+            Limited Membership Open
+          </div>
+          <h3 className="text-xl md:text-2xl font-black tracking-tight text-white">{title}</h3>
+          <p className="text-xs md:text-sm text-zinc-300 max-w-xl leading-relaxed">{subtitle}</p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <button
+            type="button"
+            onClick={handleJoin}
+            disabled={joined}
+            className={`w-full sm:w-auto px-6 py-3.5 rounded-2xl text-xs font-extrabold uppercase tracking-wider transition-all shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
+              joined 
+                ? 'bg-emerald-600 text-white cursor-default'
+                : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-zinc-950 shadow-emerald-500/20'
+            }`}
+          >
+            {joined ? '✓ VIP Member Enrolled' : 'Claim VIP Membership ($49/mo)'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const CustomerBookingFlow: React.FC<CustomerBookingFlowProps> = ({ 
   onCompleteBooking,
   className = '',

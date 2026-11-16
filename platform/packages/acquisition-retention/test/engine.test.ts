@@ -180,4 +180,29 @@ describe('AcquisitionRetentionEngine', () => {
     expect(renewal.loyaltyBonusPoints).toBe(250);
     expect(renewal.discountApplied).toBe(0.10);
   });
+
+  test('evaluates and processes referral milestones correctly', () => {
+    const client: Client = {
+      id: 'c_ref',
+      name: 'Ian',
+      email: 'ian@example.com',
+      phone: '555-0900',
+      createdAt: new Date(),
+      totalVisits: 8,
+      totalSpent: 300,
+      referralCode: 'FADE-IAN_-7777',
+      loyaltyTier: 'SILVER',
+      pointsBalance: 200
+    };
+
+    const milestone1 = engine.getReferralMilestone(3);
+    expect(milestone1).not.toBeNull();
+    expect(milestone1?.milestoneName).toBe('Ambassador');
+    expect(milestone1?.bonusPoints).toBe(350);
+
+    const result = engine.processReferralMilestoneBonus(client, 3);
+    expect(result.rewardGranted).toBe(true);
+    expect(result.updatedClient.pointsBalance).toBe(550);
+    expect(result.milestone?.unlockedPerk).toContain('Beard Trim');
+  });
 });
