@@ -131,4 +131,53 @@ describe('AcquisitionRetentionEngine', () => {
     expect(recommendation.segment).toBe('DORMANT');
     expect(recommendation.suggestedOffer).toContain('25%');
   });
+
+  test('checks birthday club reward correctly', () => {
+    const birthday = new Date(1990, 5, 15); // June 15
+    const todayMatch = new Date(2026, 5, 15, 10, 0, 0);
+    const todayNoMatch = new Date(2026, 5, 16, 10, 0, 0);
+
+    const client: Client = {
+      id: 'c_bday',
+      name: 'Grace',
+      email: 'grace@example.com',
+      phone: '555-0700',
+      createdAt: new Date(),
+      birthDate: birthday,
+      totalVisits: 5,
+      totalSpent: 200,
+      referralCode: 'FADE-GRAC-5555',
+      loyaltyTier: 'SILVER',
+      pointsBalance: 150
+    };
+
+    const rewardMatch = engine.checkBirthdayReward(client, todayMatch);
+    expect(rewardMatch).not.toBeNull();
+    expect(rewardMatch?.discountPercentage).toBe(20);
+    expect(rewardMatch?.freeService).toContain('Hot Towel');
+
+    const rewardNoMatch = engine.checkBirthdayReward(client, todayNoMatch);
+    expect(rewardNoMatch).toBeNull();
+  });
+
+  test('processes membership renewal and retention perks', () => {
+    const client: Client = {
+      id: 'c_member',
+      name: 'Henry',
+      email: 'henry@example.com',
+      phone: '555-0800',
+      createdAt: new Date(),
+      membershipStatus: 'UNLIMITED_MONTHLY',
+      totalVisits: 12,
+      totalSpent: 450,
+      referralCode: 'FADE-HENR-6666',
+      loyaltyTier: 'GOLD',
+      pointsBalance: 400
+    };
+
+    const renewal = engine.processMembershipRenewal(client, 6);
+    expect(renewal.renewed).toBe(true);
+    expect(renewal.loyaltyBonusPoints).toBe(250);
+    expect(renewal.discountApplied).toBe(0.10);
+  });
 });
