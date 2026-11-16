@@ -6,3 +6,5 @@ export interface DomainEntity {
 
 export * from './events/event-bus';
 
+export * from './telemetry/index';
+export * from './telemetry/compat';
