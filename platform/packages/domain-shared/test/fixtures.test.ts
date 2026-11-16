@@ -5,11 +5,14 @@ describe('Master Database Seeder & Fixtures', () => {
     const seeder = new DatabaseSeederEngine();
     const summary = seeder.generateSummary();
 
-    expect(summary.shopsCount).toBeGreaterThanOrEqual(3);
-    expect(summary.barbersCount).toBeGreaterThanOrEqual(6);
-    expect(summary.clientsCount).toBeGreaterThanOrEqual(5);
-    expect(summary.servicesCount).toBeGreaterThanOrEqual(7);
-    expect(summary.inventoryCount).toBeGreaterThanOrEqual(4);
+    expect(summary.shopsCount).toBeGreaterThanOrEqual(4);
+    expect(summary.barbersCount).toBeGreaterThanOrEqual(8);
+    expect(summary.clientsCount).toBeGreaterThanOrEqual(8);
+    expect(summary.servicesCount).toBeGreaterThanOrEqual(9);
+    expect(summary.inventoryCount).toBeGreaterThanOrEqual(6);
+    expect(summary.promoCodesCount).toBeGreaterThanOrEqual(3);
+    expect(summary.appointmentsCount).toBeGreaterThanOrEqual(7);
+    expect(summary.reviewsCount).toBeGreaterThanOrEqual(3);
   });
 
   it('should maintain strict referential integrity across all entities', () => {
@@ -38,6 +41,10 @@ describe('Master Database Seeder & Fixtures', () => {
           status: 'ACTIVE',
           chairCount: 2,
           operatingHours: [],
+          phone: '+1-555-9999',
+          email: 'custom@apexbarbers.com',
+          coordinates: { lat: 34.0522, lng: -118.2437 },
+          amenities: ['Wi-Fi'],
         },
       ],
       barbers: [],
@@ -45,6 +52,7 @@ describe('Master Database Seeder & Fixtures', () => {
       appointments: [],
       reviews: [],
       inventory: [],
+      promoCodes: [],
     });
 
     const summary = customSeeder.generateSummary();

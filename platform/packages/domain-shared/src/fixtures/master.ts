@@ -19,6 +19,14 @@ export interface ShopLocation {
     openTime: string;
     closeTime: string;
   }[];
+  managerId?: string;
+  phone: string;
+  email: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  amenities: string[];
 }
 
 export interface BarberProfile {
@@ -30,13 +38,16 @@ export interface BarberProfile {
   phone: string;
   specialties: string[];
   tier: 'MASTER' | 'SENIOR' | 'JUNIOR' | 'APPRENTICE';
-  commissionRate: number; // e.g. 0.55
+  commissionRate: number; // e.g. 0.60
   rentalFeeWeekly: number;
   rating: number;
   reviewCount: number;
   status: 'ACTIVE' | 'ON_LEAVE' | 'TERMINATED';
   bio: string;
   workingDays: number[];
+  certifications: string[];
+  languagesSpoken: string[];
+  joinedDate: string;
 }
 
 export interface ClientProfile {
@@ -54,6 +65,9 @@ export interface ClientProfile {
   notes: string;
   birthday?: string;
   createdAt: Date;
+  loyaltyPoints: number;
+  preferredPaymentMethod?: 'APPLE_PAY' | 'GOOGLE_PAY' | 'CREDIT_CARD' | 'CASH';
+  marketingOptIn: boolean;
 }
 
 export interface ServiceItem {
@@ -65,6 +79,8 @@ export interface ServiceItem {
   description: string;
   isPopular: boolean;
   requiresPatchTest: boolean;
+  commissionEligible: boolean;
+  allowedTiers: ('MASTER' | 'SENIOR' | 'JUNIOR' | 'APPRENTICE')[];
 }
 
 export interface AppointmentRecord {
@@ -84,6 +100,8 @@ export interface AppointmentRecord {
   paymentStatus: 'PAID' | 'PENDING' | 'REFUNDED' | 'FAILED';
   paymentMethod?: 'APPLE_PAY' | 'GOOGLE_PAY' | 'CREDIT_CARD' | 'CASH' | 'GIFT_CARD';
   notes?: string;
+  cancellationReason?: string;
+  checkedInAt?: Date;
 }
 
 export interface ReviewRecord {
@@ -98,6 +116,7 @@ export interface ReviewRecord {
   sentiment: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';
   adminReply?: string;
   createdAt: Date;
+  verifiedVisit: boolean;
 }
 
 export interface InventoryItem {
@@ -105,12 +124,26 @@ export interface InventoryItem {
   shopId: string;
   sku: string;
   name: string;
-  category: 'POMADE' | 'BEARD_OIL' | 'SHAMPOO' | 'MERCH' | 'TOOL';
+  category: 'POMADE' | 'BEARD_OIL' | 'SHAMPOO' | 'MERCH' | 'TOOL' | 'FRAGRANCE';
   priceCents: number;
   costCents: number;
   stockQuantity: number;
   reorderThreshold: number;
   supplier: string;
+  locationInStore: string;
+}
+
+export interface PromoCodeRecord {
+  id: string;
+  code: string;
+  discountType: 'PERCENTAGE' | 'FIXED_CENTS';
+  discountValue: number; // e.g. 15 for 15% or 1000 for $10
+  minSpendCents: number;
+  validFrom: Date;
+  validUntil: Date;
+  maxUses: number;
+  currentUses: number;
+  isActive: boolean;
 }
 
 export interface MasterSeedDataset {
@@ -121,6 +154,7 @@ export interface MasterSeedDataset {
   appointments: AppointmentRecord[];
   reviews: ReviewRecord[];
   inventory: InventoryItem[];
+  promoCodes: PromoCodeRecord[];
 }
 
 // ==========================================
@@ -130,7 +164,7 @@ export interface MasterSeedDataset {
 export const SHOPS_FIXTURE: ShopLocation[] = [
   {
     id: 'shop-dt-01',
-    name: 'Downtown Apex Barbershop',
+    name: 'Downtown Apex Flagship',
     code: 'DT01',
     address: '100 Broadway St',
     city: 'Metropolis',
@@ -139,6 +173,10 @@ export const SHOPS_FIXTURE: ShopLocation[] = [
     timezone: 'America/New_York',
     status: 'ACTIVE',
     chairCount: 8,
+    phone: '+1-555-0100',
+    email: 'downtown@apexbarbers.com',
+    coordinates: { lat: 40.7090, lng: -74.0110 },
+    amenities: ['Espresso Bar', 'Whiskey Lounge', 'Valet Parking', 'Wi-Fi'],
     operatingHours: [
       { dayOfWeek: 1, openTime: '09:00', closeTime: '19:00' },
       { dayOfWeek: 2, openTime: '09:00', closeTime: '19:00' },
@@ -151,7 +189,7 @@ export const SHOPS_FIXTURE: ShopLocation[] = [
   },
   {
     id: 'shop-soho-02',
-    name: 'SoHo Craft Barbershop',
+    name: 'SoHo Craft Studio',
     code: 'SOHO2',
     address: '452 Prince St',
     city: 'Metropolis',
@@ -160,6 +198,10 @@ export const SHOPS_FIXTURE: ShopLocation[] = [
     timezone: 'America/New_York',
     status: 'ACTIVE',
     chairCount: 6,
+    phone: '+1-555-0200',
+    email: 'soho@apexbarbers.com',
+    coordinates: { lat: 40.7250, lng: -74.0000 },
+    amenities: ['Craft Beer Bar', 'Vinyl DJ Booth', 'Wi-Fi'],
     operatingHours: [
       { dayOfWeek: 1, openTime: '10:00', closeTime: '19:00' },
       { dayOfWeek: 2, openTime: '10:00', closeTime: '19:00' },
@@ -172,7 +214,7 @@ export const SHOPS_FIXTURE: ShopLocation[] = [
   },
   {
     id: 'shop-bk-03',
-    name: 'Brooklyn Heritage Cuts',
+    name: 'Brooklyn Heritage Barbershop',
     code: 'BK03',
     address: '78 Bedford Ave',
     city: 'Brooklyn',
@@ -181,6 +223,10 @@ export const SHOPS_FIXTURE: ShopLocation[] = [
     timezone: 'America/New_York',
     status: 'ACTIVE',
     chairCount: 5,
+    phone: '+1-555-0300',
+    email: 'brooklyn@apexbarbers.com',
+    coordinates: { lat: 40.7180, lng: -73.9570 },
+    amenities: ['Cold Brew Tap', 'Arcade Machine', 'Patio Seating'],
     operatingHours: [
       { dayOfWeek: 2, openTime: '09:00', closeTime: '19:00' },
       { dayOfWeek: 3, openTime: '09:00', closeTime: '19:00' },
@@ -189,6 +235,47 @@ export const SHOPS_FIXTURE: ShopLocation[] = [
       { dayOfWeek: 6, openTime: '08:00', closeTime: '18:00' },
       { dayOfWeek: 0, openTime: '10:00', closeTime: '16:00' },
     ],
+  },
+  {
+    id: 'shop-midtown-04',
+    name: 'Midtown Executive Club',
+    code: 'MID4',
+    address: '550 5th Ave',
+    city: 'Metropolis',
+    state: 'NY',
+    postalCode: '10036',
+    timezone: 'America/New_York',
+    status: 'ACTIVE',
+    chairCount: 10,
+    phone: '+1-555-0400',
+    email: 'midtown@apexbarbers.com',
+    coordinates: { lat: 40.7580, lng: -73.9855 },
+    amenities: ['Cigar Lounge', 'Private VIP Booths', 'Shoeshine Service', 'Boardroom'],
+    operatingHours: [
+      { dayOfWeek: 1, openTime: '08:00', closeTime: '20:00' },
+      { dayOfWeek: 2, openTime: '08:00', closeTime: '20:00' },
+      { dayOfWeek: 3, openTime: '08:00', closeTime: '20:00' },
+      { dayOfWeek: 4, openTime: '08:00', closeTime: '21:00' },
+      { dayOfWeek: 5, openTime: '08:00', closeTime: '21:00' },
+      { dayOfWeek: 6, openTime: '09:00', closeTime: '17:00' },
+    ],
+  },
+  {
+    id: 'shop-renov-05',
+    name: 'Westside Modern (Renovation)',
+    code: 'WEST5',
+    address: '120 West End Ave',
+    city: 'Metropolis',
+    state: 'NY',
+    postalCode: '10023',
+    timezone: 'America/New_York',
+    status: 'RENOVATION',
+    chairCount: 6,
+    phone: '+1-555-0500',
+    email: 'westside@apexbarbers.com',
+    coordinates: { lat: 40.7760, lng: -73.9870 },
+    amenities: ['Future Spa Suite', 'Smart Mirrors'],
+    operatingHours: [],
   },
 ];
 
@@ -202,6 +289,8 @@ export const SERVICES_FIXTURE: ServiceItem[] = [
     description: 'Precision scissor or clipper haircut, hot lather neck shave, and style finish.',
     isPopular: true,
     requiresPatchTest: false,
+    commissionEligible: true,
+    allowedTiers: ['MASTER', 'SENIOR', 'JUNIOR', 'APPRENTICE'],
   },
   {
     id: 'srv-fade-sculpt',
@@ -212,6 +301,8 @@ export const SERVICES_FIXTURE: ServiceItem[] = [
     description: 'Immaculate zero fade, beard trim with straight razor lineup, hot towel, and organic beard oil.',
     isPopular: true,
     requiresPatchTest: false,
+    commissionEligible: true,
+    allowedTiers: ['MASTER', 'SENIOR', 'JUNIOR'],
   },
   {
     id: 'srv-hot-towel-shave',
@@ -222,6 +313,8 @@ export const SERVICES_FIXTURE: ServiceItem[] = [
     description: 'Traditional multi-step hot towel treatment with pre-shave oil, warm lather, and soothing balm.',
     isPopular: false,
     requiresPatchTest: false,
+    commissionEligible: true,
+    allowedTiers: ['MASTER', 'SENIOR'],
   },
   {
     id: 'srv-beard-trim',
@@ -232,6 +325,8 @@ export const SERVICES_FIXTURE: ServiceItem[] = [
     description: 'Detailed beard sculpting, neckline cleanup, and conditioning balm application.',
     isPopular: true,
     requiresPatchTest: false,
+    commissionEligible: true,
+    allowedTiers: ['MASTER', 'SENIOR', 'JUNIOR', 'APPRENTICE'],
   },
   {
     id: 'srv-grey-blend',
@@ -242,6 +337,8 @@ export const SERVICES_FIXTURE: ServiceItem[] = [
     description: 'Subtle 10-minute professional grey camouflage treatment for a youthful, natural look.',
     isPopular: false,
     requiresPatchTest: true,
+    commissionEligible: true,
+    allowedTiers: ['MASTER', 'SENIOR'],
   },
   {
     id: 'srv-father-son',
@@ -252,6 +349,8 @@ export const SERVICES_FIXTURE: ServiceItem[] = [
     description: 'Side-by-side classic haircuts for dad and son (under 12).',
     isPopular: true,
     requiresPatchTest: false,
+    commissionEligible: true,
+    allowedTiers: ['MASTER', 'SENIOR', 'JUNIOR'],
   },
   {
     id: 'srv-scalp-treatment',
@@ -262,6 +361,32 @@ export const SERVICES_FIXTURE: ServiceItem[] = [
     description: 'Deep cleansing tea tree scalp scrub to stimulate follicles and relieve tension.',
     isPopular: false,
     requiresPatchTest: false,
+    commissionEligible: true,
+    allowedTiers: ['MASTER', 'SENIOR', 'JUNIOR', 'APPRENTICE'],
+  },
+  {
+    id: 'srv-executive-package',
+    name: 'The Executive Ultimate Spa Package',
+    category: 'COMBO',
+    durationMinutes: 90,
+    priceCents: 14000,
+    description: 'Includes haircut, beard sculpt, hot towel shave, facial massage, and premium styling products.',
+    isPopular: true,
+    requiresPatchTest: false,
+    commissionEligible: true,
+    allowedTiers: ['MASTER', 'SENIOR'],
+  },
+  {
+    id: 'srv-chemical-straighten',
+    name: 'Keratin Hair Smoothing Treatment',
+    category: 'CHEMICAL',
+    durationMinutes: 75,
+    priceCents: 15000,
+    description: 'Professional smoothing and frizz reduction treatment.',
+    isPopular: false,
+    requiresPatchTest: true,
+    commissionEligible: true,
+    allowedTiers: ['MASTER'],
   },
 ];
 
@@ -282,6 +407,9 @@ export const BARBERS_FIXTURE: BarberProfile[] = [
     status: 'ACTIVE',
     bio: 'Award-winning master barber with 12 years of craftsmanship in London and New York.',
     workingDays: [1, 2, 3, 4, 5],
+    certifications: ['Master Barber State License', 'Advanced Razor Safety Certified'],
+    languagesSpoken: ['English', 'French'],
+    joinedDate: '2021-03-15',
   },
   {
     id: 'barber-marcus',
@@ -299,6 +427,9 @@ export const BARBERS_FIXTURE: BarberProfile[] = [
     status: 'ACTIVE',
     bio: 'Master of hot towel shaves and bespoke beard architecture.',
     workingDays: [2, 3, 4, 5, 6],
+    certifications: ['Senior Barber License', 'Beard Styling Specialist'],
+    languagesSpoken: ['English', 'Spanish'],
+    joinedDate: '2022-06-10',
   },
   {
     id: 'barber-elena',
@@ -316,6 +447,9 @@ export const BARBERS_FIXTURE: BarberProfile[] = [
     status: 'ACTIVE',
     bio: 'Precision stylist specialising in modern textured crops and scissor styling.',
     workingDays: [1, 2, 4, 5, 6],
+    certifications: ['Master Stylist', 'Advanced Colorist Diploma'],
+    languagesSpoken: ['English', 'Russian'],
+    joinedDate: '2021-11-01',
   },
   {
     id: 'barber-jordan',
@@ -333,6 +467,9 @@ export const BARBERS_FIXTURE: BarberProfile[] = [
     status: 'ACTIVE',
     bio: 'High-energy rising star known for razor-sharp fades and contemporary freestyle designs.',
     workingDays: [3, 4, 5, 6, 0],
+    certifications: ['Junior Barber License'],
+    languagesSpoken: ['English'],
+    joinedDate: '2024-01-15',
   },
   {
     id: 'barber-dante',
@@ -350,6 +487,9 @@ export const BARBERS_FIXTURE: BarberProfile[] = [
     status: 'ACTIVE',
     bio: 'Third-generation barber bringing old-school Italian technique to Brooklyn.',
     workingDays: [2, 3, 4, 5, 6],
+    certifications: ['Master Barber License', 'Italian Shaving Masterclass'],
+    languagesSpoken: ['English', 'Italian'],
+    joinedDate: '2022-09-12',
   },
   {
     id: 'barber-chloe',
@@ -367,6 +507,49 @@ export const BARBERS_FIXTURE: BarberProfile[] = [
     status: 'ACTIVE',
     bio: 'Talented apprentice under master supervision with exceptional attention to detail.',
     workingDays: [3, 4, 5, 6, 0],
+    certifications: ['Apprentice License'],
+    languagesSpoken: ['English'],
+    joinedDate: '2025-04-01',
+  },
+  {
+    id: 'barber-victoria',
+    shopId: 'shop-midtown-04',
+    firstName: 'Victoria',
+    lastName: 'Sinclair',
+    email: 'victoria.sinclair@apexbarbers.com',
+    phone: '+1-555-0107',
+    specialties: ['Executive Styling', 'Hot Towel Rituals', 'Scalp Care'],
+    tier: 'MASTER',
+    commissionRate: 0.62,
+    rentalFeeWeekly: 400,
+    rating: 4.98,
+    reviewCount: 512,
+    status: 'ACTIVE',
+    bio: 'Renowned executive stylist serving Fortune 500 leaders and celebrities in Midtown.',
+    workingDays: [1, 2, 3, 4, 5],
+    certifications: ['Master Groomer Certification', 'Trichology Scalp Specialist'],
+    languagesSpoken: ['English', 'German'],
+    joinedDate: '2020-01-10',
+  },
+  {
+    id: 'barber-liam',
+    shopId: 'shop-midtown-04',
+    firstName: 'Liam',
+    lastName: 'O’Neill',
+    email: 'liam.oneill@apexbarbers.com',
+    phone: '+1-555-0108',
+    specialties: ['Modern Pompadours', 'Scissor Crops', 'Beard Grooming'],
+    tier: 'SENIOR',
+    commissionRate: 0.58,
+    rentalFeeWeekly: 320,
+    rating: 4.89,
+    reviewCount: 190,
+    status: 'ACTIVE',
+    bio: 'Sharp dresser and meticulous craftsman specialising in timeless gentleman cuts.',
+    workingDays: [2, 3, 4, 5, 6],
+    certifications: ['Senior Barber License'],
+    languagesSpoken: ['English', 'Irish'],
+    joinedDate: '2023-05-18',
   },
 ];
 
@@ -386,6 +569,9 @@ export const CLIENTS_FIXTURE: ClientProfile[] = [
     notes: 'Prefers espresso with oat milk. High top skin fade every 2 weeks sharp.',
     birthday: '1985-04-12',
     createdAt: new Date('2023-01-15T10:00:00Z'),
+    loyaltyPoints: 1420,
+    preferredPaymentMethod: 'APPLE_PAY',
+    marketingOptIn: true,
   },
   {
     id: 'client-002',
@@ -402,6 +588,9 @@ export const CLIENTS_FIXTURE: ClientProfile[] = [
     notes: 'Sensitive skin. Uses alcohol-free post-shave balm only.',
     birthday: '1992-09-24',
     createdAt: new Date('2023-05-20T14:30:00Z'),
+    loyaltyPoints: 680,
+    preferredPaymentMethod: 'GOOGLE_PAY',
+    marketingOptIn: true,
   },
   {
     id: 'client-003',
@@ -418,6 +607,9 @@ export const CLIENTS_FIXTURE: ClientProfile[] = [
     notes: 'Usually books last minute on Thursdays.',
     birthday: '1998-11-03',
     createdAt: new Date('2024-02-10T09:15:00Z'),
+    loyaltyPoints: 210,
+    preferredPaymentMethod: 'CREDIT_CARD',
+    marketingOptIn: false,
   },
   {
     id: 'client-004',
@@ -434,6 +626,9 @@ export const CLIENTS_FIXTURE: ClientProfile[] = [
     notes: 'First time visitor. Interested in low fade.',
     birthday: '2001-07-19',
     createdAt: new Date('2026-11-10T11:00:00Z'),
+    loyaltyPoints: 75,
+    preferredPaymentMethod: 'APPLE_PAY',
+    marketingOptIn: true,
   },
   {
     id: 'client-005',
@@ -450,6 +645,66 @@ export const CLIENTS_FIXTURE: ClientProfile[] = [
     notes: 'Has not visited in over 90 days. Send re-engagement promo.',
     birthday: '1988-12-30',
     createdAt: new Date('2023-08-05T16:00:00Z'),
+    loyaltyPoints: 400,
+    preferredPaymentMethod: 'CREDIT_CARD',
+    marketingOptIn: false,
+  },
+  {
+    id: 'client-006',
+    firstName: 'Marcus',
+    lastName: 'Aurelius',
+    email: 'marcus.aurelius@example.com',
+    phone: '+1-555-2006',
+    tier: 'VIP',
+    totalVisits: 45,
+    totalSpentCents: 420000,
+    noShowCount: 0,
+    cancellationCount: 0,
+    preferredBarberId: 'barber-victoria',
+    notes: 'Executive client. Always requests complimentary scotch and scalp massage.',
+    birthday: '1975-03-20',
+    createdAt: new Date('2022-02-10T10:00:00Z'),
+    loyaltyPoints: 2150,
+    preferredPaymentMethod: 'CREDIT_CARD',
+    marketingOptIn: true,
+  },
+  {
+    id: 'client-007',
+    firstName: 'Sophia',
+    lastName: 'Martinez',
+    email: 'sophia.martinez@example.com',
+    phone: '+1-555-2007',
+    tier: 'LOYAL',
+    totalVisits: 14,
+    totalSpentCents: 110000,
+    noShowCount: 0,
+    cancellationCount: 1,
+    preferredBarberId: 'barber-elena',
+    notes: 'Books father & son appointments regularly.',
+    birthday: '1990-08-14',
+    createdAt: new Date('2023-10-12T12:00:00Z'),
+    loyaltyPoints: 550,
+    preferredPaymentMethod: 'APPLE_PAY',
+    marketingOptIn: true,
+  },
+  {
+    id: 'client-008',
+    firstName: 'Ethan',
+    lastName: 'Hunt',
+    email: 'ethan.hunt@example.com',
+    phone: '+1-555-2008',
+    tier: 'REGULAR',
+    totalVisits: 6,
+    totalSpentCents: 38000,
+    noShowCount: 0,
+    cancellationCount: 0,
+    preferredBarberId: 'barber-liam',
+    notes: 'Prefers quiet appointments.',
+    birthday: '1982-11-30',
+    createdAt: new Date('2025-01-05T09:00:00Z'),
+    loyaltyPoints: 190,
+    preferredPaymentMethod: 'GOOGLE_PAY',
+    marketingOptIn: false,
   },
 ];
 
@@ -465,6 +720,7 @@ export const INVENTORY_FIXTURE: InventoryItem[] = [
     stockQuantity: 42,
     reorderThreshold: 10,
     supplier: 'Apex Grooming Labs',
+    locationInStore: 'Shelf A1 - Front Display',
   },
   {
     id: 'inv-oil-02',
@@ -477,6 +733,7 @@ export const INVENTORY_FIXTURE: InventoryItem[] = [
     stockQuantity: 18,
     reorderThreshold: 5,
     supplier: 'Apex Grooming Labs',
+    locationInStore: 'Shelf A2 - Register Counter',
   },
   {
     id: 'inv-shampoo-03',
@@ -489,6 +746,7 @@ export const INVENTORY_FIXTURE: InventoryItem[] = [
     stockQuantity: 25,
     reorderThreshold: 8,
     supplier: 'Botanical Haircare Co',
+    locationInStore: 'Station B - Backwall',
   },
   {
     id: 'inv-merch-04',
@@ -501,6 +759,33 @@ export const INVENTORY_FIXTURE: InventoryItem[] = [
     stockQuantity: 14,
     reorderThreshold: 4,
     supplier: 'Brooklyn Threads',
+    locationInStore: 'Merch Stand C',
+  },
+  {
+    id: 'inv-tool-05',
+    shopId: 'shop-midtown-04',
+    sku: 'APEX-RAZOR-PRO',
+    name: 'Apex Pro Straight Razor Holder',
+    category: 'TOOL',
+    priceCents: 4500,
+    costCents: 1800,
+    stockQuantity: 8,
+    reorderThreshold: 3,
+    supplier: 'Japanese Steelcraft',
+    locationInStore: 'Back Cabinet Safe',
+  },
+  {
+    id: 'inv-fragrance-06',
+    shopId: 'shop-midtown-04',
+    sku: 'APEX-COLOGNE-01',
+    name: 'Eau de Cologne - Vetiver & Tobacco (50ml)',
+    category: 'FRAGRANCE',
+    priceCents: 6500,
+    costCents: 2500,
+    stockQuantity: 12,
+    reorderThreshold: 4,
+    supplier: 'Aromatics NYC',
+    locationInStore: 'Display Case 1',
   },
 ];
 
@@ -522,6 +807,7 @@ export const APPOINTMENTS_FIXTURE: AppointmentRecord[] = [
     paymentStatus: 'PAID',
     paymentMethod: 'APPLE_PAY',
     notes: 'Regular fortnightly cut.',
+    checkedInAt: new Date('2026-11-14T09:55:00Z'),
   },
   {
     id: 'apt-1002',
@@ -540,6 +826,7 @@ export const APPOINTMENTS_FIXTURE: AppointmentRecord[] = [
     paymentStatus: 'PAID',
     paymentMethod: 'GOOGLE_PAY',
     notes: 'Skin fade and beard trim.',
+    checkedInAt: new Date('2026-11-14T10:52:00Z'),
   },
   {
     id: 'apt-1003',
@@ -559,6 +846,77 @@ export const APPOINTMENTS_FIXTURE: AppointmentRecord[] = [
     paymentMethod: 'CREDIT_CARD',
     notes: 'Adding scalp massage.',
   },
+  {
+    id: 'apt-1004',
+    shopId: 'shop-midtown-04',
+    clientId: 'client-006',
+    barberId: 'barber-victoria',
+    serviceIds: ['srv-executive-package'],
+    status: 'CONFIRMED',
+    startTime: new Date('2026-11-17T15:00:00Z'),
+    endTime: new Date('2026-11-17T16:30:00Z'),
+    subtotalCents: 14000,
+    discountCents: 1400,
+    tipCents: 3000,
+    taxCents: 1134,
+    totalCents: 16734,
+    paymentStatus: 'PAID',
+    paymentMethod: 'CREDIT_CARD',
+    notes: 'VIP guest. Prepare single malt scotch.',
+  },
+  {
+    id: 'apt-1005',
+    shopId: 'shop-bk-03',
+    clientId: 'client-007',
+    barberId: 'barber-dante',
+    serviceIds: ['srv-father-son'],
+    status: 'IN_PROGRESS',
+    startTime: new Date('2026-11-16T11:00:00Z'),
+    endTime: new Date('2026-11-16T12:00:00Z'),
+    subtotalCents: 8000,
+    discountCents: 0,
+    tipCents: 1500,
+    taxCents: 720,
+    totalCents: 10220,
+    paymentStatus: 'PAID',
+    paymentMethod: 'APPLE_PAY',
+    notes: 'Father and 8-year-old son side by side.',
+    checkedInAt: new Date('2026-11-16T10:50:00Z'),
+  },
+  {
+    id: 'apt-1006',
+    shopId: 'shop-dt-01',
+    clientId: 'client-005',
+    barberId: 'barber-alex',
+    serviceIds: ['srv-classic-cut'],
+    status: 'NO_SHOW',
+    startTime: new Date('2026-11-10T16:00:00Z'),
+    endTime: new Date('2026-11-10T16:30:00Z'),
+    subtotalCents: 4500,
+    discountCents: 0,
+    tipCents: 0,
+    taxCents: 405,
+    totalCents: 4905,
+    paymentStatus: 'FAILED',
+    notes: 'Client failed to show up without prior notice.',
+  },
+  {
+    id: 'apt-1007',
+    shopId: 'shop-soho-02',
+    clientId: 'client-003',
+    barberId: 'barber-jordan',
+    serviceIds: ['srv-fade-sculpt'],
+    status: 'CANCELLED',
+    startTime: new Date('2026-11-12T13:00:00Z'),
+    endTime: new Date('2026-11-12T13:55:00Z'),
+    subtotalCents: 7500,
+    discountCents: 0,
+    tipCents: 0,
+    taxCents: 0,
+    totalCents: 7500,
+    paymentStatus: 'REFUNDED',
+    cancellationReason: 'Client called in sick 4 hours prior.',
+  },
 ];
 
 export const REVIEWS_FIXTURE: ReviewRecord[] = [
@@ -574,6 +932,7 @@ export const REVIEWS_FIXTURE: ReviewRecord[] = [
     sentiment: 'POSITIVE',
     adminReply: 'Thanks Harrison! Always a pleasure having you in the chair.',
     createdAt: new Date('2026-11-14T11:00:00Z'),
+    verifiedVisit: true,
   },
   {
     id: 'rev-02',
@@ -587,12 +946,62 @@ export const REVIEWS_FIXTURE: ReviewRecord[] = [
     sentiment: 'POSITIVE',
     adminReply: 'Thank you Julian! Marcus takes immense pride in his craft.',
     createdAt: new Date('2026-11-14T12:30:00Z'),
+    verifiedVisit: true,
+  },
+  {
+    id: 'rev-03',
+    appointmentId: 'apt-1004',
+    clientId: 'client-006',
+    barberId: 'barber-victoria',
+    shopId: 'shop-midtown-04',
+    rating: 5,
+    comment: 'Victoria provides absolute world-class executive service. Immaculate lounge.',
+    category: 'CLEANLINESS',
+    sentiment: 'POSITIVE',
+    adminReply: 'Thank you Mr. Aurelius. It is our utmost honor to serve you.',
+    createdAt: new Date('2026-11-15T10:00:00Z'),
+    verifiedVisit: true,
   },
 ];
 
-// ==========================================
-// FACTORIES & SEEDER ENGINE
-// ==========================================
+export const PROMO_CODES_FIXTURE: PromoCodeRecord[] = [
+  {
+    id: 'promo-welcome15',
+    code: 'WELCOME15',
+    discountType: 'PERCENTAGE',
+    discountValue: 15,
+    minSpendCents: 4000,
+    validFrom: new Date('2026-01-01T00:00:00Z'),
+    validUntil: new Date('2026-12-31T23:59:59Z'),
+    maxUses: 1000,
+    currentUses: 342,
+    isActive: true,
+  },
+  {
+    id: 'promo-vip20',
+    code: 'VIP20OFF',
+    discountType: 'PERCENTAGE',
+    discountValue: 20,
+    minSpendCents: 8000,
+    validFrom: new Date('2026-06-01T00:00:00Z'),
+    validUntil: new Date('2026-12-31T23:59:59Z'),
+    maxUses: 250,
+    currentUses: 88,
+    isActive: true,
+  },
+  {
+    id: 'promo-summer10',
+    code: 'SUMMER10',
+    discountType: 'FIXED_CENTS',
+    discountValue: 1000,
+    minSpendCents: 5000,
+    validFrom: new Date('2026-06-01T00:00:00Z'),
+    validUntil: new Date('2026-09-01T00:00:00Z'),
+    maxUses: 500,
+    currentUses: 500,
+    isActive: false,
+  },
+];
 
 export class DatabaseSeederEngine {
   private dataset: MasterSeedDataset;
@@ -606,6 +1015,7 @@ export class DatabaseSeederEngine {
       appointments: [...APPOINTMENTS_FIXTURE],
       reviews: [...REVIEWS_FIXTURE],
       inventory: [...INVENTORY_FIXTURE],
+      promoCodes: [...PROMO_CODES_FIXTURE],
       ...customDataset,
     };
   }
@@ -620,6 +1030,7 @@ export class DatabaseSeederEngine {
     const barberIds = new Set(this.dataset.barbers.map(b => b.id));
     const clientIds = new Set(this.dataset.clients.map(c => c.id));
     const serviceIds = new Set(this.dataset.services.map(s => s.id));
+    const appointmentIds = new Set(this.dataset.appointments.map(a => a.id));
 
     // Validate Barbers shop link
     for (const barber of this.dataset.barbers) {
@@ -664,6 +1075,9 @@ export class DatabaseSeederEngine {
       if (!shopIds.has(rev.shopId)) {
         errors.push(`Review ${rev.id} references invalid shopId ${rev.shopId}`);
       }
+      if (!appointmentIds.has(rev.appointmentId)) {
+        errors.push(`Review ${rev.id} references invalid appointmentId ${rev.appointmentId}`);
+      }
     }
 
     return {
@@ -680,6 +1094,7 @@ export class DatabaseSeederEngine {
     appointmentsCount: number;
     reviewsCount: number;
     inventoryCount: number;
+    promoCodesCount: number;
   } {
     return {
       shopsCount: this.dataset.locations.length,
@@ -689,6 +1104,7 @@ export class DatabaseSeederEngine {
       appointmentsCount: this.dataset.appointments.length,
       reviewsCount: this.dataset.reviews.length,
       inventoryCount: this.dataset.inventory.length,
+      promoCodesCount: this.dataset.promoCodes.length,
     };
   }
 }
