@@ -1,78 +1,77 @@
 import { BarberProductivityEngine, ChairUtilizationRecord, ServiceDurationEstimate, CommissionPayoutItem } from '../src/index';
 
 describe('BarberProductivityEngine', () => {
-  const engine = new BarberProductivityEngine();
+  let engine: BarberProductivityEngine;
 
-  test('calculates chair utilization and efficiency score accurately', () => {
-    const record: ChairUtilizationRecord = {
-      barberId: 'barber-1',
-      chairId: 'chair-02',
-      date: '2026-11-20',
-      totalMinutesAvailable: 480, // 8 hours
-      totalMinutesBooked: 360,     // 6 hours
-      walkInMinutesBooked: 45,     // 45 mins walk-ins
-      breakMinutes: 45             // 45 mins break
-    };
-
-    // Active working minutes = 480 - 45 = 435 mins
-    // Total booked = 360 + 45 = 405 mins
-    // Utilization rate = (405 / 435) * 100 = 93.10%
-    const res = engine.calculateChairUtilization(record);
-    expect(res.utilizationRate).toBe(93.1);
-    expect(res.idleMinutes).toBe(30);
-    expect(res.efficiencyScore).toBe('Elite / High Demand');
+  beforeEach(() => {
+    engine = new BarberProductivityEngine();
   });
 
-  test('optimizes service duration based on historical telemetry', () => {
-    const estimate: ServiceDurationEstimate = {
-      serviceId: 'fade-haircut',
-      serviceName: 'Signature Fade & Styling',
-      baseDurationMinutes: 30,
-      historicalAverageMinutes: 33.5,
-      adjustmentFactor: 1.05 // slightly longer execution observed
+  test('calculates chair utilization and efficiency score correctly', () => {
+    const record: ChairUtilizationRecord = {
+      barberId: 'b-01',
+      chairId: 'c-05',
+      date: '2026-11-16',
+      totalMinutesAvailable: 480, // 8 hours
+      totalMinutesBooked: 360,
+      walkInMinutesBooked: 60,
+      breakMinutes: 60,
     };
 
-    // 33.5 * 1.05 = 35.175 -> rounded to nearest 5 = 35 mins
+    const result = engine.calculateChairUtilization(record);
+    // Active available = 480 - 60 = 420
+    // Total booked = 360 + 60 = 420 -> 100% utilization
+    expect(result.utilizationRate).toBe(100);
+    expect(result.idleMinutes).toBe(0);
+    expect(result.efficiencyScore).toBe('Elite / High Demand');
+  });
+
+  test('optimizes service duration based on telemetry', () => {
+    const estimate: ServiceDurationEstimate = {
+      serviceId: 's-fade',
+      serviceName: 'Skin Fade',
+      baseDurationMinutes: 30,
+      historicalAverageMinutes: 32,
+      adjustmentFactor: 1.1, // 35.2 mins -> rounds to 35
+    };
+
     const res = engine.optimizeServiceDuration(estimate);
     expect(res.recommendedDurationMinutes).toBe(35);
     expect(res.varianceMinutes).toBe(5);
   });
 
-  test('calculates commission and payout with retail commission and rental fee', () => {
+  test('calculates commission and net payout correctly', () => {
     const item: CommissionPayoutItem = {
-      barberId: 'barber-1',
-      barberName: 'Marcus Vance',
-      serviceRevenue: 1200,
-      productRevenue: 300,
-      tipTotal: 250,
-      baseCommissionRate: 0.55, // 55% service commission
-      retailCommissionRate: 0.15, // 15% retail commission
-      chairRentalFee: 150,
-      bonusMultiplier: 1.1 // 10% performance bonus on services
+      barberId: 'b-01',
+      barberName: 'Alex Fade',
+      serviceRevenue: 1000,
+      productRevenue: 200,
+      tipTotal: 150,
+      baseCommissionRate: 0.50, // $500
+      retailCommissionRate: 0.15, // $30
+      chairRentalFee: 100,
+      bonusMultiplier: 1.05, // 5% bonus on service commission -> $525
     };
 
-    // Service commission = 1200 * 0.55 * 1.1 = 726.0
-    // Retail commission = 300 * 0.15 = 45.0
-    // Gross earnings = 726 + 45 + 250 = 1021.0
-    // Final payout = 1021 - 150 = 871.0
-    const res = engine.calculateCommissionPayout(item);
-    expect(res.netCommission).toBe(1021);
-    expect(res.finalPayout).toBe(871);
+    const payout = engine.calculateCommissionPayout(item);
+    // serviceCommission = 1000 * 0.50 * 1.05 = 525
+    // retailCommission = 200 * 0.15 = 30
+    // gross = 525 + 30 + 150 = 705
+    // finalPayout = 705 - 100 = 605
+    expect(payout.netCommission).toBe(705);
+    expect(payout.finalPayout).toBe(605);
   });
 
   test('optimizes schedule gaps to minimize idle time', () => {
     const gaps = [
       { slotStart: '10:00', durationMinutes: 20 },
-      { slotStart: '12:30', durationMinutes: 45 },
-      { slotStart: '14:15', durationMinutes: 30 }
+      { slotStart: '11:00', durationMinutes: 45 },
+      { slotStart: '13:00', durationMinutes: 30 },
     ];
 
-    // Target service duration: 30 mins
-    // Gaps >= 30: 12:30 (45 mins, remainder 15), 14:15 (30 mins, remainder 0)
-    // Best fit with minimal remainder is 14:15 (remainder 0)
-    const best = engine.optimizeScheduleGaps(gaps, 30);
-    expect(best).not.toBeNull();
-    expect(best?.recommendedSlotStart).toBe('14:15');
-    expect(best?.gapMinutes).toBe(30);
+    const optimal = engine.optimizeScheduleGaps(gaps, 30);
+    expect(optimal).not.toBeNull();
+    expect(optimal?.recommendedSlotStart).toBe('13:00'); // 30 min gap fits 30 min service with 0 remainder (best fit)
+    expect(optimal?.gapMinutes).toBe(30);
   });
 });
