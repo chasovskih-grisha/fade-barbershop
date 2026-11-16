@@ -339,3 +339,107 @@ export const CustomerBookingFlow: React.FC<CustomerBookingFlowProps> = ({
     </div>
   );
 };
+
+export interface SocialProofBannerProps {
+  clientName: string;
+  clientTitle?: string;
+  service: string;
+  rating: number;
+  quote?: string;
+  className?: string;
+}
+
+export const SocialProofBanner: React.FC<SocialProofBannerProps> = ({
+  clientName,
+  clientTitle = 'Verified FADE Client',
+  service,
+  rating = 5,
+  quote = 'Absolute masterclass in grooming and precision. The ambiance and craftsmanship are second to none.',
+  className = ''
+}) => {
+  return (
+    <div className={`bg-gradient-to-r from-zinc-900 via-zinc-950 to-zinc-900 text-white p-6 rounded-2xl shadow-xl border border-zinc-800/80 ${className}`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-1 text-amber-400 text-sm">
+          {Array.from({ length: rating }).map((_, i) => (
+            <span key={i}>★</span>
+          ))}
+          <span className="ml-2 text-xs font-bold text-zinc-300 bg-zinc-800/80 px-2 py-0.5 rounded-full border border-zinc-700/50">Verified Review</span>
+        </div>
+        <span className="text-xs text-emerald-400 font-semibold bg-emerald-950/50 px-2.5 py-1 rounded-md border border-emerald-800/40">{service}</span>
+      </div>
+      <p className="text-sm italic text-zinc-200 mb-4 leading-relaxed">"{quote}"</p>
+      <div className="flex items-center justify-between text-xs border-t border-zinc-800/80 pt-3">
+        <span className="font-bold text-white">{clientName}</span>
+        <span className="text-zinc-400 font-medium">{clientTitle}</span>
+      </div>
+    </div>
+  );
+};
+
+export const ConversionTrustGrid: React.FC<{ className?: string }> = ({ className = '' }) => {
+  const trustItems = [
+    { title: 'Satisfaction Guaranteed', description: 'Expert master barbers with 10+ years of precision craftsmanship.', metric: '100% Quality' },
+    { title: '5-Star Client Rating', description: 'Over 15,000 satisfied gentlemen and professionals styled.', metric: '4.98 / 5.0' },
+    { title: 'Seamless Booking', description: 'Instant online appointments with zero wait times.', metric: 'Under 60s' },
+  ];
+
+  return (
+    <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 ${className}`}>
+      {trustItems.map((item, idx) => (
+        <div key={idx} className="bg-white border border-zinc-200/90 p-6 rounded-2xl shadow-md hover:shadow-lg transition-all">
+          <div className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md inline-block mb-3 border border-emerald-200">{item.metric}</div>
+          <h4 className="font-bold text-sm text-zinc-900 mb-1">{item.title}</h4>
+          <p className="text-xs text-zinc-600 leading-relaxed">{item.description}</p>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export interface ReferralInviteWidgetProps {
+  clientName: string;
+  referralCode: string;
+  className?: string;
+  onCopyCode?: () => void;
+}
+
+export const ReferralInviteWidget: React.FC<ReferralInviteWidgetProps> = ({
+  clientName,
+  referralCode,
+  className = '',
+  onCopyCode
+}) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(referralCode);
+    setCopied(true);
+    onCopyCode?.();
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div className={`bg-gradient-to-br from-emerald-950 via-zinc-950 to-zinc-900 text-white p-7 rounded-3xl shadow-xl border border-emerald-800/40 ${className}`}>
+      <span className="bg-emerald-400 text-zinc-950 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full">Referral Rewards</span>
+      <h3 className="text-lg font-extrabold mt-3 mb-1 text-white">Refer Friends & Earn Credit</h3>
+      <p className="text-xs text-zinc-300 mb-5 leading-relaxed">
+        Give friends $10 off their first FADE haircut and earn $15 credit + 150 loyalty points when they complete their appointment.
+      </p>
+      <div className="bg-zinc-900/90 border border-zinc-800 p-3.5 rounded-2xl flex items-center justify-between">
+        <div>
+          <span className="text-[10px] uppercase font-bold text-zinc-400 block mb-0.5">Your Exclusive Code</span>
+          <span className="font-mono text-sm font-extrabold text-emerald-400">{referralCode}</span>
+        </div>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+        >
+          {copied ? '✓ Copied!' : 'Copy Code'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
