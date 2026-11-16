@@ -39,3 +39,18 @@ describe('ContentMediaManager', () => {
     expect(manager.getGalleryItems('taper-fade').length).toBe(1);
   });
 });
+
+import { EnhancedContentMediaManager } from '../src/index';
+
+describe('EnhancedContentMediaManager Analytics', () => {
+  it('tracks media impressions and calculates engagement rates', () => {
+    const manager = new EnhancedContentMediaManager();
+    manager.trackMediaImpression('gal-1');
+    manager.trackMediaImpression('gal-1');
+    manager.trackMediaImpression('gal-1');
+
+    const analytics = manager.getMediaAnalytics('gal-1');
+    expect(analytics.impressions).toBe(3);
+    expect(analytics.engagementRate).toBeGreaterThan(0);
+  });
+});

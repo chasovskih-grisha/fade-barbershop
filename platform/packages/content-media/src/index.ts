@@ -199,3 +199,26 @@ export class DefaultContentMediaManager implements ContentMediaManager {
     return item;
   }
 }
+
+export interface ContentMediaAnalytics {
+  trackMediaImpression(mediaId: string): void;
+  getMediaAnalytics(mediaId: string): { impressions: number; engagementRate: number };
+}
+
+export class EnhancedContentMediaManager extends DefaultContentMediaManager implements ContentMediaAnalytics {
+  private impressions: Map<string, number> = new Map();
+
+  trackMediaImpression(mediaId: string): void {
+    const current = this.impressions.get(mediaId) || 0;
+    this.impressions.set(mediaId, current + 1);
+  }
+
+  getMediaAnalytics(mediaId: string): { impressions: number; engagementRate: number } {
+    const impressions = this.impressions.get(mediaId) || 0;
+    const items = this.getGalleryItems();
+    const item = items.find(i => i.id === mediaId);
+    const likes = item ? item.likesCount : 0;
+    const engagementRate = impressions > 0 ? Number((likes / impressions).toFixed(2)) : 0;
+    return { impressions, engagementRate };
+  }
+}

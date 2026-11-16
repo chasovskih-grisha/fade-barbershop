@@ -32,23 +32,33 @@ describe('LoyaltyMembershipEngine', () => {
     expect(engine.calculatePointsEarned('VIP', 50)).toBe(1000);
   });
 
-  test('processes checkout with membership plan and point redemption', () => {
+  test('processes checkout with membership plan, point redemption, and birthday bonus', () => {
     testMember.activeMembershipId = 'plan_gold';
-    testMember.pointsBalance = 300;
+    testMember.pointsBalance = 500;
 
     const result = engine.processCheckout(testMember, {
       memberId: testMember.id,
       subtotal: 100,
       serviceCodes: ['SIGNATURE_CUT'],
-      pointsToRedeem: 200
+      pointsToRedeem: 200,
+      isBirthdayBonusEligible: true
     });
 
     expect(result.subtotal).toBe(100);
     expect(result.discountAmount).toBe(35); // 15% plan discount ($15) + 200 points ($20) = $35
     expect(result.pointsRedeemed).toBe(200);
+    expect(result.birthdayBonusPoints).toBe(500);
     expect(result.finalTotal).toBe(65);
     expect(result.tierApplied).toBe('GOLD');
-    expect(result.perksApplied.length).toBeGreaterThan(0);
+    expect(result.perksApplied).toContain('Birthday Bonus: +500 Bonus Points Awarded!');
+  });
+
+  test('processes customer referral correctly', () => {
+    const ref = engine.processReferral('mem_123', 'mem_999');
+    expect(ref.referrerMemberId).toBe('mem_123');
+    expect(ref.referredMemberId).toBe('mem_999');
+    expect(ref.rewardPointsGranted).toBe(250);
+    expect(ref.status).toBe('COMPLETED');
   });
 
   test('manages gift card creation and redemption', () => {
