@@ -1,0 +1,13 @@
+---
+description: Run terminal commands non-interactively so agents are not blocked by yes/no prompts
+alwaysApply: true
+---
+
+# Non-interactive commands
+
+Do not leave a command waiting on stdin. Confirmation prompts such as `Ok to proceed? (y)` block the agent.
+
+- `npx` and `npm`: pass `--yes` (`npx --yes jest …`). `yes=true` is already set in `.npmrc` and the user npm config, so a bare `npx` also proceeds.
+- `pnpm` and `pnpm dlx`: pass `--yes` whenever the command can prompt.
+- Do not start watch or other interactive modes (`jest --watch`, a REPL) unless the user asked for that.
+- If a command still prints a yes/no prompt, stop it and rerun with the yes flag. Do not wait for someone to type `y`.
