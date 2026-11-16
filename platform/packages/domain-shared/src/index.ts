@@ -3,3 +3,6 @@ export interface DomainEntity {
   createdAt: number;
   updatedAt: number;
 }
+
+export * from './events/event-bus';
+
