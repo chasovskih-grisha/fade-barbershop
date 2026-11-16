@@ -62,9 +62,23 @@ export interface BarberScorecard {
   performanceTier: 'ELITE' | 'STANDARD' | 'NEEDS_COACHING';
 }
 
+export interface EscalationTicket {
+  id: string;
+  reviewId: string;
+  barberId: string;
+  clientId: string;
+  severity: 'HIGH' | 'MEDIUM' | 'LOW';
+  assignedManager: string;
+  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'BREACHED';
+  createdAt: Date;
+  slaDeadline: Date;
+  resolutionNotes?: string;
+}
+
 export class ReputationEngine {
   private reviews: Review[] = [];
   private competitors: CompetitorData[] = [];
+  private escalationTickets: EscalationTicket[] = [];
 
   /**
    * Analyzes text and extracts sentiment and thematic tags.
@@ -357,5 +371,90 @@ export class ReputationEngine {
       offerCode,
       message: `Dear Client, we sincerely apologize for your recent experience at FADE. Please accept this complimentary 50% discount on your next visit (Code: ${offerCode}) with our Master Barber.`
     };
+  }
+
+  /**
+   * Creates an escalation ticket for negative or flagged reviews with SLA tracking.
+   */
+  public createEscalationTicket(reviewId: string, managerId: string, severity: 'HIGH' | 'MEDIUM' | 'LOW' = 'MEDIUM'): EscalationTicket | null {
+    const review = this.reviews.find(r => r.id === reviewId);
+    if (!review) return null;
+
+    const createdAt = review.createdAt;
+    const hoursToAdd = severity === 'HIGH' ? 12 : severity === 'MEDIUM' ? 24 : 48;
+    const slaDeadline = new Date(createdAt.getTime() + hoursToAdd * 3600 * 1000);
+
+    const ticket: EscalationTicket = {
+      id: `esc_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      reviewId,
+      barberId: review.barberId,
+      clientId: review.clientId,
+      severity,
+      assignedManager: managerId,
+      status: 'OPEN',
+      createdAt,
+      slaDeadline
+    };
+
+    this.escalationTickets.push(ticket);
+    return ticket;
+  }
+
+  /**
+   * Resolves an escalation ticket.
+   */
+  public resolveEscalationTicket(ticketId: string, resolutionNotes: string): boolean {
+    const ticket = this.escalationTickets.find(t => t.id === ticketId);
+    if (!ticket || ticket.status === 'RESOLVED' || ticket.status === 'BREACHED') return false;
+
+    ticket.status = 'RESOLVED';
+    ticket.resolutionNotes = resolutionNotes;
+    return true;
+  }
+
+  /**
+   * Checks open tickets against current time and marks breached ones. Returns count of newly breached tickets.
+   */
+  public checkSLABreaches(currentTime: Date = new Date()): number {
+    let breachedCount = 0;
+    for (const ticket of this.escalationTickets) {
+      if (ticket.status === 'OPEN' || ticket.status === 'IN_PROGRESS') {
+        if (currentTime > ticket.slaDeadline) {
+          ticket.status = 'BREACHED';
+          breachedCount++;
+        }
+      }
+    }
+    return breachedCount;
+  }
+
+  /**
+   * Predicts client churn risk based on review history and sentiment.
+   */
+  public predictClientChurnRisk(clientId: string): { riskLevel: 'HIGH' | 'MEDIUM' | 'LOW'; riskScore: number; recommendation: string } {
+    const clientReviews = this.reviews.filter(r => r.clientId === clientId);
+    if (clientReviews.length === 0) {
+      return { riskLevel: 'LOW', riskScore: 0, recommendation: 'No negative feedback history.' };
+    }
+
+    const negativeCount = clientReviews.filter(r => r.sentiment === 'NEGATIVE' || r.rating <= 2).length;
+    const neutralCount = clientReviews.filter(r => r.rating === 3).length;
+    const unrespondedNegatives = clientReviews.filter(r => (r.sentiment === 'NEGATIVE' || r.rating <= 3) && !r.responded).length;
+
+    let riskScore = (negativeCount * 40) + (neutralCount * 15) + (unrespondedNegatives * 20);
+    riskScore = Math.min(100, Math.max(0, riskScore));
+
+    let riskLevel: 'HIGH' | 'MEDIUM' | 'LOW' = 'LOW';
+    if (riskScore >= 50) riskLevel = 'HIGH';
+    else if (riskScore >= 25) riskLevel = 'MEDIUM';
+
+    let recommendation = 'Standard retention cadence.';
+    if (riskLevel === 'HIGH') {
+      recommendation = 'Urgent manager outreach and win-back discount required to prevent churn.';
+    } else if (riskLevel === 'MEDIUM') {
+      recommendation = 'Send personalized check-in message on next booking.';
+    }
+
+    return { riskLevel, riskScore, recommendation };
   }
 }
