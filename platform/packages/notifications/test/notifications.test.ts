@@ -118,4 +118,38 @@ describe("NotificationManager & Multi-Channel Delivery", () => {
     expect(reminderResult.success).toBe(true);
     expect(provider.sentSMS.length).toBe(1);
   });
+
+  test("handles smart multi-channel fallback delivery", async () => {
+    manager.setPreferences({
+      userId: "user-fallback",
+      emailEnabled: true,
+      smsEnabled: true,
+      pushEnabled: true,
+      appointmentReminders: true,
+      marketingPromos: true
+    });
+
+    // Simulate push failure
+    provider.failPushNext = true;
+
+    const result = await manager.sendSmartNotification("user-fallback", [
+      { channel: "push", target: "bad-token", payload: { title: "Test", body: "Hello" } },
+      { channel: "sms", target: "+15551234567", payload: { body: "Hello via SMS fallback" } }
+    ]);
+
+    expect(result.success).toBe(true);
+    expect(result.channel).toBe("sms");
+    expect(result.fallbackUsed).toBe(true);
+    expect(provider.sentSMS.length).toBe(1);
+    expect(provider.sentSMS[0].body).toContain("Hello via SMS fallback");
+  });
+
+  test("records audit trail for sent and failed notifications", async () => {
+    await manager.sendSMSNotification("user-audit", "+15557778888", "Audit test message");
+    const audit = manager.getAuditTrail();
+    expect(audit.length).toBe(1);
+    expect(audit[0].channel).toBe("sms");
+    expect(audit[0].success).toBe(true);
+    expect(audit[0].recipient).toBe("+15557778888");
+  });
 });

@@ -12,6 +12,12 @@ export interface PushNotificationPayload {
   data?: Record<string, string>;
 }
 
+export interface QuietHoursConfig {
+  startHour: number; // e.g. 22 (10 PM)
+  endHour: number;   // e.g. 8 (8 AM)
+  timezone?: string;
+}
+
 export interface NotificationPreferences {
   userId: string;
   emailEnabled: boolean;
@@ -19,6 +25,7 @@ export interface NotificationPreferences {
   pushEnabled: boolean;
   appointmentReminders: boolean;
   marketingPromos: boolean;
+  quietHours?: QuietHoursConfig;
 }
 
 export interface SendResult {
@@ -27,6 +34,17 @@ export interface SendResult {
   recipient: string;
   providerResponse?: any;
   error?: string;
+  fallbackUsed?: boolean;
+}
+
+export interface AuditEvent {
+  timestamp: string;
+  userId?: string;
+  channel: "email" | "sms" | "push";
+  recipient: string;
+  success: boolean;
+  error?: string;
+  fallbackUsed?: boolean;
 }
 
 export interface NotificationProvider {
@@ -42,6 +60,8 @@ export class MockNotificationProvider implements NotificationProvider {
   public sentEmails: Array<{ to: string; subject: string; html: string; text: string }> = [];
   public sentSMS: Array<SMSMessage> = [];
   public sentPush: Array<PushNotificationPayload> = [];
+  public failPushNext = false;
+  public failSMSNext = false;
 
   async sendEmail(to: string, subject: string, html: string, text: string): Promise<SendResult> {
     this.sentEmails.push({ to, subject, html, text });
@@ -49,11 +69,19 @@ export class MockNotificationProvider implements NotificationProvider {
   }
 
   async sendSMS(message: SMSMessage): Promise<SendResult> {
+    if (this.failSMSNext) {
+      this.failSMSNext = false;
+      return { success: false, channel: "sms", recipient: message.to, error: "SMS gateway timeout" };
+    }
     this.sentSMS.push(message);
     return { success: true, channel: "sms", recipient: message.to, providerResponse: { sid: `mock-sms-${Date.now()}` } };
   }
 
   async sendPush(payload: PushNotificationPayload): Promise<SendResult> {
+    if (this.failPushNext) {
+      this.failPushNext = false;
+      return { success: false, channel: "push", recipient: payload.token, error: "APNS/FCM token unregistered or unreachable" };
+    }
     this.sentPush.push(payload);
     return { success: true, channel: "push", recipient: payload.token, providerResponse: { multicastId: `mock-push-${Date.now()}` } };
   }
@@ -63,6 +91,7 @@ export class NotificationManager {
   private emailEngine: EmailTemplateEngine;
   private provider: NotificationProvider;
   private preferencesStore: Map<string, NotificationPreferences> = new Map();
+  private auditTrail: AuditEvent[] = [];
 
   constructor(provider?: NotificationProvider) {
     this.emailEngine = new EmailTemplateEngine();
@@ -86,52 +115,151 @@ export class NotificationManager {
     );
   }
 
+  public getAuditTrail(): AuditEvent[] {
+    return this.auditTrail;
+  }
+
+  private recordAudit(userId: string | undefined, channel: "email" | "sms" | "push", recipient: string, success: boolean, error?: string, fallbackUsed?: boolean) {
+    this.auditTrail.push({
+      timestamp: new Date().toISOString(),
+      userId,
+      channel,
+      recipient,
+      success,
+      error,
+      fallbackUsed
+    });
+  }
+
+  private isQuietHoursActive(prefs: NotificationPreferences, isUrgent = false): boolean {
+    if (isUrgent || !prefs.quietHours) {
+      return false;
+    }
+    const currentHour = new Date().getHours();
+    const { startHour, endHour } = prefs.quietHours;
+    if (startHour > endHour) {
+      // e.g. 22 to 8 (crosses midnight)
+      return currentHour >= startHour || currentHour < endHour;
+    } else {
+      return currentHour >= startHour && currentHour < endHour;
+    }
+  }
+
   public async sendTemplatedEmail(
     userId: string | undefined,
     to: string,
     templateName: EmailTemplateName,
-    context: Record<string, any>
+    context: Record<string, any>,
+    isUrgent = false
   ): Promise<SendResult> {
     if (userId) {
       const prefs = this.getPreferences(userId);
       if (!prefs.emailEnabled) {
-        return { success: false, channel: "email", recipient: to, error: "User has disabled email notifications" };
+        const res: SendResult = { success: false, channel: "email", recipient: to, error: "User has disabled email notifications" };
+        this.recordAudit(userId, "email", to, false, res.error);
+        return res;
+      }
+      if (this.isQuietHoursActive(prefs, isUrgent)) {
+        const res: SendResult = { success: false, channel: "email", recipient: to, error: "Quiet hours active; non-urgent email deferred" };
+        this.recordAudit(userId, "email", to, false, res.error);
+        return res;
       }
     }
 
     const { subject, html, text } = await this.emailEngine.render(templateName, context);
-    return this.provider.sendEmail(to, subject, html, text);
+    const result = await this.provider.sendEmail(to, subject, html, text);
+    this.recordAudit(userId, "email", to, result.success, result.error);
+    return result;
   }
 
-  public async sendSMSNotification(userId: string | undefined, to: string, body: string, isMarketing = false): Promise<SendResult> {
+  public async sendSMSNotification(userId: string | undefined, to: string, body: string, isMarketing = false, isUrgent = false): Promise<SendResult> {
     if (userId) {
       const prefs = this.getPreferences(userId);
       if (!prefs.smsEnabled) {
-        return { success: false, channel: "sms", recipient: to, error: "User has disabled SMS notifications" };
+        const res: SendResult = { success: false, channel: "sms", recipient: to, error: "User has disabled SMS notifications" };
+        this.recordAudit(userId, "sms", to, false, res.error);
+        return res;
       }
       if (isMarketing && !prefs.marketingPromos) {
-        return { success: false, channel: "sms", recipient: to, error: "User has disabled marketing promos" };
+        const res: SendResult = { success: false, channel: "sms", recipient: to, error: "User has disabled marketing promos" };
+        this.recordAudit(userId, "sms", to, false, res.error);
+        return res;
       }
       if (!isMarketing && !prefs.appointmentReminders) {
-        return { success: false, channel: "sms", recipient: to, error: "User has disabled appointment reminders" };
+        const res: SendResult = { success: false, channel: "sms", recipient: to, error: "User has disabled appointment reminders" };
+        this.recordAudit(userId, "sms", to, false, res.error);
+        return res;
+      }
+      if (this.isQuietHoursActive(prefs, isUrgent)) {
+        const res: SendResult = { success: false, channel: "sms", recipient: to, error: "Quiet hours active; non-urgent SMS deferred" };
+        this.recordAudit(userId, "sms", to, false, res.error);
+        return res;
       }
     }
 
-    return this.provider.sendSMS({ to, body });
+    const result = await this.provider.sendSMS({ to, body });
+    this.recordAudit(userId, "sms", to, result.success, result.error);
+    return result;
   }
 
-  public async sendPushNotification(userId: string | undefined, token: string, title: string, body: string, data?: Record<string, string>, isMarketing = false): Promise<SendResult> {
+  public async sendPushNotification(userId: string | undefined, token: string, title: string, body: string, data?: Record<string, string>, isMarketing = false, isUrgent = false): Promise<SendResult> {
     if (userId) {
       const prefs = this.getPreferences(userId);
       if (!prefs.pushEnabled) {
-        return { success: false, channel: "push", recipient: token, error: "User has disabled push notifications" };
+        const res: SendResult = { success: false, channel: "push", recipient: token, error: "User has disabled push notifications" };
+        this.recordAudit(userId, "push", token, false, res.error);
+        return res;
       }
       if (isMarketing && !prefs.marketingPromos) {
-        return { success: false, channel: "push", recipient: token, error: "User has disabled marketing promos" };
+        const res: SendResult = { success: false, channel: "push", recipient: token, error: "User has disabled marketing promos" };
+        this.recordAudit(userId, "push", token, false, res.error);
+        return res;
+      }
+      if (this.isQuietHoursActive(prefs, isUrgent)) {
+        const res: SendResult = { success: false, channel: "push", recipient: token, error: "Quiet hours active; non-urgent push deferred" };
+        this.recordAudit(userId, "push", token, false, res.error);
+        return res;
       }
     }
 
-    return this.provider.sendPush({ token, title, body, data });
+    const result = await this.provider.sendPush({ token, title, body, data });
+    this.recordAudit(userId, "push", token, result.success, result.error);
+    return result;
+  }
+
+  /**
+   * Smart multi-channel delivery with fallback (e.g. Push -> SMS -> Email)
+   */
+  public async sendSmartNotification(
+    userId: string,
+    channels: Array<{ channel: "push" | "sms" | "email"; target: string; payload: any }>,
+    isUrgent = false
+  ): Promise<SendResult> {
+    let lastError = "All channels failed or disabled";
+
+    for (const item of channels) {
+      if (item.channel === "push") {
+        const res = await this.sendPushNotification(userId, item.target, item.payload.title, item.payload.body, item.payload.data, item.payload.isMarketing, isUrgent);
+        if (res.success) {
+          return { ...res, fallbackUsed: channels.indexOf(item) > 0 };
+        }
+        lastError = res.error || lastError;
+      } else if (item.channel === "sms") {
+        const res = await this.sendSMSNotification(userId, item.target, item.payload.body, item.payload.isMarketing, isUrgent);
+        if (res.success) {
+          return { ...res, fallbackUsed: channels.indexOf(item) > 0 };
+        }
+        lastError = res.error || lastError;
+      } else if (item.channel === "email") {
+        const res = await this.sendTemplatedEmail(userId, item.target, item.payload.templateName, item.payload.context, isUrgent);
+        if (res.success) {
+          return { ...res, fallbackUsed: channels.indexOf(item) > 0 };
+        }
+        lastError = res.error || lastError;
+      }
+    }
+
+    return { success: false, channel: channels[channels.length - 1]?.channel || "email", recipient: channels[channels.length - 1]?.target || "", error: lastError };
   }
 
   public getProvider(): NotificationProvider {
