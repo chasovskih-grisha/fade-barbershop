@@ -17,13 +17,57 @@ export interface ApiResponse<T> {
     message: string;
     details?: any;
   };
+  meta?: {
+    timestamp: number;
+    requestId?: string;
+  };
 }
 
-export function createApiResponse<T>(data?: T, error?: { code: string; message: string; details?: any }): ApiResponse<T> {
+export function createApiResponse<T>(
+  data?: T, 
+  error?: { code: string; message: string; details?: any },
+  meta?: { requestId?: string }
+): ApiResponse<T> {
+  const responseMeta = {
+    timestamp: Date.now(),
+    ...(meta?.requestId ? { requestId: meta.requestId } : {})
+  };
+
   if (error) {
-    return { success: false, error };
+    return { success: false, error, meta: responseMeta };
   }
-  return { success: true, data };
+  return { success: true, data, meta: responseMeta };
+}
+
+export interface RetryOptions {
+  retries?: number;
+  minTimeout?: number;
+  factor?: number;
+}
+
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  options: RetryOptions = {}
+): Promise<T> {
+  const retries = options.retries ?? 3;
+  const minTimeout = options.minTimeout ?? 100;
+  const factor = options.factor ?? 2;
+
+  let attempt = 0;
+  let currentTimeout = minTimeout;
+
+  while (true) {
+    try {
+      attempt++;
+      return await fn();
+    } catch (error) {
+      if (attempt >= retries) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, currentTimeout));
+      currentTimeout *= factor;
+    }
+  }
 }
 
 export function validateWebhook(rawBody: unknown, expectedSignature: string, validator: (body: WebhookPayload) => boolean): { valid: boolean; payload?: WebhookPayload; error?: string } {
