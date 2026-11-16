@@ -1,6 +1,8 @@
 export * from './telemetry';
 export * from './funnel';
 export * from './cohort';
+export * from './advanced-attribution';
+export * from './behavior';
 
 export interface ConversionEvent {
   eventName: string;
