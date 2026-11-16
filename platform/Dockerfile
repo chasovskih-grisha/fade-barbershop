@@ -5,17 +5,15 @@ WORKDIR /app
 RUN npm install -g pnpm@9.15.0
 
 # Copy workspace and lock files first for optimal caching
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY pnpm-lock.yaml package.json ./
 
-# Copy package.json files across packages and apps to leverage layer caching for dependency installation
+# Copy package.json files across packages to leverage layer caching for dependency installation
 COPY packages/*/package.json ./packages/
-COPY apps/*/package.json ./apps/
 
 RUN pnpm install --frozen-lockfile=false
 
 # Copy remaining source code
 COPY packages/ ./packages/
-COPY apps/ ./apps/
 
 RUN pnpm build
 
