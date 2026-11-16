@@ -88,5 +88,6 @@ describe('RevenuePricingEngine', () => {
     expect(cart.addOnsTotal).toBe(15);
     // Final total = 125 - 15 + 15 = 125
     expect(cart.finalTotal).toBe(125);
+    expect(cart.optimizedRecommendation).toBeDefined();
   });
 });

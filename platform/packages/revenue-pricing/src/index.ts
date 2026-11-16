@@ -102,7 +102,7 @@ export class RevenuePricingEngine {
   /**
    * Calculate optimized total revenue for a booking with bundle and add-ons
    */
-  public calculateCartTotal(selectedServiceIds: string[], selectedAddOnIds: string[], appointmentDate: Date, servicesMap: Map<string, ServiceItem>, addOnsMap: Map<string, AddOnRecommendation>): { subtotal: number; dynamicTotal: number; addOnsTotal: number; finalTotal: number; appliedSavings: number } {
+  public calculateCartTotal(selectedServiceIds: string[], selectedAddOnIds: string[], appointmentDate: Date, servicesMap: Map<string, ServiceItem>, addOnsMap: Map<string, AddOnRecommendation>): { subtotal: number; dynamicTotal: number; addOnsTotal: number; finalTotal: number; appliedSavings: number; optimizedRecommendation: string } {
     let subtotal = 0;
     let dynamicTotal = 0;
 
@@ -137,13 +137,16 @@ export class RevenuePricingEngine {
     }
 
     const finalTotal = Math.max(0, (dynamicTotal - appliedSavings) + addOnsTotal);
+    const topAddOns = this.getTopAddOnRecommendations(1);
+    const optimizedRecommendation = topAddOns.length > 0 ? `Consider adding ${topAddOns[0].name} to maximize grooming experience.` : 'No additional recommendations.';
 
     return {
       subtotal,
       dynamicTotal,
       addOnsTotal,
       finalTotal: Math.round(finalTotal * 100) / 100,
-      appliedSavings: Math.round(appliedSavings * 100) / 100
+      appliedSavings: Math.round(appliedSavings * 100) / 100,
+      optimizedRecommendation
     };
   }
 }
