@@ -10,6 +10,9 @@ export interface Client {
   phone: string;
   createdAt: Date;
   lastVisitDate?: Date;
+  birthDate?: Date;
+  membershipStatus?: 'NONE' | 'UNLIMITED_MONTHLY' | 'VIP_PASS';
+  membershipRenewalDate?: Date;
   totalVisits: number;
   totalSpent: number;
   referredBy?: string;
@@ -37,6 +40,20 @@ export interface WinBackCampaign {
   discountPercentage: number;
   expiresInDays: number;
   bonusPoints: number;
+}
+
+export interface BirthdayReward {
+  discountPercentage: number;
+  freeService: string;
+  validDays: number;
+  bonusPoints: number;
+}
+
+export interface MembershipRetentionResult {
+  renewed: boolean;
+  loyaltyBonusPoints: number;
+  discountApplied: number;
+  nextRenewalDate: Date;
 }
 
 export type ClientSegment = 'VIP_LOYAL' | 'AT_RISK_CHURN' | 'NEW_CLIENT' | 'DORMANT' | 'REGULAR';
@@ -160,6 +177,51 @@ export class AcquisitionRetentionEngine {
       }
     }
     return matchingCampaign;
+  }
+
+  /**
+   * Checks if today matches the client's birthday (month and day) and generates a birthday club reward.
+   */
+  public checkBirthdayReward(client: Client, currentDate: Date = new Date()): BirthdayReward | null {
+    if (!client.birthDate) return null;
+    if (
+      currentDate.getMonth() === client.birthDate.getMonth() &&
+      currentDate.getDate() === client.birthDate.getDate()
+    ) {
+      return {
+        discountPercentage: 20,
+        freeService: 'Complimentary Hot Towel Shave',
+        validDays: 14,
+        bonusPoints: 200
+      };
+    }
+    return null;
+  }
+
+  /**
+   * Processes monthly membership renewal and calculates retention loyalty perks.
+   */
+  public processMembershipRenewal(client: Client, monthsActive: number, currentDate: Date = new Date()): MembershipRetentionResult {
+    const nextRenewal = new Date(currentDate.getTime());
+    nextRenewal.setMonth(nextRenewal.getMonth() + 1);
+
+    let loyaltyBonus = 100;
+    let discount = 0.0;
+
+    if (monthsActive >= 6) {
+      loyaltyBonus = 250;
+      discount = 0.10; // 10% loyalty renewal discount
+    } else if (monthsActive >= 3) {
+      loyaltyBonus = 150;
+      discount = 0.05;
+    }
+
+    return {
+      renewed: true,
+      loyaltyBonusPoints: loyaltyBonus,
+      discountApplied: discount,
+      nextRenewalDate: nextRenewal
+    };
   }
 
   /**
