@@ -1,45 +1,44 @@
-import { Logger, MetricsCollector, ErrorBoundary } from '../src/telemetry/index';
+import { TelemetryCollector, StructuredLogger, withAsyncErrorHandling, HealthCheckManager } from '../src/telemetry/index';
 
 describe('Telemetry & Error Boundary', () => {
   beforeEach(() => {
-    MetricsCollector.reset();
+    TelemetryCollector.getInstance().clear();
   });
 
-  test('Logger logs without throwing', () => {
-    const logger = new Logger('TestService');
+  test('StructuredLogger logs without throwing', () => {
     expect(() => {
-      logger.info('Test info message', { userId: '123' });
-      logger.warn('Test warn message');
-      logger.error('Test error message', new Error('Boom'), { code: 'ERR_TEST' });
+      StructuredLogger.info('Test info message', { userId: '123' });
+      StructuredLogger.warn('Test warn message');
+      StructuredLogger.error('Test error message', new Error('Boom'), { code: 'ERR_TEST' });
     }).not.toThrow();
   });
 
-  test('MetricsCollector tracks counters and histograms correctly', () => {
-    MetricsCollector.incrementCounter('test.counter', 1, { status: 'ok' });
-    MetricsCollector.incrementCounter('test.counter', 2, { status: 'ok' });
-    MetricsCollector.recordHistogram('test.latency', 100);
-    MetricsCollector.recordHistogram('test.latency', 200);
+  test('TelemetryCollector tracks events and metrics correctly', () => {
+    TelemetryCollector.getInstance().recordEvent('test.event', { status: 'ok' }, 100);
+    TelemetryCollector.getInstance().recordEvent('test.event', { status: 'ok' }, 200);
+    TelemetryCollector.getInstance().recordMetric('test.latency', 100);
+    TelemetryCollector.getInstance().recordMetric('test.latency', 200);
 
-    const snapshot = MetricsCollector.getMetricsSnapshot();
-    expect(snapshot.counters['test.counter:{"status":"ok"}']).toBe(3);
-    expect(snapshot.histograms['test.latency:{}'].count).toBe(2);
-    expect(snapshot.histograms['test.latency:{}'].avg).toBe(150);
+    const events = TelemetryCollector.getInstance().getEvents();
+    expect(events.length).toBe(2);
+    expect(events[0].name).toBe('test.event');
+
+    const stats = TelemetryCollector.getInstance().getMetricStats('test.latency');
+    expect(stats?.count).toBe(2);
+    expect(stats?.avg).toBe(150);
   });
 
-  test('ErrorBoundary wraps async functions successfully', async () => {
-    const logger = new Logger('TestService');
-    const result = await ErrorBoundary.wrapAsync(logger, 'async.op', async () => {
+  test('withAsyncErrorHandling wraps async functions successfully', async () => {
+    const result = await withAsyncErrorHandling('async.op', async () => {
       return 'success';
     });
     expect(result).toBe('success');
-    const snapshot = MetricsCollector.getMetricsSnapshot();
-    expect(snapshot.counters['async.op.success:{}']).toBe(1);
+    const events = TelemetryCollector.getInstance().getEvents();
+    expect(events.some(e => e.name === 'async.op.success')).toBe(true);
   });
 
-  test('ErrorBoundary handles async errors with fallback', async () => {
-    const logger = new Logger('TestService');
-    const result = await ErrorBoundary.wrapAsync(
-      logger,
+  test('withAsyncErrorHandling handles async errors with fallback', async () => {
+    const result = await withAsyncErrorHandling(
       'async.fail.op',
       async () => {
         throw new Error('Failed');
@@ -47,7 +46,7 @@ describe('Telemetry & Error Boundary', () => {
       'fallback_value'
     );
     expect(result).toBe('fallback_value');
-    const snapshot = MetricsCollector.getMetricsSnapshot();
-    expect(snapshot.counters['async.fail.op.error:{}']).toBe(1);
+    const events = TelemetryCollector.getInstance().getEvents();
+    expect(events.some(e => e.name === 'async.fail.op.error')).toBe(true);
   });
 });
