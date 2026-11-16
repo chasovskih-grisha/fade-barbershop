@@ -87,6 +87,41 @@ export class AdminControlPanelEngine {
     return staff.active;
   }
 
+  // Enhanced Analytics Report Widget & Operational Control
+  generateDailyPerformanceReport(performedBy: string, performedByRole: 'owner' | 'barber' | 'receptionist'): {
+    shopId: string;
+    generatedAt: string;
+    metrics: AdminShopMetrics;
+    activeStaffCount: number;
+    averageRevenuePerAppointment: number;
+    occupancyStatus: 'Optimal' | 'High' | 'Low';
+  } {
+    this.checkPermission(performedByRole, 'view_audit_logs'); // or dedicated permission
+    const { metrics, staff, shopId } = this.state;
+    const activeStaffCount = staff.filter(s => s.active).length;
+    const averageRevenuePerAppointment = metrics.totalAppointmentsToday > 0 
+      ? Number((metrics.totalRevenueToday / metrics.totalAppointmentsToday).toFixed(2))
+      : 0;
+    
+    let occupancyStatus: 'Optimal' | 'High' | 'Low' = 'Optimal';
+    if (metrics.occupancyRate > 85) {
+      occupancyStatus = 'High';
+    } else if (metrics.occupancyRate < 50) {
+      occupancyStatus = 'Low';
+    }
+
+    this.logAction(`Generated Daily Performance Report`, performedBy, performedByRole);
+
+    return {
+      shopId,
+      generatedAt: new Date().toISOString(),
+      metrics,
+      activeStaffCount,
+      averageRevenuePerAppointment,
+      occupancyStatus,
+    };
+  }
+
   private logAction(action: string, performedBy: string, roleUsed: string) {
     this.state.auditLogs.unshift({
       timestamp: new Date().toISOString(),

@@ -72,4 +72,17 @@ describe('AdminControlPanelEngine', () => {
     expect(staff?.active).toBe(false);
     expect(engine.getState().auditLogs.length).toBe(3);
   });
+
+  it('should generate daily performance report with correct analytics and RBAC check', () => {
+    const engine = new AdminControlPanelEngine(initialState);
+    engine.updateMetrics({ totalRevenueToday: 950 }, 'owner@fade.platform', 'owner');
+
+    // Owner has view_audit_logs permission which gates report generation
+    const report = engine.generateDailyPerformanceReport('owner@fade.platform', 'owner');
+    expect(report.shopId).toBe('shop-01');
+    expect(report.activeStaffCount).toBe(1);
+    expect(report.averageRevenuePerAppointment).toBe(67.86); // 950 / 14 = 67.857... rounded to 67.86
+    expect(report.occupancyStatus).toBe('Optimal'); // 85 is not > 85
+  });
+
 });
