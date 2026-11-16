@@ -44,9 +44,9 @@ export class RevenuePricingEngine {
   }
 
   /**
-   * Calculate dynamic price for a service given appointment date/time
+   * Calculate dynamic price for a service given appointment date/time and customer loyalty tier / tier multiplier
    */
-  public calculateDynamicPrice(basePrice: number, appointmentDate: Date): { finalPrice: number; multiplier: number; isPeak: boolean } {
+  public calculateDynamicPrice(basePrice: number, appointmentDate: Date, loyaltyMultiplier: number = 1.0): { finalPrice: number; multiplier: number; isPeak: boolean } {
     const day = appointmentDate.getDay();
     const hour = appointmentDate.getHours();
 
@@ -60,8 +60,9 @@ export class RevenuePricingEngine {
       }
     }
 
-    const finalPrice = Math.round(basePrice * applicableMultiplier * 100) / 100;
-    return { finalPrice, multiplier: applicableMultiplier, isPeak };
+    const combinedMultiplier = applicableMultiplier * loyaltyMultiplier;
+    const finalPrice = Math.round(basePrice * combinedMultiplier * 100) / 100;
+    return { finalPrice, multiplier: Math.round(combinedMultiplier * 100) / 100, isPeak };
   }
 
   /**

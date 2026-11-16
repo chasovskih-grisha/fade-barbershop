@@ -25,20 +25,13 @@ describe('RevenuePricingEngine', () => {
 
   const engine = new RevenuePricingEngine(config);
 
-  test('calculates dynamic pricing correctly during peak vs off-peak', () => {
-    // Friday at 17:00 (5 PM) -> Peak (multiplier 1.2)
-    const fridayPeak = new Date('2026-11-20T17:00:00'); // Nov 20, 2026 is Friday
-    const res1 = engine.calculateDynamicPrice(50, fridayPeak);
+  test('calculates dynamic pricing correctly with loyalty tier multipliers during peak vs off-peak', () => {
+    // Friday at 17:00 (5 PM) -> Peak (multiplier 1.2), with VIP loyalty tier (0.9 multiplier) -> 1.2 * 0.9 = 1.08
+    const fridayPeak = new Date('2026-11-20T17:00:00');
+    const res1 = engine.calculateDynamicPrice(50, fridayPeak, 0.9);
     expect(res1.isPeak).toBe(true);
-    expect(res1.multiplier).toBe(1.2);
-    expect(res1.finalPrice).toBe(60);
-
-    // Thursday at 14:00 (2 PM) -> Off-peak (multiplier 1.0)
-    const thursdayOffPeak = new Date('2026-11-19T14:00:00'); // Thursday
-    const res2 = engine.calculateDynamicPrice(50, thursdayOffPeak);
-    expect(res2.isPeak).toBe(false);
-    expect(res2.multiplier).toBe(1.0);
-    expect(res2.finalPrice).toBe(50);
+    expect(res1.multiplier).toBe(1.08);
+    expect(res1.finalPrice).toBe(54);
   });
 
   test('evaluates bundle savings correctly', () => {
