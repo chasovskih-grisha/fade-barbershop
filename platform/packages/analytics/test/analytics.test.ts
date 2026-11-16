@@ -1,4 +1,4 @@
-import { AnalyticsTracker, ConversionFunnelAnalyzer } from '../index';
+import { AnalyticsTracker, ConversionFunnelAnalyzer } from '../src/index';
 
 describe('Analytics & Conversion Intelligence', () => {
   it('tracks events correctly', () => {
