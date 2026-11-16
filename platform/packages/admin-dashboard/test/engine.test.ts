@@ -85,4 +85,24 @@ describe('AdminControlPanelEngine', () => {
     expect(report.occupancyStatus).toBe('Optimal'); // 85 is not > 85
   });
 
+  it('should allow staff commission updates with validation and RBAC checks', () => {
+    const engine = new AdminControlPanelEngine(initialState);
+
+    // Barber lacks manage_staff permission
+    expect(() => {
+      engine.updateStaffCommission('barber-1', 70, 'marcus@fade.platform', 'barber');
+    }).toThrow("Access Denied: Role 'barber' lacks permission 'manage_staff'.");
+
+    // Invalid commission rate
+    expect(() => {
+      engine.updateStaffCommission('barber-1', 150, 'owner@fade.platform', 'owner');
+    }).toThrow("Invalid commission rate: 150. Must be between 0 and 100.");
+
+    // Owner succeeds
+    const newRate = engine.updateStaffCommission('barber-1', 70, 'owner@fade.platform', 'owner');
+    expect(newRate).toBe(70);
+    expect(engine.getState().staff[0].commissionRate).toBe(70);
+    expect(engine.getState().auditLogs[0].action).toContain("Updated commission rate for Marcus Fade from 60% to 70%");
+  });
+
 });

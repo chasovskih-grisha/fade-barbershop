@@ -122,6 +122,22 @@ export class AdminControlPanelEngine {
     };
   }
 
+  // Advanced Shop Operations Control: Bulk Staff Schedule & Commission Override
+  updateStaffCommission(staffId: string, newCommissionRate: number, performedBy: string, performedByRole: 'owner' | 'barber' | 'receptionist'): number {
+    this.checkPermission(performedByRole, 'manage_staff');
+    if (newCommissionRate < 0 || newCommissionRate > 100) {
+      throw new Error(`Invalid commission rate: ${newCommissionRate}. Must be between 0 and 100.`);
+    }
+    const staff = this.state.staff.find(s => s.id === staffId);
+    if (!staff) {
+      throw new Error(`Staff member with ID ${staffId} not found.`);
+    }
+    const oldRate = staff.commissionRate;
+    staff.commissionRate = newCommissionRate;
+    this.logAction(`Updated commission rate for ${staff.name} from ${oldRate}% to ${newCommissionRate}%`, performedBy, performedByRole);
+    return newCommissionRate;
+  }
+
   private logAction(action: string, performedBy: string, roleUsed: string) {
     this.state.auditLogs.unshift({
       timestamp: new Date().toISOString(),
