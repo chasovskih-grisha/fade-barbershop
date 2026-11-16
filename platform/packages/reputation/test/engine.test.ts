@@ -116,4 +116,43 @@ describe('ReputationEngine', () => {
     expect(winBack?.offerCode).toContain('WINBACK_C2');
     expect(winBack?.message).toContain('50% discount');
   });
+
+  test('manages escalation tickets, SLA tracking, and predicts client churn risk', () => {
+    const rev = engine.addReview({
+      id: 'r_churn',
+      clientId: 'loyal_client_99',
+      barberId: 'barber_1',
+      rating: 1,
+      comment: 'Terrible fade, completely ruined my hairline.',
+      source: 'INTERNAL_APP',
+      createdAt: new Date('2026-11-01T10:00:00Z')
+    });
+
+    const ticket = engine.createEscalationTicket(rev.id, 'manager_john', 'HIGH');
+    expect(ticket).not.toBeNull();
+    expect(ticket?.severity).toBe('HIGH');
+    expect(ticket?.status).toBe('OPEN');
+
+    const resolved = engine.resolveEscalationTicket(ticket!.id, 'Issued refund and apology call.');
+    expect(resolved).toBe(true);
+
+    const rev2 = engine.addReview({
+      id: 'r_breach',
+      clientId: 'loyal_client_99',
+      barberId: 'barber_1',
+      rating: 2,
+      comment: 'Another bad experience.',
+      source: 'INTERNAL_APP',
+      createdAt: new Date('2026-11-01T10:00:00Z')
+    });
+    const ticket2 = engine.createEscalationTicket(rev2.id, 'manager_john', 'HIGH');
+    const futureDate = new Date('2026-11-03T12:00:00Z');
+    const breaches = engine.checkSLABreaches(futureDate);
+    expect(breaches).toBe(1);
+
+    const churn = engine.predictClientChurnRisk('loyal_client_99');
+    expect(churn.riskLevel).toBe('HIGH');
+    expect(churn.riskScore).toBeGreaterThan(0);
+    expect(churn.recommendation).toContain('Urgent manager outreach');
+  });
 });
