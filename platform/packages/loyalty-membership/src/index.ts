@@ -312,4 +312,3 @@ export class LoyaltyMembershipEngine {
     return this.rewardCatalog;
   }
 }
-

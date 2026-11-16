@@ -12,19 +12,19 @@ describe('LoyaltyMembershipEngine', () => {
       email: 'alex@example.com',
       tier: 'BRONZE',
       pointsBalance: 500,
-      lifetimePointsEarned: 600,
-      totalSpent: 250,
+      lifetimePointsEarned: 900,
+      totalSpent: 350,
       visitCount: 4,
       joinedDate: new Date('2026-01-01')
     };
   });
 
   test('evaluates loyalty tiers correctly based on lifetime points and spend', () => {
-    expect(engine.evaluateTier(testMember)).toBe('GOLD'); // 600 points & $250 spend -> Silver or Gold? Let's check logic: lifetimePointsEarned >= 800 or totalSpent >= 300 for GOLD. Wait, 600 points & 250 spent -> SILVER (>= 300 points or >= 120 spent).
+    expect(engine.evaluateTier(testMember)).toBe('GOLD'); // 900 points & $350 spend -> GOLD (>= 800 points or >= 300 spend).
     
     testMember.lifetimePointsEarned = 1600;
     testMember.totalSpent = 700;
-    expect(engine.evaluateTier(testMember)).toBe('VIP'); // >= 2500 or >= 1000 for VIP? Wait, 1600 points & 700 spent -> PLATINUM (>= 1500 points or >= 600 spent).
+    expect(engine.evaluateTier(testMember)).toBe('PLATINUM'); // >= 1500 points or >= 600 spend for PLATINUM.
   });
 
   test('calculates points earned based on tier multipliers', () => {
