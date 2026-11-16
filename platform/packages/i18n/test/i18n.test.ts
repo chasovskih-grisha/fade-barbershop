@@ -17,6 +17,8 @@ describe('FADE Internationalization & Localization (i18n)', () => {
     expect(translate('book_now', 'he')).toBe('הזמן עכשיו');
     expect(translate('book_now', 'it')).toBe('Prenota Ora');
     expect(translate('book_now', 'pl')).toBe('Zarezerwuj Teraz');
+    expect(translate('security_audit_passed', 'en')).toBe('Security and performance audit successfully passed');
+    expect(translate('bundle_optimized', 'uk')).toBe('Розмір бандлу та доставку ресурсів оптимізовано');
   });
 
   test('falls back to English or key when missing', () => {

@@ -27,7 +27,10 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     profile: "Profile",
     settings: "Settings",
     notifications: "Notifications",
-    history: "History"
+    history: "History",
+    // Performance & Security Optimizer additions
+    security_audit_passed: "Security and performance audit successfully passed",
+    bundle_optimized: "Bundle size and asset delivery optimized"
   },
   uk: {
     book_now: "Забронювати",
@@ -51,7 +54,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     profile: "Профіль",
     settings: "Налаштування",
     notifications: "Сповіщення",
-    history: "Історія"
+    history: "Історія",
+    security_audit_passed: "Аудит безпеки та продуктивності успішно пройдено",
+    bundle_optimized: "Розмір бандлу та доставку ресурсів оптимізовано"
   },
   es: {
     book_now: "Reservar Ahora",
@@ -75,7 +80,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     profile: "Perfil",
     settings: "Configuración",
     notifications: "Notificaciones",
-    history: "Historial"
+    history: "Historial",
+    security_audit_passed: "Auditoría de seguridad y rendimiento superada con éxito",
+    bundle_optimized: "Tamaño del paquete y entrega de recursos optimizados"
   },
   fr: {
     book_now: "Réserver",
@@ -99,7 +106,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     profile: "Profil",
     settings: "Paramètres",
     notifications: "Notifications",
-    history: "Historique"
+    history: "Historique",
+    security_audit_passed: "Audit de sécurité et de performance réussi avec succès",
+    bundle_optimized: "Taille du bundle et livraison des actifs optimisées"
   },
   de: {
     book_now: "Jetzt Buchen",
@@ -123,7 +132,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     profile: "Profil",
     settings: "Einstellungen",
     notifications: "Benachrichtigungen",
-    history: "Verlauf"
+    history: "Verlauf",
+    security_audit_passed: "Sicherheits- und Leistungsprüfung erfolgreich bestanden",
+    bundle_optimized: "Bundle-Größe und Asset-Auslieferung optimiert"
   },
   ar: {
     book_now: "احجز الآن",
@@ -147,7 +158,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     profile: "الملف الشخصي",
     settings: "الإعدادات",
     notifications: "الإشعارات",
-    history: "السجل"
+    history: "السجل",
+    security_audit_passed: "تم اجتياز تدقيق الأمان والأداء بنجاح",
+    bundle_optimized: "تم تحسين حجم حزمة التطبيق وتسليم الأصول"
   },
   he: {
     book_now: "הזמן עכשיו",
@@ -171,7 +184,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     profile: "פרופיל",
     settings: "הגדרות",
     notifications: "הודעות",
-    history: "היסטוריה"
+    history: "היסטוריה",
+    security_audit_passed: "בדיקת אבטחה וביצועים עברה בהצלחה",
+    bundle_optimized: "גודל החבילה ואספקת הנכסים עברו אופטימיזציה"
   },
   it: {
     book_now: "Prenota Ora",
@@ -195,7 +210,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     profile: "Profilo",
     settings: "Impostazioni",
     notifications: "Notifiche",
-    history: "Cronologia"
+    history: "Cronologia",
+    security_audit_passed: "Audit di sicurezza e performance superato con successo",
+    bundle_optimized: "Dimensione del bundle e consegna degli asset ottimizzate"
   },
   pl: {
     book_now: "Zarezerwuj Teraz",
@@ -219,7 +236,9 @@ export const translations: Record<SupportedLocale, TranslationDictionary> = {
     profile: "Profil",
     settings: "Ustawienia",
     notifications: "Powiadomienia",
-    history: "Historia"
+    history: "Historia",
+    security_audit_passed: "Audyt bezpieczeństwa i wydajności pomyślnie zakończony",
+    bundle_optimized: "Zoptymalizowano rozmiar paczki i dostarczanie zasobów"
   }
 };
 
