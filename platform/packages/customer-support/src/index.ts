@@ -60,6 +60,14 @@ export class CustomerExperienceManager {
       category: 'billing',
       tags: ['payment', 'apple pay', 'cards'],
       helpfulCount: 29
+    },
+    {
+      id: 'faq-5',
+      question: 'How do booking confirmation and reminders work?',
+      answer: 'Once you book, you will receive an instant SMS and Email confirmation with a calendar invite. We also send a friendly reminder 24 hours and 2 hours before your session.',
+      category: 'booking',
+      tags: ['sms', 'email', 'reminders', 'confirmation'],
+      helpfulCount: 67
     }
   ];
 
