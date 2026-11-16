@@ -1,4 +1,4 @@
-import { AnalyticsTracker, ConversionFunnelAnalyzer } from '../src/index';
+import { AnalyticsTracker, ConversionFunnelAnalyzer, CohortRetentionAnalyzer } from '../src/index';
 
 describe('Analytics & Conversion Intelligence', () => {
   it('tracks events correctly', () => {
@@ -20,6 +20,13 @@ describe('Analytics & Conversion Intelligence', () => {
     expect(result.length).toBe(4);
     expect(result[0].conversionRate).toBe(100);
     expect(result[3].conversionRate).toBe(10);
-    expect(result[3].dropoffRate).toBe(60); // 250 -> 100 is 60% dropoff from previous step (or calculate step conversion)
+    expect(result[3].dropoffRate).toBe(60);
+  });
+
+  it('calculates cohort retention rates correctly', () => {
+    const cohort = CohortRetentionAnalyzer.calculateRetention('November 2026', 1000, [800, 500, 300]);
+    expect(cohort.cohortName).toBe('November 2026');
+    expect(cohort.periodCount).toBe(3);
+    expect(cohort.retentionRates).toEqual([80, 50, 30]);
   });
 });

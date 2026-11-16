@@ -1,5 +1,6 @@
 export * from './telemetry';
 export * from './funnel';
+export * from './cohort';
 
 export interface ConversionEvent {
   eventName: string;
