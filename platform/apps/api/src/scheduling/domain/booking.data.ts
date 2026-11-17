@@ -44,6 +44,16 @@ export interface BookingData {
   onsitePaymentDate?: Date | null;
   /** Сума restantes/change (T-093): FinalPrice - depositAmount. */
   changeAmount?: number | null;
+  /** Статус no-show (T-095): автоматичне оновлення після 24гх. */
+  noShowStatus?: 'none' | 'pending' | 'escalated' | 'confirmed' | null;
+  /** Час escalation no-show (T-095): +24гх після missed slot. */
+  noShowEscalatedAt?: Date | null;
+  /** ID вернення при no-show (T-095): для ідемпотентності та аудиту. */
+  noShowRefundId?: string | null;
+  /** Статус оплати на місці (T-093): initiated/captured/failed. */
+  paymentStatus?: PaymentStatus | null;
+  /** Дата оплати на місці (T-093). */
+  onsitePaymentDate?: Date | null;
   /** Позиції послуг у записі (T-4520a): для композитного слота. */
   servicePositions?: ServicePosition[] | null;
 }
