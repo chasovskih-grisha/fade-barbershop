@@ -1,0 +1,15 @@
+---
+description: Keep the company checkout on disk. Never delete it.
+alwaysApply: true
+---
+
+# Company checkout
+
+`/Users/grisha/Projects/barbershop/company` is the business repository ([FADE-Barber/company](https://github.com/FADE-Barber/company)). `business/` and `development/` live inside it. `platform/` is the software repository and stays beside it.
+
+The folder `barbershop/` is a parent directory for those two clones. It is not the source of either repository.
+
+- Never delete `company/` or anything inside it. That includes `rm`, `git rm`, `git clean`, removing a submodule gitlink, and "cleaning up" an untracked or nested checkout.
+- Never move, rename, or replace `company/` with a copy, sparse checkout, or empty placeholder.
+- If `company/` is missing, clone `https://github.com/FADE-Barber/company.git` back to that path. Do not recreate it from memory.
+- Leave the company checkout out of the parent repository's commits. Do not add it as a submodule and do not commit its removal.
