@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, View, Pressable, ActivityIndicator, RefreshControl, Modal, TouchableOpacity } from 'react-native';
+import { ScrollView, Text, View, Pressable, ActivityIndicator, RefreshControl, Modal, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useFonts, OpenSans } from '@expo-google-fonts/open-sans';
+import { useFonts, OpenSans, Inter } from '@expo-google-fonts/open-sans';
 import { useTon } from '../../../../lib/use-ton';
 import { useOnlineStatus } from '../../../../lib/use-online-status';
 import { usePush } from '../../../../lib/notifications';
@@ -10,9 +10,9 @@ import { BarberCard } from '../../../../components/BarberCard';
 import { styles } from '../../index.styles';
 import { CABINET_STATUS } from '../../../../lib/booking-contract';
 
-export default function BarberShellScreen() {
+export default function BarberShellScreen({ route }: { route: { params: { barberId?: string } } }) {
   const router = useRouter();
-  const { loaded, family } = useFonts({ OpenSans });
+  const { loaded, family } = useFonts({ OpenSans, Inter });
   const [online, setOnline] = useOnlineStatus();
   const { token, permission, allowed, register, revoke, error } = usePush();
   const { canViewLoyalty, loyaltyPoints } = useTon();
@@ -27,6 +27,7 @@ export default function BarberShellScreen() {
   const [selectedBarber, setSelectedBarber] = useState<BarberDto | null>(null);
   const [schedule, setSchedule] = useState<any[]>([]);
   const [visits, setVisits] = useState<any[]>([]);
+  const [chairOccupancy, setChairOccupancy] = useState<'0/2' | '1/2' | '2/2'>('0/2');
 
   // Load barbers
   useEffect(() => {
@@ -65,6 +66,11 @@ export default function BarberShellScreen() {
       // Also load visits for this barber on this date
       const visits = await fetchVisitsForBarber(barberId, scheduleDate);
       setVisits(visits);
+      // Update chair occupancy
+      const occupied = visits.filter((v: any) => v.status === 'confirmed' || v.status === 'booked').length;
+      setChairOccupancy(
+        occupied >= 2 ? '2/2' : occupied >= 1 ? '1/2' : '0/2'
+      );
     } catch (e) {
       console.error('Error loading schedule:', e);
     } finally {
@@ -201,8 +207,9 @@ export default function BarberShellScreen() {
         {/* Day Calendar */}
         {viewMode === 'day' && selectedBarber && schedule.length > 0 && (
           <View style={{ backgroundColor: '#18181b', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-            <Text style={{ fontSize: 18, fontWeight: '600', color: '#fff', marginBottom: 12 }}>{selectedBarber.name} — {selectedDate.toLocaleDateString('uk-UA', { month: 'long', day: 'numeric' })}</Text>
-            
+            <Text style={{ fontSize: 18, fontWeight: '600', color: '#fff', marginBottom: 12 }}>
+              {selectedBarber.name} — {selectedDate.toLocaleDateString('uk-UA', { month: 'long', day: 'numeric' })}</Text>
+
             {/* Day timeline - 15 min intervals */}
             <View style={{ height: 400, backgroundColor: '#0f0f11', borderRadius: 8, overflow: 'hidden' }}>
               {/* Time grid header */}
@@ -210,14 +217,14 @@ export default function BarberShellScreen() {
                 <View style={{ flex: 1 }} />
                 {Array.from({ length: 96 }, (_, i) => i * 15).map((min) => timeSlot(min))}
               </View>
-              
+
               {/* Slots */}
               <View style={{ flex: 1, padding: 8 }}>
                 {schedule.map((slot: any) => {
                   const slotStartMin = slot.start.getHours() * 60 + slot.start.getMinutes();
                   const slotEndMin = slot.end.getHours() * 60 + slot.end.getMinutes();
                   const status = slot.status || 'available';
-                  
+
                   return (
                     <View
                       key={slot.id}
@@ -235,7 +242,9 @@ export default function BarberShellScreen() {
             {/* Visits list below calendar */}
             {visits.length > 0 && (
               <View style={{ marginTop: 12 }}>
-                <Text style={{ fontSize: 14, color: '#888', marginBottom: 8 }}>{visits.length} візитів</Text>
+                <Text style={{ fontSize: 14, color: '#888', marginBottom: 8 }}>
+                  {visits.length} візитів
+                </Text>
                 {visits.map((visit: any) => (
                   <View
                     key={visit.id}
@@ -250,7 +259,8 @@ export default function BarberShellScreen() {
                     }}>
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: '#fff', fontSize: 12 }}>{visit.serviceName}</Text>
-                      <Text style={{ color: '#888', fontSize: 10 }}>{visit.startTime} - {visit.endTime}</Text>
+                      <Text style={{ color: '#888', fontSize: 10 }}>
+                        {visit.startTime} - {visit.endTime}</Text>
                     </View>
                     <Pressable
                       style={{ padding: 4, borderRadius: 4, backgroundColor: '#4F46E5' }}
@@ -268,9 +278,13 @@ export default function BarberShellScreen() {
         {/* Week Calendar (simplified) */}
         {viewMode === 'week' && selectedBarber && (
           <View style={{ backgroundColor: '#18181b', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-            <Text style={{ fontSize: 18, fontWeight: '600', color: '#fff', marginBottom: 12 }}>{selectedBarber.name} — Тиждень</Text>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: '#fff', marginBottom: 12 }}>
+              {selectedBarber.name} — Тиждень
+            </Text>
             <View style={{ marginBottom: 12 }}>
-              <Text style={{ color: '#888', fontSize: 14 }}>Пн | Вт | Ср | Чт | Пт | Сб | Вс</Text>
+              <Text style={{ color: '#888', fontSize: 14 }}>
+                Пн | Вт | Ср | Чт | Пт | Сб | Вс
+              </View>
               <View style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
                 {[1, 2, 3, 4, 5, 6, 7].map((day) => (
                   <View
@@ -291,7 +305,9 @@ export default function BarberShellScreen() {
                 ))}
               </View>
             </View>
-            <Text style={{ color: '#64748b', fontSize: 12, marginTop: 8 }}>Нажміть на день для перегляду графіка</Text>
+            <Text style={{ color: '#64748b', fontSize: 12, marginTop: 8 }}>
+              Нажміть на день для перегляду графіка
+            </Text>
           </View>
         )}
 
@@ -318,33 +334,44 @@ export default function BarberShellScreen() {
           </View>
         )}
 
-        {/* FAB - Walk-in (gate phase 15) */}
+        {/* FAB - Walk-in (gate phase 15) */
         <TouchableOpacity
-          style={{
+          style={({
             position: 'absolute',
             bottom: 24,
             right: 24,
             width: 56,
             height: 56,
-            backgroundColor: '#10b981',
+            backgroundColor: chairOccupancy < '2/2' ? '#10b981' : '#6b7280',
             borderRadius: 28,
             justifyContent: 'center',
             alignItems: 'center',
-          }}
+          })}
           onPress={() => {
-            // Walk-in booking - open new slot
+            // Walk-in booking - only enabled when chairs available
+            if (chairOccupancy >= '2/2') {
+              Alert.alert('Будь ласка, вічір', 'Усі 2 місця на розкладі зайняті. Будь ласка, очікуйте або виберіть інший час.');
+              return;
+            }
             router.push('/barber/walkin');
           }}
         >
           <Text style={{ color: '#0f0f11', fontSize: 20, fontWeight: 'bold' }}>+</Text>
         </TouchableOpacity>
 
+        {/* Chair occupancy info */}
+        {selectedBarber && (
+          <View style={{ position: 'absolute', top: 24, right: 24, backgroundColor: '#3f3f4f', borderRadius: 8, padding: 8 }}>
+            <Text style={{ color: '#888', fontSize: 12 }}>Місця: {chairOccupancy}</Text>
+          </View>
+        )}
+
         {/* Pull-to-refresh indicator */}
         {refreshing && (
           <View style={{ marginTop: 16, alignSelf: 'center', padding: 12, backgroundColor: '#3f3f4f', borderRadius: 8 }}>
             <ActivityIndicator size="small" />
             <Text style={{ color: '#fff', marginLeft: 8, fontSize: 12 }}>Оновлюємо...</Text>
-          </View>
+          </V>
         )}
       </ScrollView>
     </SafeAreaView>
