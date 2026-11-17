@@ -38,6 +38,12 @@ export interface BookingData {
   depositStatus?: PaymentStatus | null;
   /** Сума депозиту, оплаченого на записі. */
   depositAmount?: number | null;
+  /** Статус оплаты на місці (T-093): initiated/captured/failed. */
+  paymentStatus?: PaymentStatus | null;
+  /** Дата оплати на місці (T-093). */
+  onsitePaymentDate?: Date | null;
+  /** Сума restantes/change (T-093): FinalPrice - depositAmount. */
+  changeAmount?: number | null;
   /** Позиції послуг у записі (T-4520a): для композитного слота. */
   servicePositions?: ServicePosition[] | null;
 }
@@ -66,7 +72,7 @@ export interface BookingCreateParams {
   servicePositions?: ServicePosition[];
 }
 
-/** Скалярні nullable-поля й дефолти; винесено, щоб тримати складність низькою. */
+/** Скалярні nullable-поля й дефолти; винесено, щоб тримати складкість низькою. */
 function basicOptionalFields(params: BookingCreateParams) {
   return {
     serviceId: params.serviceId ?? null,
@@ -76,7 +82,7 @@ function basicOptionalFields(params: BookingCreateParams) {
   };
 }
 
-/** Скалярні nullable-поля й дефолти; винесено, щоб тримати складкість низькою. */
+/** Скалярні nullable-поля й дефолти; винесено, щобтримати складкість низькою. */
 function surgeOptionalFields(params: BookingCreateParams) {
   return {
     fulfillmentMode: params.fulfillmentMode ?? null,
@@ -107,7 +113,7 @@ export function newBookingData(params: BookingCreateParams): BookingData {
   };
 }
 
-/** Скалярні nullable-поля й дефолти; винесено, щоб тримати складкість низько. */
+/** Скалярні nullable-поля й дефолти; винесено, щобтримати складкість низько. */
 function resolveDuration(params: BookingCreateParams): number {
   return (
     params.agreedDuration ?? Math.round((params.end.getTime() - params.start.getTime()) / 60000)
