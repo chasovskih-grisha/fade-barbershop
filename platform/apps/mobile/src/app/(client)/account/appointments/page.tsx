@@ -11,6 +11,7 @@ import { CancelModal } from './cancel-modal';
 import { useOnlineStatus } from '../../../../lib/use-online-status';
 import { useTon } from '../../../../lib/use-ton';
 import { useNotificationSettings } from '../../../../lib/use-notification-settings';
+import { usePush } from '../../../../lib/notifications';
 
 /** Segment filters for visits */
 type StatusFilter = 'all' | 'upcoming' | 'past' | 'queue';
@@ -18,6 +19,7 @@ type StatusFilter = 'all' | 'upcoming' | 'past' | 'queue';
 /** Mobile cabinet screen: list of client appointments with visits segments, profile actions and phase-gated features. */
 /** Two main sections: «Будучі» / «Минулі» plus «Черга» and profile. */
 /** Includes reference editing, rescheduling, cancellation and deposit-aware policies (T-4740, PAY-WEB-07-семантика). */
+/** Adds client ↔ barber chat within visit scope (T-081). */
 export function MyVisitsScreen() {
   const router = useRouter();
   const { params } = router;
@@ -116,6 +118,13 @@ export function MyVisitsScreen() {
     }
   };
 
+  // Chat state per appointment
+  const [chattingApp, setChattingApp] = useState<ExtendedAppointment | null>(null);
+  const [messages, setMessages] = useState<Array<{ id: string; text: string; sender: 'client' | 'barber'; date: Date }>>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const row = (app: ExtendedAppointment) => (
     <AppointmentRow
       key={app.id}
@@ -128,6 +137,7 @@ export function MyVisitsScreen() {
       onSaveReference={(target, edit) => editingReference ? editingReference.save(target.id, edit) : null}
       onReschedule={() => setReschedulingApp(app)}
       onCancelVisit={() => setCancellingApp(app)}
+      onChat={() => setChattingApp(app)}
     />
   );
 
@@ -310,6 +320,84 @@ export function MyVisitsScreen() {
           </View>
         )}
 
+        {/* Chat Modal */}
+        {chattingApp && (
+          <View style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: '#0f0f11',
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            padding: 24,
+            maxHeight: '50%',
+            width: '100%',
+          }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#fff' }}>Чат з барбером</Text>
+              <Pressable onPress={() => setChattingApp(null)}>
+                <Text style={{ color: '#888', fontSize: 14 }}>Закрити</Text>
+              </Pressable>
+            </View>
+
+            <Text style={{ fontSize: 14, color: '#64748b', marginBottom: 8 }}>
+              Чат для візиту {chattingApp.id}. Повідомлення будуть відправлятися через push-сповіщення.
+            </Text>
+
+            <View style={{ backgroundColor: '#3f3f4f', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <Text style={{ color: '#ccc', fontSize: 12, marginBottom: 4 }}>Ваше повідомлення</Text>
+                <Textarea
+                  placeholder="Напишіте повідомлення..."
+                  value={newMessage}
+                  onChangeText={(text) => setNewMessage(text)}
+                  autoCapitalize="sentences"
+                />
+              </View>
+              <Pressable
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
+                  backgroundColor: '#4F46E5',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+                onPress={() => sendMessage(chattingApp)}
+              >
+                <Text style={{ color: 'white', fontSize: 20 }}>→</Text>
+              </Pressable>
+            </View>
+
+            {messages.length > 0 && (
+              <View style={{ height: 100, overflow: 'hidden' }}>
+                {messages.map((msg) => (
+                  <View
+                    key={msg.id}
+                    style={{
+                      marginBottom: 8,
+                      padding: 8,
+                      borderRadius: 8,
+                      backgroundColor: msg.sender === 'client' ? '#3f3a3f' : '#2d2a2f',
+                      alignSelf: msg.sender === 'client' ? 'flex-start' : 'flex-end',
+                    }}
+                  >
+                    <Text style={{ color: '#fff', fontSize: 12 }}>{msg.text}</Text>
+                    <Text style={{ color: '#888', fontSize: 10 }}>{msg.date.toLocaleTimeString()}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {sending && (
+              <View style={{ marginTop: 8, alignSelf: 'flex-end' }}>
+                <ActivityIndicator size="small" />
+              </View>
+            )}
+          </View>
+        )}
+
         {/* Reschedule & Cancel Modals */}
         <RescheduleModal
           visit={reschedulingApp}
@@ -341,3 +429,25 @@ const cabinetStatusMapper: Record<StatusFilter, string> = {
   past: 'completed',
   queue: 'confirmed',
 };
+
+/** Simple textarea component for React Native */
+const Textarea = React.forwardRef(({ placeholder, value, onChangeText }, ref) => (
+  <View style={{ flex: 1 }}>
+    <input
+      ref={ref}
+      style={{
+        height: 50,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: '#64748b',
+        borderRadius: 8,
+        backgroundColor: '#fff',
+        color: '#000',
+      }}
+      placeholder={placeholder}
+      value={value}
+      onChangeText={onChangeText}
+    />
+  </View>
+));
+Textarea.displayName = 'Textarea';
