@@ -1,23 +1,70 @@
 {
-  "name": "fade-platform",
-  "version": "1.0.0",
+  "name": "barbershop-platform",
   "private": true,
-  "description": "FADE Platform Monorepo",
+  "version": "0.0.0",
+  "description": "Network software platform: website + blog, client/barber mobile apps, founder admin, API.",
+  "//vendor-forks": "braces/ip/node-forge are local forks for advisories with no patched release; the real pinning happens in the `overrides` block of pnpm-workspace.yaml. They are direct devDependencies only so scripts/vendor-forks/* can require the same copy consumers resolve.",
   "packageManager": "pnpm@12.1.0",
+  "//workspaces": "pnpm reads pnpm-workspace.yaml. This field exists so Expo's find-yarn-workspace-root can see the same packages and serve the web bundle from the workspace root.",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "mcp"
+  ],
   "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
+    "node": ">=20.18.0"
   },
   "scripts": {
-    "build": "pnpm --recursive run build",
-    "test": "pnpm --recursive run test",
-    "lint": "pnpm --recursive run lint",
-    "clean": "pnpm --recursive run clean"
+    "dev": "pnpm --filter \"./apps/**\" --parallel run dev",
+    "build": "pnpm --filter @fade/design-tokens build && pnpm --filter @fade/domain-shared build && pnpm --filter @fade/contracts build && pnpm --filter @fade/ui build && pnpm --filter @fade/test-utils build && pnpm --filter api build && pnpm --filter admin build && pnpm --filter web build",
+    "lint": "pnpm --filter \"./apps/**\" lint && pnpm --filter \"./packages/**\" lint",
+    "test": "pnpm --filter \"./apps/**\" test && pnpm --filter \"./packages/**\" test",
+    "e2e": "pnpm --filter web exec playwright test",
+    "e2e:admin": "pnpm --filter admin exec playwright test",
+    "test:cov": "pnpm --filter \"./apps/**\" test:cov && pnpm --filter \"./packages/**\" test:cov",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "docs:validate": "node scripts/validate-docs.mjs",
+    "agents:validate": "node scripts/validate-agents.mjs",
+    "agents:render": "node scripts/render-antigravity-sidecars.mjs",
+    "docs:test": "node --test scripts/validate-docs/test/*.test.mjs scripts/validate-docs/test/changelog-commitlint.test.mjs",
+    "vendor:test": "node --test scripts/vendor-forks/*.test.js",
+    "uuid:check": "node scripts/check-uuid-keys.mjs",
+    "uuid:test": "node --test scripts/check-uuid-keys.test.mjs",
+    "db:migration:check": "node scripts/check-migration-safety.mjs",
+    "db:migration:test": "node --test scripts/check-migration-safety.test.mjs",
+    "secrets:check": "node scripts/check-secrets.mjs",
+    "secrets:test": "node --test scripts/check-secrets.test.mjs",
+    "hooks:install": "node scripts/install-hooks.mjs",
+    "email:check": "node scripts/check-email-fonts.mjs",
+    "email:test": "node --test scripts/check-email-fonts.test.mjs",
+    "changelog": "node scripts/generate-changelog.mjs",
+    "commitlint": "node scripts/validate-commit.mjs",
+    "clean": "pnpm -r exec rm -rf node_modules dist .next coverage && rm -rf node_modules",
+    "typecheck": "pnpm --filter \"./packages/**\" build && pnpm -r run typecheck",
+    "perf:audit": "node scripts/validate-docs.mjs"
   },
   "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "jest": "^30.5.2",
-    "ts-jest": "^29.4.15",
-    "typescript": "^5.9.3"
+    "@playwright/test": "^1.63.0",
+    "@types/jest": "^29.5.2",
+    "@types/node": "^20.3.1",
+    "eslint": "^8.42.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-nestjs": "^1.2.3",
+    "eslint-plugin-react": "^7.33.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-no-phantom-classes": "workspace:*",
+    "eslint-plugin-uuid-keys": "workspace:*",
+    "jest": "^29.5.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.1.3",
+    "braces": "file:./vendor/braces",
+    "ip": "file:./vendor/ip",
+    "node-forge": "file:./vendor/node-forge"
+  },
+  "dependencies": {
+    "@nestjs/swagger": "^11.4.7",
+    "swagger-ui-express": "^5.0.1",
+    "ts-node": "^10.9.1"
   }
 }
