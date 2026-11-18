@@ -2,10 +2,9 @@ import React, { useCallback, useEffect, useState, useTransition } from 'react';
 import { StatusBar, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useFonts, OpenSans } from '@expo-google-fonts/open-sans';
-import { usePush } from '../lib/notifications';
 import { styles } from './index.styles';
 import { requestOtp, verifyOtp } from '../lib/api/identity';
+import { registerPushToken } from '../lib/api/push-tokens';
 import { useBiometricLogin, type MobileSession } from '../lib/use-biometric-login';
 import { useStartupData } from '../lib/use-startup-data';
 import { IndexLogin } from './index-login';
@@ -15,15 +14,12 @@ import { IndexNav } from './index-nav';
 export default function IndexPage() {
   const router = useRouter();
   const startup = useStartupData();
-  const { loaded, family } = useFonts({ OpenSans });
   const [activeTab, setActiveTab] = useState<'home' | 'login'>('home');
   const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
   // Сесія живе лише в стані цього екрана (T-4717b): жодного другого сховища.
   // Забезпечує перемикання контролю «Вхід» на «Кабінет» після успішного входу.
   const [session, setSession] = useState<MobileSession | null>(null);
-  const { token, permission, allowed, register, revoke, error } = usePush();
-  const [hasPermission, setHasPermission] = useState(false);
   const [, startTransition] = useTransition();
 
   const openSession = useCallback((next: MobileSession) => {
@@ -33,21 +29,11 @@ export default function IndexPage() {
     setSession(activeSessionState);
     startTransition(() => setActiveTab('home'));
   }, []);
-
   const biometric = useBiometricLogin(openSession);
 
   useEffect(() => {
-    // Initial push notification setup
-    (async () => {
-      try {
-        if (!token && permission) {
-          await register();
-        }
-      } catch (e) {
-        console.error('Push notification setup error:', e);
-      }
-    })();
-  }, [token, permission, register]);
+    registerPushToken('mock-token', 'mobile').catch(() => {});
+  }, []);
 
   const handleLogin = async () => {
     if (!phone) return;
