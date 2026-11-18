@@ -4,10 +4,10 @@
 
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
+import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
 import { LoyaltyService } from './loyalty.service';
 import { GetProgressOutput, type SetThresholdInput, ThresholdOutput } from './loyalty.dto';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
+import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
 
 export const LOYALTY_IO = Symbol('LOYALTY_IO');
 

@@ -3,10 +3,10 @@
 // and tracks ROI via CampaignSent anti-spam and CampaignRoi metrics.
 
 import { prisma } from '../../index';
-import { ClientProfile } from '../identity/domain';
+import { ClientProfile } from '../../crm/domain/client-profile';
 import { sendBookingConfirmationSms, SendBookingConfirmationSms } from './send-sms.use-case';
 import { BookingConfirmationHandler } from './send-sms.use-case';
-import { LOYALTY_INCREMENTED_TYPE, LOYALTY_GRANTED_TYPE } from '../loyalty/infrastructure/outbox-routing';
+import { LOYALTY_INCREMENTED_TYPE, LOYALTY_GRANTED_TYPE } from '../../loyalty/infrastructure/outbox-routing';
 import type { NotificationEvent } from '../application/send-booking-confirmation';
 
 /** Segment criteria for win-back campaigns (T-180, WNB-001...007). */

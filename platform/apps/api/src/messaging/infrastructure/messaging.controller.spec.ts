@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessagingController } from './messaging.controller';
-import { MessagingService } from './messaging.service';
+import { MessagingService } from '../application/messaging.service';
 
 describe('MessagingModule', () => {
   let controller: MessagingController;

@@ -1,7 +1,7 @@
 import { prisma } from '../index';
 import { Appointment, Booking, ClientProfile, User } from '../domain';
 import { OutboxMessage, AppointmentActivity, NotificationRecord } from '../domain';
-import { push } from '../../../../lib/notifications';
+import { push } from '../lib/notifications';
 import type { User } from '../domain';
 
 /** T-140: Loyalty Counter - subscribe to AppointmentCompleted events.

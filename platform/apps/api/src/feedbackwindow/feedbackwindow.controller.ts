@@ -5,10 +5,10 @@
 
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
+import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
 import { FeedbackWindowService } from './feedbackwindow.service';
 import { type CreateFeedbackWindowInput, type SubmitFeedbackInput, FeedbackWindowOutput } from './feedbackwindow.dto';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
+import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
 
 export const FEEDBACKWINDOW_IO = Symbol('FEEDBACKWINDOW_IO');
 

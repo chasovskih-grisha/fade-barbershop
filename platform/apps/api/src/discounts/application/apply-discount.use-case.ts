@@ -4,8 +4,8 @@
 // Fixates AppliedDiscounts on the Appointment; ensures FinalPrice ≥ 0 (DSC-004).
 // Reason `full_discount_promo` (DSC-013) when 100% promo code → no payment, no receipt.
 import { prisma } from '../../index';
-import { Appointment, Booking, Service, ClientProfile } from '../domain';
-import { DiscountInput, calculateDiscounts, AppliedDiscount, PriceBreakdown, DiscountSource } from '../discounts/domain/discount-calculator';
+import { Appointment, Booking, Service, ClientProfile } from '../../domain';
+import { DiscountInput, calculateDiscounts, AppliedDiscount, PriceBreakdown, DiscountSource } from '../domain/discount-calculator';
 import { randomUUID } from 'node:crypto';
 
 /** Result of applying discounts to an appointment. */

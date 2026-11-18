@@ -1,5 +1,5 @@
 import { Type, IsOptional, IsNumber, IsString, Length, MaxLength } from '@nestjs/common';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
+import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
 
 // Create FeedbackWindow input DTO
 export class CreateFeedbackWindowInput {

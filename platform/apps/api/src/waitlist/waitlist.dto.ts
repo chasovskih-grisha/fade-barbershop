@@ -1,5 +1,5 @@
 import { Type, IsOptional } from '@nestjs/common';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
+import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
 
 // Waitlist entry creation input
 export class CreateWaitlistEntryInput {

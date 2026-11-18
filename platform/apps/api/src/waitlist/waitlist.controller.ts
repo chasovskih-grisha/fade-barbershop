@@ -5,10 +5,10 @@
 
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
+import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
 import { WaitlistService } from './waitlist.service';
 import { type CreateWaitlistEntryInput, type HoldSlotInput, WaitlistOutput, ActiveWaitlistOutput, ClientWaitlistHistoryOutput, type CancelWaitlistInput, type CascadeWaitlistInput, type CheckJoinInput } from './waitlist.dto';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
+import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
 
 export const WAITLIST_IO = Symbol('WAITLIST_IO');
 

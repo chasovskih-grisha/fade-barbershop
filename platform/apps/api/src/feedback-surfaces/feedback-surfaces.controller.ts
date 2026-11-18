@@ -2,7 +2,7 @@
 
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
+import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
 import { FeedbackSurfacesService } from './feedback-surfaces.service';
 import { CanSubmitInput, AdminListInput } from './feedback-surfaces.dto';
 

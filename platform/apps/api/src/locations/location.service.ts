@@ -4,8 +4,7 @@
 // removed redundant include selections, streamlined update logic.
 
 import { prisma } from '../index';
-import { Location, ServicePrice, StaffAssignment, BarberServiceAssignment, Booking, OnlineBookingPolicy } from '../../domain';
-import { AppSetting } from '../identity/domain';
+import { Location, ServicePrice, StaffAssignment, BarberServiceAssignment, Booking, OnlineBookingPolicy } from '../domain';
 
 /** T-105: Second Location - location management and multi-shop support.
  * Consolidated output via LocationOutput DTO; no duplicate BasicOutput type.

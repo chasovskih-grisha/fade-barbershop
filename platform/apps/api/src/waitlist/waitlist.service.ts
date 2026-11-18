@@ -1,7 +1,7 @@
 import { prisma } from '../index';
 import { WaitlistEntry, SlotHold, WaitlistConfig, ReleaseSource, WaitlistServiceDeps, DEFAULT_WAITLIST_CONFIG, WaitlistEntryStatus, HoldStatus, ClientWaitlistHistory } from './waitlist.domain';
 import { Appointment, Booking } from '../domain';
-import { calculateChecksum } from '../../shared/utils';
+import { calculateChecksum } from '../shared/utils';
 
 /** T-170: Waitlist Management - auto-fills cancelled/no-show slots.
  * Integrates with T-095 no-show escalation and T-105 location support.

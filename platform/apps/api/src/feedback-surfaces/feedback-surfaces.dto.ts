@@ -1,5 +1,5 @@
 import { Type, IsOptional, IsString, IsNumber, Length, MaxLength } from '@nestjs/common';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
+import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
 
 // Can submit input DTO
 export class CanSubmitInput {

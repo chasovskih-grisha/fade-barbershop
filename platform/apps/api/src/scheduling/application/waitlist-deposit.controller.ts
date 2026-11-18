@@ -1,11 +1,11 @@
 import { Controller, Post, Body, Param, Get, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
-import { WaitlistDepositFlow, WaitlistDepositInput, WaitlistDepositResult, PaymentProps, PaymentForm, CheckboxReceiptType } from '../payment/application/waitlist-deposit-flow.use-case';
-import { PaymentStatus as BillingPaymentStatus } from '../billing/domain/payment-status.enum';
-import { Payment } from '../billing/domain/payment.entity';
+import { WaitlistDepositFlow, WaitlistDepositInput, WaitlistDepositResult, PaymentProps, PaymentForm, CheckboxReceiptType } from '../../payment/application/waitlist-deposit-flow.use-case';
+import { PaymentStatus as BillingPaymentStatus } from '../../billing/domain/payment-status.enum';
+import { Payment } from '../../billing/domain/payment.entity';
 import { UseInterceptors } from '@nestjs/common';
 import { ClassSerializerInterceptor } from '@nestjs/common';
-import { IdempotencyGuard } from '../shared/idempotency/idempotency.guard';
-import { TracingInterceptor } from '../shared/tracing/tracing.interceptor';
+import { IdempotencyGuard } from '../../shared/idempotency/idempotency.guard';
+import { TracingInterceptor } from '../../shared/tracing/tracing.interceptor';
 
 /** T-197: Waitlist Deposit Payment Controller
  * 

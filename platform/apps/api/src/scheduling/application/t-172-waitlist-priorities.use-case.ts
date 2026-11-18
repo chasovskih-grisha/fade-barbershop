@@ -4,8 +4,8 @@
 
 import { prisma } from '../../index';
 import { Booking, BookingRepository } from '../domain/booking';
-import { Appointment, AppointmentRepository } from '../domain/appointment';
-import { ClientProfile } from '../identity/domain';
+import { Appointment, AppointmentRepository } from '../domain/appointment.aggregate';
+import { ClientProfile } from '../../crm/domain/client-profile';
 import type { ScoredBooking } from '../domain/booking-risk-score';
 
 /** Waitlist urgency score factors (T-172, WTL-001...007). */

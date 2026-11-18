@@ -1,7 +1,7 @@
 import { prisma } from '../index';
 import { FeedbackWindow, FeedbackWindowStatus, FeedbackSubmission, PhotoRef, CreateFeedbackWindowInput, FeedbackWindowOutput } from './feedbackwindow.domain';
 import { Appointment, Booking } from '../domain';
-import { push } from '../../../../lib/notifications';
+import { push } from '../lib/notifications';
 
 /** T-150: Feedback Window - 30-day window after AppointmentCompleted.
  * Subscription on AppointmentCompleted (idempotent via processed journal - ADR 0016).

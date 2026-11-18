@@ -1,7 +1,7 @@
 import { Booking, BookingRepository } from '../domain/booking';
 import { RefundEntity, RefundStatus, RefundReason } from '../../payment/domain/refund.entity';
 import { T094Refund } from '../../payment/application/refund.use-case';
-import { usePush } from '../../../../lib/notifications';
+import { usePush } from '../../lib/notifications';
 import type { RefundMetadata } from '../../payment/domain/refund.entity';
 
 /** T-095: No-Show Escalation - automatic detection and handling of missed appointments.

@@ -7,8 +7,8 @@ import { SmsInput } from './booking-confirmation-sms';
 import { renderConfirmationSms, renderReminderSms } from './booking-confirmation-sms';
 import { renderReminderSms as renderOldReminderSms } from './appointment-reminder-sms';
 import { ConfirmationLetterData } from './booking-confirmation-ports';
-import { Booking, BookingRepository } from '../domain/booking';
-import { ClientProfile } from '../domain/client-profile';
+import { Booking, BookingRepository } from '../../scheduling/domain/booking';
+import { ClientProfile } from '../../crm/domain/client-profile';
 import { prisma } from '../../index';
 
 /** SMS Input for booking confirmation */
