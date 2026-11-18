@@ -132,4 +132,3 @@ export class T179WaitlistCascadeAnalyticsUseCase {
   }
 }
 
-export type { CascadeMetricsData };

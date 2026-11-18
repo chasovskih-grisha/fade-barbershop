@@ -14,14 +14,7 @@ import type {
 } from './admin-barber-service.dto';
 
 export { ADMIN_BARBER_SERVICE_IO } from './admin-barber-service.dto';
-export type {
-  BarberServiceAssignmentForBarberDto,
-  BarberServiceAssignmentsForLocationDto,
-  CreateOrActivateAssignmentDto,
-  SlotPolicyDto,
-  UpdateSlotPolicyDto,
-  AdminBarberServiceDeps,
-};
+export type { BarberServiceAssignmentForBarberDto, BarberServiceAssignmentsForLocationDto, CreateOrActivateAssignmentDto, SlotPolicyDto, UpdateSlotPolicyDto, AdminBarberServiceDeps };
 
 @Controller('admin/barber-service')
 @UseFilters(SchedulingExceptionFilter)

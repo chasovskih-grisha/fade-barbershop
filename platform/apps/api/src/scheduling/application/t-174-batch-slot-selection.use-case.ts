@@ -78,11 +78,12 @@ export class T174BatchSlotSelectionUseCase {
     // For now, use first available barber matching service requirements
 
     // Search for available slots - this integrates with the waitlist queue from T-170/T-171
-    const availableSlots = await this.waitlistQueue.getAvailableSlots({
+    const criteria: { serviceIds: string[]; groupSize: number; preferredDate?: string } = {
       serviceIds: preferredServices,
       groupSize,
-      preferredDate,
-    });
+    };
+    if (preferredDate) criteria.preferredDate = preferredDate;
+    const availableSlots = await this.waitlistQueue.getAvailableSlots(criteria);
 
     if (availableSlots.length === 0) {
       return {
@@ -99,7 +100,8 @@ export class T174BatchSlotSelectionUseCase {
       .map((slot, index) => ({
         slotId: slot.id,
         barberId: slot.barberId,
-        serviceId: preferredServices[index % preferredServices.length] || preferredServices[0],
+        serviceId:
+          preferredServices[index % preferredServices.length] ?? preferredServices[0] ?? '',
         startTime: slot.startTime,
         formattedTime: this.formatSlotTime(slot.startTime),
       }));
@@ -164,4 +166,3 @@ export class T174BatchSlotSelectionUseCase {
   }
 }
 
-export type { BatchSlotSelectionInput, BatchSlotSelectionResult, GroupBookingInput };

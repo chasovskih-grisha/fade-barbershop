@@ -26,8 +26,6 @@ import type { ClientBookingsDeps } from './client-bookings.deps';
 /** Токен зібраних залежностей клієнтського підтвердження (провайдер у SchedulingModule). */
 export const CLIENT_BOOKINGS_IO = Symbol('CLIENT_BOOKINGS_IO');
 
-
-
 @ApiTags('booking')
 @Controller('booking/bookings')
 export class ClientBookingsController {

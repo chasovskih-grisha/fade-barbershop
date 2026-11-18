@@ -12,7 +12,6 @@ import { PaymentStatus as BillingPaymentStatus } from '../../billing/domain/paym
 import { FiscalGateway, FiscalReceiptDetails } from '../../billing/domain/fiscal.gateway.interface';
 import { CheckboxFiscalGateway, CheckboxReceiptType } from './checkbox-fiscal-gateway';
 
-
 export type { BookAppointmentDeps };
 
 /** Waitlist deposit flow use-case: 30% deposit on waitlist slot acceptance, idempotent, rounding 10 UAH.

@@ -118,4 +118,3 @@ export class T176WaitlistNotificationsUseCase {
   }
 }
 
-export type { SlotAcceptanceInput, SlotAcceptanceResult };
