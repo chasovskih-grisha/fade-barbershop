@@ -1,5 +1,7 @@
-// Waitlist Client Screen — T-173: Waitlist Surfaces (Mobile).
-// Client-facing waitlist screen with slot hold, FIFO position, and 10-min acceptance window.
+// Waitlist Client Screen — T-173/WTL-WEB-01: Waitlist Surfaces (Mobile).
+// Client-facing waitlist screen with 15-min hold timer, FIFO position,
+// 'notify me when slot opens' button, and push notification when slot becomes available.
+// Builds on waitlist infrastructure from T-170 (Waitlist Management) and T-171 (Waitlist Surfaces).
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -10,10 +12,14 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Switch,
+  SwitchItem,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { fetchActiveWaitlist } from '../../../lib/api';
+import { usePush, usePushNotification } from '../../../../lib';
+import { useNotificationSettings } from '../../../../lib/use-notification-settings';
 
 interface WaitlistClientScreenProps {
   visible: boolean;
@@ -58,6 +64,13 @@ export const WaitlistClientScreen: React.FC<WaitlistClientScreenProps> = ({
   const [canAccept, setCanAccept] = useState(false);
   const [missedCount, setMissedCount] = useState(0);
   const [showNotificationCard, setShowNotificationCard] = useState(false);
+  const [showNotifyMeCard, setShowNotifyMeCard] = useState(false);
+  const [notificationEnabled, setNotificationEnabled] = useState<boolean>(
+    false
+  );
+
+  const { token, permission, register, error: pushError } = usePush();
+  const { showNotificationPrompt, requestPermissions } = useNotificationSettings();
 
   // Fetch active waitlist from API
   const { data, isLoading, refetch } = useQuery({
@@ -88,7 +101,9 @@ export const WaitlistClientScreen: React.FC<WaitlistClientScreenProps> = ({
       // FIFO: first entry is the next slot to be offered
       if (entries.length > 0) {
         setNextSlot(entries[0]);
+
         // Start hold timer based on holdExpiry - createdAt
+        // Backend holds slot for 15 minutes (T-171, T-105)
         const created = new Date(entries[0].createdAt);
         const expiry = new Date(entries[0].holdExpiry);
         const durationMs = expiry.getTime() - created.getTime(); // 15 min hold in backend
@@ -113,6 +128,7 @@ export const WaitlistClientScreen: React.FC<WaitlistClientScreenProps> = ({
     if (holdTimer === null || holdTimer <= 0) {
       setCanAccept(true);
       setHoldTimer(null);
+      setShowNotifyMeCard(false);
       return;
     }
 
@@ -135,6 +151,10 @@ export const WaitlistClientScreen: React.FC<WaitlistClientScreenProps> = ({
     setHoldTimer(null);
     setMissedCount(0);
     setShowNotificationCard(false);
+    setShowNotifyMeCard(false);
+
+    // Notify server to consume the offer
+    // In production: POST /api/waitlist/release with the offer
 
     // Navigate to booking or mark as accepted
     navigation.navigate('ConfirmBooking', {
@@ -144,9 +164,6 @@ export const WaitlistClientScreen: React.FC<WaitlistClientScreenProps> = ({
       serviceId: nextSlot.serviceId,
       agreedPrice: nextSlot.agreedPrice,
     });
-
-    // Notify server to consume the offer
-    // In production: POST /api/waitlist/release with the offer
   };
 
   // Pause/skip offer action (anti-spam: 3 misses → pause)
@@ -166,17 +183,30 @@ export const WaitlistClientScreen: React.FC<WaitlistClientScreenProps> = ({
     });
   };
 
-  // Show notification card when slot becomes available
+  // Show notification card when slot becomes available via push notification
   useEffect(() => {
     // This would be triggered by a push notification in production
-    // For now, show the card when nextSlot becomes available
+    // For now, show the card when nextSlot becomes available with short remaining time
     if (nextSlot && !canAccept && holdTimer !== null && holdTimer < 600) {
       // Less than 10 min remaining - show notification
       setShowNotificationCard(true);
     }
   }, [nextSlot, canAccept, holdTimer]);
 
-  if (!visible) return null;
+  // Show 'notify me when slot opens' card
+  useEffect(() => {
+    // Show notify me card when there's a next slot but user hasn't accepted/declined
+    // and hold timer is still active
+    if (
+      nextSlot &&
+      !canAccept &&
+      holdTimer !== null &&
+      holdTimer > 600 && // More than 10 min remaining
+      !showNotifyMeCard
+    ) {
+      setShowNotifyMeCard(true);
+    }
+  }, [nextSlot, canAccept, holdTimer, showNotifyMeCard]);
 
   // Calculate remaining time from holdExpiry
   const holdExpiry = nextSlot ? new Date(nextSlot.holdExpiry) : null;
@@ -186,6 +216,28 @@ export const WaitlistClientScreen: React.FC<WaitlistClientScreenProps> = ({
   if (holdExpiry && createdAt) {
     remainingSeconds = Math.max(0, Math.ceil((holdExpiry.getTime() - Date.now()) / 1000));
   }
+
+  // Subscribe to push notifications for waitlist slot availability
+  useEffect(() => {
+    // Register for waitlist slot availability push notifications
+    if (token && !registered) {
+      register();
+      setNotificationEnabled(true);
+    }
+  }, [token, registered]);
+
+  // Handle push notification when slot becomes available
+  usePushNotification({
+    onNotificationReceived: (notification) => {
+      // Slot became available - show notify me card
+      if (notification.data?.type === 'waitlist_slot_available') {
+        setShowNotifyMeCard(true);
+        setShowNotificationCard(false);
+      }
+    },
+  });
+
+  if (!visible) return null;
 
   return (
     <View style={styles.container}>
@@ -230,7 +282,7 @@ export const WaitlistClientScreen: React.FC<WaitlistClientScreenProps> = ({
           {remainingSeconds <= 0 && canAccept && (
             <View style={styles.acceptWindow}>
               <Text style={styles.acceptText}>
-                Слот доступний! Будь ласка, підтвердіть у течение 10 хвилин.
+                Слот доступний! Будь ласка, підтвердіть у течение 15 хвилин.
               </Text>
             </View>
           )}
@@ -242,8 +294,8 @@ export const WaitlistClientScreen: React.FC<WaitlistClientScreenProps> = ({
                 disabled={!canAccept}
               >
                 <Text style={styles.acceptButtonText}>
-{remainingSeconds <= 60 ? `${remainingSeconds} сек` : 'Прийняти слот'}
-</Text>
+                  {remainingSeconds <= 60 ? `${remainingSeconds} сек` : 'Прийняти слот'}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={pauseOffer} style={styles.skipButton}>
                 <Text style={styles.skipButtonText}>
@@ -256,30 +308,54 @@ export const WaitlistClientScreen: React.FC<WaitlistClientScreenProps> = ({
       )}
 
       {/* "Notify me when slot opens" card */}
-      {showNotificationCard && (
+      {showNotifyMeCard && (
         <View style={styles.notificationCard}>
           <View style={styles.notificationHeader}>
-            <Text style={styles.notificationTitle}>Слот скоро з'явиться</Text>
+            <Text style={styles.notificationTitle}>
+              Ми надішлемо.push-повідомлення, коли слот станеться доступним
+            </Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Text style={styles.closeText}>×</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.notificationContent}>
             <Text style={styles.notificationText}>
-              Ваше місце у черзі ближче до слотів. Ми надішлемо.push-повідомлення, коли слот станеться доступним для підтвердження.
+              Ваше місце у черзіближче до слотів. Ми надішлемо.push-повідомлення,
+              коли слот станеться доступним для підтвердження в течение 15 хвилин.
             </Text>
             <Text style={styles.notificationTimer}>
-Доступу залишається: {remainingSeconds > 0 ? `${remainingSeconds} сек` : 'щойно'}
+              Ost remaining: {remainingSeconds > 0 ? `${remainingSeconds} сек` : 'щойно'}
             </Text>
           </View>
-          <TouchableOpacity onPress={onClose} style={styles.confirmButton}>
-            <Text style={styles.confirmButtonText}>Дякуємо, ми прочистимо</Text>
-          </TouchableOpacity>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              onPress={() => {
+                setShowNotifyMeCard(false);
+                // User dismissed - unsubscribe or keep subscribed
+                // In production: unsubscribe from push notifications for this slot
+              }}
+              style={styles.confirmButton}
+            >
+              <Text style={styles.confirmButtonText}>Дякуємо, ми прочистимо</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setShowNotifyMeCard(false);
+                // User wants to keep subscribed - stay in waitlist
+                // In production: continue subscribing to push notifications
+              }}
+              style={styles.skipButton}
+            >
+              <Text style={styles.skipButtonText}>
+                Підписатися на.push-повідомлення
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
       {/* Info when no waitlist entries */}
-      {!nextSlot && !showNotificationCard && (
+      {!nextSlot && !showNotifyMeCard && !showNotificationCard && (
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>Наразі немає доступних слотів</Text>
           <Text style={styles.emptySubText}>
@@ -293,10 +369,41 @@ export const WaitlistClientScreen: React.FC<WaitlistClientScreenProps> = ({
         <View style={styles.pushStatus}>
           <Text style={styles.pushText}>
             Push-notifications:{' '}
-            <Text style={styles.pushValue}>Увімкнені у設INGS</Text>
+            <Text style={styles.pushValue}>
+              {' '}
+              {notificationEnabled ? 'Увімкнені у設INGS' : 'Вимкнені'}
+            </Text>
           </Text>
+          {(!notificationEnabled || pushError) && (
+            <TouchableOpacity
+              onPress={() => {
+                requestPermissions();
+                setNotificationEnabled(true);
+              }}
+              style={styles.pushToggle}
+            >
+              <Text style={styles.pushText}>
+                Налаштувати.push-повідомлення
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
+
+      {/* Action Bar */}
+      <View style={styles.actionBar}>
+        <TouchableOpacity
+          onPress={() => refetch?.()}
+          style={styles.refreshButton}
+        >
+          <Text style={styles.refreshButtonText}>
+            Оновити
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+          <Text style={styles.closeBtnText}>Закрити</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -504,6 +611,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
+  pushToggle: {
+    padding: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#f8f9fa',
+  },
+
   emptyState: {
     flex: 1,
     justifyContent: 'center',
@@ -521,6 +636,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#7F8C8D',
   },
-});
+
+  actionBar: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    display: 'flex',
+    justifyContent: 'space-between',
+  },
+
+  refreshButton: {
+    backgroundColor: '#3498db',
+    padding: 10,
+    borderRadius: 6,
+  },
+
+  refreshButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+
+  closeBtn: {
+    backgroundColor: '#3f3f4f',
+    padding: 12,
+    borderRadius: 8,
+  },
+
+  closeBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+);
 
 export default WaitlistClientScreen;
