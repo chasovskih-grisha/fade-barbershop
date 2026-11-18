@@ -70,22 +70,20 @@ export class T177WaitlistDeduplicationUseCase {
     const isDuplicate = !!(activeEntry || recentBookings.length > 0);
 
     // Determine if client should be promoted (has history, can be moved to front)
-    const shouldPromote = !isDuplicate || (recentBookings.length > 0 && recentBookings[0].status === 'completed');
+    const shouldPromote = !isDuplicate || recentBookings[0]?.status === 'completed';
 
     let existingEntryInfo;
     if (activeEntry) {
       existingEntryInfo = {
         entryId: activeEntry.id,
-        bookedAt: activeEntry.addedAt,
+        bookedAt: String((activeEntry as { addedAt?: unknown }).addedAt ?? ''),
         status: activeEntry.status,
       };
     }
 
-    return {
-      isDuplicate,
-      existingEntry: isDuplicate ? existingEntryInfo : undefined,
-      shouldPromote,
-    };
+    const result: DeduplicationCheckResult = { isDuplicate, shouldPromote };
+    if (isDuplicate && existingEntryInfo) result.existingEntry = existingEntryInfo;
+    return result;
   }
 
   /**
@@ -129,5 +127,3 @@ export class T177WaitlistDeduplicationUseCase {
     return { success: true };
   }
 }
-
-export type { DeduplicationCheckInput, DeduplicationCheckResult };

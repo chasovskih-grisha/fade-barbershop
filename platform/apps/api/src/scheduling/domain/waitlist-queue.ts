@@ -3,6 +3,8 @@
 // що споживають сценарії waitlist, без Prisma й без HTTP.
 import type { SlotHold, WaitlistEntry } from '../../waitlist/waitlist.domain';
 
+export type { SlotHold, WaitlistEntry };
+
 /** Що шукає клієнт: послуги, розмір групи, бажана дата. */
 export interface SlotSearchCriteria {
   serviceIds: string[];
