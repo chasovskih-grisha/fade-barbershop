@@ -4,8 +4,10 @@ import {
   FreeVisitGranted,
   FreeVisitUsed,
   LoyaltyCounterIncremented,
+  LoyaltyTierChanged,
 } from '../domain/loyalty-events';
 import { DomainEvent } from '../domain/domain-event';
+import { determineLoyaltyTier, DEFAULT_LOYALTY_TIERS } from '../domain/loyalty-tier';
 
 export interface ProcessAppointmentCompletedInput {
   clientId: string;
@@ -77,6 +79,26 @@ export class ProcessAppointmentCompletedHandler {
       );
     }
 
+    // Evaluate and upgrade loyalty tier after appointment completion
+    const currentTier = determineLoyaltyTier(state.counter, DEFAULT_LOYALTY_TIERS);
+    const oldTier = state.tier;
+    const upgraded = oldTier !== currentTier.level;
+
+    if (upgraded) {
+      state.setTier(currentTier.level, input.occurredAt);
+      await this.ctx.states.save(state);
+      events.push(
+        new LoyaltyTierChanged({
+          clientId: input.clientId,
+          oldTier,
+          newTier: currentTier.level,
+          discountPercent: currentTier.discountPercent,
+          totalVisits: state.counter,
+          occurredAt: input.occurredAt,
+        })
+      );
+    }
+
     if (events.length > 0) {
       await this.ctx.outbox.append(events);
     }
@@ -85,6 +107,8 @@ export class ProcessAppointmentCompletedHandler {
       clientId: state.clientId,
       counter: state.counter,
       hasFreeVisit: state.hasFreeVisit,
+      tier: currentTier.level,
+      discountPercent: currentTier.discountPercent,
     };
   }
 }
