@@ -1,0 +1,728 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Модель User — role 'client' за замовчуванням, name nullable, admin/barber-поля
+// (username/passwordHash/selfSchedule).
+model User {
+  id              String       @id @db.Uuid
+  phone           String       @unique
+  role            String       @default("client")
+  name            String?
+  // T-4422: email для сповіщень безпеки (вхід — за ADR 0005, лише телефон).
+  email           String?      @unique
+  active          Boolean      @default(true)
+  selfSchedule    Boolean      @default(false)
+  username        String?      @unique
+  passwordHash    String?
+  phoneVerifiedAt DateTime?    @db.Timestamptz
+  createdAt       DateTime     @default(now()) @db.Timestamptz
+  updatedAt       DateTime     @updatedAt @db.Timestamptz
+  barberPhoto     BarberPhoto?
+
+  @@index([role, active])
+}
+
+// AdminRole — підролі адмінки (T-2400a, ADR 0027): super-admin | manager |
+// barber. `permissions` — масив секцій (`*` — усі); `priority` — широта прав.
+// Кіт початкових ролей у коді (identity/domain/admin-role.ts), не в рантаймі.
+model AdminRole {
+  id          String   @id @db.Uuid
+  key         String   @unique
+  name        String
+  description String
+  permissions String[]
+  priority    Int
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+
+  @@index([priority])
+}
+
+// Модель OtpChallenge — хеш коду (codeHash), а не код; throttle-поля.
+model OtpChallenge {
+  id          String    @id @db.Uuid
+  phone       String
+  codeHash    String
+  purpose     String    @default("login")
+  expiresAt   DateTime  @db.Timestamptz
+  resendAfter DateTime  @db.Timestamptz
+  attempts    Int       @default(0)
+  lockedUntil DateTime? @db.Timestamptz
+  usedAt      DateTime? @db.Timestamptz
+  createdAt   DateTime  @default(now()) @db.Timestamptz
+
+  @@index([phone, expiresAt, purpose])
+}
+
+// Модель Session — channel + tokenHash + revokedAt.
+model Session {
+  id                  String    @id @db.Uuid
+  userId              String    @db.Uuid
+  channel             String
+  tokenHash           String    @unique
+  refreshTokenHash    String?   @unique
+  previousRefreshHash String?
+  accessExpiresAt     DateTime? @db.Timestamptz
+  refreshExpiresAt    DateTime? @db.Timestamptz
+  createdAt           DateTime  @default(now()) @db.Timestamptz
+  revokedAt           DateTime?
+
+  @@index([previousRefreshHash])
+  @@index([userId])
+  @@index([userId, revokedAt])
+}
+
+// PushToken — канал сповіщень пристрою (T-070 мобільний / T-4422 безпека).
+model PushToken {
+  id         String    @id @db.Uuid
+  userId     String    @db.Uuid
+  sessionId  String    @db.Uuid
+  token      String    @unique
+  platform   String    @default("ios")
+  createdAt  DateTime  @default(now()) @db.Timestamptz
+  lastSeenAt DateTime  @default(now()) @db.Timestamptz
+  revokedAt  DateTime? @db.Timestamptz
+
+  @@index([userId, revokedAt])
+}
+
+// Модель OutboxMessage — без attempts/occurredAt; публікація = publishedAt.
+model OutboxMessage {
+  id            String    @id @db.Uuid
+  aggregateType String
+  aggregateId   String
+  type          String
+  payload       Json
+  status        String    @default("pending")
+  createdAt     DateTime  @default(now()) @db.Timestamptz
+  availableAt   DateTime? @db.Timestamptz
+  publishedAt   DateTime? @db.Timestamptz
+
+  @@index([type, publishedAt, availableAt])
+  @@index([aggregateId])
+  @@index([publishedAt])
+  @@index([status, availableAt])
+}
+
+// Журнал оброблених подій (T-042c, патерн ADR 0009).
+model AppointmentActivity {
+  id          String   @id @db.Uuid
+  eventId     String   @unique
+  type        String
+  note        String?
+  processedAt DateTime @default(now()) @db.Timestamptz
+
+  @@index([type, processedAt])
+}
+
+// Сповіщення (notifications, T-4608).
+model NotificationRecord {
+  id        String   @id @db.Uuid
+  eventId   String   @unique
+  type      String
+  channel   String   @default("email")
+  recipient String
+  subject   String
+  status    String   @default("sent")
+  detail    String?
+  sentAt    DateTime @default(now()) @db.Timestamptz
+
+  @@index([type, sentAt])
+  @@index([status, sentAt])
+  @@index([recipient])
+}
+
+// Клієнтські пріferences сповіщень.
+model ClientNotificationPreference {
+  id             String   @id @db.Uuid
+  clientId       String   @unique @db.Uuid
+  smsEnabled     Boolean  @default(true)
+  emailEnabled   Boolean  @default(true)
+  pushEnabled    Boolean  @default(true)
+  loyaltyOptOut  Boolean  @default(false)
+  reminderOptOut Boolean  @default(false)
+  createdAt      DateTime @default(now()) @db.Timestamptz
+  updatedAt      DateTime @updatedAt @db.Timestamptz
+}
+
+// AppointmentParty.
+model AppointmentParty {
+  id            String    @id @db.Uuid
+  role          String
+  userId        String?   @db.Uuid
+  barberId      String?   @db.Uuid
+  locationId    String?   @db.Uuid
+  date          DateTime? @db.Timestamptz
+  mode          String?
+  barberIds     String[]  @default([]) @db.Uuid
+  serviceId     String?   @db.Uuid
+  agreedPriceId String?   @db.Uuid
+  agreedPrice   Int?
+  slots         Json?
+  partyLegs     Json?
+  createdAt     DateTime  @default(now()) @db.Timestamptz
+
+  @@index([date])
+  @@index([locationId])
+  @@index([barberId])
+  @@index([userId])
+  @@index([locationId, date])
+  @@index([barberId, date])
+  @@index([userId, date])
+}
+
+// Модель Location.
+model Location {
+  id         String   @id @db.Uuid
+  code       String   @unique
+  name       String
+  address    String
+  street     String?
+  building   String?
+  city       String?
+  postalCode String?
+  country    String?
+  lat        Float
+  lng        Float
+  phone      String?
+  email      String?
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+
+  chairs        Chair[]
+  hours         OpeningHour[]
+  channels      LocationChannel[]
+  photos        LocationPhoto[]
+  logo          LocationLogo?
+  servicePrices ServicePrice[]
+  stockItems    StockItem[]
+
+  @@index([active])
+}
+
+// Логотип локації.
+model LocationLogo {
+  id         String   @id @db.Uuid
+  locationId String   @unique @db.Uuid
+  variant    String
+  lightKey   String
+  darkKey    String?
+  alt        String
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+// Фото барбера.
+model BarberPhoto {
+  id        String    @id @db.Uuid
+  userId    String    @unique @db.Uuid
+  objectKey String
+  alt       String
+  width     Int?
+  height    Int?
+  consentAt DateTime? @db.Timestamptz
+  consentBy String?
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Chair.
+model Chair {
+  id         String   @id @db.Uuid
+  number     Int
+  locationId String   @db.Uuid
+  name       String?
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+  location   Location @relation(fields: [locationId], references: [id])
+
+  @@unique([locationId, number])
+  @@index([locationId, active])
+}
+
+// OpeningHour.
+model OpeningHour {
+  id         String   @id @db.Uuid
+  locationId String   @db.Uuid
+  dayOfWeek  Int
+  open       String?
+  close      String?
+  closed     Boolean  @default(false)
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+  location   Location @relation(fields: [locationId], references: [id])
+
+  @@unique([locationId, dayOfWeek])
+}
+
+// Канали зв'язку локації.
+model LocationChannel {
+  id         String   @id @db.Uuid
+  locationId String   @db.Uuid
+  channel    String
+  value      String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+  location   Location @relation(fields: [locationId], references: [id])
+
+  @@unique([locationId, channel])
+}
+
+// Фото галереї сторінки локації.
+model LocationPhoto {
+  id         String   @id @db.Uuid
+  locationId String   @db.Uuid
+  url        String
+  caption    String?
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+  location   Location @relation(fields: [locationId], references: [id])
+
+  @@index([locationId, sortOrder])
+}
+
+// AvailabilityWindow.
+model AvailabilityWindow {
+  id         String   @id @db.Uuid
+  locationId String   @db.Uuid
+  barberId   String   @db.Uuid
+  dayOfWeek  Int
+  start      String
+  end        String
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  version    Int      @default(0)
+
+  @@unique([barberId, locationId, dayOfWeek, start, end])
+  @@index([locationId])
+}
+
+// StaffAssignment.
+model StaffAssignment {
+  id         String   @id @db.Uuid
+  barberId   String   @db.Uuid
+  locationId String   @db.Uuid
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  @@unique([barberId, locationId])
+  @@index([locationId])
+}
+
+// Booking.
+model Booking {
+  id                      String   @id @db.Uuid
+  barberId                String   @db.Uuid
+  locationId              String   @db.Uuid
+  serviceId               String?  @db.Uuid
+  agreedPrice             Int?
+  appliedDiscounts        Json?
+  finalPrice              Int?
+  agreedDuration          Int?
+  fulfillmentMode         String?
+  partyId                 String?  @db.Uuid
+  partyRole               String?
+  start                   DateTime @db.Timestamptz
+  end                     DateTime @db.Timestamptz
+  version                 Int      @default(0)
+  appointmentId           String?  @unique
+  status                  String?
+  cancelReason            String?
+  haircutReferenceId      String?
+  appointmentComment      String?
+  clientId                String?  @db.Uuid
+  source                  String   @default("web")
+  surgeBasisPoints        Int?
+  surgeRuleId             String?  @db.Uuid
+  depositAmount           Int?
+  depositPercent          Int?
+  depositRounding         Int?
+  cancellationWindowHours Int?
+
+  @@index([locationId, start, end])
+  @@index([barberId, start, end])
+  @@index([clientId])
+  @@index([clientId, status])
+  @@index([status])
+  @@index([serviceId])
+  @@index([locationId, status])
+  @@index([barberId, status])
+  @@index([partyId])
+  @@index([haircutReferenceId])
+}
+
+// Service.
+model Service {
+  id               String         @id @db.Uuid
+  name             String
+  description      String?
+  category         String?
+  slug             String?        @unique
+  seoDescription   String?
+  faq              Json?
+  duration         Int
+  parallelDuration Int?
+  active           Boolean        @default(true)
+  sortOrder        Int            @default(0)
+  createdAt        DateTime       @default(now()) @db.Timestamptz
+  updatedAt        DateTime       @updatedAt @db.Timestamptz
+  prices           ServicePrice[]
+  isAddon          Boolean        @default(false)
+  packageItems     String[]       @default([])
+  cleanupMinutes   Int            @default(0)
+  resourceIds      String[]       @default([])
+  commissionPercent Int?
+  consumableItems  String[]       @default([])
+
+  @@unique([name, duration, isAddon])
+  @@index([active, isAddon])
+}
+
+// ServicePrice.
+model ServicePrice {
+  id         String   @id @db.Uuid
+  serviceId  String   @db.Uuid
+  locationId String   @db.Uuid
+  amount     Int
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, locationId])
+  @@index([locationId, active])
+}
+
+// BarberServiceAssignment.
+model BarberServiceAssignment {
+  id         String   @id @db.Uuid
+  barberId   String   @db.Uuid
+  locationId String   @db.Uuid
+  serviceId  String   @db.Uuid
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+
+  @@unique([barberId, locationId, serviceId])
+  @@index([locationId, serviceId, active])
+  @@index([locationId, active])
+  @@index([barberId, active])
+}
+
+// SurgeRule.
+model SurgeRule {
+  id            String   @id @db.Uuid
+  locationId    String?  @db.Uuid
+  dayOfWeek     Int?
+  fromMinute    Int?
+  toMinute      Int?
+  seniorityTier String?
+  multiplierBp  Int      @default(10000)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @db.Timestamptz
+  updatedAt     DateTime @updatedAt @db.Timestamptz
+
+  @@index([locationId, active])
+}
+
+// OnlineBookingPolicy.
+model OnlineBookingPolicy {
+  id                         String   @id @db.Uuid
+  locationId                 String?  @unique @db.Uuid
+  minLeadMinutes             Int      @default(60)
+  maxHorizonDays             Int      @default(30)
+  cancellationDeadlineHours  Int      @default(12)
+  rescheduleDeadlineHours    Int      @default(12)
+  maxActiveBookings          Int      @default(2)
+  allowGuestBooking          Boolean  @default(true)
+  blockNoShowsCount          Int      @default(3)
+  blockNoShowsWindowDays     Int      @default(180)
+  createdAt                  DateTime @default(now()) @db.Timestamptz
+  updatedAt                  DateTime @updatedAt @db.Timestamptz
+}
+
+// LocationSlotPolicy.
+model LocationSlotPolicy {
+  id                String   @id @db.Uuid
+  locationId        String   @unique @db.Uuid
+  stepMinutes       Int      @default(15)
+  bufferMinutes     Int      @default(0)
+  horizonDays       Int      @default(14)
+  lastMinuteMinutes Int      @default(60)
+  timeZone          String   @default("Europe/Kyiv")
+  createdAt         DateTime @default(now()) @db.Timestamptz
+  updatedAt         DateTime @updatedAt @db.Timestamptz
+}
+
+// CatalogAudit.
+model CatalogAudit {
+  id         String   @id @db.Uuid
+  actorId    String   @db.Uuid
+  objectType String
+  objectId   String
+  before     Json?
+  after      Json
+  changedAt  DateTime @default(now()) @db.Timestamptz
+
+  @@index([objectType, objectId, changedAt])
+  @@index([actorId, changedAt])
+}
+
+// Article.
+model Article {
+  id          String    @id @db.Uuid
+  slug        String    @unique
+  title       String
+  excerpt     String?
+  body        String
+  coverUrl    String?
+  authorName  String?
+  tags        String[]  @default([])
+  status      String    @default("draft")
+  publishedAt DateTime? @db.Timestamptz
+  createdAt   DateTime  @default(now()) @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @db.Timestamptz
+
+  @@index([status, publishedAt])
+  @@index([createdAt])
+}
+
+// SeoBlockRecord.
+model SeoBlockRecord {
+  id              String   @id @db.Uuid
+  entityType      String
+  entityId        String
+  title           String?
+  metaDescription String?
+  h1              String?
+  faq             Json     @default("[]")
+  createdAt       DateTime @default(now()) @db.Timestamptz
+  updatedAt       DateTime @updatedAt @db.Timestamptz
+
+  @@unique([entityType, entityId])
+  @@index([entityType])
+}
+
+// ReferralCode — formal referral program (T-142).
+model ReferralCode {
+  id         String   @id @db.Uuid
+  referrerId String   @db.Uuid @unique
+  code       String   @unique
+  status     String   @default("active")
+  uses       Int      @default(0)
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  usedAt     DateTime? @db.Timestamptz
+
+  @@index([status, uses])
+  @@index([referrerId])
+}
+
+// Visit — read-model історії візитів клієнта (crm, T-061).
+model Visit {
+  appointmentId String   @id @db.Uuid
+  clientId      String   @db.Uuid
+  barberId      String?  @db.Uuid
+  locationId    String?  @db.Uuid
+  status        String
+  start         String?
+  end           String?
+  occurredAt    DateTime @db.Timestamptz
+  updatedAt     DateTime @updatedAt @db.Timestamptz
+
+  @@index([clientId, occurredAt])
+  @@index([barberId, occurredAt])
+}
+
+// SourcePhoto — референсне фото клієнта.
+model SourcePhoto {
+  id               String    @id @db.Uuid
+  ownerId          String    @db.Uuid
+  objectKey        String    @unique
+  bucket           String
+  contentType      String
+  sizeBytes        Int
+  consentGranted   Boolean   @default(false)
+  consentGrantedAt DateTime? @db.Timestamptz
+  consentRevokedAt DateTime? @db.Timestamptz
+  createdAt        DateTime  @default(now()) @db.Timestamptz
+  updatedAt        DateTime  @updatedAt @db.Timestamptz
+  deletedAt        DateTime? @db.Timestamptz
+
+  suggestions HaircutSuggestion[]
+
+  @@index([ownerId, deletedAt])
+  @@index([ownerId, createdAt])
+}
+
+// HaircutSuggestion.
+model HaircutSuggestion {
+  id                String    @id @db.Uuid
+  sourcePhotoId     String    @db.Uuid
+  ownerId           String    @db.Uuid
+  status            String    @default("pending")
+  variantCount      Int
+  variants          Json      @default("[]")
+  failureReason     String?
+  errorMessage      String?
+  providerJobHandle String?   @unique
+  createdAt         DateTime  @default(now()) @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @db.Timestamptz
+  completedAt       DateTime? @db.Timestamptz
+  failedAt          DateTime? @db.Timestamptz
+
+  sourcePhoto SourcePhoto @relation(fields: [sourcePhotoId], references: [id], onDelete: Cascade)
+
+  @@index([sourcePhotoId])
+  @@index([ownerId, createdAt])
+  @@index([status, createdAt])
+  @@index([ownerId, status])
+}
+
+// ArchiveRun.
+model ArchiveRun {
+  id        String   @id @db.Uuid
+  cutoff    DateTime @db.Timestamptz
+  archived  Int
+  remaining Int      @default(0)
+  keys      Json
+  checksums Json
+  ranAt     DateTime @default(now()) @db.Timestamptz
+
+  @@index([ranAt])
+}
+
+// RetentionPurge.
+model RetentionPurge {
+  id               String   @id @db.Uuid
+  dataset          String
+  cutoff           DateTime @db.Timestamptz
+  purged           Int
+  remainingExpired Int      @default(0)
+  held             Boolean  @default(false)
+  ranAt            DateTime @default(now()) @db.Timestamptz
+
+  @@index([ranAt])
+}
+
+// AmplitudeOutbox.
+model AmplitudeOutbox {
+  id            String    @id @db.Uuid
+  sourceEventId String    @unique @db.Uuid
+  eventName     String
+  insertId      String
+  payload       Json
+  status        String    @default("pending")
+  attempts      Int       @default(0)
+  nextAttemptAt DateTime  @default(now()) @db.Timestamptz
+  lastError     String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz
+  sentAt        DateTime? @db.Timestamptz
+
+  @@index([status, nextAttemptAt])
+}
+
+// AccountErasure.
+model AccountErasure {
+  id            String    @id @db.Uuid
+  subjectId     String    @unique @db.Uuid
+  phoneHash     String
+  status        String    @default("pending")
+  attempts      Int       @default(0)
+  requestedAt   DateTime  @default(now()) @db.Timestamptz
+  nextAttemptAt DateTime  @default(now()) @db.Timestamptz
+  completedAt   DateTime? @db.Timestamptz
+  lastError     String?
+  report        Json?
+
+  @@index([status, nextAttemptAt])
+}
+
+// IdempotencyRecord.
+model IdempotencyRecord {
+  id           String   @id @db.Uuid
+  key          String   @unique
+  fingerprint  String
+  statusCode   Int
+  responseBody Json
+  createdAt    DateTime @default(now()) @db.Timestamptz
+  expiresAt    DateTime @db.Timestamptz
+
+  @@index([expiresAt])
+}
+
+// Product.
+model Product {
+  id          String   @id @db.Uuid
+  name        String
+  description String?
+  brand       String?
+  category    String?
+  photoUrl    String?  // media.fade.com.ua CDN URL
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+
+  variants    ProductVariant[]
+}
+
+// ProductVariant.
+model ProductVariant {
+  id          String   @id @db.Uuid
+  productId   String   @db.Uuid
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name        String   // volume/color
+  sku         String   @unique
+  price       Int      // in kopecks
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+
+  stockItems  StockItem[]
+
+  @@index([productId])
+}
+
+// StockItem.
+model StockItem {
+  id          String         @id @db.Uuid
+  variantId   String         @db.Uuid
+  variant     ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  locationId  String         @db.Uuid
+  location    Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  quantity    Int            @default(0)
+  createdAt   DateTime       @default(now()) @db.Timestamptz
+  updatedAt   DateTime       @updatedAt @db.Timestamptz
+
+  @@unique([variantId, locationId])
+  @@index([locationId])
+  @@index([variantId])
+}
+
+// ClientProfile — профіль клієнта з referralCode.
+model ClientProfile {
+  id                 String   @id @db.Uuid
+  userId             String   @unique @db.Uuid
+  name               String?
+  phone              String   @unique
+  // День народження (T-4730): лише день і місяць, без року. Порожнє — дефолт.
+  birthDay           Int?
+  birthMonth         Int?
+  preferences        Json     @default("[]")
+  notes              Json     @default("[]")
+  vipDiscountPercent Int?
+  loyaltyVisitsCount Int      @default(0)
+  referralCode       String?  @unique
+  createdAt          DateTime @default(now()) @db.Timestamptz
+  updatedAt          DateTime @updatedAt @db.Timestamptz
+
+  @@index([createdAt])
+}
