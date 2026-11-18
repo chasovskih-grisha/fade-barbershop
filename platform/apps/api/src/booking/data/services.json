@@ -1,0 +1,5 @@
+[
+  { "id": "svc-1", "name": "Чоловіча стрижка", "duration": 30, "price": 600 },
+  { "id": "svc-2", "name": "Бородатий стрижка", "duration": 45, "price": 800 },
+  { "id": "svc-3", "name": "Батько + син", "duration": 90, "price": 900 }
+]
