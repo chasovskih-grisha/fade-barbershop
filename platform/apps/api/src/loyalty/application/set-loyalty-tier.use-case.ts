@@ -69,7 +69,7 @@ export class SetLoyaltyTierHandler {
          discountPercent: discount,
          totalVisits: oldCounter + 1,
          occurredAt: input.occurredAt,
-       }}'::jsonb), NOW())
+       })}'::jsonb, NOW())
     `;
 
     return {

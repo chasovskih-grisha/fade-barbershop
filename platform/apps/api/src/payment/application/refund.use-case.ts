@@ -178,8 +178,8 @@ export class T094Refund {
   /** Map admin reason code string to RefundReason enum. */
   private mapReasonCodeToEnum(code: string): RefundReason {
     const map: { [key: string]: RefundReason } = {
-      PAY-004: RefundReason.CANCELLATION,
-      NSH-ADM-04: RefundReason.NO_SHOW,
+      'PAY-004': RefundReason.CANCELLATION,
+      'NSH-ADM-04': RefundReason.NO_SHOW,
       ADMIN_WITHDRAWAL: RefundReason.ADMIN_WITHDRAWAL,
       FRAUD_PREVENTION: RefundReason.FRAUD_PREVENTION,
       DUPLICATE_BOOKING: RefundReason.DUPLICATE_BOOKING,

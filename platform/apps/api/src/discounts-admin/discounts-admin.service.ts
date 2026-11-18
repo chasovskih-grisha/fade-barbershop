@@ -7,7 +7,7 @@ import { Appointment, Service, ClientProfile } from '../domain';
 import { DiscountInput, calculateDiscounts, AppliedDiscount, PriceBreakdown } from '../discounts/domain/discount-calculator';
 import { v4 as uuidv4 } from 'uuid';
 
-/** Discount Rule types */
+/** Discount Rule types — consolidated from T-153 enum. */
 export enum DiscountRuleType {
   FIRST_VISIT = 'first_visit',
   OFF_PEAK = 'off_peak',
@@ -129,9 +129,178 @@ export interface ApplyDiscountRuleInput {
 export interface DiscountAuditLog {
   id: string;
   discountId: string;
-  discountType: 'rule' | 'promo_code';
-  action: 'create' | 'update' | 'delete' | 'activate' | 'deactivate';
+  discountType: 'rule' | 'promo_code',
+  action: 'create' | 'update' | 'delete' | 'activate' | 'deactivate',
   changedBy: string;
   changedAt: Date;
   details?: string;
+}
+
+/** Discount Rule service response shape */
+export interface DiscountRuleResponse {
+  success: boolean;
+  data: DiscountRule;
+}
+
+/** Promo Code service response shape */
+export interface PromoCodeResponse {
+  success: boolean;
+  data: PromoCode;
+}
+
+/** Apply discount rule response shape */
+export interface ApplyDiscountRuleResponse {
+  success: boolean;
+  breakdown: PriceBreakdown;
+}
+
+/** List discount rules response shape */
+export interface DiscountRulesListResponse {
+  success: boolean;
+  data: DiscountRule[];
+  total: number;
+}
+
+/** List promo codes response shape */
+export interface PromoCodesListResponse {
+  success: boolean;
+  data: PromoCode[];
+  total: number;
+}
+
+/** Service: create discount rule */
+export async function createDiscountRule(input: CreateDiscountRuleInput, createdBy: string): Promise<DiscountRuleResponse> {
+  const rule = await prisma.discountRule.create({
+    data: {
+      name: input.name,
+      type: input.type,
+      valueType: input.valueType,
+      value: input.value,
+      applicableTo: input.applicableTo,
+      serviceIds: input.serviceIds,
+      categoryIds: input.categoryIds,
+      clientIds: input.clientIds,
+      validFrom: input.validFrom,
+      validUntil: input.validUntil,
+      usageLimitTotal: input.usageLimitTotal,
+      usageLimitPerClient: input.usageLimitPerClient,
+      description: input.description,
+      status: DiscountRuleStatus.ACTIVE,
+      currentUsageTotal: 0,
+      currentUsagePerClient: {},
+      createdAt: new Date(),
+      createdBy,
+      updatedAt: new Date(),
+    },
+  });
+  return { success: true, data: rule };
+}
+
+/** Service: list discount rules with filters */
+export async function listDiscountRules(filters: DiscountRuleFilters): Promise<DiscountRulesListResponse> {
+  const where: any = {};
+  if (filters.type) where.type = filters.type;
+  if (filters.status) where.status = filters.status;
+  if (filters.applicableTo) where.applicableTo = filters.applicableTo;
+  if (filters.clientId) where.clientIds = { has: filters.clientId };
+
+  const rules = await prisma.discountRule.findMany({ where });
+  return {
+    success: true,
+    data: rules,
+    total,
+  };
+}
+
+/** Service: create promo code */
+export async function createPromoCode(input: CreatePromoCodeInput, createdBy: string): Promise<PromoCodeResponse> {
+  const code = await prisma.promoCode.create({
+    data: {
+      code: input.code.toUpperCase(),
+      percent: input.percent,
+      amountCents: input.amountCents,
+      validFrom: input.validFrom,
+      validUntil: input.validUntil,
+      usageLimitTotal: input.usageLimitTotal,
+      usageLimitPerClient: input.usageLimitPerClient,
+      applicableTo: input.applicableTo,
+      clientIds: input.clientIds,
+      serviceIds: input.serviceIds,
+      description: input.description,
+      status: 'active',
+      currentUsageTotal: 0,
+      currentUsagePerClient: {},
+      createdAt: new Date(),
+      createdBy,
+      updatedAt: new Date(),
+    },
+  });
+  return { success: true, data: code };
+}
+
+/** Service: list promo codes with filters */
+export async function listPromoCodes(filters: PromoCodeFilters): Promise<PromoCodesListResponse> {
+  const where: any = {};
+  if (filters.status) where.status = filters.status;
+  if (filters.applicableTo) where.applicableTo = filters.applicableTo;
+  if (filters.clientId) where.clientIds = { has: filters.clientId };
+
+  const codes = await prisma.promoCode.findMany({ where });
+  return {
+    success: true,
+    data: codes,
+    total: codes.length,
+  };
+}
+
+/** Service: apply discount rule to appointment */
+export async function applyDiscountRule(
+  ruleId: string,
+  appointmentId: string,
+  agreedPrice: number,
+  clientId: string,
+): Promise<ApplyDiscountRuleResponse> {
+  // Calculate discounts using the DiscountCalculator
+  const result = calculateDiscounts({
+    agreedPrice,
+    rules: [{ type: 'rule', sourceId: ruleId }],
+    vip: undefined,
+    promoCode: undefined,
+    capPercent: 30,
+  });
+
+  // Update rule usage tracking
+  await prisma.discountRule.update({
+    where: { id: ruleId },
+    data: {
+      currentUsageTotal: { increment: 1 },
+    },
+  });
+
+  return {
+    success: true,
+    breakdown: result,
+  };
+}
+
+/** Service: create audit log entry */
+export async function createAuditLog(
+  discountId: string,
+  discountType: 'rule' | 'promo_code',
+  action: 'create' | 'update' | 'delete' | 'activate' | 'deactivate',
+  changedBy: string,
+  details?: string,
+): Promise<{ success: boolean; logEntry: any }> {
+  const logEntry = await prisma.discountAuditLog.create({
+    data: {
+      id: uuidv4(),
+      discount_id: discountId,
+      discount_type: discountType,
+      action,
+      changed_by: changedBy,
+      changed_at: new Date(),
+      details,
+    },
+  });
+  return { success: true, logEntry };
 }
