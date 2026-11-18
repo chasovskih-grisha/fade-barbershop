@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Адмін-сайдбар: до і після адаптиву</title>
+    <!--
+      Порівняння «до/після» адаптивного сайдбара адмінки.
+      Джерела: 017a40d (до: w-14 рейка, підписи лише lg, без мобільного меню)
+      і HEAD (після: breakpoint-хелпер + бургер + Sheet drawer) —
+      коміти 8f1d1ae, c83e041. Геометрія повторює класи компонентів:
+      w-14=56px, lg:w-52=208px, p-2=8px, px-2.5=10px, lg:px-3=12px, gap-2=8px,
+      text-body=14px, брейкпоінт lg=1024px, sm=640px.
+      Файл самодостатній: без збірки, без CDN; масштаб кадрів рахує JS.
+    -->
+    <style>
+      :root {
+        --base: #0e0e10;
+        --raised: #151619;
+        --line: #26282c;
+        --line-strong: #3a3d42;
+        --fg: #f4f4f6;
+        --fg-secondary: #9ca0a8;
+        --fg-muted: #898d94;
+        --interactive: #26282c;
+        --accent-blue: #5c7cfa;
+        --radius-card: 12px;
+        --radius-input: 8px;
+        --radius-micro: 4px;
+        --font-display: 'Fixel Display', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        --font-text: 'Fixel Text', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        background: var(--base);
+        color: var(--fg);
+        font: 14px/1.5 var(--font-text);
+      }
+
+      h1 {
+        margin: 0 0 4px;
+        font: 600 24px/1.25 var(--font-display);
+      }
+
+      h2 {
+        margin: 0;
+        font: 600 18px/1.3 var(--font-display);
+      }
+
+      .lede {
+        margin: 0 0 16px;
+        max-width: 78ch;
+        color: var(--fg-secondary);
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0 0 20px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .meta li {
+        padding: 4px 10px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-input);
+        background: var(--raised);
+        color: var(--fg-secondary);
+        font-size: 13px;
+      }
+
+      .meta code,
+      .notes code {
+        color: var(--fg);
+        font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+        font-size: 12px;
+      }
+
+      .row {
+        margin: 0 0 28px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-card);
+        background: var(--raised);
+      }
+
+      .row-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 4px;
+      }
+
+      .badge {
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--interactive);
+        color: var(--fg-secondary);
+        font-size: 12px;
+      }
+
+      .badge.same {
+        background: rgba(92, 124, 250, 0.16);
+        color: #a9b8fb;
+      }
+
+      .row-caption {
+        margin: 0 0 14px;
+        color: var(--fg-secondary);
+        font-size: 13px;
+      }
+
+      .frames {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        overflow-x: auto;
+      }
+
+      .frame-cell {
+        min-width: 0;
+      }
+
+      .frame-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+        font-size: 13px;
+        color: var(--fg-secondary);
+      }
+
+      .frame-label strong {
+        color: var(--fg);
+        font-weight: 600;
+      }
+
+      .scale-hint {
+        font-variant-numeric: tabular-nums;
+        color: var(--fg-muted);
+      }
+
+      .frame-wrap {
+        position: relative;
+        width: calc(var(--w) * var(--scale));
+        height: calc(var(--h) * var(--scale));
+        overflow: hidden;
+        border-radius: var(--radius-card);
+        background: var(--base);
+      }
+
+      .frame {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        width: var(--w);
+        height: var(--h);
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-card);
+        background: var(--base);
+        transform: scale(var(--scale));
+        transform-origin: top left;
+      }
+
+      /* ── каркас: сайдбар + колонка контенту ───────────────────────────── */
+
+      .sb {
+        display: flex;
+        flex-shrink: 0;
+        flex-direction: column;
+        gap: 4px;
+        height: 100%;
+        border-right: 1px solid var(--line);
+        background: var(--raised);
+        padding: 8px;
+      }
+
+      .brand {
+        flex-shrink: 0;
+        font: 600 18px/1.3 var(--font-display);
+        color: var(--fg);
+      }
+
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        width: 100%;
+      }
+
+      .nav a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        padding: 6px 10px;
+        border-radius: var(--radius-input);
+        color: var(--fg-secondary);
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .nav a[aria-current='page'] {
+        background: var(--interactive);
+        color: var(--fg);
+        font-weight: 600;
+      }
+
+      .nav svg {
+        flex-shrink: 0;
+      }
+
+      .sb-foot {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: auto;
+        padding: 8px 4px;
+      }
+
+      .pill {
+        align-self: center;
+        padding: 2px 10px;
+        border-radius: 999px;
+        background: rgba(92, 124, 250, 0.16);
+        color: #a9b8fb;
+        font-size: 12px;
+      }
+
+      .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius-input);
+        background: var(--raised);
+        color: var(--fg);
+        font: 500 14px/1.2 var(--font-text);
+      }
+
+      .col {
+        display: flex;
+        min-width: 0;
+        flex: 1;
+        flex-direction: column;
+      }
+
+      .hdr {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--line);
+        padding: 12px;
+      }
+
+      .hdr-left {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .hdr-title {
+        overflow: hidden;
+        color: var(--fg-secondary);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .hdr-right {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .hdr-btn {
+        padding: 6px 12px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius-input);
+        color: var(--fg);
+        font-size: 13px;
+      }
+
+      .burger {
+        display: none;
+        padding: 6px;
+        border-radius: var(--radius-micro);
+        color: var(--fg-muted);
+      }
+
+      .main {
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
+        padding: 24px;
+      }
+
+      .main h3 {
+        margin: 0 0 12px;
+        font: 600 18px/1.3 var(--font-display);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      th,
+      td {
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      th {
+        color: var(--fg-muted);
+        font-weight: 400;
+      }
+
+      td {
+        color: var(--fg-secondary);
+      }
+
+      /* ── «до»: рейка w-14, підписи тільки з lg, мобільного меню немає ── */
+
+      .sb-before {
+        width: 56px;
+      }
+
+      .sb-before .nav a {
+        padding: 8px 12px;
+      }
+
+      .sb-before .brand-short {
+        text-align: center;
+      }
+
+      .w320 .sb-before .label,
+      .w768 .sb-before .label,
+      .w320 .sb-before .btn-label,
+      .w768 .sb-before .btn-label,
+      .w320 .sb-before .pill,
+      .w768 .sb-before .pill,
+      .w320 .sb-before .brand-wide,
+      .w768 .sb-before .brand-wide {
+        display: none;
+      }
+
+      .w1024 .sb-before {
+        width: 208px;
+        padding: 12px;
+      }
+
+      .w1024 .sb-before .brand-short {
+        display: none;
+      }
+
+      /* ── «після»: narrow = бургер + drawer; lg:w-52 без бургера ──────── */
+
+      .sb-after {
+        align-items: flex-start;
+      }
+
+      .sb-after .brand {
+        width: 56px;
+        flex-shrink: 0;
+        padding: 8px;
+        border-right: 1px solid var(--line);
+      }
+
+      .w320 .sb-after .label,
+      .w320 .sb-after .pill,
+      .w320 .sb-after .btn-label {
+        display: none;
+      }
+
+      .w320 .sb-after .btn,
+      .w768 .sb-after .btn {
+        padding: 8px 10px;
+      }
+
+      .w1024 .sb-after {
+        width: 208px;
+        align-items: stretch;
+        padding: 12px;
+      }
+
+      .w1024 .sb-after .nav a {
+        padding: 6px 12px;
+      }
+
+      .w1024 .sb-after .sb-foot {
+        padding: 8px 12px;
+      }
+
+      .w320 .burger,
+      .w768 .burger {
+        display: block;
+      }
+
+      /* ── drawer (Sheet): тільки «після» і тільки нижче lg ───────────── */
+
+      .drawer {
+        position: absolute;
+        inset: 0;
+        display: none;
+      }
+
+      .frame.is-open .drawer {
+        display: block;
+      }
+
+      .drawer-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(14, 14, 16, 0.6);
+      }
+
+      .sheet {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        max-height: 88%;
+        flex-direction: column;
+        overflow: hidden;
+        border-radius: var(--radius-card) var(--radius-card) 0 0;
+        background: var(--raised);
+      }
+
+      .sheet-head {
+        flex-shrink: 0;
+        padding: 16px 16px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .sheet-head p {
+        margin: 4px 0 0;
+        color: var(--fg-muted);
+        font-size: 13px;
+      }
+
+      .sheet .nav a {
+        flex: 0 0 auto;
+      }
+
+      .sheet .nav {
+        min-height: 0;
+        flex: 1;
+        overflow: hidden;
+        padding: 12px;
+      }
+
+      .sheet-foot {
+        display: flex;
+        flex-shrink: 0;
+        border-top: 1px solid var(--line);
+        padding: 12px;
+      }
+
+      .sheet-foot .btn {
+        width: 100%;
+      }
+
+      .drawer-toggle {
+        padding: 4px 10px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius-input);
+        background: var(--interactive);
+        color: var(--fg);
+        font: 13px/1.2 var(--font-text);
+        cursor: pointer;
+      }
+
+      .drawer-toggle[hidden] {
+        display: none;
+      }
+
+      /* ── підсумки ───────────────────────────────────────────────────── */
+
+      .notes {
+        margin: 0;
+        padding: 16px 16px 16px 32px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-card);
+        background: var(--raised);
+        color: var(--fg-secondary);
+      }
+
+      .notes li + li {
+        margin-top: 6px;
+      }
+
+      .notes strong {
+        color: var(--fg);
+      }
+
+      .sprite {
+        position: absolute;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+      }
+
+      .frame-label-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      @media (max-width: 900px) {
+        .frames {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Адмін-сайдбар: до і після адаптиву</h1>
+    <p class="lede">
+      Три ширини, два стани коду. Кадри — справжні CSS-піксели: геометрія взята з
+      класів компонентів, а не намальована «на око». Масштаб кадрів рахує скрипт,
+      щоб 1024px уміщався на екрані; відсоток підписано під кожним кадром.
+    </p>
+    <ul class="meta">
+      <li>до: <code>017a40d</code> — рейка <code>w-14</code>, підписи лише <code>lg</code></li>
+      <li>після: <code>8f1d1ae</code> + <code>c83e041</code> — бургер, Sheet drawer</li>
+      <li>брейкпоінти: <code>sm</code> 640px, <code>lg</code> 1024px</li>
+      <li>щільність адмінки: <code>text-body</code> 14px</li>
+    </ul>
+
+    <div id="rows"></div>
+
+    <ul class="notes">
+      <li>
+        <strong>Спільне:</strong> постійний сайдбар лишається в потоці на всіх ширинах —
+        drawer його не заміняє, а лише дублює навігацію повними підписами.
+      </li>
+      <li>
+        <strong>320px:</strong> підписи недосяжні й у drawer недоступні до <code>sm</code>
+        — у «після» вони є лише всередині Sheet, який відкриває бургер хедера.
+        Рейка при цьому товщає (56 → 72px): <code>w-14</code> у «до» включає padding,
+        а в «після» ширина складається з контенту + <code>p-2</code>.
+      </li>
+      <li>
+        <strong>768px:</strong> у «до» підписів немає взагалі (тільки <code>title</code>-підказки),
+        у «після» вони з'являються від <code>sm</code>, тож рейка сама розтягується під
+        найдовший пункт («Телефонний запис»). Фіксованої ширини тут немає — це ширина
+        контенту, а не <code>w-52</code>.
+      </li>
+      <li>
+        <strong>1024px:</strong> межа <code>lg</code> — сайдбар обабіч однаковий:
+        <code>lg:w-52</code> (208px), бургер прихований, <code>open=false</code> не рендерить Sheet.
+        Єдина відмінність — бренд: «до» показує «Fade · Admin», «після» — бокс <code>w-14</code>
+        з іконкою та 1px-межею праворуч, тож логотип виглядає дрібнішим.
+      </li>
+      <li>
+        <strong>Відкриття/закриття «після»:</strong> стан живе в <code>AdminShell</code>,
+        закривається по Escape, оверлею, тапу по пункту меню і на будь-якій зміні маршруту.
+      </li>
+    </ul>
+
+    <svg class="sprite" aria-hidden="true">
+      <symbol id="i-check" viewBox="0 0 24 24">
+        <path d="M5 13l4.5 4.5L19 7" />
+      </symbol>
+      <symbol id="i-map-pin" viewBox="0 0 24 24">
+        <path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z" />
+        <circle cx="12" cy="10" r="2.5" />
+      </symbol>
+      <symbol id="i-scissors" viewBox="0 0 24 24">
+        <circle cx="7" cy="7" r="2.5" />
+        <circle cx="7" cy="17" r="2.5" />
+        <path d="M9 8.5 20 17M9 15.5 20 7" />
+      </symbol>
+      <symbol id="i-star" viewBox="0 0 24 24">
+        <path d="m12 4 2.5 5.2 5.5.8-4 4 1 5.7-5-2.7-5 2.7 1-5.7-4-4 5.5-.8L12 4Z" />
+      </symbol>
+      <symbol id="i-image" viewBox="0 0 24 24">
+        <rect x="3.5" y="5" width="17" height="14" rx="2" />
+        <circle cx="9" cy="10" r="1.5" />
+        <path d="m5 17 4.5-4.5L14 17M14 14l2.5-2.5L20 15" />
+      </symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M12 7.5V12l3 2" />
+      </symbol>
+      <symbol id="i-user" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="3.5" />
+        <path d="M5 20a7 7 0 0 1 14 0" />
+      </symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24">
+        <path
+          d="M7 3h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 5 5a2 2 0 0 1 2-2Z"
+        />
+      </symbol>
+      <symbol id="i-globe" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M3.5 12h17M12 3.5c2.5 2.5 2.5 14.5 0 17M12 3.5c-2.5 2.5-2.5 14.5 0 17" />
+      </symbol>
+      <symbol id="i-info" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M12 11v5M12 8h.01" />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24">
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </symbol>
+    </svg>
+
+    <script>
+      const NAV = [
+        { label: 'Головна', icon: 'i-check', active: false },
+        { label: 'Локації', icon: 'i-map-pin', active: false },
+        { label: 'Барбери', icon: 'i-scissors', active: false },
+        { label: 'Послуги', icon: 'i-star', active: false },
+        { label: 'Блог', icon: 'i-image', active: false },
+        { label: 'Календар', icon: 'i-clock', active: false },
+        { label: 'Клієнти', icon: 'i-user', active: true },
+        { label: 'Телефонний запис', icon: 'i-phone', active: false },
+        { label: 'Налаштування', icon: 'i-globe', active: false },
+        { label: 'Журнал входів', icon: 'i-info', active: false },
+      ];
+
+      const WIDTHS = [
+        {
+          w: 320,
+          h: 460,
+          name: '320px · телефон',
+          badge: 'нижче sm і lg',
+          caption:
+            'У «до» навігація існує лише як 10 іконок без підписів і без способу їх побачити. ' +
+            'У «після» додано бургер → Sheet з підписами; рейка лишається іконковою.',
+        },
+        {
+          w: 768,
+          h: 460,
+          name: '768px · планшет',
+          badge: 'sm → lg',
+          caption:
+            '«До»: рейка 56px, підписи приховані до 1024px — планшет отримує найгірший варіант. ' +
+            '«Після»: підписи з’являються від sm, рейка розтягується під найдовший пункт.',
+        },
+        {
+          w: 1024,
+          h: 460,
+          name: '1024px · межа lg',
+          badge: 'lg і вище — каркас без змін',
+          caption:
+            'Каркас обабіч збігається: lg:w-52 (208px), повні підписи, бургер прихований, ' +
+            'Sheet не рендериться. Різниця одна — бренд: «до» показує «Fade · Admin», ' +
+            '«після» лишає бокс w-14 з іконкою і 1px-межею праворуч.',
+        },
+      ];
+
+      const TABLE = [
+        ['Клієнт', 'Телефон', 'Візити'],
+        ['Олена Кравчук', '+380 67 111 22 33', '12'],
+        ['Ігор Мельник', '+380 50 444 55 66', '3'],
+        ['Марія Бондар', '+380 63 777 88 99', '7'],
+      ];
+
+      const el = (tag, className, text) => {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+      };
+
+      const icon = (id, size = 16) => {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', size);
+        svg.setAttribute('height', size);
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor');
+        svg.setAttribute('stroke-width', '1.5');
+        svg.setAttribute('stroke-linecap', 'round');
+        svg.setAttribute('stroke-linejoin', 'round');
+        svg.setAttribute('aria-hidden', 'true');
+        const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+        use.setAttribute('href', '#' + id);
+        svg.append(use);
+        return svg;
+      };
+
+      const navList = () => {
+        const nav = el('nav', 'nav');
+        nav.setAttribute('aria-label', 'Адмін-навігація');
+        NAV.forEach((item) => {
+          const a = el('a');
+          a.href = '#';
+          if (item.active) a.setAttribute('aria-current', 'page');
+          a.append(icon(item.icon), el('span', 'label', item.label));
+          nav.append(a);
+        });
+        return nav;
+      };
+
+      const table = () => {
+        const t = el('table');
+        TABLE.forEach((cells, index) => {
+          const tr = el('tr');
+          cells.forEach((cell) => tr.append(el(index === 0 ? 'th' : 'td', null, cell)));
+          t.append(tr);
+        });
+        return t;
+      };
+
+      const column = (withBurger) => {
+        const col = el('div', 'col');
+        const hdr = el('div', 'hdr');
+        const left = el('div', 'hdr-left');
+        if (withBurger) {
+          const burger = el('div', 'burger');
+          burger.setAttribute('aria-label', 'Відкрити меню навігації');
+          burger.append(icon('i-menu', 24));
+          left.append(burger);
+        }
+        left.append(el('span', 'hdr-title', 'Панель керування мережею'));
+        const right = el('div', 'hdr-right');
+        right.append(el('span', null, 'Адмін'), el('span', 'hdr-btn', 'Вийти'));
+        hdr.append(left, right);
+
+        const main = el('div', 'main');
+        main.append(el('h3', null, 'Клієнти'), table());
+        col.append(hdr, main);
+        return col;
+      };
+
+      const sidebar = (state) => {
+        const after = state === 'after';
+        const aside = el('aside', 'sb sb-' + state);
+        aside.setAttribute('aria-label', 'Адмін-навігація');
+
+        if (after) {
+          // Рейка «після»: бренд — іконка в боксі w-14, а не літера «F».
+          const brand = el('span', 'brand');
+          brand.append(icon('i-check', 16));
+          aside.append(brand);
+        } else {
+          aside.append(
+            el('span', 'brand brand-short', 'F'),
+            el('span', 'brand brand-wide', 'Fade · Admin')
+          );
+        }
+
+        aside.append(navList());
+
+        const foot = el('div', 'sb-foot');
+        foot.append(el('span', 'pill', 'AI'));
+        const btn = el('span', 'btn');
+        btn.append(icon('i-phone', 16), el('span', 'btn-label', 'Новий запис'));
+        foot.append(btn);
+        aside.append(foot);
+        return aside;
+      };
+
+      const drawer = () => {
+        const wrap = el('div', 'drawer');
+        wrap.append(el('div', 'drawer-overlay'));
+        const sheet = el('div', 'sheet');
+        const head = el('div', 'sheet-head');
+        const h2 = el('h2', null, 'Навігація');
+        head.append(h2, el('p', null, 'Розділи адмінки Fade'));
+        const foot = el('div', 'sheet-foot');
+        const btn = el('span', 'btn');
+        btn.append(icon('i-phone', 16), el('span', 'btn-label', 'Новий запис'));
+        foot.append(btn);
+        sheet.append(head, navList(), foot);
+        wrap.append(sheet);
+        return wrap;
+      };
+
+      const frame = (width, state) => {
+        const node = el('div', 'frame w' + width + ' ' + state);
+        node.style.setProperty('--w', width + 'px');
+        node.dataset.width = String(width);
+        node.append(sidebar(state), column(state === 'after'));
+        if (state === 'after') node.append(drawer());
+        return node;
+      };
+
+      const cell = (width, height, state, frameNode) => {
+        const cellNode = el('div', 'frame-cell');
+        const label = el('div', 'frame-label');
+        label.append(el('strong', null, state === 'before' ? 'До' : 'Після'));
+        const hint = el('span', 'scale-hint');
+        const actions = el('span', 'frame-label-actions');
+        actions.append(hint);
+        label.append(actions);
+
+        const wrap = el('div', 'frame-wrap');
+        wrap.style.setProperty('--w', width + 'px');
+        wrap.style.setProperty('--h', height + 'px');
+        wrap.append(frameNode);
+
+        if (state === 'after') {
+          const toggle = el('button', 'drawer-toggle', 'Відкрити drawer');
+          toggle.type = 'button';
+          if (width >= 1024) {
+            // Drawer існує лише нижче lg — на 1024px кнопки немає.
+            toggle.hidden = true;
+          } else {
+            toggle.addEventListener('click', () => {
+              const open = frameNode.classList.toggle('is-open');
+              toggle.textContent = open ? 'Закрити drawer' : 'Відкрити drawer';
+            });
+          }
+          actions.append(toggle);
+        }
+
+        cellNode.append(label, wrap);
+        return { cellNode, hint };
+      };
+
+      const rowsRoot = document.getElementById('rows');
+      const render = () => {
+        rowsRoot.textContent = '';
+        WIDTHS.forEach((spec) => {
+          const row = el('section', 'row');
+          const head = el('div', 'row-head');
+          head.append(el('h2', null, spec.name), el('span', 'badge', spec.badge));
+          row.append(head, el('p', 'row-caption', spec.caption));
+
+          const frames = el('div', 'frames');
+          const hints = [];
+          ['before', 'after'].forEach((state) => {
+            const built = cell(spec.w, spec.h, state, frame(spec.w, state));
+            hints.push(built.hint);
+            frames.append(built.cellNode);
+          });
+          row.append(frames);
+          rowsRoot.append(row);
+
+          const fit = () => {
+            const available = frames.clientWidth / 2 - 16;
+            // Мінімум 50%: краще горизонтальний скрол рядка, ніж кадр 1024px
+            // завширшки 250px з нечитним текстом.
+            const scale = Math.min(1, Math.max(0.5, (available - 2) / spec.w));
+            hints.forEach((hint) => {
+              hint.textContent = 'масштаб ' + Math.round(scale * 100) + '%';
+            });
+            frames.querySelectorAll('.frame-wrap').forEach((wrap) => {
+              wrap.style.setProperty('--scale', String(scale));
+            });
+          };
+          fit();
+          window.addEventListener('resize', fit);
+        });
+      };
+
+      render();
+    </script>
+  </body>
+</html>
