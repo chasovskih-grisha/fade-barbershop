@@ -1,20 +1,9 @@
 // HTTP стирання (T-4805): клієнт подає заявку з OTP-кодом; адмін бачить
 // комплаєнс-звіт. Відповідь не розкриває, чи номер існує (однаковий 404-текст).
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpException,
-  HttpStatus,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RequestErasure } from '../application/request-erasure';
-import {
-  ErasureOtpInvalidError,
-  ErasureSubjectNotFoundError,
-} from '../application/erasure.ports';
+import { ErasureOtpInvalidError, ErasureSubjectNotFoundError } from '../application/erasure.ports';
 import { PrismaService } from '../../../shared/prisma/prisma.service';
 
 export interface RequestErasureDto {

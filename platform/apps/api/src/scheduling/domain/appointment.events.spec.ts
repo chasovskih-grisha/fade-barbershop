@@ -1,17 +1,7 @@
 // Специфікація доменних подій Appointment (T-042): payload містить лише
 // визначені поля (exactOptional — без undefined-ключів), occurredAt за
 // замовчуванням — зараз. Події — чистий домен, без Nest і Prisma.
-import {
-  AppointmentBooked,
-  AppointmentCancelled,
-  AppointmentCompleted,
-  AppointmentConfirmed,
-  AppointmentNoShowed,
-  AppointmentReferenceChanged,
-  AppointmentRescheduled,
-  AppointmentStarted,
-  type AppointmentEventInput,
-} from './appointment.events';
+import { AppointmentBooked, AppointmentCancelled, AppointmentCompleted, AppointmentConfirmed, AppointmentNoShowed, AppointmentReferenceChanged, AppointmentRescheduled, AppointmentStarted, type AppointmentEventInput } from './appointment.events';
 
 const T0 = new Date('2026-11-02T09:00:00Z');
 const base: AppointmentEventInput = {

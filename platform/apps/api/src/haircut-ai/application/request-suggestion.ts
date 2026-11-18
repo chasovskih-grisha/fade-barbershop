@@ -6,17 +6,8 @@
 // НЕ кликається з запиту: клієнт полліть статус окремим запитом (AI-WEB-03), а
 // роботу робить AiGenerationWorker (понад HTTP-таймаут — ADR 0015 §1).
 
-import {
-  ConsentRequiredError,
-  GenerationLimitExceededError,
-  PhotoAlreadyDeletedError,
-  SourcePhotoNotFoundError,
-} from './haircut-errors';
-import {
-  HaircutSuggestion,
-  VARIANT_COUNT_MAX,
-  VARIANT_COUNT_MIN,
-} from '../domain/haircut-suggestion';
+import { ConsentRequiredError, GenerationLimitExceededError, PhotoAlreadyDeletedError, SourcePhotoNotFoundError } from './haircut-errors';
+import { HaircutSuggestion, VARIANT_COUNT_MAX, VARIANT_COUNT_MIN } from '../domain/haircut-suggestion';
 import { DAILY_GENERATION_LIMIT, spentGenerations } from './daily-limit';
 import type {
   Clock,

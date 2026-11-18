@@ -3,12 +3,7 @@
 // session (userId, id); інакше 401. Поточний пристрій визначає СЕРВЕР —
 // за токеном запиту, клієнтським прапорцям не віримо.
 
-import {
-  CanActivate,
-  Injectable,
-  UnauthorizedException,
-  type ExecutionContext,
-} from '@nestjs/common';
+import { CanActivate, Injectable, UnauthorizedException, type ExecutionContext } from '@nestjs/common';
 import type { Request } from 'express';
 import { hashToken } from '../domain/otp-code';
 import { PrismaSessionRepository } from './prisma-session-repository';

@@ -1,10 +1,5 @@
 import { InMemorySupportRepository } from './application/in-memory-support.repository';
-import {
-  CreateSupportTicketUseCase,
-  ResolveSupportTicketUseCase,
-  GetInteractiveFaqsUseCase,
-  GetErrorRecoverySuggestionUseCase,
-} from './application/support.use-cases';
+import { CreateSupportTicketUseCase, ResolveSupportTicketUseCase, GetInteractiveFaqsUseCase, GetErrorRecoverySuggestionUseCase } from './application/support.use-cases';
 
 describe('Customer Experience & Support Automation Specialist', () => {
   let repository: InMemorySupportRepository;

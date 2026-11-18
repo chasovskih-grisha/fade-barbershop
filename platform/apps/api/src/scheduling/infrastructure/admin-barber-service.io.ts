@@ -3,14 +3,7 @@
 
 import type { BarberServiceAssignmentRepository } from '../domain/ports.barber-service-assignment';
 import type { SlotPolicyRepository, SlotPolicyRow } from '../domain/ports.slot-policy';
-import {
-  SLOT_POLICY_DEFAULTS,
-  assertPolicyValues,
-  type BarberServiceAssignmentForBarberDto,
-  type BarberServiceAssignmentsForLocationDto,
-  type SlotPolicyDto,
-  type UpdateSlotPolicyDto,
-} from './admin-barber-service.dto';
+import { SLOT_POLICY_DEFAULTS, assertPolicyValues, type BarberServiceAssignmentForBarberDto, type BarberServiceAssignmentsForLocationDto, type SlotPolicyDto, type UpdateSlotPolicyDto } from './admin-barber-service.dto';
 
 // ---------- matrix ----------
 

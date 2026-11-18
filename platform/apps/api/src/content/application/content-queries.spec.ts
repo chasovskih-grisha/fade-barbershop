@@ -1,9 +1,5 @@
 import { Article } from '../domain/article';
-import {
-  GetArticleHandler,
-  ListPublishedArticlesHandler,
-  GetPublishedArticleHandler,
-} from './article-queries';
+import { GetArticleHandler, ListPublishedArticlesHandler, GetPublishedArticleHandler } from './article-queries';
 import { ArticleNotFoundError } from './content-errors';
 import { FakeArticleRepository, articleFixture } from './content.fakes';
 import { contentSetup } from './content-spec-setup';

@@ -4,23 +4,9 @@
 // Гроші (AgreedPrice снепшот) живуть на Booking (PAY-004) — тут лише час/статус.
 // Supports multi-position bookings (T-4520a).
 import type { DomainEvent } from '../../locations/domain/location.events';
-import {
-  TRANSITIONS,
-  InvalidTransitionError,
-  ensureAlive,
-  type AppointmentStatus,
-} from './appointment.transitions';
+import { TRANSITIONS, InvalidTransitionError, ensureAlive, type AppointmentStatus } from './appointment.transitions';
 import type { AppointmentEventInput } from './appointment.events';
-import {
-  AppointmentBooked,
-  AppointmentCancelled,
-  AppointmentCompleted,
-  AppointmentConfirmed,
-  AppointmentNoShowed,
-  AppointmentReferenceChanged,
-  AppointmentRescheduled,
-  AppointmentStarted,
-} from './appointment.events';
+import { AppointmentBooked, AppointmentCancelled, AppointmentCompleted, AppointmentConfirmed, AppointmentNoShowed, AppointmentReferenceChanged, AppointmentRescheduled, AppointmentStarted } from './appointment.events';
 import { appointmentEventInput, type AppointmentData, type ActorInput } from './appointment.data';
 
 export { InvalidTransitionError, type AppointmentStatus } from './appointment.transitions';

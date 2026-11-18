@@ -8,17 +8,7 @@ import { ListClientSessionsHandler } from '../application/list-client-sessions';
 import { RegisterPushTokenHandler } from '../application/register-push-token';
 import { RevokePushTokenHandler } from '../application/revoke-push-token';
 import { FakePushTokenRepository } from '../application/push-token.fakes';
-import {
-  FakeClock,
-  FakeOutbox,
-  FakeSessionRepository,
-  FakeUserRepository,
-  UuidIds,
-  T0,
-  passthroughUow,
-  seedSession,
-  seedUser,
-} from '../application/client-sessions.fakes';
+import { FakeClock, FakeOutbox, FakeSessionRepository, FakeUserRepository, UuidIds, T0, passthroughUow, seedSession, seedUser } from '../application/client-sessions.fakes';
 import { RateLimitMetrics } from '../../shared/rate-limit/rate-limit.metrics';
 import type { RateLimiter } from '../../shared/rate-limit/rate-limiter';
 import { SESSION_MOBILE, SESSION_WEB } from '../application/test-ids';

@@ -1,10 +1,7 @@
 // T-4805: заявка на стирання приймається лише з валідним OTP, повторна
 // заявка не створює другий рядок і не світить, чи номер існує.
 import { RequestErasure, phoneHash } from './request-erasure';
-import {
-  ErasureOtpInvalidError,
-  ErasureSubjectNotFoundError,
-} from './erasure.ports';
+import { ErasureOtpInvalidError, ErasureSubjectNotFoundError } from './erasure.ports';
 import { FakeErasureStore, FakeOtp, USER_ID } from './erasure.fakes';
 
 const NOW = new Date('2026-11-17T10:00:00Z');

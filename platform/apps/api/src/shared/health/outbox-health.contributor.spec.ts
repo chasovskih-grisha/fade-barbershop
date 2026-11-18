@@ -1,10 +1,6 @@
 // Специфікація outbox-секції /health (T-042c): лаг реле видно до T-4204;
 // пороги → warning у секції (не 503), помилка проби — деградація до null.
-import {
-  OutboxHealthContributor,
-  OUTBOX_LAG_WARN_PENDING,
-  OUTBOX_LAG_WARN_MS,
-} from './outbox-health.contributor';
+import { OutboxHealthContributor, OUTBOX_LAG_WARN_PENDING, OUTBOX_LAG_WARN_MS } from './outbox-health.contributor';
 import type { OutboxLagProbe } from '../../scheduling/infrastructure/appointment-activity.projection';
 
 const probeOf = (

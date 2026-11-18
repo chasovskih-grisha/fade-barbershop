@@ -1,14 +1,7 @@
 // Хелпери спек пристроїв і сесій клієнта (T-4422) — окремо від *.spec.ts
 // (Jest не підхоплює хелпери як тести через імпорт між спеками).
 
-import {
-  FakeClock,
-  FakeOutbox,
-  FakeSessionRepository,
-  FakeUserRepository,
-  UuidIds,
-  passthroughUow,
-} from './ports.fakes';
+import { FakeClock, FakeOutbox, FakeSessionRepository, FakeUserRepository, UuidIds, passthroughUow } from './ports.fakes';
 import { Session } from '../domain/session';
 import { PhoneNumber } from '../domain/phone-number';
 import { User } from '../domain/user';

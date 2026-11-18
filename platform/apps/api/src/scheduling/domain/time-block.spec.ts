@@ -1,11 +1,4 @@
-import {
-  InvalidTimeBlockError,
-  blocksSlot,
-  createTimeBlock,
-  excludeBlockedSlots,
-  hasTimeBlockOverlap,
-  type TimeBlockData,
-} from './time-block';
+import { InvalidTimeBlockError, blocksSlot, createTimeBlock, excludeBlockedSlots, hasTimeBlockOverlap, type TimeBlockData } from './time-block';
 
 const block = (over: Partial<TimeBlockData> = {}): TimeBlockData => ({
   id: '0190f1c2-0000-7000-8000-0000000000b1',

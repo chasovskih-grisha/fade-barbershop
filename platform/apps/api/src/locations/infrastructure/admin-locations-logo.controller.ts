@@ -2,19 +2,7 @@
 // multipart: поле light — обов'язкове, dark — опційне (on-dark без on-milk
 // неможливий — доменна перевірка); alt і variant — текстові поля форми.
 // Файли йдуть у публічний бакет location-brand через PublicMediaStorage.
-import {
-  Body,
-  Controller,
-  Delete,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Param,
-  Put,
-  UploadedFiles,
-  UseFilters,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Delete, HttpCode, HttpStatus, Inject, Param, Put, UploadedFiles, UseFilters, UseInterceptors } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { DeleteLocationLogoHandler } from '../application/delete-location-logo';

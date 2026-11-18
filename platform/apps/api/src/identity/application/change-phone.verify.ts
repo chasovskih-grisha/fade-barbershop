@@ -8,13 +8,7 @@
 import { PhoneNumber } from '../domain/phone-number';
 import { PhoneChanged } from '../domain/events';
 import type { OtpVerifyResult } from '../domain/otp-challenge';
-import {
-  InvalidPhoneError,
-  OtpChallengeNotFoundError,
-  OtpPurposeMismatchError,
-  PhoneTakenError,
-  UserNotFoundError,
-} from './identity-errors';
+import { InvalidPhoneError, OtpChallengeNotFoundError, OtpPurposeMismatchError, PhoneTakenError, UserNotFoundError } from './identity-errors';
 import { toVerifyError } from './admin-client-otp.errors';
 import type {
   ChangePhoneDeps,

@@ -3,24 +3,8 @@
 import { PhoneNumber } from '../domain/phone-number';
 import { User } from '../domain/user';
 import { expectRejected } from '@fade/test-utils';
-import {
-  OtpExpiredError,
-  OtpPurposeMismatchError,
-  PhoneTakenError,
-  UserNotFoundError,
-} from './identity-errors';
-import {
-  CODE,
-  NEW_PHONE,
-  OLD_PHONE,
-  SESSION_1,
-  SESSION_2,
-  T0,
-  USER_1,
-  USER_2,
-  seedPhoneChangeCode,
-  setupChangePhone,
-} from './change-phone.fakes';
+import { OtpExpiredError, OtpPurposeMismatchError, PhoneTakenError, UserNotFoundError } from './identity-errors';
+import { CODE, NEW_PHONE, OLD_PHONE, SESSION_1, SESSION_2, T0, USER_1, USER_2, seedPhoneChangeCode, setupChangePhone } from './change-phone.fakes';
 
 const VERIFY = { userId: USER_1, currentSessionId: SESSION_1, phone: NEW_PHONE, code: CODE };
 

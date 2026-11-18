@@ -1,8 +1,5 @@
 import { prisma } from '../../..';
-import { 
-  FeedbackWindow, FeedbackWindowStatus, FeedbackSubmission, PhotoRef,
-  CreateFeedbackWindowInput, FeedbackWindowOutput
-} from './feedbackwindow.domain';
+import { FeedbackWindow, FeedbackWindowStatus, FeedbackSubmission, PhotoRef, CreateFeedbackWindowInput, FeedbackWindowOutput } from './feedbackwindow.domain';
 import { Appointment, Booking } from '../domain';
 import { push } from '../../../../lib/notifications';
 

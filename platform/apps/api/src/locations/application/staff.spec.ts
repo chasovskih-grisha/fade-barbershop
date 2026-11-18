@@ -1,13 +1,6 @@
 import { AssignStaffHandler } from './assign-staff';
 import { StaffAssignment } from '../domain/staff-assignment';
-import {
-  FakeClock,
-  FakeLocationRepository,
-  FakeOutbox,
-  FakeStaffAssignmentRepository,
-  SeqIds,
-  passthroughUow,
-} from './ports.fakes';
+import { FakeClock, FakeLocationRepository, FakeOutbox, FakeStaffAssignmentRepository, SeqIds, passthroughUow } from './ports.fakes';
 import { LocationNotFoundError } from './locations-errors';
 import { StaffAlreadyAssignedError, InvalidStaffInputError } from './staff-errors';
 import { createLocation } from '../test-helpers.fakes';

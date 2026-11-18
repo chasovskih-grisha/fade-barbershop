@@ -1,8 +1,4 @@
-import {
-  UpdatePreferencesHandler,
-  SetVipDiscountHandler,
-  ListClientsHandler,
-} from './crm-handlers';
+import { UpdatePreferencesHandler, SetVipDiscountHandler, ListClientsHandler } from './crm-handlers';
 import { crmHandlersSetup } from './crm-handlers-setup';
 
 describe('CRM VIP, preferences, list', () => {

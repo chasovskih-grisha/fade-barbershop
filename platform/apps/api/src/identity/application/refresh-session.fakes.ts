@@ -2,13 +2,7 @@
 // не повинен підхоплювати хелпери як тести через імпорт між спеками).
 
 import { RefreshSessionHandler } from './refresh-session';
-import {
-  FakeClock,
-  FakeOutbox,
-  FakeSessionRepository,
-  FakeUserRepository,
-  passthroughUow,
-} from './ports.fakes';
+import { FakeClock, FakeOutbox, FakeSessionRepository, FakeUserRepository, passthroughUow } from './ports.fakes';
 import { Session } from '../domain/session';
 import { PhoneNumber } from '../domain/phone-number';
 import { User } from '../domain/user';

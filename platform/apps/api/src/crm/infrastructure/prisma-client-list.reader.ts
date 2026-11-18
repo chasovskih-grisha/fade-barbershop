@@ -6,13 +6,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import {
-  type ClientListProfileRow,
-  type ClientListReader,
-  type ClientListWhere,
-  type ProfileOrder,
-  type VisitStatRow,
-} from '../application/client-list-reader';
+import { type ClientListProfileRow, type ClientListReader, type ClientListWhere, type ProfileOrder, type VisitStatRow } from '../application/client-list-reader';
 import type { ClientListFacts, SummaryWindow } from '../application/client-list-summary';
 import { PrismaClientSummaryFacts } from './client-summary-facts.reader';
 import { profileWhere } from './client-list-where';

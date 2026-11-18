@@ -2,21 +2,8 @@
 // Поточний пристрій позначає сервер (за сесією запиту); admin-канал не
 // показується (ADR 0017 — ізольована адмінська сесія); ревокнуті не видно.
 import { ListClientSessionsHandler } from './list-client-sessions';
-import {
-  FakeSessionRepository,
-  FakeUserRepository,
-  seedSession,
-  seedUser,
-} from './client-sessions.fakes';
-import {
-  SESSION_LIVE,
-  SESSION_MINE,
-  SESSION_MOBILE,
-  SESSION_WEB,
-  USER_1,
-  USER_2,
-  testId,
-} from './test-ids';
+import { FakeSessionRepository, FakeUserRepository, seedSession, seedUser } from './client-sessions.fakes';
+import { SESSION_LIVE, SESSION_MINE, SESSION_MOBILE, SESSION_WEB, USER_1, USER_2, testId } from './test-ids';
 
 const setup = () => {
   const sessions = new FakeSessionRepository();

@@ -2,11 +2,7 @@
 
 import { HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { LocationError } from '../application/locations-errors';
-import {
-  InvalidLocationInputError,
-  LocationCodeTakenError,
-  LocationNotFoundError,
-} from '../application/locations-errors';
+import { InvalidLocationInputError, LocationCodeTakenError, LocationNotFoundError } from '../application/locations-errors';
 
 export function toHttp(error: unknown): HttpException {
   if (!(error instanceof LocationError)) return unknownError(error);

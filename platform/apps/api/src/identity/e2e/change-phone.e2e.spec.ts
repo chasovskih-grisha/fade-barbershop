@@ -6,16 +6,7 @@ import request from 'supertest';
 import { PhoneNumber } from '../domain/phone-number';
 import { User } from '../domain/user';
 import { testId } from '../application/test-ids';
-import {
-  NEW_PHONE,
-  OLD_PHONE,
-  OTHER_PHONE,
-  cookie,
-  createChangePhoneApp,
-  seedClient,
-  seedLoginCode,
-  type ChangePhoneApp,
-} from './change-phone.e2e.harness';
+import { NEW_PHONE, OLD_PHONE, OTHER_PHONE, cookie, createChangePhoneApp, seedClient, seedLoginCode, type ChangePhoneApp } from './change-phone.e2e.harness';
 
 const TOKEN = 'client-token-a';
 const TOKEN_OTHER = 'client-token-b';

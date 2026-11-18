@@ -1,11 +1,7 @@
 // Спеки T-4411: зміна власного пароля. Ключовий ризик зі спеки —
 // сесії після скидання/блокування інвалідовані (окремі спеки).
 import { ChangeOwnPasswordHandler } from './admin-account';
-import {
-  AdminAccessForbiddenError,
-  AdminInvalidCredentialsError,
-  UserNotFoundError,
-} from './identity-errors';
+import { AdminAccessForbiddenError, AdminInvalidCredentialsError, UserNotFoundError } from './identity-errors';
 import { adminUser, expectError, harness, NOW, type Harness } from './admin-account.fakes';
 import { hashPassword } from '../domain/password';
 import { User } from '../domain/user';

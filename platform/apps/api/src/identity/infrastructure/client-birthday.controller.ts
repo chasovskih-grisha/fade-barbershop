@@ -2,22 +2,10 @@
 // день і місяць без року, доступне за ClientSessionGuard. Окремий контролер
 // від client-profile.controller.ts заради гейта max-lines. Моститься на
 // UpdateBirthdayHandler (crm); порожнє значення очищає поле.
-import {
-  Controller,
-  Patch,
-  Body,
-  UseGuards,
-  UseFilters,
-  Inject,
-  Req,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Controller, Patch, Body, UseGuards, UseFilters, Inject, Req, UnauthorizedException } from '@nestjs/common';
 import { ClientSessionGuard, clientSessionOf, type ClientSession } from './client-session.guard';
 import { CrmExceptionFilter } from '../../crm/infrastructure/crm.exception-filter';
-import {
-  ADMIN_CLIENTS_HANDLERS,
-  type AdminClientsHandlers,
-} from '../../crm/infrastructure/admin-clients-handlers';
+import { ADMIN_CLIENTS_HANDLERS, type AdminClientsHandlers } from '../../crm/infrastructure/admin-clients-handlers';
 import { toProfileResult } from './client-profile.mapper';
 import type { ClientProfileResult } from '@fade/contracts';
 import { PatchProfileBirthdayInputDto } from './profile-dto.input';

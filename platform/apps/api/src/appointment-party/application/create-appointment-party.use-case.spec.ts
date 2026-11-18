@@ -2,12 +2,7 @@
 // сюїти спрощуються до override-ів поверх нього (DRY з create-appointment-party-test.fakes).
 import { AppointmentPartyCreated } from '../domain/appointment-party.events';
 import { CreateAppointmentParty } from './create-appointment-party.use-case';
-import {
-  InMemoryAppointmentPartyRepository,
-  baseInput,
-  sequentialInput,
-  parallelInput,
-} from './create-appointment-party-test.fakes';
+import { InMemoryAppointmentPartyRepository, baseInput, sequentialInput, parallelInput } from './create-appointment-party-test.fakes';
 
 describe('CreateAppointmentParty: створення party', () => {
   const repo = new InMemoryAppointmentPartyRepository();

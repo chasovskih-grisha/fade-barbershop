@@ -1,11 +1,6 @@
 import { ClientLoyaltyState } from '../domain/client-loyalty-state';
 import type { LoyaltyCommandContext } from '../domain/ports';
-import {
-  FreeVisitGranted,
-  FreeVisitUsed,
-  LoyaltyCounterIncremented,
-  LoyaltyTierChanged,
-} from '../domain/loyalty-events';
+import { FreeVisitGranted, FreeVisitUsed, LoyaltyCounterIncremented, LoyaltyTierChanged } from '../domain/loyalty-events';
 import { DomainEvent } from '../domain/domain-event';
 import { determineLoyaltyTier, DEFAULT_LOYALTY_TIERS } from '../domain/loyalty-tier';
 

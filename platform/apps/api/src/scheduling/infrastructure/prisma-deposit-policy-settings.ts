@@ -7,16 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { uuidv7 } from '@fade/domain-shared';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { DEFAULT_DEPOSIT_POLICY, type DepositPolicy } from '../domain/deposit-terms';
-import {
-  DEFAULT_POLICY_VERSION,
-  DEPOSIT_POLICY_SETTING_KEY,
-  parseDepositPolicySettings,
-  parsePolicyVersion,
-  sameDepositPolicy,
-  type DepositPolicySettingsPort,
-  type DepositPolicyVersionRow,
-  type VersionedDepositPolicy,
-} from '../domain/deposit-policy-settings';
+import { DEFAULT_POLICY_VERSION, DEPOSIT_POLICY_SETTING_KEY, parseDepositPolicySettings, parsePolicyVersion, sameDepositPolicy, type DepositPolicySettingsPort, type DepositPolicyVersionRow, type VersionedDepositPolicy } from '../domain/deposit-policy-settings';
 
 const READ_CACHE_MS = 1000;
 const HISTORY_LIMIT = 20;

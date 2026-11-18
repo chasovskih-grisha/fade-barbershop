@@ -1,10 +1,7 @@
 import * as schedulingIndex from './index';
 import { BarberSchedule } from './domain/availability';
 import { AvailabilityChanged } from './domain/availability.events';
-import {
-  InvalidScheduleInputError,
-  ScheduleConflictError,
-} from './application/availability-errors';
+import { InvalidScheduleInputError, ScheduleConflictError } from './application/availability-errors';
 import { SetAvailabilityHandler, ListAvailabilityHandler } from './application/set-availability';
 import { SchedulingHttpMapper } from './scheduling-http.mapper';
 

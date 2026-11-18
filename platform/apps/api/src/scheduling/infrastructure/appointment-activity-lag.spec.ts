@@ -1,8 +1,4 @@
-import {
-  AppointmentActivityProjection,
-  OutboxLagProbe,
-  type OutboxMessageLike,
-} from './appointment-activity.projection';
+import { AppointmentActivityProjection, OutboxLagProbe, type OutboxMessageLike } from './appointment-activity.projection';
 import { journal, prismaWith } from './appointment-activity.projection.fakes';
 
 describe('AppointmentActivityProjection lag and reschedule', () => {

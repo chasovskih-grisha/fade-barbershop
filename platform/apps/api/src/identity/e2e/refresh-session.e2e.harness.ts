@@ -4,10 +4,7 @@ import { INestApplication } from '@nestjs/common';
 import request, { type Response } from 'supertest';
 import { IdentityModule } from '../infrastructure/identity.module';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import {
-  PrismaOtpChallengeRepository,
-  PrismaUserRepository,
-} from '../infrastructure/prisma-adapters';
+import { PrismaOtpChallengeRepository, PrismaUserRepository } from '../infrastructure/prisma-adapters';
 import { PrismaSessionRepository } from '../infrastructure/prisma-session-repository';
 import { PrismaOutboxPublisher } from '../infrastructure/prisma-outbox-publisher';
 import { PrismaLoginAudit } from '../infrastructure/prisma-login-audit';

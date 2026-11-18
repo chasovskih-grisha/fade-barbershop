@@ -3,18 +3,8 @@
 // (ai-generation.cycle.spec.ts).
 
 import { RequestSuggestionHandler } from './request-suggestion';
-import {
-  ConsentRequiredError,
-  PhotoAlreadyDeletedError,
-  SourcePhotoNotFoundError,
-} from './haircut-errors';
-import {
-  InMemoryPhotos,
-  InMemorySuggestions,
-  noTransaction,
-  sequentialIds,
-  testClock,
-} from './fakes';
+import { ConsentRequiredError, PhotoAlreadyDeletedError, SourcePhotoNotFoundError } from './haircut-errors';
+import { InMemoryPhotos, InMemorySuggestions, noTransaction, sequentialIds, testClock } from './fakes';
 import { makePhoto } from './test-fixtures';
 
 function build() {

@@ -4,14 +4,7 @@
 
 import { AiGenerationCycle } from './ai-generation.cycle';
 import { FakeAiGenerationGateway } from './fake-ai-generation.gateway';
-import {
-  InMemoryPhotos,
-  InMemoryStorage,
-  InMemorySuggestions,
-  RecordingOutbox,
-  noTransaction,
-  testClock,
-} from '../application/fakes';
+import { InMemoryPhotos, InMemoryStorage, InMemorySuggestions, RecordingOutbox, noTransaction, testClock } from '../application/fakes';
 
 const FAKE_ENV: Record<string, string | undefined> = {
   AI_FAKE_POLLS: '1',

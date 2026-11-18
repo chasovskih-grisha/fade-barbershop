@@ -5,11 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { uuidv7 } from '@fade/domain-shared';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import type { AmplitudeStore, StoredAmplitudeEvent } from '../application/amplitude.ports';
-import {
-  FORWARDED_EVENT_TYPES,
-  toAmplitudeEvent,
-  type AmplitudeEvent,
-} from '../domain/amplitude-events';
+import { FORWARDED_EVENT_TYPES, toAmplitudeEvent, type AmplitudeEvent } from '../domain/amplitude-events';
 
 @Injectable()
 export class PrismaAmplitudeStore implements AmplitudeStore {

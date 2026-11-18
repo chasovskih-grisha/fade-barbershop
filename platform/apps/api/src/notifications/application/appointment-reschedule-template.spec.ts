@@ -1,8 +1,4 @@
-import {
-  renderAppointmentRescheduleSubject,
-  renderAppointmentRescheduleText,
-  renderAppointmentRescheduleHtml,
-} from './appointment-reschedule-template';
+import { renderAppointmentRescheduleSubject, renderAppointmentRescheduleText, renderAppointmentRescheduleHtml } from './appointment-reschedule-template';
 
 describe('AppointmentRescheduleTemplate', () => {
   const sampleData = {

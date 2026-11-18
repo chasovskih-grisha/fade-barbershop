@@ -1,13 +1,5 @@
 // T-4805: політика стирання — анонімні заміни, backoff, ліміт спроб, аудит без PII.
-import {
-  MAX_ERASURE_ATTEMPTS,
-  anonymizedEmail,
-  anonymizedPhone,
-  auditRecord,
-  isRetryable,
-  nextAttemptAt,
-  retryDelayMinutes,
-} from './erasure-policy';
+import { MAX_ERASURE_ATTEMPTS, anonymizedEmail, anonymizedPhone, auditRecord, isRetryable, nextAttemptAt, retryDelayMinutes } from './erasure-policy';
 import { uuidv7 } from '@fade/domain-shared';
 
 const ERASURE_ID = uuidv7();

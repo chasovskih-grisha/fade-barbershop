@@ -1,11 +1,6 @@
 import { BarberSchedule } from '../domain/availability';
 import { BookAppointment } from './book-appointment.use-case';
-import {
-  FakeBookingRepository,
-  FakeScheduleRepo,
-  makeOpeningHours,
-  slotOf,
-} from './book-appointment.fakes';
+import { FakeBookingRepository, FakeScheduleRepo, makeOpeningHours, slotOf } from './book-appointment.fakes';
 
 const opening = makeOpeningHours(0, '08:00', '20:00');
 const windows = [{ dayOfWeek: 0, start: '09:00', end: '18:00' }];

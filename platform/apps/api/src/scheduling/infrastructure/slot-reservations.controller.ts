@@ -1,15 +1,7 @@
 // Checkout-резервація слота (T-4802): клієнт бере слот на 60 с перед оплатою,
 // отримує токен і передає його в POST /booking/bookings. Без Redis у деві
 // працює in-memory адаптер — контракт той самий.
-import {
-  Body,
-  Controller,
-  Delete,
-  HttpCode,
-  HttpException,
-  HttpStatus,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Delete, HttpCode, HttpException, HttpStatus, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SlotLockedError, slotLockKey } from '../domain/slot-reservation';
 import type { SlotReservations } from '../application/slot-reservations.service';

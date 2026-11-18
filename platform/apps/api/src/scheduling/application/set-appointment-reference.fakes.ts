@@ -1,11 +1,7 @@
 // Хелпери спек SetAppointmentReference (T-043) — окремо від спеків (max-lines):
 // use case над одним записом apt-1, команда від імені клієнта за замовчуванням.
 import { SetAppointmentReference } from './set-appointment-reference.use-case';
-import {
-  FakeAppointmentRepository,
-  bookedAppointment,
-  passthroughUow,
-} from './appointment-lifecycle.fakes';
+import { FakeAppointmentRepository, bookedAppointment, passthroughUow } from './appointment-lifecycle.fakes';
 import type { Appointment } from '../domain/appointment.aggregate';
 
 /** Use case над одним записом apt-1 (за замовчуванням booked). */

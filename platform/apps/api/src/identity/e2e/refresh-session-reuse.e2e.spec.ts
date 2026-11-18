@@ -1,11 +1,7 @@
 // E2E: reuse попереднього refresh і прострочений refresh (T-014).
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import {
-  createRefreshSessionApp,
-  loginMobile,
-  type RefreshE2eCtx,
-} from './refresh-session.e2e.harness';
+import { createRefreshSessionApp, loginMobile, type RefreshE2eCtx } from './refresh-session.e2e.harness';
 
 describe('Mobile refresh flow (e2e, T-014) — reuse & expiry', () => {
   let app: INestApplication;

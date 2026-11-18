@@ -5,10 +5,7 @@ import { PrismaClientProfileRepository } from './infrastructure/prisma-client-pr
 import { PrismaOutboxPublisher } from './prisma-outbox-publisher';
 import { SystemClock } from './system-clock';
 import { UuidIdGenerator } from './uuid-id-generator';
-import {
-  AdminClientsController,
-  ADMIN_CLIENTS_HANDLERS,
-} from './infrastructure/admin-clients.controller';
+import { AdminClientsController, ADMIN_CLIENTS_HANDLERS } from './infrastructure/admin-clients.controller';
 import { AdminClientNotesController } from './infrastructure/admin-client-notes.controller';
 import { AdminClientList, CLIENT_LIST_CLOCK } from './application/admin-client-list';
 import { PrismaClientListReader } from './infrastructure/prisma-client-list.reader';
@@ -16,19 +13,7 @@ import { CLIENT_LIST_READER } from './application/client-list-reader';
 import { RecordVisitHandler } from './application/record-visit.use-case';
 import { PrismaVisitRepository } from './infrastructure/prisma-visit.repository';
 import { PrismaVisitClientLookup } from './infrastructure/prisma-visit-client.lookup';
-import {
-  UpdateClientProfileHandler,
-  UpdateBirthdayHandler,
-  UpdatePreferencesHandler,
-  AddNoteHandler,
-  RemoveNoteHandler,
-  SetVipDiscountHandler,
-  SetLoyaltyVisitsHandler,
-  GetClientProfileHandler,
-  GetClientProfileByUserIdHandler,
-  GetClientProfileByPhoneHandler,
-  ListClientsHandler,
-} from './application/crm-handlers';
+import { UpdateClientProfileHandler, UpdateBirthdayHandler, UpdatePreferencesHandler, AddNoteHandler, RemoveNoteHandler, SetVipDiscountHandler, SetLoyaltyVisitsHandler, GetClientProfileHandler, GetClientProfileByUserIdHandler, GetClientProfileByPhoneHandler, ListClientsHandler } from './application/crm-handlers';
 
 // Команди отримують спільний CrmCommandContext (bundle), запити — лише порт;
 // набір хендлерів контролера збирається однією фабрикою (гейт max-params).

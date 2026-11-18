@@ -5,12 +5,7 @@
 // повторна доставка тієї ж події не дублює нагадування (журнал за eventId).
 // Падіння schedule НЕ пишеться в журнал — подія лишається pending (ретрай).
 
-import {
-  REMINDER_TRIGGER_TYPES,
-  type ReminderDuePayload,
-  type ReminderScheduleOutcome,
-  type ScheduleReminderDeps,
-} from './appointment-reminder-ports';
+import { REMINDER_TRIGGER_TYPES, type ReminderDuePayload, type ReminderScheduleOutcome, type ScheduleReminderDeps } from './appointment-reminder-ports';
 import type { NotificationEvent, NotificationRecordInput } from './booking-confirmation-ports';
 
 const RESCHEDULED_EVENT_TYPE = 'scheduling.appointment.rescheduled';

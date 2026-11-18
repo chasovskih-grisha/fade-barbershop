@@ -2,32 +2,11 @@
 // Events: AppointmentCompleted (outbox subscription)
 // Endpoints: GET /api/loyalty/progress/:clientId, POST /api/loyalty/threshold
 
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-} from '@nestjs/common';
-import {
-  ApiBadRequestResponse,
-  ApiOperation,
-  ApiParam,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
 import { LoyaltyService } from './loyalty.service';
-import {
-  GetProgressOutput,
-  type GetProgressOutput,
-  SetThresholdInput,
-  type SetThresholdInput,
-  ThresholdOutput,
-  type ThresholdOutput,
-} from './loyalty.dto';
+import { GetProgressOutput, type SetThresholdInput, ThresholdOutput } from './loyalty.dto';
 import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
 
 export const LOYALTY_IO = Symbol('LOYALTY_IO');

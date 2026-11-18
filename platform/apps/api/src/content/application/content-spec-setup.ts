@@ -4,18 +4,8 @@ import { DraftArticleHandler } from './draft-article';
 import { UpdateArticleHandler } from './update-article';
 import { PublishArticleHandler } from './publish-article';
 import { UnpublishArticleHandler } from './unpublish-article';
-import {
-  ListArticlesHandler,
-  ListPublishedArticlesHandler,
-  GetPublishedArticleHandler,
-} from './article-queries';
-import {
-  FakeArticleRepository,
-  FakeClock,
-  FakeOutbox,
-  SeqIds,
-  passthroughUow,
-} from './content.fakes';
+import { ListArticlesHandler, ListPublishedArticlesHandler, GetPublishedArticleHandler } from './article-queries';
+import { FakeArticleRepository, FakeClock, FakeOutbox, SeqIds, passthroughUow } from './content.fakes';
 
 export const draftInput = {
   title: 'Стрижка по-київськи',

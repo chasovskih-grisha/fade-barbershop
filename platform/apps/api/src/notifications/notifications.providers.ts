@@ -12,10 +12,7 @@ import { PrismaClientContacts } from './infrastructure/client-contacts';
 import { PrismaNotificationJournal } from './infrastructure/notification-journal';
 import { PrismaLocationContacts } from './infrastructure/location-contacts';
 import { PrismaClientPreferences } from './infrastructure/prisma-client-preferences';
-import {
-  SendBookingConfirmation,
-  type BookingConfirmationDeps,
-} from './application/send-booking-confirmation';
+import { SendBookingConfirmation, type BookingConfirmationDeps } from './application/send-booking-confirmation';
 import { NewDeviceAlert, type SecurityAlertDeps } from './application/security-alert';
 import { LoyaltyNotificationHandler } from './application/loyalty-notification';
 import type { LoyaltyNotificationDeps } from './application/loyalty-notification-ports';

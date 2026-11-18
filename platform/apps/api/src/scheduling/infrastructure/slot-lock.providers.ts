@@ -3,10 +3,7 @@
 // ioredis тягнеться ледачо, як у rate-limit (T-4410): без Redis пакет не грузиться.
 import type { Provider } from '@nestjs/common';
 import { SLOT_LOCK_AUDIT, SLOT_LOCK_STORE, type SlotLockStore } from '../application/slot-lock.ports';
-import {
-  SlotReservations,
-  type SlotReservationsConfig,
-} from '../application/slot-reservations.service';
+import { SlotReservations, type SlotReservationsConfig } from '../application/slot-reservations.service';
 import { InMemorySlotLock } from './in-memory-slot-lock';
 import { RedisSlotLock, type RedisLockClient } from './redis-slot-lock';
 import { SlotLockAuditLogger } from './slot-lock.audit.logger';

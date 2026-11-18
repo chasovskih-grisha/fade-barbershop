@@ -2,12 +2,7 @@
 // перетворюється в переходи «було → стало» з актором і причиною; події без
 // зміни статусу ігноруються; порядок і сторінка. Чистий домен, без БД.
 
-import {
-  buildStatusHistory,
-  orderHistory,
-  paginateHistory,
-  type StatusHistoryEvent,
-} from './appointment-status-history';
+import { buildStatusHistory, orderHistory, paginateHistory, type StatusHistoryEvent } from './appointment-status-history';
 
 const at = (iso: string) => new Date(iso);
 const T = (iso: string) => at(iso);

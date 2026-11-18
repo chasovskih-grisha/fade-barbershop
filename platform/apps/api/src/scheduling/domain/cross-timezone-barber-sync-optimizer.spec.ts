@@ -1,8 +1,4 @@
-import {
-  evaluateCrossTimezoneBarberSync,
-  TimezoneSlotRequest,
-  BarberExistingAssignment,
-} from './cross-timezone-barber-sync-optimizer';
+import { evaluateCrossTimezoneBarberSync, TimezoneSlotRequest, BarberExistingAssignment } from './cross-timezone-barber-sync-optimizer';
 
 describe('CrossTimezoneBarberSyncOptimizer', () => {
   const baseDate = new Date('2026-11-15T10:00:00Z');

@@ -7,12 +7,7 @@ import { INestApplication, HttpStatus } from '@nestjs/common';
 import { uuidv7 } from '@fade/domain-shared';
 import { AppointmentPartyModule } from '../../appointment-party/appointment-party.module';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import {
-  DATE,
-  buildPartyWorld,
-  cleanupPartyWorld,
-  seedPartyWorld,
-} from './appointment-party-race.fixtures';
+import { DATE, buildPartyWorld, cleanupPartyWorld, seedPartyWorld } from './appointment-party-race.fixtures';
 import { partyPayload } from './appointment-party-race.payload';
 
 describe('AppointmentParty concurrency (e2e, Postgres)', () => {

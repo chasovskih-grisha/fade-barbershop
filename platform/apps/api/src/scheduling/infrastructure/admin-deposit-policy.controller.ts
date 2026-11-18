@@ -6,12 +6,7 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Put } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { PrismaDepositPolicySettings } from './prisma-deposit-policy-settings';
-import {
-  DEPOSIT_ROUNDING_OPTIONS,
-  parseDepositPolicySettings,
-  type DepositPolicyVersionRow,
-  type VersionedDepositPolicy,
-} from '../domain/deposit-policy-settings';
+import { DEPOSIT_ROUNDING_OPTIONS, parseDepositPolicySettings, type DepositPolicyVersionRow, type VersionedDepositPolicy } from '../domain/deposit-policy-settings';
 import type { DepositPolicy } from '../domain/deposit-terms';
 
 @ApiTags('admin-settings')

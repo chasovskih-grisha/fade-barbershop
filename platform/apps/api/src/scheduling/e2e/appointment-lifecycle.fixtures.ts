@@ -5,13 +5,7 @@ import { uuidv7 } from '@fade/domain-shared';
 import type { INestApplication } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
-import {
-  assignBarber,
-  cleanupTestLocation,
-  postWithRetry,
-  seedBarberUser,
-  seedTestLocation,
-} from '@fade/test-utils';
+import { assignBarber, cleanupTestLocation, postWithRetry, seedBarberUser, seedTestLocation } from '@fade/test-utils';
 import type { PrismaService } from '../../shared/prisma/prisma.service';
 
 export const DATE = '2026-11-09'; // Понеділок.

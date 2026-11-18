@@ -5,12 +5,7 @@ import { OpeningHours } from '../domain/opening-hours';
 import { Chair } from '../domain/chair';
 import { normalizeChannels } from '../domain/location-channel';
 import { normalizePhotos } from '../domain/location-photo';
-import {
-  HoursChanged,
-  ChairUpdated,
-  ChannelsChanged,
-  PhotosChanged,
-} from '../domain/location.events';
+import { HoursChanged, ChairUpdated, ChannelsChanged, PhotosChanged } from '../domain/location.events';
 import type { DayHours } from '../domain/opening-hours';
 import type { ChairData } from '../domain/chair';
 import { InvalidLocationInputError } from './locations-errors';

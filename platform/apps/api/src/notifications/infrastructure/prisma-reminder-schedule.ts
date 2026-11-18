@@ -7,11 +7,7 @@ import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { uuidv7 } from '@fade/domain-shared';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import {
-  REMINDER_DUE_EVENT_TYPE,
-  type ReminderDuePayload,
-  type ReminderSchedule,
-} from '../application/appointment-reminder-ports';
+import { REMINDER_DUE_EVENT_TYPE, type ReminderDuePayload, type ReminderSchedule } from '../application/appointment-reminder-ports';
 
 @Injectable()
 export class PrismaReminderSchedule implements ReminderSchedule {

@@ -1,8 +1,4 @@
-import {
-  InvalidServiceInputError,
-  ServiceCodeTakenError,
-  ServiceNotFoundError,
-} from './services-errors';
+import { InvalidServiceInputError, ServiceCodeTakenError, ServiceNotFoundError } from './services-errors';
 import { setupServices } from './services.spec.setup';
 
 describe('Services vertical slice (T-066)', () => {

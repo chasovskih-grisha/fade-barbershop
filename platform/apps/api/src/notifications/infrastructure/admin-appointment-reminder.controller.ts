@@ -5,11 +5,7 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Put } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { PrismaAppointmentReminderSettings } from './prisma-appointment-reminder-settings';
-import {
-  parseAppointmentReminderSettings,
-  type AppointmentReminderSettings,
-  type ReminderChannel,
-} from '../domain/appointment-reminder-settings';
+import { parseAppointmentReminderSettings, type AppointmentReminderSettings, type ReminderChannel } from '../domain/appointment-reminder-settings';
 
 const CHANNELS: readonly ReminderChannel[] = ['sms', 'none'];
 

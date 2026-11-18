@@ -1,11 +1,4 @@
-import {
-  generateId,
-  generateOtpCode,
-  generateToken,
-  hashOtpCode,
-  hashToken,
-  otpMatches,
-} from './otp-code';
+import { generateId, generateOtpCode, generateToken, hashOtpCode, hashToken, otpMatches } from './otp-code';
 
 describe('OtpCode', () => {
   it('генерує 6-значний код', () => {

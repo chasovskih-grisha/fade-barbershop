@@ -1,12 +1,5 @@
 // T-4439: пороги гейтів запуску — межа 95% доставки і 3% 5xx.
-import {
-  DELIVERY_MIN,
-  SERVER_ERROR_MAX,
-  deliveryRate,
-  launchGates,
-  serverErrorRate,
-  type LaunchCounters,
-} from './launch-dashboard';
+import { DELIVERY_MIN, SERVER_ERROR_MAX, deliveryRate, launchGates, serverErrorRate, type LaunchCounters } from './launch-dashboard';
 
 const base: LaunchCounters = {
   locationsOnline: 1,

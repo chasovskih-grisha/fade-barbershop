@@ -6,11 +6,7 @@ import { SlotRequestDto } from '../dto/slot-request.dto';
 import { AvailableSlotDto } from '../dto/available-slot.dto';
 import { dayStart, dayWindow, resolveDuration } from './available-slots.request';
 import type { AvailableSlotsDeps, SlotContext } from './available-slots-helpers';
-import {
-  readSlotPolicySnapshot,
-  isBeyondHorizon,
-  type SlotPolicySnapshot,
-} from './available-slots.policy';
+import { readSlotPolicySnapshot, isBeyondHorizon, type SlotPolicySnapshot } from './available-slots.policy';
 import { buildSlotGrid } from './available-slots.grid';
 import type { SlotPolicyRow } from '../../scheduling/domain/ports.slot-policy';
 

@@ -8,16 +8,7 @@ import { OtpChallenge } from '../domain/otp-challenge';
 import { generateOtpCode, generateToken, hashOtpCode, hashToken } from '../domain/otp-code';
 import { ChangePhoneRequestHandler } from './change-phone.request';
 import { ChangePhoneVerifyHandler } from './change-phone.verify';
-import {
-  FakeClock,
-  FakeOtpChallengeRepository,
-  FakeOtpSender,
-  FakeOutbox,
-  FakeSessionRepository,
-  FakeUserRepository,
-  UuidIds,
-  passthroughUow,
-} from './ports.fakes';
+import { FakeClock, FakeOtpChallengeRepository, FakeOtpSender, FakeOutbox, FakeSessionRepository, FakeUserRepository, UuidIds, passthroughUow } from './ports.fakes';
 import { USER_1, USER_2, SESSION_1, SESSION_2, CHALLENGE_1 } from './test-ids';
 
 export const T0 = '2026-10-01T10:00:00.000Z';

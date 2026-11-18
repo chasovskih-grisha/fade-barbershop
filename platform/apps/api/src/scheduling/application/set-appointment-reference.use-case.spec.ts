@@ -1,11 +1,7 @@
 // Функціональна специфікація SetAppointmentReference (T-043): клієнт/адмін
 // ставлять референс і коментар. Захисні гілки (довжина, барбер, lock,
 // термінальний, невідомий id) — set-appointment-reference.guards.spec.ts.
-import {
-  setupReference as setup,
-  referenceCmd as cmd,
-  confirmedAppointment,
-} from './set-appointment-reference.fakes';
+import { setupReference as setup, referenceCmd as cmd, confirmedAppointment } from './set-appointment-reference.fakes';
 import type { FakeAppointmentRepository } from './appointment-lifecycle.fakes';
 
 const lastSaved = (repo: FakeAppointmentRepository) => repo.saved.at(-1);

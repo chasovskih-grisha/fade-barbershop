@@ -1,10 +1,5 @@
 // T-4490: політика утримання — TTL, класифікація, legal hold.
-import {
-  RETENTION_RULES,
-  cutoffFor,
-  legalHolds,
-  ruleFor,
-} from './retention-policy';
+import { RETENTION_RULES, cutoffFor, legalHolds, ruleFor } from './retention-policy';
 
 const NOW = new Date('2026-11-17T10:00:00Z');
 

@@ -1,10 +1,5 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
-import {
-  ClientProfileNotFoundError,
-  PreferenceNotFoundError,
-  NoteNotFoundError,
-  InvalidClientListQueryError,
-} from '../application/crm-errors';
+import { ClientProfileNotFoundError, PreferenceNotFoundError, NoteNotFoundError, InvalidClientListQueryError } from '../application/crm-errors';
 import { InvalidBirthdayError } from '../domain/birthday';
 
 @Catch()

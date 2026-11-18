@@ -1,13 +1,7 @@
 import { BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
 import type { PrismaService } from '../../shared/prisma/prisma.service';
 import { dayOfWeekIndex } from '../../scheduling/domain/day-of-week';
-import {
-  CreateAppointmentPartyDto,
-  LegRequest,
-  openFor,
-  parsePartySlot,
-  withinWindow,
-} from './appointment-party.dto';
+import { CreateAppointmentPartyDto, LegRequest, openFor, parsePartySlot, withinWindow } from './appointment-party.dto';
 
 export async function assertPartyReady(
   prisma: PrismaService,

@@ -2,18 +2,7 @@
 // No hex; range validation via number/slice; policy change = info banner
 // "for new bookings only" (already-generated slots are not rewritten).
 
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Param,
-  Patch,
-  Post,
-  UseFilters,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Patch, Post, UseFilters } from '@nestjs/common';
 import { SchedulingExceptionFilter } from './scheduling.exception-filter';
 import { ADMIN_BARBER_SERVICE_IO, type AdminBarberServiceDeps } from './admin-barber-service.dto';
 import type {

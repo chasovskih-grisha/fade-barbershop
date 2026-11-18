@@ -1,14 +1,7 @@
 // Причини блокування нового онлайн-запису (T-4542) — окремо від use case,
 // щоб тримати і клас, і функцію під гейтами max-lines/max-params.
 import type { OnlineBookingPolicy } from './online-booking-policy';
-import {
-  checkActiveBookings,
-  checkDuplicate,
-  checkHorizon,
-  checkLeadTime,
-  checkNoShowBlock,
-  type BookingBlock,
-} from './policy-rules';
+import { checkActiveBookings, checkDuplicate, checkHorizon, checkLeadTime, checkNoShowBlock, type BookingBlock } from './policy-rules';
 import type { OnlineBookingStore } from './booking-policy.ports';
 import type { EvaluateInput } from './evaluate-online-booking';
 

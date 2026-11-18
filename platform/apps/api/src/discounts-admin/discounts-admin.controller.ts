@@ -2,46 +2,9 @@
 // CRUD for discount rules and promo codes, validation, audit logging.
 // Consolidated DTO types; service-layer methods for clean separation.
 
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Query,
-} from '@nestjs/common';
-import {
-  ApiBadRequestResponse,
-  ApiOperation,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import {
-  CreateDiscountRuleInput,
-  type CreateDiscountRuleInput,
-  CreatePromoCodeInput,
-  type CreatePromoCodeInput,
-  DiscountRuleFilters,
-  type DiscountRuleFilters,
-  PromoCodeFilters,
-  type PromoCodeFilters,
-  ApplyDiscountRuleInput,
-  type ApplyDiscountRuleInput,
-  DiscountAuditLog,
-  type DiscountAuditLog,
-  DiscountRuleResponse,
-  type DiscountRuleResponse,
-  PromoCodeResponse,
-  type PromoCodeResponse,
-  ApplyDiscountRuleResponse,
-  type ApplyDiscountRuleResponse,
-  DiscountRulesListResponse,
-  type DiscountRulesListResponse,
-  PromoCodesListResponse,
-  type PromoCodesListResponse,
-} from './discounts-admin.dto';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { type CreateDiscountRuleInput, type CreatePromoCodeInput, type DiscountRuleFilters, type PromoCodeFilters, type ApplyDiscountRuleInput, type DiscountAuditLog, DiscountRuleResponse, PromoCodeResponse, ApplyDiscountRuleResponse, DiscountRulesListResponse, PromoCodesListResponse } from './discounts-admin.dto';
 import { DiscountsAdminService } from './discounts-admin.service';
 
 @Controller('discounts-admin')

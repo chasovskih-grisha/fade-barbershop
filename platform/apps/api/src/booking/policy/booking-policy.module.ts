@@ -6,10 +6,7 @@ import { PrismaService } from '../../shared/prisma/prisma.service';
 import { PrismaOnlineBookingStore } from './prisma-booking-policy.store';
 import { EvaluateOnlineBooking } from './evaluate-online-booking';
 import { ONLINE_BOOKING_STORE } from './booking-policy.ports';
-import {
-  AdminOnlineBookingPolicyController,
-  BookingPolicyController,
-} from './booking-policy.controller';
+import { AdminOnlineBookingPolicyController, BookingPolicyController } from './booking-policy.controller';
 
 @Module({
   providers: [

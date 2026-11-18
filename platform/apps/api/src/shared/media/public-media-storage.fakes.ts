@@ -1,10 +1,6 @@
 // Фейк публічного медіа-сховища (ADR 0019): юніт-тести use case і e2e-харнеси
 // locations працюють без S3; контракт URL/ключів такий самий, як в адаптера.
-import {
-  MediaProcessingError,
-  type PublicMediaObject,
-  type PublicMediaStorage,
-} from './public-media-storage';
+import { MediaProcessingError, type PublicMediaObject, type PublicMediaStorage } from './public-media-storage';
 
 export interface MemMediaObject {
   key: string;

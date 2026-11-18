@@ -10,13 +10,7 @@ import { PrismaContentOutbox } from '../infrastructure/prisma-content-outbox';
 import { SystemClock } from '../../locations/infrastructure/system-clock';
 import { UuidIdGenerator } from '../../locations/infrastructure/uuid-id-generator';
 import { PrismaUnitOfWork } from '../../shared/prisma/prisma-context';
-import {
-  FakeArticleRepository,
-  FakeClock,
-  FakeOutbox,
-  SeqIds,
-  passthroughUow,
-} from '../application/content.fakes';
+import { FakeArticleRepository, FakeClock, FakeOutbox, SeqIds, passthroughUow } from '../application/content.fakes';
 
 export async function createContentE2eApp(): Promise<{
   app: INestApplication;

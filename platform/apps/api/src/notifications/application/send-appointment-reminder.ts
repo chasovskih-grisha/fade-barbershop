@@ -8,15 +8,7 @@ import { REMINDER_DUE_EVENT_TYPE, type ReminderDuePayload } from './appointment-
 import { renderReminderSms } from './appointment-reminder-sms';
 import type { SmsSender } from './booking-confirmation-sms';
 import type { HandleOutcome } from './send-booking-confirmation';
-import {
-  buildConfirmationLetterData,
-  type ClientContacts,
-  type LocationContacts,
-  type NotificationEvent,
-  type NotificationJournal,
-  type NotificationRecordInput,
-  type ServiceCatalog,
-} from './booking-confirmation-ports';
+import { buildConfirmationLetterData, type ClientContacts, type LocationContacts, type NotificationEvent, type NotificationJournal, type NotificationRecordInput, type ServiceCatalog } from './booking-confirmation-ports';
 import type { AppointmentReminderSettingsPort } from '../domain/appointment-reminder-settings';
 
 export interface SendAppointmentReminderDeps {

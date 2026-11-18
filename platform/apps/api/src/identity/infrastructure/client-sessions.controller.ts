@@ -3,18 +3,7 @@
 // пристрій визначає сервер за токеном запиту (гвард кладе clientSession).
 // Rate limit на revoke-all (T-4410) — спільний 429 через acquireOrThrow429.
 
-import {
-  Body,
-  Controller,
-  Get,
-  Inject,
-  Post,
-  Put,
-  Req,
-  UnauthorizedException,
-  UseFilters,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post, Put, Req, UnauthorizedException, UseFilters, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import type {
   ListClientSessionsResult,

@@ -8,10 +8,7 @@ import type { PrismaLocationRepository } from '../../locations/infrastructure/pr
 import type { PrismaServiceRepository } from '../../catalog/infrastructure/prisma-service.repository';
 import type { PrismaUserRepository } from '../../identity/infrastructure/prisma-adapters';
 import type { BarberServiceAssignmentRepository } from '../../scheduling/domain/ports.barber-service-assignment';
-import {
-  barbersForService,
-  type BarberServiceMatrix,
-} from '../../scheduling/domain/barber-service-matrix';
+import { barbersForService, type BarberServiceMatrix } from '../../scheduling/domain/barber-service-matrix';
 import type { SlotPolicyRepository } from '../../scheduling/domain/ports.slot-policy';
 import type { Clock } from '../../locations/domain/ports';
 

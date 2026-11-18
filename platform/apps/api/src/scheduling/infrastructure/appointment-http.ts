@@ -1,13 +1,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import {
-  AppointmentNotFoundError,
-  InvalidTransitionError,
-} from '../application/appointment-lifecycle.use-case';
+import { AppointmentNotFoundError, InvalidTransitionError } from '../application/appointment-lifecycle.use-case';
 import { BookingConflictError } from '../domain/booking';
-import {
-  CommentTooLongError,
-  ReferenceLockedError,
-} from '../application/set-appointment-reference.use-case';
+import { CommentTooLongError, ReferenceLockedError } from '../application/set-appointment-reference.use-case';
 
 const ERROR_STATUS: Array<{ when: (error: Error) => boolean; status: number }> = [
   { when: (error) => error instanceof AppointmentNotFoundError, status: HttpStatus.NOT_FOUND },

@@ -1,9 +1,4 @@
-import {
-  StubGeocoder,
-  T0,
-  freshStores,
-  geocoderFor,
-} from './cached-rate-limited.geocoder.failure.fakes';
+import { StubGeocoder, T0, freshStores, geocoderFor } from './cached-rate-limited.geocoder.failure.fakes';
 
 describe('CachedRateLimitedGeocoder failure handling', () => {
   it('після 3 збоїв — надгробок на 60 с (глобальний ключ порту)', async () => {

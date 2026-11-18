@@ -1,15 +1,6 @@
 // T-4542: правила онлайн-букінгу — межі, дедлайни, ліміти й тексти для фронту.
 import { DEFAULT_ONLINE_BOOKING_POLICY, isValidPolicy, mergePolicy } from './online-booking-policy';
-import {
-  checkActiveBookings,
-  checkCancellationDeadline,
-  checkDuplicate,
-  checkGuestBooking,
-  checkHorizon,
-  checkLeadTime,
-  checkNoShowBlock,
-  checkRescheduleDeadline,
-} from './policy-rules';
+import { checkActiveBookings, checkCancellationDeadline, checkDuplicate, checkGuestBooking, checkHorizon, checkLeadTime, checkNoShowBlock, checkRescheduleDeadline } from './policy-rules';
 
 const NOW = new Date('2026-11-17T10:00:00Z');
 const policy = DEFAULT_ONLINE_BOOKING_POLICY;

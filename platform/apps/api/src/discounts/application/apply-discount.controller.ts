@@ -2,22 +2,11 @@
 // Endpoint: POST /api/discounts/apply
 // Calculates applied discounts for an appointment using PromoCode, VIP, and rules.
 
-import {
-  Body,
-  Controller,
-  Post,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
-import {
-  ApiBadRequestResponse,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
 import type { ApplyDiscountInput } from './apply-discount.use-case';
-import type { ApplyDiscountResult } from './apply-discount.use-case';
+import { ApplyDiscountResult } from './apply-discount.use-case';
 
 @Controller('discounts')
 @ApiTags('discounts')

@@ -1,8 +1,4 @@
-import {
-  renderReviewHtml,
-  renderReviewSubject,
-  renderReviewText,
-} from './post-visit-review-template';
+import { renderReviewHtml, renderReviewSubject, renderReviewText } from './post-visit-review-template';
 
 describe('post-visit-review-template', () => {
   const DATA = {

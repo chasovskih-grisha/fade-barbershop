@@ -1,22 +1,6 @@
 // Admin barbers CRUD — MNG-ADM-05. Барбер = User з роллю `barber`.
 
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Param,
-  Patch,
-  Post,
-  Put,
-  Req,
-  UploadedFile,
-  UseFilters,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Inject, Param, Patch, Post, Put, Req, UploadedFile, UseFilters, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { CreateBarberHandler, type CreateBarberInput } from '../application/create-barber';
@@ -28,13 +12,7 @@ import { DeleteBarberPhotoHandler } from '../application/delete-barber-photo';
 import { type BarberPhotoRepository } from '../domain/ports.barber-photo';
 import { type PublicMediaStorage } from '../../shared/media/public-media-storage';
 import { IdentityExceptionFilter } from './identity.exception-filter';
-import {
-  toBarberDto,
-  type BarberDto,
-  type CreateBarberDto,
-  type UpdateBarberDto,
-  type BarberPhotoDto,
-} from './admin-barbers.dto';
+import { toBarberDto, type BarberDto, type CreateBarberDto, type UpdateBarberDto, type BarberPhotoDto } from './admin-barbers.dto';
 import { InvalidBarberInputError } from '../application/barber-errors';
 
 export type { BarberDto, CreateBarberDto, UpdateBarberDto, BarberPhotoDto };

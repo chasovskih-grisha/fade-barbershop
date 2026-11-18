@@ -2,27 +2,11 @@
 // `Idempotency-Key` повтор віддає збережену відповідь, а не створює дубль.
 // Без заголовка запит проходить як звичайний — ключ опційний, валідується,
 // коли присутній (ADR 0009: ретраї не повинні дублювати записи й платежі).
-import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Injectable,
-  type CallHandler,
-  type ExecutionContext,
-  type NestInterceptor,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, type CallHandler, type ExecutionContext, type NestInterceptor } from '@nestjs/common';
 import { concatMap, of, type Observable } from 'rxjs';
 import type { Request, Response } from 'express';
 import { IDEMPOTENCY_STORE, type IdempotencyStore } from './idempotency.store';
-import {
-  IDEMPOTENCY_HEADER,
-  MUTATING_METHODS,
-  REPLAYED_HEADER,
-  decideReplay,
-  expiresAt,
-  fingerprint,
-  isValidIdempotencyKey,
-} from './idempotency';
+import { IDEMPOTENCY_HEADER, MUTATING_METHODS, REPLAYED_HEADER, decideReplay, expiresAt, fingerprint, isValidIdempotencyKey } from './idempotency';
 
 @Injectable()
 export class IdempotencyInterceptor implements NestInterceptor {

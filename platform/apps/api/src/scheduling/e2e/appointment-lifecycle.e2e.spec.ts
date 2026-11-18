@@ -7,14 +7,7 @@ import { Test } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import { SchedulingModule } from '../scheduling.module';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import {
-  buildLifecycleIds,
-  cleanupLifecycle,
-  book,
-  command,
-  seedLifecycle,
-  stampAdmin,
-} from './appointment-lifecycle.fixtures';
+import { buildLifecycleIds, cleanupLifecycle, book, command, seedLifecycle, stampAdmin } from './appointment-lifecycle.fixtures';
 
 describe('AppointmentLifecycle (e2e, Postgres)', () => {
   let app: INestApplication;

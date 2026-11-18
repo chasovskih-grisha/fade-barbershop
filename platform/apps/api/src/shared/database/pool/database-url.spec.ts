@@ -1,9 +1,5 @@
 // T-4803: пул з'єднань — розбір env і переписування DATABASE_URL.
-import {
-  DEFAULT_POOL_SETTINGS,
-  applyPoolSettings,
-  resolvePoolSettings,
-} from './database-url';
+import { DEFAULT_POOL_SETTINGS, applyPoolSettings, resolvePoolSettings } from './database-url';
 
 const BASE = 'postgresql://fade:secret@db:5432/fade?schema=public';
 

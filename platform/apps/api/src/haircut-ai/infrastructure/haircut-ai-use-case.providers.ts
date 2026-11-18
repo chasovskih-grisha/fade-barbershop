@@ -6,18 +6,7 @@
 // Адаптери передаються фабрикою з concrete-класів, структурно задовольняющих порт.
 
 import type { Provider } from '@nestjs/common';
-import {
-  UploadPhoto,
-  RequestSuggestionHandler,
-  GetSuggestionStatusHandler,
-  SelectVariantHandler,
-  GiveConsentHandler,
-  RevokeConsentHandler,
-  DeletePhotoHandler,
-  ListMyAiHandler,
-  GetReferencePhotoUrl,
-  GetAdminReferencePhotoUrl,
-} from '../application/haircut-ai-use-case.tokens';
+import { UploadPhoto, RequestSuggestionHandler, GetSuggestionStatusHandler, SelectVariantHandler, GiveConsentHandler, RevokeConsentHandler, DeletePhotoHandler, ListMyAiHandler, GetReferencePhotoUrl, GetAdminReferencePhotoUrl } from '../application/haircut-ai-use-case.tokens';
 import { S3PhotoStorage } from './s3-photo-storage';
 import { PrismaSourcePhotoRepository } from './prisma-source-photo.repository';
 import { PrismaHaircutSuggestionRepository } from './prisma-haircut-suggestion.repository';

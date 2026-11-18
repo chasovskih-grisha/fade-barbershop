@@ -3,17 +3,7 @@
 // системного часу, без пагінації. `total` приходить ззовні (той самий фільтр,
 // що й таблиця), тож `summary.total === total` тримається структурою, а не
 // збігом двох запитів. Контракт і вікно — client-list-summary.types.ts.
-import {
-  DAY_MS,
-  QUIET_DAYS,
-  summaryWindow,
-  type ClientListFacts,
-  type ClientListSummary,
-  type LoyaltyDistribution,
-  type LocationDistribution,
-  type SummaryProfileFact,
-  type SummaryWindowFact,
-} from './client-list-summary.types';
+import { DAY_MS, QUIET_DAYS, summaryWindow, type ClientListFacts, type ClientListSummary, type LoyaltyDistribution, type LocationDistribution, type SummaryProfileFact, type SummaryWindowFact } from './client-list-summary.types';
 import type { SummaryPeriod } from './admin-client-list.query';
 
 export * from './client-list-summary.types';

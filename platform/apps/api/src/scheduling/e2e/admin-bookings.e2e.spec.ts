@@ -4,14 +4,7 @@ import { Test } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import { SchedulingModule } from '../scheduling.module';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import {
-  assignBarber,
-  cleanupTestLocation,
-  postWithRetry,
-  seedBarberUser,
-  seedRawBooking,
-  seedTestLocation,
-} from '@fade/test-utils';
+import { assignBarber, cleanupTestLocation, postWithRetry, seedBarberUser, seedRawBooking, seedTestLocation } from '@fade/test-utils';
 
 const DATE = '2026-10-05'; // Monday in the admin's Monday-first week model.
 

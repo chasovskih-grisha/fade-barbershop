@@ -1,12 +1,5 @@
 // AdminRole domain (T-2400a, T-105, T-106)
-import {
-  ADMIN_ROLE_KEYS,
-  DEFAULT_ADMIN_ROLES,
-  isAdminRoleKey,
-  roleAllows,
-  roleAllowsLocation,
-  roleAllowsSection,
-} from './admin-role';
+import { ADMIN_ROLE_KEYS, DEFAULT_ADMIN_ROLES, isAdminRoleKey, roleAllows, roleAllowsLocation, roleAllowsSection } from './admin-role';
 import { uuidv7 } from '@fade/domain-shared';
 
 const LOC_1 = uuidv7();

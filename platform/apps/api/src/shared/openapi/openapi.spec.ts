@@ -2,12 +2,7 @@
 // маршрутів перевіряється живою перевіркою (/docs.json), а тут фіксуємо те,
 // що легко зламати рефакторингом — заголовок документа, сервер, схеми
 // безпеки та адреси специфікації.
-import {
-  OPENAPI_MOUNTS,
-  SECURITY_SCHEME_BEARER,
-  SECURITY_SCHEME_COOKIE,
-  buildOpenApiConfig,
-} from './openapi';
+import { OPENAPI_MOUNTS, SECURITY_SCHEME_BEARER, SECURITY_SCHEME_COOKIE, buildOpenApiConfig } from './openapi';
 
 describe('buildOpenApiConfig', () => {
   const config = buildOpenApiConfig('test-cookie');

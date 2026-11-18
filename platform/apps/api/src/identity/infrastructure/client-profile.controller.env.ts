@@ -2,12 +2,7 @@
 // профілів, CRM-хендлери і контролер з допуском за сесією. Окремо від спеки — гейт max-lines.
 import { ClientProfileController } from './client-profile.controller';
 import { ClientBirthdayController } from './client-birthday.controller';
-import {
-  UpdateClientProfileHandler,
-  UpdateBirthdayHandler,
-  UpdatePreferencesHandler,
-  GetClientProfileByUserIdHandler,
-} from '../../crm/application/crm-handlers';
+import { UpdateClientProfileHandler, UpdateBirthdayHandler, UpdatePreferencesHandler, GetClientProfileByUserIdHandler } from '../../crm/application/crm-handlers';
 import type { ClientProfileRepository } from '../../crm/domain/client-profile.repository';
 import type { CrmCommandContext } from '../../crm/application/crm-ports';
 import { ClientProfile } from '../../crm/domain/client-profile';

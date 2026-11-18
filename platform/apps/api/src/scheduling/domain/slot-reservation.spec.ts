@@ -1,12 +1,5 @@
 // T-4802: чисти правила лока — ключ, backoff, перевірка володіння.
-import {
-  ReservationInvalidError,
-  assertReservationHeld,
-  backoffMs,
-  isReservationExpired,
-  slotLockKey,
-  type SlotReservation,
-} from './slot-reservation';
+import { ReservationInvalidError, assertReservationHeld, backoffMs, isReservationExpired, slotLockKey, type SlotReservation } from './slot-reservation';
 
 const START = new Date('2026-11-20T12:00:00Z');
 const RESERVATION: SlotReservation = {

@@ -1,8 +1,4 @@
-import {
-  renderGiftCardHtml,
-  renderGiftCardSubject,
-  renderGiftCardText,
-} from './gift-card-template';
+import { renderGiftCardHtml, renderGiftCardSubject, renderGiftCardText } from './gift-card-template';
 
 describe('GiftCardTemplate', () => {
   const sampleData = {

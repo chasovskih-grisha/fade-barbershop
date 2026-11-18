@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { ClientProfile } from '../domain/client-profile';
-import {
-  ClientProfileRepository,
-  type ClientProfileListFilters,
-} from '../domain/client-profile.repository';
+import { ClientProfileRepository, type ClientProfileListFilters } from '../domain/client-profile.repository';
 import { toDomainProfile, toPrismaProfile } from './client-profile-row';
 
 // Тонкий адаптер порту ClientProfileRepository: мапінг рядка — у

@@ -1,12 +1,7 @@
 import { Controller, Get, Post, Body, Param, UsePipes } from '@nestjs/common';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../shared/validation/zod-validation.pipe';
-import {
-  CreateSupportTicketUseCase,
-  ResolveSupportTicketUseCase,
-  GetInteractiveFaqsUseCase,
-  GetErrorRecoverySuggestionUseCase,
-} from '../application/support.use-cases';
+import { CreateSupportTicketUseCase, ResolveSupportTicketUseCase, GetInteractiveFaqsUseCase, GetErrorRecoverySuggestionUseCase } from '../application/support.use-cases';
 import { InMemorySupportRepository } from '../application/in-memory-support.repository';
 
 const CreateTicketSchema = z.object({

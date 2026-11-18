@@ -9,13 +9,7 @@
 
 import type { PushMessage } from './push-ports';
 import type { SecurityAlertDeps, SecurityAlertEvent } from './security-alert-ports';
-import {
-  alertSubject,
-  emailHtml,
-  emailText,
-  pushBody,
-  PUSH_TITLE,
-} from './security-alert-messages';
+import { alertSubject, emailHtml, emailText, pushBody, PUSH_TITLE } from './security-alert-messages';
 
 export interface HandleAlertOutcome {
   handled: boolean;

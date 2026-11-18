@@ -2,17 +2,7 @@
 // Охороняється глобальним AdminSessionGuard (APP_GUARD фільтрує /admin/*).
 // Мутації йдуть через use cases, як решта адмін-екранів (admin-screens.md).
 
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Post,
-  UseFilters,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, UseFilters } from '@nestjs/common';
 import { ContentExceptionFilter } from './content.exception-filter';
 import { toArticleDto, type ArticleDto } from './content.dto';
 import { AdminContentHandlers } from './admin-content-handlers';

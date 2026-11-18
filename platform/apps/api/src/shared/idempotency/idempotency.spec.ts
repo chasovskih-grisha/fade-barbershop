@@ -1,13 +1,6 @@
 // T-4207: валідація ключа, відбиток запиту (порядок полів не важливий) і
 // рішення replay/conflict/fresh, включно з TTL.
-import {
-  IDEMPOTENCY_TTL_MS,
-  decideReplay,
-  expiresAt,
-  fingerprint,
-  isValidIdempotencyKey,
-  type IdempotencySnapshot,
-} from './idempotency';
+import { IDEMPOTENCY_TTL_MS, decideReplay, expiresAt, fingerprint, isValidIdempotencyKey, type IdempotencySnapshot } from './idempotency';
 
 const KEY = '3f1c2b1a-9d4e-4a77-9b52-0c7f2b3d4e5f';
 const NOW = new Date('2026-11-17T12:00:00.000Z');

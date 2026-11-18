@@ -6,11 +6,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { kyivStamp } from './kyiv-stamp';
 import { toClientDeposit } from './client-appointment-deposit';
-import {
-  CABINET_STATUS,
-  type BookingRow,
-  type ClientAppointmentView,
-} from './client-appointments.view';
+import { CABINET_STATUS, type BookingRow, type ClientAppointmentView } from './client-appointments.view';
 
 export type { CabinetStatus, ClientAppointmentView } from './client-appointments.view';
 

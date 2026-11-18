@@ -1,8 +1,4 @@
-import {
-  BarberSchedule,
-  AvailabilityChanged,
-  AvailabilityWindowData,
-} from '../domain/availability';
+import { BarberSchedule, AvailabilityChanged, AvailabilityWindowData } from '../domain/availability';
 import { InvalidScheduleInputError } from './availability-errors';
 
 describe('BarberSchedule', () => {

@@ -1,17 +1,6 @@
 // Резервація слота на час checkout (T-4802): токен із TTL, ретраї з backoff,
 // аудит таймаутів і невдалих звільнень. Інваріант: один слот — один володар.
-import {
-  SLOT_LOCK_MAX_ATTEMPTS,
-  SLOT_RESERVATION_TTL_MS,
-  ReservationInvalidError,
-  SlotLockedError,
-  assertReservationHeld,
-  backoffMs,
-  newReservationToken,
-  slotLockKey,
-  type SlotLockTarget,
-  type SlotReservation,
-} from '../domain/slot-reservation';
+import { SLOT_LOCK_MAX_ATTEMPTS, SLOT_RESERVATION_TTL_MS, ReservationInvalidError, SlotLockedError, assertReservationHeld, backoffMs, newReservationToken, slotLockKey, type SlotLockTarget, type SlotReservation } from '../domain/slot-reservation';
 import type { SlotLockAudit, SlotLockStore } from './slot-lock.ports';
 
 export interface SlotReservationsConfig {

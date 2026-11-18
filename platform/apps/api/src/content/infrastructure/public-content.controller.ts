@@ -3,17 +3,9 @@
 // контролері. Помилки — через ContentExceptionFilter (404 для невідомого slug).
 
 import { Controller, Get, Param, Query, UseFilters } from '@nestjs/common';
-import {
-  ListPublishedArticlesHandler,
-  GetPublishedArticleHandler,
-} from '../application/article-queries';
+import { ListPublishedArticlesHandler, GetPublishedArticleHandler } from '../application/article-queries';
 import { ContentExceptionFilter } from './content.exception-filter';
-import {
-  toArticleDto,
-  toArticleSummary,
-  type ArticleDto,
-  type ArticleSummaryDto,
-} from './content.dto';
+import { toArticleDto, toArticleSummary, type ArticleDto, type ArticleSummaryDto } from './content.dto';
 
 const MAX_LIMIT = 50;
 

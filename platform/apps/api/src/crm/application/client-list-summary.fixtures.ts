@@ -1,10 +1,6 @@
 // Фікстури для спеків зведення (T-4606b) — окремий файл: гейт max-lines
 // (ADR 0019) і один набір «зараз»/вікон для обох спеків.
-import {
-  buildClientListSummary,
-  type ClientListFacts,
-  type SummaryProfileFact,
-} from './client-list-summary';
+import { buildClientListSummary, type ClientListFacts, type SummaryProfileFact } from './client-list-summary';
 import type { SummaryPeriod } from './admin-client-list.query';
 
 export const NOW = new Date('2026-10-10T00:00:00.000Z');

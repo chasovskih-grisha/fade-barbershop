@@ -4,12 +4,7 @@ import request from 'supertest';
 import { PhoneNumber } from '../domain/phone-number';
 import { User } from '../domain/user';
 import { MemUsers } from './admin-client-otp.fakes';
-import {
-  ACCOUNT_NOW,
-  createAdminAccountApp,
-  loginAs,
-  seedAdmin,
-} from './admin-account.e2e.harness';
+import { ACCOUNT_NOW, createAdminAccountApp, loginAs, seedAdmin } from './admin-account.e2e.harness';
 import { uuidv7 } from '@fade/domain-shared';
 
 const CLIENT_ID = uuidv7();

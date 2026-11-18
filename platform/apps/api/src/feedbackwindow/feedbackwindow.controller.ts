@@ -3,32 +3,11 @@
 // Endpoints: GET /api/feedbackwindow/:appointmentId, POST /api/feedbackwindow/submit,
 // POST /api/feedbackwindow/reminder
 
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-} from '@nestjs/common';
-import {
-  ApiBadRequestResponse,
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
 import { FeedbackWindowService } from './feedbackwindow.service';
-import {
-  CreateFeedbackWindowInput,
-  type CreateFeedbackWindowInput,
-  SubmitFeedbackInput,
-  type SubmitFeedbackInput,
-  FeedbackWindowOutput,
-  type FeedbackWindowOutput,
-} from './feedbackwindow.dto';
+import { type CreateFeedbackWindowInput, type SubmitFeedbackInput, FeedbackWindowOutput } from './feedbackwindow.dto';
 import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
 
 export const FEEDBACKWINDOW_IO = Symbol('FEEDBACKWINDOW_IO');

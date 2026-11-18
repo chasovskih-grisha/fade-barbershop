@@ -3,11 +3,7 @@
 // HaircutReference на запис).
 
 import { SelectVariantHandler } from './select-variant';
-import {
-  InvalidGenerationStatusError,
-  SuggestionNotFoundError,
-  VariantNotFoundError,
-} from './haircut-errors';
+import { InvalidGenerationStatusError, SuggestionNotFoundError, VariantNotFoundError } from './haircut-errors';
 import { InMemoryStorage, InMemorySuggestions, RecordingOutbox, noTransaction } from './fakes';
 import { VARIANT_KEYS, makeSuggestion, testClock } from './test-fixtures';
 

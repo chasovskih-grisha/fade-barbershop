@@ -1,13 +1,7 @@
 // Клієнтська заявка на стирання (T-4805): спершу доводить номер OTP-кодом,
 // потім фіксує запит. Повторна заявка ідемпотентна — повертає наявний рядок.
 import { createHash } from 'node:crypto';
-import {
-  ErasureOtpInvalidError,
-  ErasureSubjectNotFoundError,
-  type ErasureOtpVerifier,
-  type ErasureRecord,
-  type ErasureStore,
-} from './erasure.ports';
+import { ErasureOtpInvalidError, ErasureSubjectNotFoundError, type ErasureOtpVerifier, type ErasureRecord, type ErasureStore } from './erasure.ports';
 
 export interface RequestErasureDeps {
   store: ErasureStore;

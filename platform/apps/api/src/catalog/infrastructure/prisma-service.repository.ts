@@ -5,11 +5,7 @@ import type { ServiceProps } from '../domain/service';
 import type { ServicePriceData, ServicePriceRepository, ServiceRepository } from '../domain/ports';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { serviceUpsertData, toPriceData, toService } from './service-row';
-import {
-  catalogForLocation,
-  listActivePricesByLocation,
-  listPricesForService,
-} from './service-price-queries';
+import { catalogForLocation, listActivePricesByLocation, listPricesForService } from './service-price-queries';
 
 @Injectable()
 export class PrismaServiceRepository implements ServiceRepository, ServicePriceRepository {

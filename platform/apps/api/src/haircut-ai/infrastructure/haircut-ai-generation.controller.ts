@@ -3,19 +3,7 @@
 // клієнт керував би чужими фото. Гість сюди не доходить — 401. Маршрути:
 // assets, generations (+ статус, select-variant), photos consent та видалення
 // (AI-WEB-01..07, REF-WEB-02/03).
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Post,
-  Req,
-  UseFilters,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Req, UseFilters } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { HaircutExceptionFilter } from './haircut-exception.filter';

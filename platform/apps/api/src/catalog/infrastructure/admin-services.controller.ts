@@ -1,25 +1,6 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Param,
-  Patch,
-  Post,
-  Req,
-  UseFilters,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Patch, Post, Req, UseFilters } from '@nestjs/common';
 import { ServicesExceptionFilter } from './services.exception-filter';
-import {
-  ADMIN_SERVICES_IO,
-  type AdminRequest,
-  type AdminServicesDeps,
-  type CreateServiceDto,
-  type UpdateServiceDto,
-  toCreateServiceInput,
-} from './admin-services.dto';
+import { ADMIN_SERVICES_IO, type AdminRequest, type AdminServicesDeps, type CreateServiceDto, type UpdateServiceDto, toCreateServiceInput } from './admin-services.dto';
 
 export { ADMIN_SERVICES_IO, type AdminServicesDeps } from './admin-services.dto';
 

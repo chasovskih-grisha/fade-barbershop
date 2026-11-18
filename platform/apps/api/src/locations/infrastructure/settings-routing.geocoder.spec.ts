@@ -2,11 +2,7 @@
 // MNG-ADM-18 і fallback на Nominatim, якщо google не сконфігурований.
 
 import { SettingsRoutingGeocoder } from './settings-routing.geocoder';
-import {
-  DEFAULT_GEOCODER_SETTINGS,
-  type GeocoderSettings,
-  type GeocoderSettingsPort,
-} from '../domain/geocoder-settings';
+import { DEFAULT_GEOCODER_SETTINGS, type GeocoderSettings, type GeocoderSettingsPort } from '../domain/geocoder-settings';
 import type { CityInfo, Geocoder } from '../domain/ports';
 
 class Stub implements Geocoder {

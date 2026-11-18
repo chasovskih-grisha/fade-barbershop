@@ -3,18 +3,7 @@
 // застосовує подію ідемпотентно. Фікстури — reschedule-chain.fixture.ts.
 import { HttpStatus } from '@nestjs/common';
 import { lifecycleSuite, type LifecycleSuite } from './appointment-lifecycle.suite';
-import {
-  NEW_DATE,
-  deliverActivity,
-  dropWebClient,
-  expectClientRouteErrors,
-  moveBooking,
-  newClientId,
-  newWebToken,
-  rescheduledEvents,
-  rowOf,
-  seedWebClient,
-} from './reschedule-chain.fixture';
+import { NEW_DATE, deliverActivity, dropWebClient, expectClientRouteErrors, moveBooking, newClientId, newWebToken, rescheduledEvents, rowOf, seedWebClient } from './reschedule-chain.fixture';
 
 const clientId = newClientId();
 

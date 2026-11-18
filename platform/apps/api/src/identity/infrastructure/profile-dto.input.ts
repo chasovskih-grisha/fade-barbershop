@@ -1,15 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsArray,
-  ArrayMinSize,
-  IsNotEmpty,
-  IsInt,
-  Min,
-  Max,
-  ValidateNested,
-  IsObject,
-} from 'class-validator';
+import { IsString, IsOptional, IsArray, ArrayMinSize, IsNotEmpty, IsInt, Min, Max, ValidateNested, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
 
 /** PATCH /identity/profile/name — name може бути рядком або явно null. */

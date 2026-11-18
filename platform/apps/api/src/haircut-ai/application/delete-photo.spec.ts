@@ -3,13 +3,7 @@
 
 import { DeletePhotoHandler } from './delete-photo';
 import { PhotoAlreadyDeletedError, SourcePhotoNotFoundError } from './haircut-errors';
-import {
-  InMemoryPhotos,
-  InMemoryStorage,
-  InMemorySuggestions,
-  RecordingOutbox,
-  noTransaction,
-} from './fakes';
+import { InMemoryPhotos, InMemoryStorage, InMemorySuggestions, RecordingOutbox, noTransaction } from './fakes';
 import { makePhoto, makeSuggestion, makeVariants, testClock } from './test-fixtures';
 
 function build() {

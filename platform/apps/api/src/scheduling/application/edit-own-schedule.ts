@@ -6,11 +6,7 @@
 
 import { BarberSchedule, type AvailabilityWindowData } from '../domain/availability';
 import { AvailabilityChanged } from '../domain/availability.events';
-import {
-  assertScheduleEditAllowed,
-  assertWindowsWithinOpeningHours,
-  type ScheduleEditor,
-} from '../domain/barber-self-service';
+import { assertScheduleEditAllowed, assertWindowsWithinOpeningHours, type ScheduleEditor } from '../domain/barber-self-service';
 import { findScheduleConflicts, type ScheduleConflict } from '../domain/schedule-conflicts';
 import { recordScheduleChange } from '../domain/schedule-change-log';
 import { validateWindowShape } from './availability-validation';

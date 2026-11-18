@@ -2,11 +2,7 @@
 // надгробок після серії збоїв, скидання лічильника, спільні сховища.
 
 import { CachedRateLimitedGeocoder } from './cached-rate-limited.geocoder';
-import {
-  LocalGeocoderCacheStore,
-  LocalGeocoderRateLimitStore,
-  LocalGeocoderTombstoneStore,
-} from './local-geocoder-stores';
+import { LocalGeocoderCacheStore, LocalGeocoderRateLimitStore, LocalGeocoderTombstoneStore } from './local-geocoder-stores';
 import { DEFAULT_GEOCODER_SETTINGS, type GeocoderSettings } from '../domain/geocoder-settings';
 import type { CityInfo, Geocoder } from '../domain/ports';
 import type {

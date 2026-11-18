@@ -1,8 +1,4 @@
-import {
-  renderReceiptHtml,
-  renderReceiptSubject,
-  renderReceiptText,
-} from './visit-receipt-template';
+import { renderReceiptHtml, renderReceiptSubject, renderReceiptText } from './visit-receipt-template';
 
 describe('visit-receipt-template (T-4611c)', () => {
   const DATA = {

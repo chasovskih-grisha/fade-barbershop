@@ -1,14 +1,7 @@
 // Фільтр для identity: додає Retry-After з тіла помилки (429) і стандартизує body.
 // Nest 10 HttpExceptionOptions не має headers — header ставиться тут, у межі HTTP.
 
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import type { Response } from 'express';
 
 @Catch()

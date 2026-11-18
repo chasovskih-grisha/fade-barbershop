@@ -19,11 +19,7 @@ import type {
   UnitOfWork,
   UserRepository,
 } from '../domain/ports';
-import {
-  AdminAccessForbiddenError,
-  AdminInvalidCredentialsError,
-  UserNotFoundError,
-} from './identity-errors';
+import { AdminAccessForbiddenError, AdminInvalidCredentialsError, UserNotFoundError } from './identity-errors';
 
 export interface AdminAccountDeps {
   users: UserRepository;

@@ -1,9 +1,4 @@
-import {
-  StubGeocoder,
-  T0,
-  freshStores,
-  geocoderFor,
-} from './cached-rate-limited.geocoder.failure.fakes';
+import { StubGeocoder, T0, freshStores, geocoderFor } from './cached-rate-limited.geocoder.failure.fakes';
 import type { Geocoder } from '../domain/ports';
 
 describe('CachedRateLimitedGeocoder recovery and shared cache', () => {

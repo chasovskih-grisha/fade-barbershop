@@ -1,12 +1,5 @@
 // T-4811: матчинг surge-правил і ціна з множником (цілочисельна математика).
-import {
-  applySurge,
-  dayOfWeekUtc,
-  matchSurgeRule,
-  minuteOfDayUtc,
-  ruleSpecificity,
-  type SurgeRule,
-} from './surge-rule';
+import { applySurge, dayOfWeekUtc, matchSurgeRule, minuteOfDayUtc, ruleSpecificity, type SurgeRule } from './surge-rule';
 
 const rule = (patch: Partial<SurgeRule>): SurgeRule => ({
   id: 'r1',

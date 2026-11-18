@@ -2,16 +2,7 @@
 // але actorRole примусово 'client', а actorId — із cookie-сесії.
 // Тіло запиту не може видати клієнта за іншого.
 
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpException,
-  HttpStatus,
-  Param,
-  Post,
-  Req,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpException, HttpStatus, Param, Post, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { PrismaService } from '../../shared/prisma/prisma.service';

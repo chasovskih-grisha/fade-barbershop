@@ -1,9 +1,4 @@
-import {
-  newBookingData,
-  type BookingCreateParams,
-  type BookingData,
-  type BookingSource,
-} from './booking.data';
+import { newBookingData, type BookingCreateParams, type BookingData, type BookingSource } from './booking.data';
 import type { AppliedDiscount } from '../../discounts/domain/price-breakdown';
 import type { DepositTerms } from './deposit-terms';
 

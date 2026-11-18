@@ -2,48 +2,10 @@
 // CRUD + pricing + manager + bookings + no-show rates.
 // Consolidated DTO usage; reduced inline mapping duplication.
 
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
-import {
-  ApiBadRequestResponse,
-  ApiCreatedResponse,
-  ApiOperation,
-  ApiParam,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Query } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LocationService } from './location.service';
-import {
-  CreateLocationInput,
-  type CreateLocationInput,
-  UpdateLocationInput,
-  type UpdateLocationInput,
-  ToggleFranchiseModeInput,
-  type ToggleFranchiseModeInput,
-  LocationOutput,
-  type LocationOutput,
-  LocationListOutput,
-  type LocationListOutput,
-  LocationPricingOutput,
-  type LocationPricingOutput,
-  ManagerAssignmentOutput,
-  type ManagerAssignmentOutput,
-  BookingListOutput,
-  type BookingListOutput,
-  NoShowRatesOutput,
-  type NoShowRatesOutput,
-} from './location.dto';
+import { type CreateLocationInput, type UpdateLocationInput, type ToggleFranchiseModeInput, LocationOutput, LocationListOutput, LocationPricingOutput, ManagerAssignmentOutput, BookingListOutput, NoShowRatesOutput } from './location.dto';
 
 @Controller('locations')
 @ApiTags('locations')

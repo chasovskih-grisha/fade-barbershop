@@ -7,11 +7,7 @@ import { buildLocationLogo, InvalidLocationLogoError } from '../domain/location-
 import type { LocationLogo } from '../domain/location-logo';
 import type { LocationLogoRepository, LocationRepository, Clock } from '../domain/ports';
 import { InvalidLocationInputError, LocationNotFoundError } from './locations-errors';
-import {
-  MediaProcessingError,
-  PUBLIC_MEDIA_INPUT_TYPES,
-  type PublicMediaStorage,
-} from '../../shared/media/public-media-storage';
+import { MediaProcessingError, PUBLIC_MEDIA_INPUT_TYPES, type PublicMediaStorage } from '../../shared/media/public-media-storage';
 
 export interface LogoFile {
   bytes: Uint8Array;

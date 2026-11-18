@@ -1,23 +1,7 @@
-import {
-  Body,
-  Controller,
-  HttpException,
-  HttpStatus,
-  Inject,
-  Param,
-  Patch,
-  Req,
-  UseFilters,
-} from '@nestjs/common';
+import { Body, Controller, HttpException, HttpStatus, Inject, Param, Patch, Req, UseFilters } from '@nestjs/common';
 import { InvalidServiceInputError, ServiceNotFoundError } from '../application/services-errors';
 import { ServicesExceptionFilter } from './services.exception-filter';
-import {
-  ADMIN_SERVICES_IO,
-  type AdminRequest,
-  type AdminServicesDeps,
-  type PriceSlug,
-  type SetPriceDto,
-} from './admin-services.dto';
+import { ADMIN_SERVICES_IO, type AdminRequest, type AdminServicesDeps, type PriceSlug, type SetPriceDto } from './admin-services.dto';
 
 @Controller('admin/services')
 @UseFilters(ServicesExceptionFilter)

@@ -3,16 +3,7 @@
 // BookAppointment, що й в адмінки — валідації слота, снепшоти і подія booked
 // спільні; контролер примусово ставить source 'web' (ANL-004), бо клієнтський
 // шлях не повинен мати змоги видати себе за інший канал.
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  HttpException,
-  Inject,
-  Post,
-  Req,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, HttpException, Inject, Post, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BookAppointment } from '../application/book-appointment.use-case';
 import { BookingConflictError } from '../domain/booking';
@@ -26,11 +17,7 @@ import type { Request } from 'express';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { SlotReservations } from '../application/slot-reservations.service';
 import type { HeldSlot } from '../application/slot-lock.ports';
-import {
-  ReservationInvalidError,
-  SlotLockedError,
-  slotLockKey,
-} from '../domain/slot-reservation';
+import { ReservationInvalidError, SlotLockedError, slotLockKey } from '../domain/slot-reservation';
 import { webClientId } from './client-web-session';
 import { OnlineBookingBlockedError } from '../../booking/policy/evaluate-online-booking';
 import { assertOnlinePolicyAllowed } from './client-online-policy';
