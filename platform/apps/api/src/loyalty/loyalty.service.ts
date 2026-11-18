@@ -90,6 +90,50 @@ export class LoyaltyCounter {
     };
   }
 
+  /** Handle one outbox relay event for LoyaltyCounter (T-140).
+   * Extracts appointmentId and clientId from the event payload and delegates
+   * to processAppointmentCompleted. Idempotent via the processed journal.
+   */
+  async handleOne(event: NotificationEvent): Promise<{
+    handled: boolean;
+    counter: number;
+    isNewMilestone: boolean;
+    freeVisitGranted: boolean;
+  }> {
+    let appointmentId: string;
+    let clientId: string;
+
+    // Try to extract from payload first, then fall back to aggregateId
+    const payload = event.payload as Record<string, unknown>;
+    if (payload && typeof payload === 'object') {
+      appointmentId = String(payload['appointmentId'] || payload['id'] || '');
+      clientId = String(payload['clientId'] || '');
+    }
+
+    // If clientId not in payload, try from aggregateId (appointment ID)
+    if (!clientId) {
+      clientId = String(event.aggregateId || '');
+    }
+
+    if (!appointmentId) {
+      return { handled: false, counter: 0, isNewMilestone: false, freeVisitGranted: false };
+    }
+
+    // If we have appointmentId but not clientId from payload, try to look up
+    // from the journal; if still missing, cannot process
+    if (!clientId) {
+      return { handled: false, counter: 0, isNewMilestone: false, freeVisitGranted: false };
+    }
+
+    const result = await this.processAppointmentCompleted(appointmentId, clientId);
+    return {
+      handled: true,
+      counter: result.counter,
+      isNewMilestone: result.isNewMilestone,
+      freeVisitGranted: result.freeVisitGranted,
+    };
+  }
+
   /** Grant free visit to client.
    * Sends push notification (LYL-MOB-02) and creates NotificationRecord.
    * The free visit can be used on next booking.
