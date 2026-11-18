@@ -1,0 +1,52 @@
+{
+  "name": "@fade/admin",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Founder admin console",
+  "scripts": {
+    "dev": "next dev -p 13002",
+    "e2e": "playwright test",
+    "build": "next build",
+    "start": "next start -p 13002",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage"
+  },
+  "dependencies": {
+    "@fade/brand-assets": "workspace:*",
+    "@fade/contracts": "workspace:*",
+    "@fade/design-tokens": "workspace:*",
+    "@fade/domain-shared": "workspace:*",
+    "@fade/ui": "workspace:*",
+    "leaflet": "^1.9.4",
+    "next": "^15.5.27",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "@babel/runtime": "7.29.7",
+    "@playwright/test": "^1.63.0",
+    "@testing-library/dom": "^10.0.0",
+    "@testing-library/jest-dom": "^6.1.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.0.0",
+    "@types/jest": "^29.5.2",
+    "@types/leaflet": "^1.9.22",
+    "@types/node": "^20.3.1",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "autoprefixer": "^10.4.16",
+    "babel-jest": "^29.7.0",
+    "eslint": "^8.42.0",
+    "eslint-config-next": "^15.5.27",
+    "jest": "^29.5.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.1.3"
+  }
+}

@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Токени дизайн-системи підключені в layout через @fade/design-tokens/css.
+   Значення нижче — тільки var(--*), жодних hex (design-system.md). */
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-surface-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-text);
+}
+
+/* T-4510c: скорочений рух (WCAG 2.3.3) — та сама політика, що у web. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
