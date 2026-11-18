@@ -1,0 +1,38 @@
+node_modules/
+dist/
+# design-tokens dist is a committed, generated artifact: the CI gate
+# `pnpm --filter @fade/design-tokens verify` diffs it against tokens.json.
+!packages/design-tokens/dist/
+!packages/design-tokens/dist/**
+.build/
+.turbo/
+.next/
+.expo/
+.expo-shared/
+ios/
+android/
+coverage/
+*.tsbuildinfo
+.DS_Store
+.env
+.env.*
+!.env.example
+!.env.docker.example
+credentials/
+*.key
+*.pem
+*.crt
+tmp/
+*.log
+.pnpm-store/
+.superpowers/
+agents/.rendered/
+.agent-run
+
+# Local scratch and test output. Do not commit these.
+cookies.txt
+test-results/
+repro.diff
+/repro/
+
+pnpm-lock.yaml
