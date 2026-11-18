@@ -1,1 +1,120 @@
-import { Booking, BookingConflictError, PaymentStatus } from '../domain/booking';\nimport { BookingRepository } from '../domain/booking-repository';\nimport { BarberSchedule } from '../domain/availability';\nimport { BookAppointment } from './book-appointment.use-case';\nimport { DepositPolicy } from '../domain/deposit-terms';\nimport { depositPolicy as defaultDepositPolicy } from './../scheduling/application/deposit-policy';\nimport { priceSnapshot } from './book-appointment.pricing';\nimport { compositionDuration } from './../domain/composed-slot-span';\nimport { withSpan, TRACING } from '../../shared/tracing/tracing';\nimport type { BookAppointmentDeps } from './book-appointment.types';\n\nexport type { BookAppointmentDeps };\n\n/** Deposit flow use-case: 30% deposit on booking, idempotent, rounding 10 UAH.\n * T-091: Deposit flow with statuses, cabinet checks, and FinalPrice=0 handling.\n */\n\nexport class DepositFlow {\n  constructor(private readonly deps: BookAppointmentDeps) {}\n\n  /** АВТОМАТИЧНИЙ депозит при записі: 30% від FinalPrice, округлення 10 грн.\n   * Викликається з book-appointment.use-case.execute після успішного запису.\n   * Ідемпотентність: якщо депозит уже оплачений — нічого не робить.\n   */\n  async execute(booking: Booking): Promise<Booking> {\n    return withSpan({\n      name: TRACING.DEPOSIT_FLOW,\n      options: {\n        attributes: {\n          'fade.booking.booking_id': booking.id,\n          'fade.booking.final_price': booking.finalPrice,\n        },\n      },\n      work: async () => {\n        // Check if deposit already paid (ideempotency)\n        if (booking.depositStatus === PaymentStatus.Captured) {\n          return booking;\n        }\n\n        const depositPolicy = await this.deps.depositPolicy?.get() ?? defaultDepositPolicy;\n        const depositAmount = this.calculateDepositAmount(booking.finalPrice, depositPolicy);\n\n        // Create payment record\n        const payment = await this.deps.paymentRepo.create({\n          bookingId: booking.id,\n          amount: depositAmount,\n          status: PaymentStatus.Initiated,\n          paymentMethod: 'cash', // default; UI will override\n          source: 'walk-in-booking',\n        });\n\n        // Attempt to capture payment\n        try {\n          const captured = await this.capturePayment(payment, depositAmount);\n          if (captured) {\n            // Move booking to confirmed via PaymentCaptured state\n            const updated = await this.deps.bookingRepo.update(booking.id, {\n              status: 'confirmed',\n              depositStatus: PaymentStatus.Captured,\n              depositAmount: depositAmount,\n              depositPaidAt: new Date(),\n            });\n            // Fire event for analytics\n            if (this.deps.eventBus) {\n              await this.deps.eventBus.publish({\n                type: 'scheduling.appointment.payment_captured',\n                data: {\n                  appointmentId: booking.id,\n                  amount: depositAmount,\n                  paymentId: payment.id,\n                },\n              });\n            }\n            return updated;\n          }\n        } catch (error) {\n          // Mark payment as failed, keep booking in booked status\n          await this.deps.paymentRepo.update(payment.id, { status: PaymentStatus.Failed });\n          // Don't throw - allow booking without deposit (ComplimentaryVisit path)\n          return booking;\n        }\n      },\n    });\n  }\n\n  private calculateDepositAmount(finalPrice: number | null, policy: DepositPolicy): number {\n    if (finalPrice == null || finalPrice <= 0) return 0;\n    const rawDeposit = Math.round((finalPrice * policy.depositPercent) / 100);\n    // Rounding to 10 UAH (PAY-ADM-09)\n    const roundedDeposit = Math.round(rawDeposit / 10) * 10;\n    // Cap at FinalPrice (can't deposit more than total)\n    return Math.min(roundedDeposit, finalPrice);\n  }\n\n  private async capturePayment(payment: any, amount: number): Promise<boolean> {\n    // Idempotency check: if already captured, return true\n    if (payment.status === PaymentStatus.Captured) return true;\n\n    // Simulate payment gateway call\n    // In production: call actual PAY provider API\n    const success = await this.simulatePaymentGateway(payment, amount);\n\n    if (success) {\n      await this.deps.paymentRepo.update(payment.id, { status: PaymentStatus.Captured });\n      return true;\n    }\n\n    // Log error, don't block booking\n    console.error('Payment gateway failed', { paymentId: payment.id, amount });\n    return false;\n  }\n\n  private async simulatePaymentGateway(payment: any, amount: number): Promise<boolean> {\n    // 90% success rate for simulation\n    // Real implementation would call PAY provider API\n    return Math.random() > 0.1;\n  }\n}\n\n/** PaymentStatus enumeration (T-091): stages of payment lifecycle. */\nexport enum PaymentStatus {\n  Initiated = 'initiated',\n  Captured = 'captured',\n  Failed = 'failed',\n}\n\n/** Deposit policy (T-091, PAY-ADM-09). */\nexport interface DepositPolicy {\n  depositPercent: number; // 30\n  minDeposit: number; // minimum deposit amount\n  maxDeposit: number; // maximum deposit amount\n  rounding: 'tens' | 'fives' | 'none'; // rounding policy\n}\n\n/** Default deposit policy: 30%, rounding to 10 UAH. */\nexport const defaultDepositPolicy: DepositPolicy = {\n  depositPercent: 30,\n  minDeposit: 10,\n  maxDeposit: null,\n  rounding: 'tens',\n};\n"}
+import { Booking, BookingConflictError, PaymentStatus } from '../domain/booking';
+import { BookingRepository } from '../domain/booking-repository';
+import { BarberSchedule } from '../domain/availability';
+import { BookAppointment } from './book-appointment.use-case';
+import { DepositPolicy } from '../domain/deposit-terms';
+import { depositPolicy as defaultDepositPolicy } from './../scheduling/application/deposit-policy';
+import { priceSnapshot } from './book-appointment.pricing';
+import { compositionDuration } from './../domain/composed-slot-span';
+import { withSpan, TRACING } from '../../shared/tracing/tracing';
+import type { BookAppointmentDeps } from './book-appointment.types';
+
+export type { BookAppointmentDeps };
+
+/** Deposit flow use-case: 30% deposit on booking, idempotent, rounding 10 UAH.
+ * T-091: Deposit flow with statuses, cabinet checks, and FinalPrice=0 handling.
+ */
+
+export class DepositFlow {
+  constructor(private readonly deps: BookAppointmentDeps) {}
+
+  /** АВТОМАТИЧНИЙ депозит при записі: 30% від FinalPrice, округлення 10 грн.
+   * Викликається з book-appointment.use-case.execute після успішного запису.
+   * Ідемпотентність: якщо депозит уже оплачений — нічого не робить.
+   */
+  async execute(booking: Booking): Promise<Booking> {
+    return withSpan({
+      name: TRACING.DEPOSIT_FLOW,
+      options: {
+        attributes: {
+          'fade.booking.booking_id': booking.id,
+          'fade.booking.final_price': booking.finalPrice,
+        },
+      },
+      work: async () => {
+        // Check if deposit already paid (ideempotency)
+        if (booking.depositStatus === PaymentStatus.Captured) {
+          return booking;
+        }
+
+        const depositPolicy = await this.deps.depositPolicy?.get() ?? defaultDepositPolicy;
+        const depositAmount = this.calculateDepositAmount(booking.finalPrice, depositPolicy);
+
+        // Create payment record
+        const payment = await this.deps.paymentRepo.create({
+          bookingId: booking.id,
+          amount: depositAmount,
+          status: PaymentStatus.Initiated,
+          paymentMethod: 'cash', // default; UI will override
+          source: 'walk-in-booking',
+        });
+
+        // Attempt to capture payment
+        try {
+          const captured = await this.capturePayment(payment, depositAmount);
+          if (captured) {
+            // Move booking to confirmed via PaymentCaptured state
+            const updated = await this.deps.bookingRepo.update(booking.id, {
+              status: 'confirmed',
+              depositStatus: PaymentStatus.Captured,
+              depositAmount: depositAmount,
+              depositPaidAt: new Date(),
+            });
+            // Fire event for analytics
+            if (this.deps.eventBus) {
+              await this.deps.eventBus.publish({
+                type: 'scheduling.appointment.payment_captured',
+                data: {
+                  appointmentId: booking.id,
+                  amount: depositAmount,
+                  paymentId: payment.id,
+                },
+              });
+            }
+            return updated;
+          }
+        } catch (error) {
+          // Mark payment as failed, keep booking in booked status
+          await this.deps.paymentRepo.update(payment.id, { status: PaymentStatus.Failed });
+          // Don't throw - allow booking without deposit (ComplimentaryVisit path)
+          return booking;
+        }
+      },
+    });
+  }
+
+  private calculateDepositAmount(finalPrice: number | null, policy: DepositPolicy): number {
+    if (finalPrice == null || finalPrice <= 0) return 0;
+    const rawDeposit = Math.round((finalPrice * policy.depositPercent) / 100);
+    // Rounding to 10 UAH (PAY-ADM-09)
+    const roundedDeposit = Math.round(rawDeposit / 10) * 10;
+    // Cap at FinalPrice (can't deposit more than total)
+    return Math.min(roundedDeposit, finalPrice);
+  }
+
+  private async capturePayment(payment: any, amount: number): Promise<boolean> {
+    // Idempotency check: if already captured, return true
+    if (payment.status === PaymentStatus.Captured) return true;
+
+    // Simulate payment gateway call
+    // In production: call actual PAY provider API
+    const success = await this.simulatePaymentGateway(payment, amount);
+
+    if (success) {
+      await this.deps.paymentRepo.update(payment.id, { status: PaymentStatus.Captured });
+      return true;
+    }
+
+    // Log error, don't block booking
+    console.error('Payment gateway failed', { paymentId: payment.id, amount });
+    return false;
+  }
+
+  private async simulatePaymentGateway(payment: any, amount: number): Promise<boolean> {
+    // 90% success rate for simulation
+    // Real implementation would call PAY provider API
+    return Math.random() > 0.1;
+  }
+}
+
+"}
