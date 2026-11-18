@@ -6,8 +6,8 @@
  * from T-170/T-171/T-172/T-173.
  */
 
-import { WaitlistQueue } from '../../domain/waitlist-queue';
-import { ClientRepository } from '../../../clients/domain/repositories';
+import { WaitlistQueue } from '../domain/waitlist-queue';
+import { ClientRepository } from '../../clients/domain/repositories';
 import { randomUUID } from 'node:crypto';
 
 /**

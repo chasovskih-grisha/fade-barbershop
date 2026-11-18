@@ -8,10 +8,10 @@
  * Admin interface for report selection and download.
  */
 
-import { WaitlistQueue } from '../../domain/waitlist-queue';
-import { ClientRepository } from '../../../clients/domain/repositories';
+import { WaitlistQueue } from '../domain/waitlist-queue';
+import { ClientRepository } from '../../clients/domain/repositories';
 import { uuidv7 } from '@fade/domain-shared';
-import { PdfDocument } from '../../../lib/pdf-document';
+import { PdfDocument } from '../../lib/pdf-document';
 import * as fs from 'fs';
 import * as path from 'path';
 

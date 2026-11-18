@@ -6,8 +6,8 @@
  * from T-172 and waitlist infrastructure.
  */
 
-import { WaitlistQueue } from '../../domain/waitlist-queue';
-import { ClientRepository } from '../../../clients/domain/repositories';
+import { WaitlistQueue } from '../domain/waitlist-queue';
+import { ClientRepository } from '../../clients/domain/repositories';
 import { randomUUID } from 'node:crypto';
 
 /**

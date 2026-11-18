@@ -5,9 +5,9 @@
  * building on the existing waitlist infrastructure from T-170/T-171/T-172/T-173.
  */
 
-import { AppointmentRepository } from '../../domain/repositories';
-import { WaitlistQueue } from '../../domain/waitlist-queue';
-import { ClientRepository } from '../../../clients/domain/repositories';
+import { AppointmentRepository } from '../domain/repositories';
+import { WaitlistQueue } from '../domain/waitlist-queue';
+import { ClientRepository } from '../../clients/domain/repositories';
 import { uuidv7 } from '@fade/domain-shared';
 
 /**

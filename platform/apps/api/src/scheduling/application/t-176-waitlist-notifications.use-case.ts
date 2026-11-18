@@ -6,9 +6,9 @@
  * from T-170/T-171/T-172/T-173/T-174/T-175.
  */
 
-import { WaitlistQueue } from '../../domain/waitlist-queue';
-import { ClientRepository } from '../../../clients/domain/repositories';
-import { ExpoPushSender } from '../../../notifications/infrastructure/expo-push-sender';
+import { WaitlistQueue } from '../domain/waitlist-queue';
+import { ClientRepository } from '../../clients/domain/repositories';
+import { ExpoPushSender } from '../../notifications/infrastructure/expo-push-sender';
 import { uuidv7 } from '@fade/domain-shared';
 
 /**

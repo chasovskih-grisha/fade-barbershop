@@ -6,9 +6,9 @@
  * their visit history is properly tracked for priority scoring.
  */
 
-import { WaitlistQueue } from '../../domain/waitlist-queue';
-import { ClientRepository } from '../../../clients/domain/repositories';
-import { AppointmentRepository } from '../../domain/repositories';
+import { WaitlistQueue } from '../domain/waitlist-queue';
+import { ClientRepository } from '../../clients/domain/repositories';
+import { AppointmentRepository } from '../domain/repositories';
 import { uuidv7 } from '@fade/domain-shared';
 
 /**

@@ -8,8 +8,8 @@
  * Dependencies: T-160 no-show policy, T-172 priority scoring, T-181 analytics export.
  */
 
-import { WaitlistQueue } from '../../domain/waitlist-queue';
-import { ClientRepository } from '../../../clients/domain/repositories';
+import { WaitlistQueue } from '../domain/waitlist-queue';
+import { ClientRepository } from '../../clients/domain/repositories';
 import { uuidv7 } from '@fade/domain-shared';
 
 /**

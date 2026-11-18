@@ -6,7 +6,7 @@
  * Builds on the waitlist infrastructure from T-170/T-171 and priority scoring from T-172.
  */
 
-import { WaitlistQueue } from '../../domain/waitlist-queue';
+import { WaitlistQueue } from '../domain/waitlist-queue';
 import { randomUUID } from 'node:crypto';
 
 /**
