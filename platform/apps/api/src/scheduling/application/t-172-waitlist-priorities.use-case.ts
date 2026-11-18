@@ -2,7 +2,7 @@
 // FIFO with urgency scoring for waitlist auto-promotion when slots cancel.
 // Extends T-170 waitlist core and T-171 waitlist surfaces.
 
-import { prisma } from '../../..';
+import { prisma } from '../../index';
 import { Booking, BookingRepository } from '../domain/booking';
 import { Appointment, AppointmentRepository } from '../domain/appointment';
 import { ClientProfile } from '../identity/domain';

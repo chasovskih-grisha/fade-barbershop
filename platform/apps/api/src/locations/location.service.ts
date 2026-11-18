@@ -3,7 +3,7 @@
 // and per-location configuration. Cleaned up: consolidated DTO references,
 // removed redundant include selections, streamlined update logic.
 
-import { prisma } from '../../..';
+import { prisma } from '../index';
 import { Location, ServicePrice, StaffAssignment, BarberServiceAssignment, Booking, OnlineBookingPolicy } from '../../domain';
 import { AppSetting } from '../identity/domain';
 

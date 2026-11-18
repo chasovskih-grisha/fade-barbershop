@@ -9,7 +9,7 @@ import { renderReminderSms as renderOldReminderSms } from './appointment-reminde
 import { ConfirmationLetterData } from './booking-confirmation-ports';
 import { Booking, BookingRepository } from '../domain/booking';
 import { ClientProfile } from '../domain/client-profile';
-import { prisma } from '../../..';
+import { prisma } from '../../index';
 
 /** SMS Input for booking confirmation */
 export class SendBookingConfirmationSms {

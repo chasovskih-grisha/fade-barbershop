@@ -1,4 +1,4 @@
-import { prisma } from '../../..';
+import { prisma } from '../index';
 import { FeedbackWindow, FeedbackWindowStatus, FeedbackSubmission, PhotoRef, CreateFeedbackWindowInput, FeedbackWindowOutput } from './feedbackwindow.domain';
 import { Appointment, Booking } from '../domain';
 import { push } from '../../../../lib/notifications';

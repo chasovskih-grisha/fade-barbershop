@@ -1,4 +1,4 @@
-import { prisma } from '../../..';
+import { prisma } from '../index';
 import { WaitlistEntry, SlotHold, WaitlistConfig, ReleaseSource, WaitlistServiceDeps, DEFAULT_WAITLIST_CONFIG, WaitlistEntryStatus, HoldStatus, ClientWaitlistHistory } from './waitlist.domain';
 import { Appointment, Booking } from '../domain';
 import { calculateChecksum } from '../../shared/utils';

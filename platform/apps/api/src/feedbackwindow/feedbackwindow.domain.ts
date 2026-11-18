@@ -1,4 +1,4 @@
-import { prisma } from '../../..';
+import { prisma } from '../index';
 import { Appointment, Booking, ClientProfile } from '../domain';
 
 /** FeedbackWindow Status */

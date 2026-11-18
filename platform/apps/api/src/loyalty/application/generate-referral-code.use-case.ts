@@ -3,7 +3,7 @@
 // A client gets a unique referral code; both sides earn loyalty points when the
 // referee completes their first visit.
 
-import { prisma } from '../../..';
+import { prisma } from '../../index';
 import { DomainEvent } from '../domain/domain-event';
 import { LoyaltyPointsEarned } from '../domain/loyalty-events';
 

@@ -2,7 +2,7 @@
 // Segments lapsed clients, generates promotional codes, sends push/SMS,
 // and tracks ROI via CampaignSent anti-spam and CampaignRoi metrics.
 
-import { prisma } from '../../..';
+import { prisma } from '../../index';
 import { ClientProfile } from '../identity/domain';
 import { sendBookingConfirmationSms, SendBookingConfirmationSms } from './send-sms.use-case';
 import { BookingConfirmationHandler } from './send-sms.use-case';

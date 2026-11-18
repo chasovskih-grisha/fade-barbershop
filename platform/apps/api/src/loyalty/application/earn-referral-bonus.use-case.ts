@@ -4,7 +4,7 @@
 // Bonus points are awarded to the referrer when the referee's first completed visit
 // is processed via the outbox relay.
 
-import { prisma } from '../../..';
+import { prisma } from '../../index';
 import { AppointmentActivity } from '../domain';
 import { LoyaltyCounterIncremented } from '../domain/loyalty-events';
 import { DomainEvent } from '../domain/domain-event';

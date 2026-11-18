@@ -1,4 +1,4 @@
-import { prisma } from '../../..';
+import { prisma } from '../index';
 import { Location, Service, Booking, AppointmentParty } from '../domain';
 import { v4 as uuidv4 } from 'uuid';
 

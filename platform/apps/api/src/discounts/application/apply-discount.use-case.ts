@@ -3,7 +3,7 @@
 // Integrates PromoCode, VIP, and automatic rules (first-visit, off-peak, day-of-week).
 // Fixates AppliedDiscounts on the Appointment; ensures FinalPrice ≥ 0 (DSC-004).
 // Reason `full_discount_promo` (DSC-013) when 100% promo code → no payment, no receipt.
-import { prisma } from '../../..';
+import { prisma } from '../../index';
 import { Appointment, Booking, Service, ClientProfile } from '../domain';
 import { DiscountInput, calculateDiscounts, AppliedDiscount, PriceBreakdown, DiscountSource } from '../discounts/domain/discount-calculator';
 import { v4 as uuidv4 } from 'uuid';

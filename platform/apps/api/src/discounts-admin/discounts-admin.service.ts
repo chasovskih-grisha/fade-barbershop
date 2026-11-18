@@ -2,7 +2,7 @@
 // CRUD for discount rules and promo codes, validation, audit logging.
 // Integrates with T-090 DiscountCalculator and T-152 Discount Mechanics.
 
-import { prisma } from '../../..';
+import { prisma } from '../index';
 import { Appointment, Service, ClientProfile } from '../domain';
 import { DiscountInput, calculateDiscounts, AppliedDiscount, PriceBreakdown } from '../discounts/domain/discount-calculator';
 import { v4 as uuidv4 } from 'uuid';

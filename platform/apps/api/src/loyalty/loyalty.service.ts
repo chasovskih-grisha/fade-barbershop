@@ -1,4 +1,4 @@
-import { prisma } from '../../..';
+import { prisma } from '../index';
 import { Appointment, Booking, ClientProfile, User } from '../domain';
 import { OutboxMessage, AppointmentActivity, NotificationRecord } from '../domain';
 import { push } from '../../../../lib/notifications';

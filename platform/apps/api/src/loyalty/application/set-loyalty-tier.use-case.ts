@@ -2,7 +2,7 @@
 // Promotes/demotes client tier based on visit count relative to threshold.
 // Emits LoyaltyTierChanged event for admin dashboards & client notifications.
 
-import { prisma } from '../../..';
+import { prisma } from '../../index';
 import { ClientLoyaltyState } from '../domain';
 import { LoyaltyTierChanged } from '../domain/loyalty-events';
 import { DomainEvent } from '../domain/domain-event';
