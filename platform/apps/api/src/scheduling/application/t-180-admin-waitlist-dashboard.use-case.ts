@@ -166,4 +166,4 @@ export class T180AdminWaitlistDashboardUseCase {
   }
 }
 
-export { WaitlistConfigurationInput, WaitlistConfigurationResult };
+export type { WaitlistConfigurationInput, WaitlistConfigurationResult };

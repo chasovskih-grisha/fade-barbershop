@@ -1,0 +1,11 @@
+{% layout 'layouts/letter.liquid' %}
+{% assign kicker = 'Оплата' %}
+{% assign title = 'Електронний чек' %}
+{% assign preheader = 'Ваш чек від FADE' %}
+{% assign footer = brand | append: ' Barbershop — підтримка клієнтів' %}
+{% block content %}
+{% render 'partials/text', lead: 'Дякуємо за візит! Нижче наведено деталі вашої оплати.' %}
+{% render 'partials/figure', value: amount, caption: 'До сплати', mono: false %}
+{% render 'partials/rows', rows: rows %}
+{% render 'partials/text', lead: 'Зберігайте чек для підтримки клієнтів.' %}
+{% endblock %}

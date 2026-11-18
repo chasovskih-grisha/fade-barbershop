@@ -1,0 +1,22 @@
+{% layout 'layouts/letter.liquid' %}
+{% assign kicker = 'Реферальна програма' %}
+{% assign title = 'Вам нараховано бонус за друга!' %}
+{% assign preheader = 'Ваш друг скористався рекомендацією, і ви отримали бонусні бали у ' | append: brand %}
+{% assign footer = brand | append: ' Barbershop • Реферальні бонуси' %}
+{% block content %}
+{% render 'partials/text', lead: 'Вітаємо, ' | append: client_name | append: '! Ваш друг успішно відвідав наш барбершоп за вашою рекомендацією.' %}
+{% render 'partials/rows', rows: rows %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:{{ email.spacing }} 0;background-color:{{ email.bg }};border:1px solid {{ email.border }};border-radius:{{ email.radius }};border-collapse:collapse;">
+  <tr>
+    <td align="center" style="padding:{{ email.spacing }};">
+      <p style="margin:0 0 6px;font-family:{{ email.fontStack }};font-size:{{ email.fontSizeCaption }};font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:{{ email.textSecondary }};">Нараховано бонусів</p>
+      <p style="margin:0;font-family:{{ email.fontStack }};font-size:{{ email.fontSizeFigure }};font-weight:700;color:{{ email.textPrimary }};">+{{ reward_amount }} балів</p>
+      <p style="margin:8px 0 0;font-family:{{ email.fontStack }};font-size:{{ email.fontSizeCaption }};color:{{ email.textSecondary }};">Ваш баланс: {{ current_balance }} балів</p>
+    </td>
+  </tr>
+</table>
+{% if action_url != blank %}
+{% render 'partials/button', url: action_url, label: action_label | default: 'Використати бонуси' %}
+{% endif %}
+{% render 'partials/text', lead: 'Запрошуйте ще друзів та отримуйте знижки на обслуговування!' %}
+{% endblock %}

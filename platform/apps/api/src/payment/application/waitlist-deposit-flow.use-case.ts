@@ -160,7 +160,7 @@ export class WaitlistDepositFlow {
           await this.deps.paymentRepo.update(payment.id, { status: BillingPaymentStatus.Failed });
           console.error('Waitlist deposit payment failed', {
             paymentId: payment.id,
-            amount,
+            amount: depositAmount,
             error: error instanceof Error ? error.message : String(error),
           });
         }

@@ -1,0 +1,20 @@
+{% layout "layouts/letter.liquid" %}
+{% assign title = "Запит на видалення облікового запису" %}
+{% assign preheader = "Ми отримали запит на видалення вашого облікового запису." %}
+{% assign footer = brand | append: " Barbershop • Конфіденційність" %}
+{% block content %}
+{% render "partials/text", lead: "Привіт, " | append: client_name | append: "! Ми отримали запит на видалення вашого облікового запису та всіх персональних даних у мережі барбершопів." %}
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:{{ email.bg }};border-left:4px solid {{ email.accentSolid }};border-radius:{{ email.radius }};margin:{{ email.spacing }} 0;border-collapse:collapse;">
+  <tr>
+    <td style="padding:{{ email.spacing }};">
+      <p style="margin:0;font-family:{{ email.fontStack }};font-size:{{ email.fontSizeCaption }};line-height:1.5;color:{{ email.textPrimary }};">
+        <strong>Увага:</strong> Ця дія є незворотною. Усі ваші активні абонементи, бонуси, історія візитів та персональні налаштування буде остаточно видалено <strong>{{ scheduled_date }}</strong>.
+      </p>
+    </td>
+  </tr>
+</table>
+
+{% render "partials/text", lead: "Якщо ви не запитували видалення, негайно скасуйте запит через налаштування профілю або зв'яжіться з підтримкою." %}
+{% render "partials/button", url: cancel_url, label: "Скасувати видалення" %}
+{% endblock %}

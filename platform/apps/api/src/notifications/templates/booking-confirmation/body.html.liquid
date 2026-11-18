@@ -1,0 +1,11 @@
+{% layout 'layouts/letter.liquid' %}
+{% assign kicker = 'Запис підтверджено' %}
+{% assign title = brand | append: ' — ваш візит успішно заброньовано' %}
+{% assign preheader = 'Ваш візит у ' | append: brand | append: ' успішно підтверджено. Перегляньте деталі.' %}
+{% assign footer = brand | append: ' Barbershop • Ексклюзивний сервіс та догляд' %}
+{% block content %}
+{% render 'partials/text', lead: 'Ваш запис успішно підтверджено. Ми чекаємо на вас у вказаний час.' %}
+{% render 'partials/rows', rows: rows %}
+{% render 'partials/button', label: 'Керувати записом', url: 'https://fade.com.ua/account/appointments' %}
+{% render 'partials/text', lead: 'Якщо ваші плани змінилися або потрібно перенести візит, будь ласка, зв’яжіться з нами заздалегідь або скористайтесь особистим кабінетом.' %}
+{% endblock %}

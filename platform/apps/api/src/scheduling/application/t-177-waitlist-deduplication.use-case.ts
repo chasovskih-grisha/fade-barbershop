@@ -132,4 +132,4 @@ export class T177WaitlistDeduplicationUseCase {
   }
 }
 
-export { DeduplicationCheckInput, DeduplicationCheckResult };
+export type { DeduplicationCheckInput, DeduplicationCheckResult };

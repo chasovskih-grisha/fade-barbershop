@@ -1,0 +1,10 @@
+{% layout 'layouts/letter.liquid' %}
+{% assign kicker = 'Новий запис' %}
+{% assign title = 'Новий запис на послугу' %}
+{% assign preheader = 'У вас новий запис' %}
+{% assign footer = brand | append: ' Barbershop — адміністративна панель' %}
+{% block content %}
+{% render 'partials/text', lead: 'Вітаємо, майстре! У вас новий запис на послугу. Деталі візиту:' %}
+{% render 'partials/rows', rows: rows %}
+{% render 'partials/button', url: dashboardUrl, label: 'Відкрити розклад' %}
+{% endblock %}

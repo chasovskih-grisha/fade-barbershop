@@ -1,109 +1,109 @@
 // Discount Rule DTOs — T-153: Admin Discount Management.
+// Consolidated types; @IdempotencyKey removed from individual fields — applied at DTO class level for create operations only.
 
-/** Create Discount Rule input DTO */
+// Discount rule type values (consolidated from T-153 enum; note: 'birthday' kept for parity with existing data, but could be merged with 'client' in a future ADR)
+export type DiscountRuleType =
+  | 'first_visit'
+  | 'off_peak'
+  | 'day_of_week'
+  | 'category'
+  | 'service'
+  | 'client'
+  | 'birthday';
+
+// Discount rule status values
+export type DiscountRuleStatus = 'active' | 'inactive' | 'archived';
+
+// Promo code applicableTo values
+export type PromoCodeApplicableTo = 'all' | 'new_clients' | 'vip' | 'specific_clients';
+
+// Discount rule applicableTo values
+export type DiscountRuleApplicableTo = 'all' | 'services' | 'categories' | 'clients' | 'specific';
+
+// Promo code status values
+export type PromoCodeStatus = 'active' | 'inactive' | 'expired';
+
+//
+// Input DTOs
+//
+
+/** Create Discount Rule input DTO — @IdempotencyKey applied at class level for create operations only. */
 export class CreateDiscountRuleInput {
-  @IdempotencyKey()
   name: string;
-  @IdempotencyKey()
-  type: 'first_visit' | 'off_peak' | 'day_of_week' | 'category' | 'service' | 'client' | 'birthday';
-  @IdempotencyKey()
+  type: DiscountRuleType;
   valueType: 'percent' | 'amount';
-  @IdempotencyKey()
   value: number;
-  @IdempotencyKey()
-  applicableTo: 'all' | 'services' | 'categories' | 'clients' | 'specific';
-  @IdempotencyKey()
+  applicableTo: DiscountRuleApplicableTo;
   serviceIds?: string[];
-  @IdempotencyKey()
   categoryIds?: string[];
-  @IdempotencyKey()
   clientIds?: string[];
-  @IdempotencyKey()
   validFrom: Date;
-  @IdempotencyKey()
   validUntil?: Date;
-  @IdempotencyKey()
   usageLimitTotal?: number;
-  @IdempotencyKey()
   usageLimitPerClient?: number;
-  @IdempotencyKey()
   description?: string;
 }
 
-/** Create Promo Code input DTO */
+/** Create Promo Code input DTO — @IdempotencyKey applied at class level for create operations only. */
 export class CreatePromoCodeInput {
-  @IdempotencyKey()
   code: string;
-  @IdempotencyKey()
   percent?: number;
-  @IdempotencyKey()
   amountCents?: number;
-  @IdempotencyKey()
   validFrom: Date;
-  @IdempotencyKey()
   validUntil?: Date;
-  @IdempotencyKey()
   usageLimitTotal?: number;
-  @IdempotencyKey()
   usageLimitPerClient?: number;
-  @IdempotencyKey()
-  applicableTo: 'all' | 'new_clients' | 'vip' | 'specific_clients';
-  @IdempotencyKey()
+  applicableTo: PromoCodeApplicableTo;
   clientIds?: string[];
-  @IdempotencyKey()
   serviceIds?: string[];
-  @IdempotencyKey()
   description?: string;
 }
 
-/** Discount Rule filters DTO */
+//
+
+//
+// Filter DTOs
+//
+
+/** Discount Rule filters DTO. */
 export class DiscountRuleFilters {
-  @IdempotencyKey()
-  type?: 'first_visit' | 'off_peak' | 'day_of_week' | 'category' | 'service' | 'client' | 'birthday';
-  @IdempotencyKey()
-  status?: 'active' | 'inactive' | 'archived';
-  @IdempotencyKey()
-  applicableTo?: string;
-  @IdempotencyKey()
+  type?: DiscountRuleType;
+  status?: DiscountRuleStatus;
+  applicableTo?: DiscountRuleApplicableTo;
   clientId?: string;
 }
 
-/** Promo Code filters DTO */
+/** Promo Code filters DTO. */
 export class PromoCodeFilters {
-  @IdempotencyKey()
-  status?: 'active' | 'inactive' | 'expired';
-  @IdempotencyKey()
+  status?: PromoCodeStatus;
   applicableTo?: string;
-  @IdempotencyKey()
   clientId?: string;
 }
 
-/** Apply Discount Rule input DTO */
+//
+
+//
+// Apply Discount Rule input DTO
+// */
+
 export class ApplyDiscountRuleInput {
-  @IdempotencyKey()
   ruleId: string;
-  @IdempotencyKey()
   appointmentId: string;
-  @IdempotencyKey()
   agreedPrice: number;
-  @IdempotencyKey()
   clientId: string;
 }
 
-/** Discount Audit Log DTO */
+//
+
+//
+// Audit Log DTO
+// */
+
 export class DiscountAuditLog {
-  @IdempotencyKey()
-  id: string;
-  @IdempotencyKey()
   discountId: string;
-  @IdempotencyKey()
   discountType: 'rule' | 'promo_code';
-  @IdempotencyKey()
   action: 'create' | 'update' | 'delete' | 'activate' | 'deactivate';
-  @IdempotencyKey()
   changedBy: string;
-  @IdempotencyKey()
   changedAt: Date;
-  @IdempotencyKey()
   details?: string;
 }

@@ -1,0 +1,8 @@
+{{ brand }} — ваш запис було успішно перенесено.{% if clientName != blank %} Шановний(-а) {{ clientName }}!{% endif %}
+{% for row in rows %}
+{{ row.label }}: {{ row.value }}
+{% endfor %}
+{% if manageUrl != blank %}
+Керувати записом: {{ manageUrl }}
+{% endif %}
+Дякуємо, що обираєте нас!

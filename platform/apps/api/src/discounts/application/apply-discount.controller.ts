@@ -16,8 +16,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
-import { ApplyDiscountInput, type ApplyDiscountInput } from './apply-discount.use-case';
-import { ApplyDiscountResult, type ApplyDiscountResult } from './apply-discount.use-case';
+import type { ApplyDiscountInput } from './apply-discount.use-case';
+import type { ApplyDiscountResult } from './apply-discount.use-case';
 
 @Controller('discounts')
 @ApiTags('discounts')

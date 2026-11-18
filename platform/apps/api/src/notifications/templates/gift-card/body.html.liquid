@@ -1,0 +1,25 @@
+{% layout 'layouts/letter.liquid' %}
+{% assign kicker = 'Подарунок' %}
+{% assign title = 'Подарункова карта' %}
+{% if amount != blank %}
+{% assign preheader = 'Вам надіслано подарункову карту на суму ' | append: amount %}
+{% else %}
+{% assign preheader = 'Вам надіслано подарункову карту' %}
+{% endif %}
+{% assign footer = brand | append: ' Barbershop — подарункові сертифікати' %}
+{% block content %}
+{% if recipientName != blank %}
+{% render 'partials/text', lead: 'Вітаємо, ', a: recipientName, tail: '!' %}
+{% else %}
+{% render 'partials/text', lead: 'Вітаємо!' %}
+{% endif %}
+{% if purchaserName != blank %}
+{% render 'partials/text', lead: 'Користувач ', a: purchaserName, mid: ' надіслав вам подарункову карту у мережі ', b: brand, tail: '.' %}
+{% else %}
+{% render 'partials/text', lead: 'Вам надіслано подарункову карту у мережі ', a: brand, tail: '.' %}
+{% endif %}
+{% render 'partials/figure', value: code, caption: 'Код картки', mono: true %}
+{% render 'partials/rows', rows: rows %}
+{% render 'partials/button', label: 'Активувати / Використати', href: redeemUrl %}
+{% render 'partials/text', lead: 'Пред’явіть цей код адміністратору при розрахунку або вкажіть його під час онлайн-бронювання.' %}
+{% endblock %}

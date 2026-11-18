@@ -1,0 +1,11 @@
+{{ brand }} — як вам послуга{% if serviceName != blank %} ({{ serviceName }}){% endif %}?
+{% if barberName != blank %}
+Майстер: {{ barberName }}
+{% endif %}
+{% if feedbackUrl != blank %}
+Залишити приватний відгук: {{ feedbackUrl }}
+{% endif %}
+{% if googleReviewUrl != blank %}
+Оцінити в Google: {{ googleReviewUrl }}
+{% endif %}
+Дякуємо, що ви з нами!

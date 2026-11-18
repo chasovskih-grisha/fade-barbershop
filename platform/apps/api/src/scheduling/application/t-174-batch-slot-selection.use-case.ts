@@ -166,4 +166,4 @@ export class T174BatchSlotSelectionUseCase {
   }
 }
 
-export { BatchSlotSelectionInput, BatchSlotSelectionResult, GroupBookingInput };
+export type { BatchSlotSelectionInput, BatchSlotSelectionResult, GroupBookingInput };

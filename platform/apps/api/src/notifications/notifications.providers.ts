@@ -19,9 +19,11 @@ import {
 import { NewDeviceAlert, type SecurityAlertDeps } from './application/security-alert';
 import { LoyaltyNotificationHandler } from './application/loyalty-notification';
 import type { LoyaltyNotificationDeps } from './application/loyalty-notification-ports';
-import { LoyaltyCounter } from '../../loyalty/loyalty.service';
+import { appointmentReminderProviders } from './appointment-reminder.providers';
+import { appointmentPushProviders } from './appointment-push.providers';
+import { relayProviders } from './relay.providers';
 import { PUSH_SENDER, SMS_SENDER } from './notifications.tokens';
-import { LOYALTY_COUNTER } from './notifications.tokens';
+import type { PushSender } from './application/push-ports';
 
 /** SMS у dev — Mailpit «SMS як email» (у prod — заміна на SMS-провайдера). */
 export const SmsSenderProvider = {
@@ -103,11 +105,6 @@ const LoyaltyNotificationProvider = {
   ],
 };
 
-export const LoyaltyCounterProvider = {
-  provide: LOYALTY_COUNTER,
-  useValue: new LoyaltyCounter(),
-};
-
 export const notificationsProviders = [
   PrismaService,
   PrismaNotificationJournal,
@@ -122,7 +119,6 @@ export const notificationsProviders = [
   BookingConfirmationProvider,
   SecurityAlertProvider,
   LoyaltyNotificationProvider,
-  LoyaltyCounterProvider,
   ...appointmentReminderProviders,
   ...appointmentPushProviders,
   ...relayProviders,

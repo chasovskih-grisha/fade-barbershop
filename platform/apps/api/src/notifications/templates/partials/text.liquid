@@ -1,0 +1,3 @@
+{% if lead != blank or a != blank or mid != blank or b != blank or tail != blank %}
+<p style="margin:0 0 {{ email.spacing }};font-family:{{ email.fontStack }};font-size:{{ email.fontSizeBody }};line-height:1.6;color:{{ email.textPrimary }};">{% if lead != blank %}{{ lead }}{% endif %}{% if a != blank %}{{ a }}{% endif %}{% if mid != blank %}{{ mid }}{% endif %}{% if b != blank %}{{ b }}{% endif %}{% if tail != blank %}{{ tail }}{% endif %}</p>
+{% endif %}

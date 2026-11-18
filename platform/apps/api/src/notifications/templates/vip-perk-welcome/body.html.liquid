@@ -1,0 +1,10 @@
+{% layout 'layouts/letter.liquid' %}
+{% assign kicker = 'VIP Привілеї' %}
+{% assign title = brand | append: ' — VIP-статус активовано' %}
+{% assign preheader = 'Ваші ексклюзивні привілеї та пріоритетний сервіс готові' %}
+{% assign footer = brand | append: ' Barbershop — Executive Lounge' %}
+{% block content %}
+{% render 'partials/text', lead: 'Вітаємо у клубі привілейованих гостей FADE! Ваш VIP-статус успішно активовано.' %}
+{% render 'partials/rows', rows: rows %}
+{% render 'partials/text', lead: 'Використовуйте свій статус для пріоритетного запису та безкоштовних процедур догляду під час кожного візиту.' %}
+{% endblock %}

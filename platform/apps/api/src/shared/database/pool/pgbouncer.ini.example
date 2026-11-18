@@ -1,0 +1,21 @@
+; T-4803: шаблон PgBouncer для platform/infra (transaction pooling).
+; API ходить сюди на 6432 з DB_PGBOUNCER=true; міграції — прямо на 5432.
+[databases]
+fade = host=postgres port=5432 dbname=fade
+
+[pgbouncer]
+listen_addr = 0.0.0.0
+listen_port = 6432
+auth_type = scram-sha-256
+auth_file = /etc/pgbouncer/userlist.txt
+pool_mode = transaction
+max_client_conn = 1000
+default_pool_size = 20
+min_pool_size = 5
+reserve_pool_size = 5
+reserve_pool_timeout = 3
+server_idle_timeout = 60
+server_lifetime = 3600
+query_wait_timeout = 10
+ignore_startup_parameters = extra_float_digits,search_path
+stats_users = fade_stats

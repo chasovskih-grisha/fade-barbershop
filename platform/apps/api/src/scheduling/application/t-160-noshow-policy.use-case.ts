@@ -22,10 +22,10 @@ export class T160NoShowPolicy {
    * Marks appointments as 'no-show' if they are past the auto-fixation threshold
    * (default 15 minutes after slot start) and still in 'pending' or 'confirmed' status.
    */
-  async evaluateAutoNoShow(appointments: AppointmentRecord[]): {
+  async evaluateAutoNoShow(appointments: AppointmentRecord[]): Promise<{
     updatedAppointments: AppointmentRecord[];
     audits: { id: string; appointmentId: string; clientId: string; forfeitedDeposit: number; stage: string; executedBy: 'auto_system'; timestamp: Date; reason: string }[];
-  } {
+  }> {
     return this.noShowService.evaluateAutoNoShow(appointments);
   }
 
@@ -38,7 +38,7 @@ export class T160NoShowPolicy {
     historyRecords: ClientNoShowRecord[],
     windowDays: number = 90,
     thresholdCount: number = 2
-  ): { requireFullPrepayment: boolean; recentNoShowCount: number; waiverActive: boolean } {
+  ): Promise<{ requireFullPrepayment: boolean; recentNoShowCount: number; waiverActive: boolean }> {
     return this.noShowService.checkRepeatBookingRequirement(clientId, historyRecords, windowDays, thresholdCount);
   }
 
@@ -123,7 +123,7 @@ export class T160NoShowPolicy {
   async assessFullPrepaymentRequirement(
     clientId: string,
     noShowHistory: ClientNoShowRecord[]
-  ): { requireFullPrepayment: boolean; recentNoShowCount: number; waiverActive: boolean; message: string } {
+  ): Promise<{ requireFullPrepayment: boolean; recentNoShowCount: number; waiverActive: boolean; message: string }> {
     const result = this.checkRepeatBookingRequirement(clientId, noShowHistory);
 
     if (result.waiverActive) {

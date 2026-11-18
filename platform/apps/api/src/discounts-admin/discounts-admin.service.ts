@@ -208,7 +208,7 @@ export async function listDiscountRules(filters: DiscountRuleFilters): Promise<D
   return {
     success: true,
     data: rules,
-    total,
+    total: rules.length,
   };
 }
 

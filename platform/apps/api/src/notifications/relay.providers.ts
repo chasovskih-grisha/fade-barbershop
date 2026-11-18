@@ -10,20 +10,19 @@ import { ScheduleAppointmentReminder } from './application/schedule-appointment-
 import { SendAppointmentReminder } from './application/send-appointment-reminder';
 import { LoyaltyNotificationHandler } from './application/loyalty-notification';
 import { AppointmentPushNotification } from './application/appointment-push';
-import { OUTBOX_CONSUMERS, LOYALTY_COUNTER } from './notifications.tokens';
+import { OUTBOX_CONSUMERS } from './notifications.tokens';
 
 /** Реєстр споживачів релея: тип події → споживачі (outbox-routing). */
 export const OutboxConsumersProvider = {
   provide: OUTBOX_CONSUMERS,
   useFactory: (...deps: unknown[]) => {
-    const [confirmations, alerts, schedule, reminders, loyalty, appointmentPush, loyaltyCounter] = deps as [
+    const [confirmations, alerts, schedule, reminders, loyalty, appointmentPush] = deps as [
       SendBookingConfirmation,
       NewDeviceAlert,
       ScheduleAppointmentReminder,
       SendAppointmentReminder,
       LoyaltyNotificationHandler,
       AppointmentPushNotification,
-      LoyaltyCounter,
     ];
     const consumers: OutboxConsumers = {
       confirmations,
@@ -33,8 +32,6 @@ export const OutboxConsumersProvider = {
       loyalty,
       appointmentPush,
     };
-    // Provide loyaltyCounter on consumers so consumersFor can route appointment.completed to it
-    consumers.loyaltyCounter = loyaltyCounter;
     return consumers;
   },
   inject: [
@@ -44,7 +41,6 @@ export const OutboxConsumersProvider = {
     SendAppointmentReminder,
     LoyaltyNotificationHandler,
     AppointmentPushNotification,
-    LOYALTY_COUNTER,
   ],
 };
 

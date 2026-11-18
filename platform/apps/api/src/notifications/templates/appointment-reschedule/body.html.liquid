@@ -1,0 +1,20 @@
+{% layout 'layouts/letter.liquid' %}
+{% if when != blank %}
+{% assign preheader = 'Ваш візит перенесено на ' | append: when %}
+{% else %}
+{% assign preheader = 'Ваш візит перенесено' %}
+{% endif %}
+{% assign kicker = 'Перенесення' %}
+{% assign title = 'Візит перенесено' %}
+{% assign footer = brand | append: ' Barbershop — онлайн-бронювання' %}
+{% block content %}
+{% if clientName != blank %}
+{% render 'partials/text', lead: 'Вітаємо, ', a: clientName, tail: '!' %}
+{% else %}
+{% render 'partials/text', lead: 'Вітаємо!' %}
+{% endif %}
+{% render 'partials/text', lead: 'Ваш візит було перенесено на новий час. Нижче наведено оновлені деталі запису:' %}
+{% render 'partials/rows', rows: rows %}
+{% render 'partials/button', label: 'Переглянути деталі / Керувати записом', href: manageUrl %}
+{% render 'partials/text', lead: 'Чекаємо на вас у вказаний час! Якщо у вас виникли питання, зв’яжіться з нами.' %}
+{% endblock %}

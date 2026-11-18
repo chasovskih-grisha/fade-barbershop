@@ -89,7 +89,7 @@ export function calculateWaitlistUrgency(
     visitCount,
     isReferral: !!referredBy,
     preferredBarberMatch: !!barberId,
-    preferredServiceMatch: serviceIds?.length > 0,
+    preferredServiceMatch: (serviceIds?.length ?? 0) > 0,
     locationMatch: !!locationId,
     totalScore,
     tier,

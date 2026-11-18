@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
+  <title>{{ title | default: brand }}</title>
+</head>
+<body style="margin:0;padding:0;background-color:{{ email.bg }};color:{{ email.textPrimary }};font-family:{{ email.fontStack }};font-size:{{ email.fontSizeBody }};-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+  {% if preheader != blank %}
+  <div style="display:none;max-height:0;max-width:0;overflow:hidden;opacity:0;mso-hide:all;font-size:1px;line-height:1px;color:{{ email.bg }};">{{ preheader }}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+  {% endif %}
+
+  <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="width:100%;background-color:{{ email.bg }};border-collapse:collapse;">
+    <tr>
+      <td align="center" style="padding:{{ email.spacing }};">
+        <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background-color:{{ email.surface }};border:1px solid {{ email.border }};border-radius:{{ email.radius }};border-collapse:collapse;">
+          <tr>
+            <td style="padding:{{ email.spacing }};">
+              {{ logoHtml | raw }}
+
+              {% if kicker != blank %}
+              <p style="margin:0 0 {{ email.spacing }};font-family:{{ email.fontStack }};font-size:{{ email.fontSizeCaption }};line-height:1.2;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:{{ email.textSecondary }};">{{ kicker }}</p>
+              {% endif %}
+
+              {% if title != blank %}
+              <h1 style="margin:0 0 {{ email.spacing }};font-family:{{ email.fontStack }};font-size:{{ email.fontSizeTitle }};line-height:1.3;font-weight:700;color:{{ email.textPrimary }};">{{ title }}</h1>
+              {% endif %}
+
+              {% block content %}{% endblock %}
+
+              {% if footer != blank %}
+              <p style="margin:{{ email.spacing }} 0 0;padding-top:{{ email.spacing }};border-top:1px solid {{ email.border }};font-family:{{ email.fontStack }};font-size:{{ email.fontSizeCaption }};line-height:1.5;color:{{ email.textSecondary }};">{{ footer }}</p>
+              {% endif %}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

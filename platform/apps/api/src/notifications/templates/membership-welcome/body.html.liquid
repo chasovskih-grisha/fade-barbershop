@@ -1,0 +1,11 @@
+{% layout 'layouts/letter.liquid' %}
+{% assign kicker = 'Членство' %}
+{% assign title = brand | append: ' — вітаємо в клубній програмі' %}
+{% assign preheader = 'Вашу клубну картку активовано' %}
+{% assign footer = brand | append: ' Barbershop' %}
+{% block content %}
+{% render 'partials/text', lead: 'Вітаємо! Ви стали учасником клубної програми ' | append: brand | append: '. Ваш статус та привілеї активовано.' %}
+{% render 'partials/rows', rows: rows %}
+{% render 'partials/text', lead: 'Використовуйте персональний QR-код у додатку для отримання знижок та накопичення бонусів.' %}
+{% render 'partials/button', url: dashboard_url, label: 'Перейти до кабінету' %}
+{% endblock %}

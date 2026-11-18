@@ -115,4 +115,4 @@ export class T175WaitlistRealTimeUpdatesUseCase {
   }
 }
 
-export { RealTimeWaitlistUpdateInput, RealTimeWaitlistUpdateResult };
+export type { RealTimeWaitlistUpdateInput, RealTimeWaitlistUpdateResult };

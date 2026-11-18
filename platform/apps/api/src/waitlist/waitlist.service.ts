@@ -316,7 +316,7 @@ export class WaitlistService {
         // (remove after first success to avoid double-booking)
         break;
       } catch (error) {
-        errors.push(`Waitlist cascade error for entry ${entry.id}: ${error.message}`);
+        errors.push(`Waitlist cascade error for entry ${entry.id}: ${error instanceof Error ? error.message : String(error)}`);
         // Mark entry as expired and continue to next
         await prisma.$executeRaw`
           UPDATE WaitlistEntry 

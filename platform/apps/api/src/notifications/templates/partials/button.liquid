@@ -1,0 +1,10 @@
+{% assign link = url %}{% if link == blank %}{% assign link = href %}{% endif %}
+{% if link != blank %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:{{ email.spacing }} 0;border-collapse:collapse;">
+  <tr>
+    <td align="center" bgcolor="{{ email.accentSolid }}" style="border-radius:{{ email.radius }};background-color:{{ email.accentSolid }};">
+      <a href="{{ link }}" target="_blank" style="display:inline-block;padding:12px 24px;font-family:{{ email.fontStack }};font-size:{{ email.fontSizeBody }};line-height:1.2;font-weight:600;letter-spacing:0.02em;text-decoration:none;color:{{ email.accentOnSolid }};">{{ label }}</a>
+    </td>
+  </tr>
+</table>
+{% endif %}

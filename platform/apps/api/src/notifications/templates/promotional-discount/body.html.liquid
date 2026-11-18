@@ -1,0 +1,23 @@
+{% layout 'layouts/letter.liquid' %}
+{% assign kicker = 'Спеціальна пропозиція' %}
+{% assign title = 'Ексклюзивна знижка ' | append: discount_percent | append: '% на наступний візит!' %}
+{% assign preheader = 'Отримайте знижку ' | append: discount_percent | append: '% на улюблені послуги у ' | append: brand %}
+{% assign footer = brand | append: ' Barbershop • Пропозиція діє до ' | append: valid_until %}
+{% block content %}
+{% render 'partials/text', lead: 'Вітаємо, ' | append: client_name | append: '! Як нашому дорогому гостю, ми даруємо персональну знижку на послуги чи догляд у нашій мережі.' %}
+{% render 'partials/rows', rows: rows %}
+{% if promo_code != blank %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:{{ email.spacing }} 0;background-color:{{ email.bg }};border:1px dashed {{ email.border }};border-radius:{{ email.radius }};border-collapse:collapse;">
+  <tr>
+    <td align="center" style="padding:{{ email.spacing }};">
+      <p style="margin:0 0 6px;font-family:{{ email.fontStack }};font-size:{{ email.fontSizeCaption }};font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:{{ email.textSecondary }};">Ваш промокод</p>
+      <p style="margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:{{ email.fontSizeTitle }};font-weight:700;letter-spacing:0.2em;color:{{ email.textPrimary }};">{{ promo_code }}</p>
+    </td>
+  </tr>
+</table>
+{% endif %}
+{% if action_url != blank %}
+{% render 'partials/button', url: action_url, label: action_label | default: 'Записатися зі знижкою' %}
+{% endif %}
+{% render 'partials/text', lead: 'Просто покажіть цей код адміністратору або вкажіть його під час онлайн-запису.' %}
+{% endblock %}

@@ -1,0 +1,21 @@
+{% layout 'layouts/letter.liquid' %}
+{% assign kicker = 'Після візиту' %}
+{% assign title = 'Оцініть ваш візит' %}
+{% assign preheader = 'Як пройшов ваш візит? Поділіться враженнями' %}
+{% assign footer = brand | append: ' Barbershop — підтримка клієнтів' %}
+{% block content %}
+{% if clientName != blank %}
+{% render 'partials/text', lead: 'Вітаємо, ', a: clientName, tail: '!' %}
+{% else %}
+{% render 'partials/text', lead: 'Вітаємо!' %}
+{% endif %}
+{% if serviceName != blank and barberName != blank %}
+{% render 'partials/text', lead: 'Дякуємо за візит на послугу "', a: serviceName, mid: '" до майстра ', b: barberName, tail: '.' %}
+{% else %}
+{% render 'partials/text', lead: 'Дякуємо за ваш нещодавній візит до нашого барбершопу!' %}
+{% endif %}
+{% render 'partials/text', lead: 'Будемо вдячні за ваші враження — це допомагає нам ставати кращими щодня.' %}
+{% render 'partials/button', label: 'Залишити відгук', href: feedbackUrl %}
+{% render 'partials/button', label: 'Оцінити в Google', href: googleReviewUrl %}
+{% render 'partials/text', lead: 'Дякуємо, що обираєте нас!' %}
+{% endblock %}

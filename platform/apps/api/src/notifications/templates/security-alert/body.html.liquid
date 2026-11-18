@@ -1,0 +1,14 @@
+{% layout 'layouts/letter.liquid' %}
+{% assign kicker = 'Безпека' %}
+{% assign title = 'Новий вхід' %}
+{% assign preheader = 'Новий вхід у ваш акаунт' %}
+{% assign footer = brand | append: ' Barbershop — якщо це були не ви, вийдіть з усіх пристроїв' %}
+{% block content %}
+{% if when != blank %}
+{% render 'partials/text', lead: 'У ваш акаунт виконано новий вхід (', a: when, tail: ').' %}
+{% else %}
+{% render 'partials/text', lead: 'У ваш акаунт виконано новий вхід.' %}
+{% endif %}
+{% render 'partials/text', lead: 'Канал: ', a: channelName, tail: '.' %}
+{% render 'partials/text', lead: 'Якщо це були не ви — відкрийте кабінет і натисніть «Вийти з усіх пристроїв».' %}
+{% endblock %}

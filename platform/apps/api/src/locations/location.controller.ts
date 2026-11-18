@@ -211,7 +211,7 @@ export class LocationController {
   @ApiParam({ name: 'code', description: 'Location code' })
   @ApiResponse({
     status: 200,
-    type: ManagerAssignmentOutput | null,
+    type: ManagerAssignmentOutput,
     description: 'Get the manager assigned to this location',
   })
   @HttpCode(HttpStatus.OK)

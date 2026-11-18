@@ -120,4 +120,4 @@ export class T176WaitlistNotificationsUseCase {
   }
 }
 
-export { SlotAcceptanceInput, SlotAcceptanceResult };
+export type { SlotAcceptanceInput, SlotAcceptanceResult };

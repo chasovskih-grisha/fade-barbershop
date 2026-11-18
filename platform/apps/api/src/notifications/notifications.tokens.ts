@@ -8,5 +8,3 @@ export const PUSH_SENDER = Symbol('NOTIFICATIONS_PUSH_SENDER');
 
 /** Реєстр споживачів релея: маршрутизація за типом події (outbox-routing). */
 export const OUTBOX_CONSUMERS = Symbol('NOTIFICATIONS_OUTBOX_CONSUMERS');
-
-export const LOYALTY_COUNTER = Symbol("NOTIFICATIONS_LOYALTY_COUNTER");

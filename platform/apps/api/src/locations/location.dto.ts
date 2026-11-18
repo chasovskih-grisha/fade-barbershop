@@ -1,5 +1,6 @@
-import { Type } from '@nestjs/common';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
+// Location DTOs — T-105: Second Location, MNG-ADM-11.
+// Consolidated output types; removed LocationBasicOutput overlap.
+// Idempotency key removed from update input (per ADR 0021 clean-principle).
 
 // Location creation input
 export class CreateLocationInput {
@@ -20,7 +21,7 @@ export class CreateLocationInput {
   photos?: { url: string; caption: string; sortOrder: number }[];
 }
 
-// Location update input
+// Location update input — no @IdempotencyKey (update operations are inherently idempotent by HTTP verb; key reserved for create race-condition prevention).
 export class UpdateLocationInput {
   name?: string;
   address?: string;
@@ -42,7 +43,8 @@ export class ToggleFranchiseModeInput {
   adminId: string;
 }
 
-// Location output DTOs
+// Consolidated location output DTO — single source of truth for location representation.
+// Used by both list and detail endpoints; undefined fields omitted at serialization.
 export class LocationOutput {
   id: string;
   code: string;
@@ -52,13 +54,15 @@ export class LocationOutput {
   building?: string;
   city?: string;
   postalCode?: string;
-  country?: string;
   lat: number;
   lng: number;
-  channels: { channel: string; value: string; sortOrder: number }[];
-  photos: { url: string; caption: string; sortOrder: number }[];
-  servicePrices: { serviceId: string; amount: number; active: boolean }[];
-  staffAssignments: number;
+  phone?: string;
+  email?: string;
+  channels?: { channel: string; value: string; sortOrder: number }[];
+  photos?: { url: string; caption: string; sortOrder: number }[];
+  servicePrices?: { serviceId: string; amount: number; active: boolean }[];
+  staffAssignments?: number;
+  createdAt: Date;
 }
 
 // Location pricing output

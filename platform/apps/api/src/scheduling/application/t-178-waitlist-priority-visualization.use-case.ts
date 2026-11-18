@@ -168,4 +168,4 @@ export class T178WaitlistPriorityVisualizationUseCase {
   }
 }
 
-export { PriorityVisualizationData, PriorityExportRequest };
+export type { PriorityVisualizationData, PriorityExportRequest };

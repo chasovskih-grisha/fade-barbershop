@@ -1,0 +1,17 @@
+{{ brand }} — подарункова карта{% if purchaserName != blank %} від {{ purchaserName }}{% endif %}.
+{% if amount != blank %}
+Номінал: {{ amount }}
+{% endif %}
+{% if code != blank %}
+Код картки: {{ code }}
+{% endif %}
+{% if expiresAt != blank %}
+Дійсна до: {{ expiresAt }}
+{% endif %}
+{% if message != blank %}
+Повідомлення: "{{ message }}"
+{% endif %}
+{% if redeemUrl != blank %}
+Використати: {{ redeemUrl }}
+{% endif %}
+Дякуємо, що обираєте нас!

@@ -1,5 +1,6 @@
-// Discounts Admin API — T-153: Admin Discount Management.
+// Discounts Admin Controller — T-153: Admin Discount Management.
 // CRUD for discount rules and promo codes, validation, audit logging.
+// Consolidated DTO types; service-layer methods for clean separation.
 
 import {
   Body,
@@ -7,20 +8,16 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param,
   Post,
   Query,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiOperation,
-  ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
-import { DiscountsAdminService } from './discounts-admin.service';
 import {
   CreateDiscountRuleInput,
   type CreateDiscountRuleInput,
@@ -34,129 +31,120 @@ import {
   type ApplyDiscountRuleInput,
   DiscountAuditLog,
   type DiscountAuditLog,
+  DiscountRuleResponse,
+  type DiscountRuleResponse,
+  PromoCodeResponse,
+  type PromoCodeResponse,
+  ApplyDiscountRuleResponse,
+  type ApplyDiscountRuleResponse,
+  DiscountRulesListResponse,
+  type DiscountRulesListResponse,
+  PromoCodesListResponse,
+  type PromoCodesListResponse,
 } from './discounts-admin.dto';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
+import { DiscountsAdminService } from './discounts-admin.service';
 
 @Controller('discounts-admin')
 @ApiTags('discounts-admin')
 export class DiscountsAdminController {
   constructor(private readonly discountsAdminService: DiscountsAdminService) {}
 
-  /** Admin: create discount rule */
+  // POST /api/discounts-admin/rule
   @Post('rule')
   @ApiOperation({ summary: 'Create discount rule' })
   @ApiResponse({
     status: 201,
+    type: DiscountRuleResponse,
     description: 'Discount rule created',
   })
   @HttpCode(HttpStatus.CREATED)
-  async createDiscountRule(
-    @Body() body: CreateDiscountRuleInput,
-  ): Promise<DiscountRule> {
-    // Implementation: create discount rule in Prisma
-    const rule = await prisma.$executeRaw`
-      INSERT INTO DiscountRule (id, name, type, value_type, value, applicable_to, service_ids, category_ids, client_ids, valid_from, valid_until, usage_limit_total, usage_limit_per_client, current_usage_total, current_usage_per_client, description, status, created_at, created_by, updated_at)
-      VALUES (uuid(), ${body.name}, ${body.type}, ${body.valueType}, ${body.value}, ${body.applicableTo}, ${body.serviceIds}, ${body.categoryIds}, ${body.clientIds}, ${body.validFrom}, ${body.validUntil}, ${body.usageLimitTotal}, ${body.usageLimitPerClient}, 0, '{}', 'active', NOW(), ${body.createdBy}, NOW())
-    `;
-    return rule as any;
+  async createDiscountRule(@Body() input: CreateDiscountRuleInput): Promise<DiscountRuleResponse> {
+    // Note: createdBy would come from auth context in production; using placeholder for now
+    const result = await this.discountsAdminService.createDiscountRule(input, 'admin');
+    return result;
   }
 
-  /** Admin: list discount rules with filters */
+  // GET /api/discounts-admin/rules
   @Get('rules')
   @ApiOperation({ summary: 'List discount rules with filters' })
-  @ApiQuery({ name: 'type', enum: ['first_visit', 'off_peak', 'day_of_week', 'category', 'service', 'client', 'birthday'], required: false })
-  @ApiQuery({ name: 'status', enum: ['active', 'inactive', 'archived'], required: false })
+  @ApiQuery({
+    name: 'type',
+    enum: ['first_visit', 'off_peak', 'day_of_week', 'category', 'service', 'client', 'birthday'],
+    required: false,
+  })
+  @ApiQuery({
+    name: 'status',
+    enum: ['active', 'inactive', 'archived'],
+    required: false,
+  })
   @ApiQuery({ name: 'applicableTo', required: false })
   @ApiQuery({ name: 'clientId', required: false })
   @ApiResponse({
     status: 200,
+    type: DiscountRulesListResponse,
     description: 'Return paginated discount rules list',
   })
   @HttpCode(HttpStatus.OK)
-  async listDiscountRules(
-    @Query() filters: DiscountRuleFilters,
-  ) {
-    // Implementation: query discount rules from Prisma with filters
-    const where: any = {};
-    if (filters.type) where.type = filters.type;
-    if (filters.status) where.status = filters.status;
-    if (filters.applicableTo) where.applicable_to = filters.applicableTo;
-    if (filters.clientId) where.client_ids = { has: filters.clientId };
-
-    const rules = await prisma.discountRule.findMany({ where });
-    return rules;
+  async listDiscountRules(@Query() filters: DiscountRuleFilters): Promise<DiscountRulesListResponse> {
+    const result = await this.discountsAdminService.listDiscountRules(filters);
+    return result;
   }
 
-  /** Admin: create promo code */
+  // POST /api/discounts-admin/promo-code
   @Post('promo-code')
   @ApiOperation({ summary: 'Create promo code' })
   @ApiResponse({
     status: 201,
+    type: PromoCodeResponse,
     description: 'Promo code created',
   })
   @HttpCode(HttpStatus.CREATED)
-  async createPromoCode(
-    @Body() body: CreatePromoCodeInput,
-  ): Promise<PromoCode> {
-    // Implementation: create promo code in Prisma
-    const code = await prisma.$executeRaw`
-      INSERT INTO PromoCode (id, code, percent, amount_cents, valid_from, valid_until, usage_limit_total, usage_limit_per_client, current_usage_total, current_usage_per_client, applicable_to, service_ids, client_ids, description, status, created_at, created_by, updated_at)
-      VALUES (uuid(), ${body.code.toUpperCase()}, ${body.percent}, ${body.amountCents}, ${body.validFrom}, ${body.validUntil}, ${body.usageLimitTotal}, ${body.usageLimitPerClient}, 0, '{}', ${body.applicableTo}, ${body.serviceIds}, ${body.clientIds}, ${body.description}, 'active', NOW(), ${body.createdBy}, NOW())
-    `;
-    return code as any;
+  async createPromoCode(@Body() input: CreatePromoCodeInput): Promise<PromoCodeResponse> {
+    const result = await this.discountsAdminService.createPromoCode(input, 'admin');
+    return result;
   }
 
-  /** Admin: list promo codes with filters */
+  // GET /api/discounts-admin/promo-codes
   @Get('promo-codes')
   @ApiOperation({ summary: 'List promo codes with filters' })
-  @ApiQuery({ name: 'status', enum: ['active', 'inactive', 'expired'], required: false })
+  @ApiQuery({
+    name: 'status',
+    enum: ['active', 'inactive', 'expired'],
+    required: false,
+  })
   @ApiQuery({ name: 'applicableTo', required: false })
   @ApiQuery({ name: 'clientId', required: false })
   @ApiResponse({
     status: 200,
+    type: PromoCodesListResponse,
     description: 'Return paginated promo codes list',
   })
   @HttpCode(HttpStatus.OK)
-  async listPromoCodes(
-    @Query() filters: PromoCodeFilters,
-  ) {
-    // Implementation: query promo codes from Prisma with filters
-    const where: any = {};
-    if (filters.status) where.status = filters.status;
-    if (filters.applicableTo) where.applicable_to = filters.applicableTo;
-    if (filters.clientId) where.client_ids = { has: filters.clientId };
-
-    const codes = await prisma.promoCode.findMany({ where });
-    return codes;
+  async listPromoCodes(@Query() filters: PromoCodeFilters): Promise<PromoCodesListResponse> {
+    const result = await this.discountsAdminService.listPromoCodes(filters);
+    return result;
   }
 
-  /** Admin: apply a discount rule to an appointment */
+  // POST /api/discounts-admin/rule/apply
   @Post('rule/apply')
   @ApiOperation({ summary: 'Apply discount rule to appointment' })
   @ApiResponse({
     status: 200,
+    type: ApplyDiscountRuleResponse,
     description: 'Return price breakdown with applied discounts',
   })
   @HttpCode(HttpStatus.OK)
-  async applyDiscountRule(
-    @Body() body: ApplyDiscountRuleInput,
-  ) {
-    // Implementation: calculate discounts using the DiscountCalculator
-    const result = calculateDiscounts({
-      agreedPrice: body.agreedPrice,
-      rules: [{ type: 'rule', sourceId: body.ruleId }],
-      vip: undefined,
-      promoCode: undefined,
-      capPercent: 30,
-    });
-
-    return {
-      success: true,
-      breakdown: result,
-    };
+  async applyDiscountRule(@Body() body: ApplyDiscountRuleInput): Promise<ApplyDiscountRuleResponse> {
+    const result = await this.discountsAdminService.applyDiscountRule(
+      body.ruleId,
+      body.appointmentId,
+      body.agreedPrice,
+      body.clientId,
+    );
+    return result;
   }
 
-  /** Admin: audit log for discount modification */
+  // POST /api/discounts-admin/audit-log
   @Post('audit-log')
   @ApiOperation({ summary: 'Create audit log entry for discount modification' })
   @ApiResponse({
@@ -164,14 +152,14 @@ export class DiscountsAdminController {
     description: 'Audit log entry created',
   })
   @HttpCode(HttpStatus.CREATED)
-  async createAuditLog(
-    @Body() body: { discountId: string; discountType: 'rule' | 'promo_code'; action: 'create' | 'update' | 'delete' | 'activate' | 'deactivate'; changedBy: string; details?: string },
-  ) {
-    // Implementation: create audit log entry
-    const logEntry = await prisma.$executeRaw`
-      INSERT INTO DiscountAuditLog (id, discount_id, discount_type, action, changed_by, changed_at, details)
-      VALUES (uuid(), ${body.discountId}, ${body.discountType}, ${body.action}, ${body.changedBy}, NOW(), ${body.details})
-    `;
-    return { success: true, logEntry };
+  async createAuditLog(@Body() body: DiscountAuditLog): Promise<{ success: boolean; logEntry: any }> {
+    const result = await this.discountsAdminService.createAuditLog(
+      body.discountId,
+      body.discountType,
+      body.action,
+      body.changedBy,
+      body.details,
+    );
+    return result;
   }
 }

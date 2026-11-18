@@ -93,7 +93,7 @@ export class AiBookingAssistant {
       if (!barberVisits.has(barberId)) {
         barberVisits.set(barberId, { count: 0, lastVisit: new Date(0), serviceIds: new Set() });
       }
-      const data = barberVisits.get(barberId);
+      const data = barberVisits.get(barberId)!;
       data.count++;
       if (booking.start > data.lastVisit) {
         data.lastVisit = booking.start;
@@ -338,7 +338,7 @@ export class AiBookingAssistant {
 
     // Determine optimal time based on barber's availability and client history
     // For now, use a generic optimal time recommendation
-    const optimalTime = this.suggestOptimalTime(clientId, topBarber.barberId, locationId);
+    const optimalTime = this.suggestOptimalTime(clientId, topBarber!.barberId, locationId);
 
     // Build the reason
     const reason = this.generateRecommendationReason(
@@ -349,11 +349,11 @@ export class AiBookingAssistant {
 
     return {
       suggestionId,
-      barberSuggestion: topBarber,
+      barberSuggestion: topBarber!,
       promotionalOffer,
       optimalTime,
       reason,
-      confidence: topBarber.score,
+      confidence: topBarber!.score,
     };
   }
 

@@ -1,0 +1,10 @@
+{% layout 'layouts/letter.liquid' %}
+{% assign kicker = 'Скасування' %}
+{% assign title = 'Візит скасовано' %}
+{% assign preheader = 'Ваш візит скасовано' %}
+{% assign footer = brand | append: ' Barbershop — підтримка клієнтів' %}
+{% block content %}
+{% render 'partials/text', lead: 'Ваш запис було скасовано. Нижче наведено деталі скасованого візиту:' %}
+{% render 'partials/rows', rows: rows %}
+{% render 'partials/text', lead: 'Якщо це сталося помилково або ви хочете забронювати новий час — скористайтеся нашим додатком.' %}
+{% endblock %}

@@ -234,7 +234,7 @@ export class T182WaitlistNoShowIntegrationUseCase {
   }
 }
 
-export { 
+export type { 
   NoShowRiskLevel, 
   NoShowRiskAssessment, 
   NoShowWaitlistConfig,
