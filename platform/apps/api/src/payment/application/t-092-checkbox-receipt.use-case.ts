@@ -1,8 +1,8 @@
-import { Booking, BookingRepository } from '../domain/booking';
-import { BookingCreateParams } from '../domain/booking.data';
+import { Booking, BookingRepository } from '../../scheduling/domain/booking';
+import { BookingCreateParams } from '../../scheduling/domain/booking.data';
 import { CheckboxFiscalGateway, CheckboxReceiptType } from './checkbox-fiscal-gateway';
-import { BookAppointmentDeps } from './book-appointment.types';
-import type { BookAppointmentDeps } from './book-appointment.types';
+import { BookAppointmentDeps } from '../../scheduling/application/book-appointment.types';
+import type { BookAppointmentDeps } from '../../scheduling/application/book-appointment.types';
 export type { BookAppointmentDeps };
 
 /** T-092: Checkbox fiskalні чеки для депозиту та остачі.

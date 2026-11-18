@@ -1,13 +1,13 @@
-import { Booking, BookingConflictError, PaymentStatus } from '../domain/booking';
-import { BookingRepository } from '../domain/booking-repository';
-import { BarberSchedule } from '../domain/availability';
-import { BookAppointment } from './book-appointment.use-case';
-import { DepositPolicy } from '../domain/deposit-terms';
-import { depositPolicy as defaultDepositPolicy } from './../scheduling/application/deposit-policy';
-import { priceSnapshot } from './book-appointment.pricing';
-import { compositionDuration } from './../domain/composed-slot-span';
+import { Booking, BookingConflictError, PaymentStatus } from '../../scheduling/domain/booking';
+import { BookingRepository } from '../../scheduling/domain/booking-repository';
+import { BarberSchedule } from '../../scheduling/domain/availability';
+import { BookAppointment } from '../../scheduling/application/book-appointment.use-case';
+import { DepositPolicy } from '../../scheduling/domain/deposit-terms';
+import { depositPolicy as defaultDepositPolicy } from '../../scheduling/application/deposit-policy';
+import { priceSnapshot } from '../../scheduling/application/book-appointment.pricing';
+import { compositionDuration } from '../../scheduling/domain/composed-slot-span';
 import { withSpan, TRACING } from '../../shared/tracing/tracing';
-import type { BookAppointmentDeps } from './book-appointment.types';
+import type { BookAppointmentDeps } from '../../scheduling/application/book-appointment.types';
 
 export type { BookAppointmentDeps };
 

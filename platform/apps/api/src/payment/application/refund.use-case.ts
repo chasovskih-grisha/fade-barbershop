@@ -1,6 +1,6 @@
-import { Booking, BookingRepository } from '../domain/booking';
+import { Booking, BookingRepository } from '../../scheduling/domain/booking';
 import { RefundEntity, RefundStatus, RefundReason, RefundMetadata } from '../domain/refund.entity';
-import { BookingRepository } from '../domain/booking';
+import { BookingRepository } from '../../scheduling/domain/booking';
 import { CheckboxFiscalGateway, CheckboxReceiptType } from './checkbox-fiscal-gateway';
 
 /** T-094: Refund Mechanics - complete payment integrity layer.

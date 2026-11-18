@@ -1,9 +1,9 @@
 import { AppointmentRecord, BookingChannel } from './no-show-penalty.service';
 import { Booking, BookingRepository } from '../domain/booking';
-import { T094Refund } from '../payment/application/refund.use-case';
-import { RefundEntity, RefundStatus, RefundReason } from '../payment/domain/refund.entity';
+import { T094Refund } from '../../payment/application/refund.use-case';
+import { RefundEntity, RefundStatus, RefundReason } from '../../payment/domain/refund.entity';
 import type { ClientNoShowRecord } from './no-show-penalty.service';
-import type { RefundEntity } from '../payment/domain/refund.entity';
+import type { RefundEntity } from '../../payment/domain/refund.entity';
 
 /** T-160: No-Show Policy - complete no-show workflow with admin settings,
  * deposit retention, threshold rules, and no-show rate dashboard.

@@ -1,9 +1,9 @@
 import { Booking, BookingRepository } from '../domain/booking';
-import { RefundEntity, RefundStatus, RefundReason } from '../payment/domain/refund.entity';
-import { T094Refund } from '../payment/application/refund.use-case';
+import { RefundEntity, RefundStatus, RefundReason } from '../../payment/domain/refund.entity';
+import { T094Refund } from '../../payment/application/refund.use-case';
 import { useFonts, OpenSans } from '@expo-google-fonts/open-sans';
 import { usePush } from '../../../../lib/notifications';
-import type { RefundMetadata } from '../payment/domain/refund.entity';
+import type { RefundMetadata } from '../../payment/domain/refund.entity';
 
 /** T-095: No-Show Escalation - automatic detection and handling of missed appointments.
  * Escalates bookings where client didn't show up after 24 hours.

@@ -1,16 +1,16 @@
-import { Booking, BookingConflictError, PaymentStatus } from '../domain/booking';
-import { BookingRepository } from '../domain/booking-repository';
-import { PriceSnapshot } from '../pricing/price-snapshot';
-import { DepositPolicy } from '../domain/deposit-terms';
-import { depositPolicy as defaultDepositPolicy } from './../scheduling/application/deposit-policy';
-import { priceSnapshot } from './book-appointment.pricing';
-import { compositionDuration } from './../domain/composed-slot-span';
+import { Booking, BookingConflictError, PaymentStatus } from '../../scheduling/domain/booking';
+import { BookingRepository } from '../../scheduling/domain/booking-repository';
+import { PriceSnapshot } from '../../scheduling/application/book-appointment.pricing';
+import { DepositPolicy } from '../../scheduling/domain/deposit-terms';
+import { depositPolicy as defaultDepositPolicy } from '../../scheduling/application/deposit-policy';
+import { priceSnapshot } from '../../scheduling/application/book-appointment.pricing';
+import { compositionDuration } from '../../scheduling/domain/composed-slot-span';
 import { withSpan, TRACING } from '../../shared/tracing/tracing';
-import type { BookAppointmentDeps } from './book-appointment.types';
-import { Payment } from '../billing/domain/payment.entity';
-import { PaymentStatus as BillingPaymentStatus } from '../billing/domain/payment-status.enum';
-import { FiscalGateway, FiscalReceiptDetails } from '../billing/domain/fiscal.gateway.interface';
-import { CheckboxFiscalGateway, CheckboxReceiptType } from '../payment/application/checkbox-fiscal-gateway';
+import type { BookAppointmentDeps } from '../../scheduling/application/book-appointment.types';
+import { Payment } from '../../billing/domain/payment.entity';
+import { PaymentStatus as BillingPaymentStatus } from '../../billing/domain/payment-status.enum';
+import { FiscalGateway, FiscalReceiptDetails } from '../../billing/domain/fiscal.gateway.interface';
+import { CheckboxFiscalGateway, CheckboxReceiptType } from './checkbox-fiscal-gateway';
 
 
 export type { BookAppointmentDeps };
