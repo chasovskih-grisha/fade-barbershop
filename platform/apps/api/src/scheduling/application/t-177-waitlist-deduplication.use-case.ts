@@ -6,11 +6,10 @@
  * their visit history is properly tracked for priority scoring.
  */
 
-import { inject, injectable } from 'inversify';
 import { WaitlistQueue } from '../../domain/waitlist-queue';
 import { ClientRepository } from '../../../clients/domain/repositories';
 import { AppointmentRepository } from '../../domain/repositories';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 /**
  * Interface for deduplication check input
@@ -39,12 +38,11 @@ export interface DeduplicationCheckResult {
  * Ensures clients don't receive duplicate waitlist entries and
  * integrates with client visit history for better priority scoring.
  */
-@injectable()
 export class T177WaitlistDeduplicationUseCase {
   constructor(
-    @inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
-    @inject(ClientRepository) private clientRepo: ClientRepository,
-    @inject(AppointmentRepository) private appointmentRepo: AppointmentRepository
+    private waitlistQueue: WaitlistQueue,
+    private clientRepo: ClientRepository,
+    private appointmentRepo: AppointmentRepository
   ) {}
 
   /**
@@ -109,7 +107,7 @@ export class T177WaitlistDeduplicationUseCase {
     }
 
     // Create new waitlist entry
-    const entryId = uuidv4();
+    const entryId = randomUUID();
     const now = new Date();
 
     await this.waitlistQueue.addEntry({

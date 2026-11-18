@@ -5,7 +5,7 @@
 import { prisma } from '../index';
 import { Appointment, Service, ClientProfile } from '../domain';
 import { DiscountInput, calculateDiscounts, AppliedDiscount, PriceBreakdown } from '../discounts/domain/discount-calculator';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 /** Discount Rule types — consolidated from T-153 enum. */
 export enum DiscountRuleType {
@@ -293,7 +293,7 @@ export async function createAuditLog(
 ): Promise<{ success: boolean; logEntry: any }> {
   const logEntry = await prisma.discountAuditLog.create({
     data: {
-      id: uuidv4(),
+      id: randomUUID(),
       discount_id: discountId,
       discount_type: discountType,
       action,

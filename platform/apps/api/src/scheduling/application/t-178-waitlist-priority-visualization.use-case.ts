@@ -6,10 +6,9 @@
  * from T-172 and waitlist infrastructure.
  */
 
-import { inject, injectable } from 'inversify';
 import { WaitlistQueue } from '../../domain/waitlist-queue';
 import { ClientRepository } from '../../../clients/domain/repositories';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 /**
  * Interface for priority visualization data
@@ -42,11 +41,10 @@ export interface PriorityExportRequest {
  * Provides priority score calculation, visualization data, and export
  * capabilities (CSV/PDF) for admin dashboards and client reporting.
  */
-@injectable()
 export class T178WaitlistPriorityVisualizationUseCase {
   constructor(
-    @inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
-    @inject(ClientRepository) private clientRepo: ClientRepository
+    private waitlistQueue: WaitlistQueue,
+    private clientRepo: ClientRepository
   ) {}
 
   /**

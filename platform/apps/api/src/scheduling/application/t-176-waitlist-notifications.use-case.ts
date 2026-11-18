@@ -6,11 +6,10 @@
  * from T-170/T-171/T-172/T-173/T-174/T-175.
  */
 
-import { inject, injectable } from 'inversify';
 import { WaitlistQueue } from '../../domain/waitlist-queue';
 import { ClientRepository } from '../../../clients/domain/repositories';
 import { ExpoPushSender } from '../../../notifications/infrastructure/expo-push-sender';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 /**
  * Interface for slot acceptance input
@@ -39,12 +38,11 @@ export interface SlotAcceptanceResult {
  * for waitlist clients. When a slot becomes available, clients can accept or decline,
  * and the system handles the waitlist cascade logic.
  */
-@injectable()
 export class T176WaitlistNotificationsUseCase {
   constructor(
-    @inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
-    @inject(ClientRepository) private clientRepo: ClientRepository,
-    @inject(ExpoPushSender) private pushSender: ExpoPushSender
+    private waitlistQueue: WaitlistQueue,
+    private clientRepo: ClientRepository,
+    private pushSender: ExpoPushSender
   ) {}
 
   /**
@@ -67,7 +65,7 @@ export class T176WaitlistNotificationsUseCase {
 
     if (accept) {
       // Create appointment from the accepted slot
-      const appointmentId = uuidv4();
+      const appointmentId = randomUUID();
       const now = new Date();
 
       await this.waitlistQueue.markSlotAsBooked(slotId);

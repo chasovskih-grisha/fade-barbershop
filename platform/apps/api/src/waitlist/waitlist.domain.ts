@@ -1,6 +1,6 @@
 import { prisma } from '../index';
 import { Location, Service, Booking, AppointmentParty } from '../domain';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 /** Waitlist Entry Configuration (ADR 0012) */
 export enum WaitlistEntryStatus {

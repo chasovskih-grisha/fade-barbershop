@@ -1,7 +1,6 @@
 import { Booking, BookingRepository } from '../domain/booking';
 import { RefundEntity, RefundStatus, RefundReason } from '../../payment/domain/refund.entity';
 import { T094Refund } from '../../payment/application/refund.use-case';
-import { useFonts, OpenSans } from '@expo-google-fonts/open-sans';
 import { usePush } from '../../../../lib/notifications';
 import type { RefundMetadata } from '../../payment/domain/refund.entity';
 

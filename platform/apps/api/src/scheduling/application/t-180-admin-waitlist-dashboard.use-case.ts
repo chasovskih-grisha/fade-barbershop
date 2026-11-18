@@ -7,10 +7,9 @@
  * T-170/T-171/T-172/T-173/T-174/T-175/T-176/T-177/W-178/W-179.
  */
 
-import { inject, injectable } from 'inversify';
 import { WaitlistQueue } from '../../domain/waitlist-queue';
 import { ClientRepository } from '../../../clients/domain/repositories';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 /**
  * Interface for waitlist configuration input
@@ -40,11 +39,10 @@ export interface WaitlistConfigurationResult {
  * real-time monitoring, and control over waitlist operations
  * across all shop locations.
  */
-@injectable()
 export class T180AdminWaitlistDashboardUseCase {
   constructor(
-    @inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
-    @inject(ClientRepository) private clientRepo: ClientRepository
+    private waitlistQueue: WaitlistQueue,
+    private clientRepo: ClientRepository
   ) {}
 
   /**

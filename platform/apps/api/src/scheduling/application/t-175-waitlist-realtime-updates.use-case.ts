@@ -6,10 +6,9 @@
  * from T-170/T-171/T-172/T-173.
  */
 
-import { inject, injectable } from 'inversify';
 import { WaitlistQueue } from '../../domain/waitlist-queue';
 import { ClientRepository } from '../../../clients/domain/repositories';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 /**
  * Interface for real-time waitlist update input
@@ -47,11 +46,10 @@ export interface RealTimeWaitlistUpdateResult {
  * Provides pull-to-refresh and real-time waitlist status updates for mobile clients,
  * showing current position, estimated wait time, available slots, and new queue entries.
  */
-@injectable()
 export class T175WaitlistRealTimeUpdatesUseCase {
   constructor(
-    @inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
-    @inject(ClientRepository) private clientRepo: ClientRepository
+    private waitlistQueue: WaitlistQueue,
+    private clientRepo: ClientRepository
   ) {}
 
   /**

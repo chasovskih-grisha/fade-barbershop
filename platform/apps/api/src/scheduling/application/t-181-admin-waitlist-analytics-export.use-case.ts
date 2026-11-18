@@ -8,11 +8,10 @@
  * Admin interface for report selection and download.
  */
 
-import { inject, injectable } from 'inversify';
 import { WaitlistQueue } from '../../domain/waitlist-queue';
 import { ClientRepository } from '../../../clients/domain/repositories';
-import { v4 as uuidv4 } from 'uuid';
-import * as pdf from 'pdfkit';
+import { randomUUID } from 'node:crypto';
+import { PdfDocument } from '../../../lib/pdf-document';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -66,11 +65,10 @@ export interface PdfReportConfig {
  * Provides PDF/CSV report generation for waitlist performance metrics,
  * enabling administrators to download analytical reports on waitlist operations.
  */
-@injectable()
 export class T181AdminWaitlistAnalyticsExportUseCase {
   constructor(
-    @inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
-    @inject(ClientRepository) private clientRepo: ClientRepository
+    private waitlistQueue: WaitlistQueue,
+    private clientRepo: ClientRepository
   ) {}
 
   /**
@@ -98,10 +96,10 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
     const metrics = this.calculateMetrics(filteredHolds, filter.reportType);
 
     // Generate PDF
-    const fileName = `waitlist-analytics-${filter.reportType}-${uuidv4()}.pdf`;
+    const fileName = `waitlist-analytics-${filter.reportType}-${randomUUID()}.pdf`;
     const filePath = path.join('/tmp', fileName);
 
-    const doc = new pdf.default({
+    const doc = new PdfDocument({
       margin: 50,
       size: 'A4'
     });

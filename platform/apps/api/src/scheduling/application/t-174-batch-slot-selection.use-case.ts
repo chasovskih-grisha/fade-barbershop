@@ -5,11 +5,10 @@
  * building on the existing waitlist infrastructure from T-170/T-171/T-172/T-173.
  */
 
-import { inject, injectable } from 'inversify';
 import { AppointmentRepository } from '../../domain/repositories';
 import { WaitlistQueue } from '../../domain/waitlist-queue';
 import { ClientRepository } from '../../../clients/domain/repositories';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 /**
  * Interface for batch slot selection input
@@ -56,12 +55,11 @@ export interface GroupBookingInput {
  * Provides batch slot selection for waitlist clients and supports group bookings
  * where multiple clients can be scheduled with the same barber in consecutive slots.
  */
-@injectable()
 export class T174BatchSlotSelectionUseCase {
   constructor(
-    @inject(AppointmentRepository) private appointmentRepo: AppointmentRepository,
-    @inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
-    @inject(ClientRepository) private clientRepo: ClientRepository
+    private appointmentRepo: AppointmentRepository,
+    private waitlistQueue: WaitlistQueue,
+    private clientRepo: ClientRepository
   ) {}
 
   /**
@@ -135,7 +133,7 @@ export class T174BatchSlotSelectionUseCase {
     // Create individual bookings for each group member
     for (let i = 0; i < groupSize; i++) {
       const slotTime = new Date(Date.now() + i * 30 * 60 * 1000); // incremental times
-      const bookingId = uuidv4();
+      const bookingId = randomUUID();
 
       await this.appointmentRepo.create({
         id: bookingId,

@@ -6,7 +6,7 @@
 import { prisma } from '../../index';
 import { Appointment, Booking, Service, ClientProfile } from '../domain';
 import { DiscountInput, calculateDiscounts, AppliedDiscount, PriceBreakdown, DiscountSource } from '../discounts/domain/discount-calculator';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 /** Result of applying discounts to an appointment. */
 export interface ApplyDiscountResult {

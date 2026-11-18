@@ -8,10 +8,9 @@
  * Dependencies: T-160 no-show policy, T-172 priority scoring, T-181 analytics export.
  */
 
-import { inject, injectable } from 'inversify';
 import { WaitlistQueue } from '../../domain/waitlist-queue';
 import { ClientRepository } from '../../../clients/domain/repositories';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 /**
  * No-show risk level for waitlist clients
@@ -52,11 +51,10 @@ export interface NoShowWaitlistConfig {
  * integrating the no-show policy with waitlist operations to
  * prevent promoting high-risk clients and retain deposits appropriately.
  */
-@injectable()
 export class T182WaitlistNoShowIntegrationUseCase {
   constructor(
-    @inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
-    @inject(ClientRepository) private clientRepo: ClientRepository
+    private waitlistQueue: WaitlistQueue,
+    private clientRepo: ClientRepository
   ) {}
 
   /**
@@ -149,7 +147,7 @@ export class T182WaitlistNoShowIntegrationUseCase {
   }> {
     // Register the miss in the waitlist queue first
     const entry = await this.waitlistQueue.registerMiss({
-      id: uuidv4(),
+      id: randomUUID(),
       clientId,
       configuration: {} as any, // would be resolved from context
       waitingSince: new Date(),

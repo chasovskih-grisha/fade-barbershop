@@ -6,9 +6,8 @@
  * Builds on the waitlist infrastructure from T-170/T-171 and priority scoring from T-172.
  */
 
-import { inject, injectable } from 'inversify';
 import { WaitlistQueue } from '../../domain/waitlist-queue';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 /**
  * Interface for cascade metrics data
@@ -34,10 +33,9 @@ export interface CascadeMetricsData {
  * Provides analytics on waitlist cascade behavior, FIFO compliance,
  * and overall waitlist performance metrics for shop operators.
  */
-@injectable()
 export class T179WaitlistCascadeAnalyticsUseCase {
   constructor(
-    @inject(WaitlistQueue) private waitlistQueue: WaitlistQueue
+    private waitlistQueue: WaitlistQueue
   ) {}
 
   /**
