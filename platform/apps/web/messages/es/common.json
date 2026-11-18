@@ -1,0 +1,12 @@
+{
+  "appName": "FADE",
+  "welcome": "Bienvenido",
+  "loading": "Cargando...",
+  "error": "Error",
+  "save": "Guardar",
+  "cancel": "Cancelar",
+  "accessibility": "Accesibilidad",
+  "i18nEnhancement": "Mejora de Internacionalización y Localización",
+  "localeFormat": "Formato de Localidad y Moneda",
+  "specialist": "Especialista en Internacionalización y Localización"
+}

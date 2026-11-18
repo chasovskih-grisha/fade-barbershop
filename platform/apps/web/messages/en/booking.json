@@ -1,0 +1,8 @@
+{
+  "title": "Online Booking",
+  "step": "Step {step} of {total}",
+  "next": "Next",
+  "back": "Back",
+  "confirm": "Confirm",
+  "visits": "{count, plural, one {# visit} few {# visits} many {# visits} other {# visits}}"
+}

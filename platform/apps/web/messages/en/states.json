@@ -1,0 +1,16 @@
+{
+  "loading": "Loading...",
+  "empty": "No results found",
+  "offline": "You are offline",
+  "retry": "Try again",
+  "errorTitle": "Failed to load data",
+  "offlineTitle": "No internet connection",
+  "offlineDescription": "Bookings and prices may not update. Try again when the network returns.",
+  "supportLink": "Contact support on Telegram →",
+  "geoDenied": "Location is blocked — we will show all studios as a list.",
+  "geoUnavailable": "Could not determine your location — pick a studio from the list.",
+  "yourCity": "Your city: {city}",
+  "reset": "Reset",
+  "nearestFirst": "Nearest to you first.",
+  "showAll": "Show all"
+}

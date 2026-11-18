@@ -1,0 +1,56 @@
+{
+  "common": {
+    "appName": "FADE",
+    "bookNow": "Записатися",
+    "loading": "Завантаження...",
+    "error": "Сталася помилка",
+    "visits": "{count, plural, =0 {0 візитів} one {# візит} few {# візити} many {# візитів} other {# візити}}"
+  },
+  "shell": {
+    "nav": {
+      "home": "Головна",
+      "services": "Послуги",
+      "barbers": "Барбери",
+      "locations": "Локації",
+      "blog": "Блог",
+      "contacts": "Контакти"
+    }
+  },
+  "locations": {
+    "title": "Наші локації"
+  },
+  "services": {
+    "title": "Послуги та ціни"
+  },
+  "barbers": {
+    "title": "Наші барбери"
+  },
+  "blog": {
+    "title": "Блог"
+  },
+  "booking": {
+    "title": "Онлайн-запис",
+    "selectLocation": "Виберіть локацію",
+    "selectService": "Виберіть послугу",
+    "selectBarber": "Виберіть барбера",
+    "selectTime": "Виберіть час"
+  },
+  "account": {
+    "title": "Особистий кабінет"
+  },
+  "login": {
+    "title": "Вхід за телефоном",
+    "phoneLabel": "Номер телефону",
+    "codeLabel": "Код з SMS"
+  },
+  "states": {
+    "offline": "Ви офлайн. Перевірте з'єднання.",
+    "empty": "Нічого не знайдено"
+  },
+  "errors": {
+    "generic": "Щось пішло не так. Спробуйте пізніше."
+  },
+  "shop": {
+    "title": "Магазин"
+  }
+}

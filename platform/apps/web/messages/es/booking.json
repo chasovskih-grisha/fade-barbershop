@@ -1,0 +1,8 @@
+{
+  "title": "Reserva Online",
+  "step": "Paso {step} de {total}",
+  "next": "Siguiente",
+  "back": "Atrás",
+  "confirm": "Confirmar",
+  "visits": "{count, plural, one {# visita} other {# visitas}}"
+}

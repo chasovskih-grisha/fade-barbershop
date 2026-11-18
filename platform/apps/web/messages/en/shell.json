@@ -1,0 +1,14 @@
+{
+  "nav": {
+    "home": "Home",
+    "locations": "Locations",
+    "services": "Services",
+    "barbers": "Barbers",
+    "blog": "Blog",
+    "booking": "Book Now",
+    "account": "Account"
+  },
+  "footer": {
+    "rights": "All rights reserved"
+  }
+}

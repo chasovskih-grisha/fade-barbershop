@@ -1,0 +1,9 @@
+{
+  "title": "Services & Prices",
+  "duration": "{minutes} min",
+  "price": "{amount} ₴",
+  "bookNow": "Book Now",
+  "category": "Category",
+  "popular": "Popular",
+  "details": "View Details"
+}

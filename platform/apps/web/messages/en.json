@@ -1,0 +1,56 @@
+{
+  "common": {
+    "appName": "FADE",
+    "bookNow": "Book Now",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "visits": "{count, plural, =0 {0 visits} one {# visit} other {# visits}}"
+  },
+  "shell": {
+    "nav": {
+      "home": "Home",
+      "services": "Services",
+      "barbers": "Barbers",
+      "locations": "Locations",
+      "blog": "Blog",
+      "contacts": "Contacts"
+    }
+  },
+  "locations": {
+    "title": "Our Locations"
+  },
+  "services": {
+    "title": "Services & Prices"
+  },
+  "barbers": {
+    "title": "Our Barbers"
+  },
+  "blog": {
+    "title": "Blog"
+  },
+  "booking": {
+    "title": "Online Booking",
+    "selectLocation": "Select Location",
+    "selectService": "Select Service",
+    "selectBarber": "Select Barber",
+    "selectTime": "Select Time"
+  },
+  "account": {
+    "title": "Account"
+  },
+  "login": {
+    "title": "Phone Sign In",
+    "phoneLabel": "Phone Number",
+    "codeLabel": "SMS Code"
+  },
+  "states": {
+    "offline": "You are offline. Check your connection.",
+    "empty": "Nothing found"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again later."
+  },
+  "shop": {
+    "title": "Shop"
+  }
+}

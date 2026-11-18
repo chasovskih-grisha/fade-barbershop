@@ -1,0 +1,8 @@
+{
+  "title": "Онлайн-запис",
+  "step": "Крок {step} з {total}",
+  "next": "Далі",
+  "back": "Назад",
+  "confirm": "Підтвердити",
+  "visits": "{count, plural, one {# візит} few {# візити} many {# візитів} other {# візитів}}"
+}

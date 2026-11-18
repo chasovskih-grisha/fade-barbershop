@@ -1,0 +1,9 @@
+{
+  "title": "Послуги та ціни",
+  "duration": "{minutes} хв",
+  "price": "{amount} ₴",
+  "bookNow": "Записатися",
+  "category": "Категорія",
+  "popular": "Популярні",
+  "details": "Детальніше"
+}
