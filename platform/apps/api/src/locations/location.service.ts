@@ -137,21 +137,15 @@ export class LocationService {
   }
 
   /** Toggle franchise/chain mode */
-  async toggleFranchiseMode(enabled: boolean, adminId: string): Promise<AppSetting> {
+  async toggleFranchiseMode(enabled: boolean, adminId: string): Promise<{ enabled: boolean; adminId: string; timestamp: string }> {
     const key = 'franchise.mode';
-    return prisma.appSetting.upsert({
+    const [setting] = await prisma.appSetting.findOrCreate({
       where: { key },
-      update: {
-        value: { enabled, adminId, timestamp: new Date().toISOString() },
-        updatedAt: new Date(),
-      },
-      create: {
-        key,
-        value: { enabled, adminId, timestamp: new Date().toISOString() },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
+      defaults: { key, value: { enabled, adminId, timestamp: new Date().toISOString() } },
     });
+    setting.value = { enabled, adminId, timestamp: new Date().toISOString() };
+    await setting.update({ data: { value: { enabled, adminId, timestamp: new Date().toISOString() }, updatedAt: new Date() } });
+    return { enabled, adminId: setting.value.adminId, timestamp: setting.value.timestamp };
   }
 
   /** Get franchise mode setting */

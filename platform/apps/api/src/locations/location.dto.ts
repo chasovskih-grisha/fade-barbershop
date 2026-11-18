@@ -38,25 +38,16 @@ export class UpdateLocationInput {
 
 // Franchise mode toggle input
 export class ToggleFranchiseModeInput {
-  @IdempotencyKey()
   enabled: boolean;
   adminId: string;
 }
 
 // Location output DTOs
-export class LocationBasicOutput {
+export class LocationOutput {
   id: string;
   code: string;
   name: string;
   address: string;
-  phone: string;
-  email: string;
-  active: boolean;
-  chairsCount: number;
-  createdAt: Date;
-}
-
-export class LocationOutput extends LocationBasicOutput {
   street?: string;
   building?: string;
   city?: string;
