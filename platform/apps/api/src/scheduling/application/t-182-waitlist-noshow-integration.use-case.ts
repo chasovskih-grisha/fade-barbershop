@@ -10,7 +10,7 @@
 
 import { WaitlistQueue } from '../../domain/waitlist-queue';
 import { ClientRepository } from '../../../clients/domain/repositories';
-import { randomUUID } from 'node:crypto';
+import { uuidv7 } from '@fade/domain-shared';
 
 /**
  * No-show risk level for waitlist clients
@@ -147,7 +147,7 @@ export class T182WaitlistNoShowIntegrationUseCase {
   }> {
     // Register the miss in the waitlist queue first
     const entry = await this.waitlistQueue.registerMiss({
-      id: randomUUID(),
+      id: uuidv7(),
       clientId,
       configuration: {} as any, // would be resolved from context
       waitingSince: new Date(),

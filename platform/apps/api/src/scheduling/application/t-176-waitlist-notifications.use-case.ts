@@ -9,7 +9,7 @@
 import { WaitlistQueue } from '../../domain/waitlist-queue';
 import { ClientRepository } from '../../../clients/domain/repositories';
 import { ExpoPushSender } from '../../../notifications/infrastructure/expo-push-sender';
-import { randomUUID } from 'node:crypto';
+import { uuidv7 } from '@fade/domain-shared';
 
 /**
  * Interface for slot acceptance input
@@ -65,7 +65,7 @@ export class T176WaitlistNotificationsUseCase {
 
     if (accept) {
       // Create appointment from the accepted slot
-      const appointmentId = randomUUID();
+      const appointmentId = uuidv7();
       const now = new Date();
 
       await this.waitlistQueue.markSlotAsBooked(slotId);

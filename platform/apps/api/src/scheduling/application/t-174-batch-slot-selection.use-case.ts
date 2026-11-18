@@ -8,7 +8,7 @@
 import { AppointmentRepository } from '../../domain/repositories';
 import { WaitlistQueue } from '../../domain/waitlist-queue';
 import { ClientRepository } from '../../../clients/domain/repositories';
-import { randomUUID } from 'node:crypto';
+import { uuidv7 } from '@fade/domain-shared';
 
 /**
  * Interface for batch slot selection input
@@ -133,7 +133,7 @@ export class T174BatchSlotSelectionUseCase {
     // Create individual bookings for each group member
     for (let i = 0; i < groupSize; i++) {
       const slotTime = new Date(Date.now() + i * 30 * 60 * 1000); // incremental times
-      const bookingId = randomUUID();
+      const bookingId = uuidv7();
 
       await this.appointmentRepo.create({
         id: bookingId,

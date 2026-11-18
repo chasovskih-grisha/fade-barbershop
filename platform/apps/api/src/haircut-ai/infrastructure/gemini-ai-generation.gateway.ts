@@ -2,7 +2,7 @@
 // generateContent синхронний, тож submit() стартує роботу і одразу повертає handle,
 // а poll() віддає processing, доки варіанти не ляжуть у НАШ бакет.
 
-import { randomUUID } from 'node:crypto';
+import { uuidv7 } from '@fade/domain-shared';
 import type {
   AiGenerationGateway,
   AiGenerationPoll,
@@ -27,7 +27,7 @@ export class GeminiAiGenerationGateway implements AiGenerationGateway {
   ) {}
 
   async submit(request: AiGenerationRequest): Promise<{ jobHandle: string }> {
-    const jobHandle = `gemini-${randomUUID()}`;
+    const jobHandle = `gemini-${uuidv7()}`;
     this.jobs.set(jobHandle, { poll: { state: 'processing' } });
     void this.run(jobHandle, request);
     return { jobHandle };

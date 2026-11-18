@@ -11,7 +11,7 @@
 //   AI_FAKE_FAIL_REASON=unknown — invalid_photo|provider_timeout|provider_quota|unknown
 
 import { Injectable } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { uuidv7 } from '@fade/domain-shared';
 import type {
   AiGenerationGateway,
   AiGenerationPoll,
@@ -45,7 +45,7 @@ export class FakeAiGenerationGateway implements AiGenerationGateway {
   }
 
   async submit(request: AiGenerationRequest): Promise<{ jobHandle: string }> {
-    const jobHandle = `fake-job-${randomUUID()}`;
+    const jobHandle = `fake-job-${uuidv7()}`;
     this.jobs.set(jobHandle, {
       pollsLeft: this.polls,
       variantCount: request.variantCount,

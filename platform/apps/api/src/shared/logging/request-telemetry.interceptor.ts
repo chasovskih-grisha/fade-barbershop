@@ -1,7 +1,7 @@
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { randomUUID } from 'node:crypto';
+import { uuidv7 } from '@fade/domain-shared';
 
 @Injectable()
 export class RequestTelemetryInterceptor implements NestInterceptor {
@@ -15,7 +15,7 @@ export class RequestTelemetryInterceptor implements NestInterceptor {
     const start = Date.now();
 
     const incomingHeader = headers && (headers['x-request-id'] || headers['x-correlation-id']);
-    const requestId = typeof incomingHeader === 'string' ? incomingHeader : randomUUID();
+    const requestId = typeof incomingHeader === 'string' ? incomingHeader : uuidv7();
 
     if (response && typeof response.setHeader === 'function') {
       response.setHeader('X-Request-Id', requestId);

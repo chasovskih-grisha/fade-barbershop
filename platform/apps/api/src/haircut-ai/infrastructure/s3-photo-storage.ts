@@ -5,7 +5,7 @@
 import { Injectable } from '@nestjs/common';
 import { PutObjectCommand, S3Client, GetObjectCommand, DeleteObjectsCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { randomUUID } from 'node:crypto';
+import { uuidv7 } from '@fade/domain-shared';
 import type { PhotoStorage, StoredPhotoMeta } from '../domain/ports';
 
 const BUCKET = 'haircut-ai-photos';
@@ -37,7 +37,7 @@ export class S3PhotoStorage implements PhotoStorage {
     contentType: string;
     ownerId: string;
   }): Promise<StoredPhotoMeta> {
-    const objectKey = `${input.ownerId}/${new Date().toISOString().slice(0, 10)}/${randomUUID()}`;
+    const objectKey = `${input.ownerId}/${new Date().toISOString().slice(0, 10)}/${uuidv7()}`;
     // SSE-S3 (AES256) — для прод-провайдерів; MinIO без KMS відхиляє заголовок,
     // тому виставляється лише коли задано S3_SSE=1 (ADR 0008 §2: приватність —
     const sse = process.env.S3_SSE === '1' ? 'AES256' : undefined;

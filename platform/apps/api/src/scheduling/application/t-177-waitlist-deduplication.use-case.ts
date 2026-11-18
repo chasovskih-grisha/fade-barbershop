@@ -9,7 +9,7 @@
 import { WaitlistQueue } from '../../domain/waitlist-queue';
 import { ClientRepository } from '../../../clients/domain/repositories';
 import { AppointmentRepository } from '../../domain/repositories';
-import { randomUUID } from 'node:crypto';
+import { uuidv7 } from '@fade/domain-shared';
 
 /**
  * Interface for deduplication check input
@@ -107,7 +107,7 @@ export class T177WaitlistDeduplicationUseCase {
     }
 
     // Create new waitlist entry
-    const entryId = randomUUID();
+    const entryId = uuidv7();
     const now = new Date();
 
     await this.waitlistQueue.addEntry({

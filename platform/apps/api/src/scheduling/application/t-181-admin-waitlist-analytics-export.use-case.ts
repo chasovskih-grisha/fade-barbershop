@@ -10,7 +10,7 @@
 
 import { WaitlistQueue } from '../../domain/waitlist-queue';
 import { ClientRepository } from '../../../clients/domain/repositories';
-import { randomUUID } from 'node:crypto';
+import { uuidv7 } from '@fade/domain-shared';
 import { PdfDocument } from '../../../lib/pdf-document';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -96,7 +96,7 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
     const metrics = this.calculateMetrics(filteredHolds, filter.reportType);
 
     // Generate PDF
-    const fileName = `waitlist-analytics-${filter.reportType}-${randomUUID()}.pdf`;
+    const fileName = `waitlist-analytics-${filter.reportType}-${uuidv7()}.pdf`;
     const filePath = path.join('/tmp', fileName);
 
     const doc = new PdfDocument({
