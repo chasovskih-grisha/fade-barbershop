@@ -24,14 +24,12 @@ export type ActorInput = { actorId?: string; actorRole?: string };
 /** Спільний базис усіх подій агрегату: id/учасники/слот/час події. */
 export function appointmentEventInput(
   data: AppointmentData,
-  occurredAt: Date,
-  clientId?: string
+  occurredAt: Date
 ): AppointmentEventInput {
   return {
     appointmentId: data.id,
     locationId: data.locationId,
     barberId: data.barberId,
-    clientId: clientId ?? undefined,
     occurredAt,
     start: data.start,
     end: data.end,

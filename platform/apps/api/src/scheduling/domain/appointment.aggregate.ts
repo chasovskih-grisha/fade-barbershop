@@ -57,7 +57,7 @@ export class Appointment {
   startVisit(input: ActorInput, occurredAt: Date): void { this.transition('in_progress', new AppointmentStarted({ ...this.eventInput(occurredAt), ...input })); }
 
   // prettier-ignore
-  complete(occurredAt: Date, clientId?: string): void { this.transition('completed', new AppointmentCompleted(this.eventInput(occurredAt, clientId))); }
+  complete(occurredAt: Date): void { this.transition('completed', new AppointmentCompleted(this.eventInput(occurredAt))); }
 
   // prettier-ignore
   markNoShow(input: ActorInput, occurredAt: Date): void { this.transition('no_show', new AppointmentNoShowed({ ...this.eventInput(occurredAt), ...input })); }
@@ -93,8 +93,8 @@ export class Appointment {
     this.emit(event);
   }
 
-  private eventInput(occurredAt: Date, clientId?: string): AppointmentEventInput {
-    return appointmentEventInput(this.data, occurredAt, clientId);
+  private eventInput(occurredAt: Date): AppointmentEventInput {
+    return appointmentEventInput(this.data, occurredAt);
   }
 
   /** Перевірка чи візит у живому статусі. */

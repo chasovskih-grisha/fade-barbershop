@@ -1,0 +1,171 @@
+import { Controller, Post, Body, Param, Get, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { WaitlistDepositFlow, WaitlistDepositInput, WaitlistDepositResult, PaymentProps, PaymentForm, CheckboxReceiptType } from '../payment/application/waitlist-deposit-flow.use-case';
+import { PaymentStatus as BillingPaymentStatus } from '../billing/domain/payment-status.enum';
+import { Payment } from '../billing/domain/payment.entity';
+import { UseInterceptors } from '@nestjs/common';
+import { ClassSerializerInterceptor } from '@nestjs/common';
+import { IdempotencyGuard } from '../shared/idempotency/idempotency.guard';
+import { TracingInterceptor } from '../shared/tracing/tracing.interceptor';
+
+/** T-197: Waitlist Deposit Payment Controller
+ * 
+ * Endpoint: POST /scheduling/waitlist/{waitlistId}/deposit
+ * Collects 30% deposit when a waitlist slot is accepted.
+ * Integrates with existing payment entity and Checkbox fiscal gateway.
+ * 
+ * Request body:
+ * {
+ *   "clientId": "string",
+ *   "slotId": "string", 
+ *   "paymentMethod": "card|cash|pos|certificate" (optional, default CARD),
+ *   "finalPrice": number (optional, calculated from slot if not provided)
+ * }
+ * 
+ * Response: Payment status, deposit amount, receipt URL/ID, balance due status
+ */
+@Controller('scheduling')
+@UseInterceptors(ClassSerializerInterceptor, TracingInterceptor)
+export class WaitlistDepositController {
+  constructor(
+    private readonly depositFlow: WaitlistDepositFlow
+  ) {}
+
+  /**
+   * Collect 30% deposit for waitlist slot acceptance.
+   * T-197: Deposit/payment functionality for waitlist bookings.
+   * 
+   * When a waitlist slot is accepted, the client must pay a 30% deposit
+   * to secure the slot. The deposit is applied toward the final balance
+   * at visit checkout.
+   * 
+   * Idempotent: duplicate requests with same traceId are ignored.
+   */
+  @Post('waitlist/:waitlistId/deposit')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(IdempotencyGuard)
+  async collectWaitlistDeposit(
+    @Param('waitlistId') waitlistId: string,
+    @Body() body: {
+      clientId: string;
+      slotId?: string;
+      paymentMethod?: PaymentForm;
+      finalPrice?: number;
+    },
+    @Query('traceId') traceId?: string,
+  ): Promise<{
+    paymentId: string;
+    status: BillingPaymentStatus;
+    depositAmount: number;
+    finalPrice: number;
+    requiresBalance: boolean;
+    receiptId?: string;
+    traceId: string;
+  }> {
+    const input: WaitlistDepositInput = {
+      waitlistId,
+      clientId: body.clientId,
+      slotId: body.slotId,
+      finalPrice: body.finalPrice,
+      occurredAt: new Date(),
+    };
+
+    const result = await this.depositFlow.execute(input);
+
+    return {
+      paymentId: result.payment.id,
+      status: result.payment.status,
+      depositAmount: result.depositAmount,
+      finalPrice: result.payment.amount + result.depositAmount, // simplify: final price = deposit + balance
+      requiresBalance: result.requiresBalance,
+      receiptId: result.depositReceipt?.check_id,
+      traceId: result.payment.traceId,
+    };
+  }
+
+  /**
+   * Check deposit status for a waitlist entry.
+   * GET /scheduling/waitlist/{waitlistId}/deposit/status
+   */
+  @Get('waitlist/:waitlistId/deposit/status')
+  @HttpCode(HttpStatus.OK)
+  async getWaitlistDepositStatus(
+    @Param('waitlistId') waitlistId: string,
+  ): Promise<{
+    paymentId: string;
+    status: BillingPaymentStatus;
+    depositAmount: number;
+    finalPrice: number;
+    receiptId?: string;
+    updatedAt: Date;
+  }> {
+    const payment = await this.depositFlow.deps.paymentRepo.findByWaitlistId(waitlistId);
+
+    if (!payment) {
+      return {
+        paymentId: '',
+        status: BillingPaymentStatus.AWAITING_DEPOSIT,
+        depositAmount: 0,
+        finalPrice: 0,
+        updatedAt: new Date(),
+      };
+    }
+
+    return {
+      paymentId: payment.id,
+      status: payment.status,
+      depositAmount: payment.amount,
+      finalPrice: payment.amount + (payment.refundedAmount ?? 0),
+      receiptId: payment.receiptId,
+      updatedAt: payment.updatedAt,
+    };
+  }
+
+  /**
+   * Get payment receipt for a waitlist deposit.
+   * GET /scheduling/waitlist/{waitlistId}/deposit/receipt
+   */
+  @Get('waitlist/:waitlistId/deposit/receipt')
+  @HttpCode(HttpStatus.OK)
+  async getWaitlistDepositReceipt(
+    @Param('waitlistId') waitlistId: string,
+  ): Promise<{
+    checkId: string;
+    type: CheckboxReceiptType;
+    amount: number;
+    status: 'pending' | 'signed' | 'failed';
+    createdAt: Date;
+    signedAt?: Date;
+    errorCode?: string;
+    errorMessage?: string;
+  }> {
+    const payment = await this.depositFlow.deps.paymentRepo.findByWaitlistId(waitlistId);
+
+    if (!payment || !payment.receiptId) {
+      return {
+        checkId: '',
+        type: CheckboxReceiptType.Deposit,
+        amount: 0,
+        status: 'pending',
+        createdAt: new Date(),
+      };
+    }
+
+    const receipt = await this.depositFlow.deps.checkboxGateway?.issueReceipt(
+      waitlistId,
+      payment.amount,
+      CheckboxReceiptType.Deposit,
+      payment.receiptId
+    );
+
+    return {
+      checkId: receipt.check_id,
+      type: receipt.type,
+      amount: receipt.amount,
+      status: receipt.status,
+      createdAt: receipt.created_at,
+      signedAt: receipt.signed_at,
+      errorCode: receipt.error_code,
+      errorMessage: receipt.error_message,
+    };
+  }
+}

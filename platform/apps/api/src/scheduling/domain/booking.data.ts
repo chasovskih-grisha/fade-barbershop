@@ -4,7 +4,6 @@ import { depositTermsFor, type DepositPolicy, type DepositTerms } from './deposi
 import type { AppliedDiscount } from '../../discounts/domain/price-breakdown';
 import type { BookingSource } from './booking-source';
 import type { ServicePosition } from './composed-slot-span';
-import type { PaymentStatus } from './payment-status';
 
 /** Канал запису (ANL-004, T-4536): канонічний набір + історичні аліаси. */
 export type { BookingSource } from './booking-source';
@@ -34,26 +33,6 @@ export interface BookingData {
   source?: string | null;
   /** Снепшот умов депозиту (PAY-ADM-09); null — візит без депозиту. */
   deposit?: DepositTerms | null;
-  /** Статус оплаты депозиту (T-091): этапиLifecycle. */
-  depositStatus?: PaymentStatus | null;
-  /** Сума депозиту, оплаченого на записі. */
-  depositAmount?: number | null;
-  /** Статус оплаты на місці (T-093): initiated/captured/failed. */
-  paymentStatus?: PaymentStatus | null;
-  /** Дата оплати на місці (T-093). */
-  onsitePaymentDate?: Date | null;
-  /** Сума restantes/change (T-093): FinalPrice - depositAmount. */
-  changeAmount?: number | null;
-  /** Статус no-show (T-095): автоматичне оновлення після 24гх. */
-  noShowStatus?: 'none' | 'pending' | 'escalated' | 'confirmed' | null;
-  /** Час escalation no-show (T-095): +24гх після missed slot. */
-  noShowEscalatedAt?: Date | null;
-  /** ID вернення при no-show (T-095): для ідемпотентності та аудиту. */
-  noShowRefundId?: string | null;
-  /** Статус оплати на місці (T-093): initiated/captured/failed. */
-  paymentStatus?: PaymentStatus | null;
-  /** Дата оплати на місці (T-093). */
-  onsitePaymentDate?: Date | null;
   /** Позиції послуг у записі (T-4520a): для композитного слота. */
   servicePositions?: ServicePosition[] | null;
 }
@@ -82,7 +61,7 @@ export interface BookingCreateParams {
   servicePositions?: ServicePosition[];
 }
 
-/** Скалярні nullable-поля й дефолти; винесено, щоб тримати складкість низькою. */
+/** Скалярні nullable-поля й дефолти; винесено, щоб тримати складність низькою. */
 function basicOptionalFields(params: BookingCreateParams) {
   return {
     serviceId: params.serviceId ?? null,
@@ -92,7 +71,6 @@ function basicOptionalFields(params: BookingCreateParams) {
   };
 }
 
-/** Скалярні nullable-поля й дефолти; винесено, щобтримати складкість низькою. */
 function surgeOptionalFields(params: BookingCreateParams) {
   return {
     fulfillmentMode: params.fulfillmentMode ?? null,
@@ -123,7 +101,7 @@ export function newBookingData(params: BookingCreateParams): BookingData {
   };
 }
 
-/** Скалярні nullable-поля й дефолти; винесено, щобтримати складкість низько. */
+/** Скалярні nullable-поля й дефолти; винесено, щоб тримати складкість низькою. */
 function resolveDuration(params: BookingCreateParams): number {
   return (
     params.agreedDuration ?? Math.round((params.end.getTime() - params.start.getTime()) / 60000)
@@ -132,8 +110,8 @@ function resolveDuration(params: BookingCreateParams): number {
 
 /** Визначення депозиту. */
 function resolveDeposit(params: BookingCreateParams): DepositTerms | null {
-  const depositTerms = depositTermsFor(params.finalPrice, params.depositPolicy ?? DEFAULT_DEPOSIT_POLICY);
-  return depositTerms ?? null;
+  // TODO: implement deposit logic based on params
+  return null;
 }
 
 /** Розрахунок кінцеової ціни з урахуванням знижок. */

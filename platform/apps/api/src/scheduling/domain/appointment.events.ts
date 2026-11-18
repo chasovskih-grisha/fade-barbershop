@@ -8,7 +8,6 @@ export interface AppointmentEventInput {
   appointmentId: string;
   locationId: string;
   barberId: string;
-  clientId: string;
   occurredAt?: Date;
   start?: string;
   end?: string;
@@ -88,7 +87,7 @@ export class AppointmentCompleted extends AppointmentEvent {
   readonly type = 'scheduling.appointment.completed';
   // prettier-ignore
   constructor(input: AppointmentEventInput) {
-    super(input, { appointmentId: input.appointmentId, locationId: input.locationId, barberId: input.barberId, clientId: input.clientId });
+    super(input, { appointmentId: input.appointmentId, locationId: input.locationId, barberId: input.barberId });
   }
 }
 
