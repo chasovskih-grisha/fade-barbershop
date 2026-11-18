@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BarberStep card (T-4610b) картка барбера з фото — снапшот 1`] = `
+<div
+  aria-pressed="false"
+  class="rounded-card border border-line bg-surface-raised text-fg p-4 cursor-pointer transition-colors hover:border-line-strong hover:bg-surface-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue p-4 flex items-center gap-4 "
+  role="button"
+  tabindex="0"
+>
+  <img
+    alt="Олексій, барбер"
+    class="w-12 h-12 rounded-full object-cover"
+    height="96"
+    loading="lazy"
+    src="https://media.test/barbers/b1.webp"
+    width="96"
+  />
+  <div
+    class="flex flex-col"
+  >
+    <h3
+      class="font-text text-h4 font-semibold"
+    >
+      Олексій
+    </h3>
+    <span
+      class="text-xs text-fg-secondary mt-0.5"
+    >
+      Сіті Лейк
+    </span>
+  </div>
+</div>
+`;
