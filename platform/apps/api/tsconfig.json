@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "node16",
+    "moduleResolution": "node16",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false,
+    "composite": true,
+    "paths": {
+      "@fade/contracts": ["../../packages/contracts/src"],
+      "@fade/domain-shared": ["../../packages/domain-shared/src"],
+      "@fade/test-utils": ["../../packages/test-utils/src"]
+    }
+  },
+  "references": [
+    { "path": "../../packages/contracts" },
+    { "path": "../../packages/domain-shared" },
+    { "path": "../../packages/test-utils" }
+  ],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
+}

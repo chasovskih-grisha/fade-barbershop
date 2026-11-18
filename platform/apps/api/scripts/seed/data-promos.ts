@@ -1,0 +1,40 @@
+import { id } from './db';
+
+export const PROMO_CODES = [
+  {
+    id: id('promo_welcome10'),
+    code: 'WELCOME10',
+    discountPercent: 10,
+    discountAmount: null,
+    minOrderAmount: 300,
+    maxUses: 1000,
+    currentUses: 42,
+    validFrom: new Date(Date.now() - 86400000 * 30),
+    validUntil: new Date(Date.now() + 86400000 * 90),
+    active: true,
+  },
+  {
+    id: id('promo_vip20'),
+    code: 'VIP20',
+    discountPercent: 20,
+    discountAmount: null,
+    minOrderAmount: 800,
+    maxUses: 100,
+    currentUses: 15,
+    validFrom: new Date(Date.now() - 86400000 * 15),
+    validUntil: new Date(Date.now() + 86400000 * 45),
+    active: true,
+  },
+  {
+    id: id('promo_summer100'),
+    code: 'SUMMER100',
+    discountPercent: null,
+    discountAmount: 100,
+    minOrderAmount: 500,
+    maxUses: 500,
+    currentUses: 500,
+    validFrom: new Date(Date.now() - 86400000 * 60),
+    validUntil: new Date(Date.now() - 86400000 * 1),
+    active: false,
+  },
+];

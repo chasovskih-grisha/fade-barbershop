@@ -1,0 +1,11 @@
+services:
+  api:
+    build:
+      context: ./development/platform/apps/api
+    env_file:
+      - ./development/platform/.env
+    ports:
+      - '13000:13000'
+    volumes:
+      - ./development/platform/apps/api/var:/app/var
+    command: node dist/main.js
