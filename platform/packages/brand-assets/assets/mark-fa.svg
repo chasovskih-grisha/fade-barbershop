@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 684 564" width="684" height="564" fill="none" shape-rendering="geometricPrecision">
+  <title>FADE FA mark</title>
+  
+  <polygon id="FA / top" points="8,8 427,8 367,93 8,93" fill="#111111"/>
+  <polygon id="FA / mid" points="8,177 307,177 246,269 8,269" fill="#111111"/>
+  <polygon id="FA / stem" points="8,177 108,177 108,433 8,556" fill="#111111"/>
+  <polygon id="FA / A" points="438,140 676,502 565,502 436,306 298,502 183,502" fill="#111111"/>
+</svg>

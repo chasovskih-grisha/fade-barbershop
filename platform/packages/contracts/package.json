@@ -1,0 +1,27 @@
+{
+  "name": "@fade/contracts",
+  "private": true,
+  "version": "0.0.0",
+  "description": "OpenAPI and integration-event schemas. Source of truth for clients.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\"",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage"
+  },
+  "dependencies": {
+    "zod": "^4.6.6"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.2",
+    "@types/node": "^20.3.1",
+    "eslint": "^8.42.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.1.3"
+  }
+}

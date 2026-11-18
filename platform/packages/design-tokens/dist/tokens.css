@@ -1,0 +1,86 @@
+/* === ЗГЕНЕРОВАНО з tokens.json — НЕ РЕДАГУВАТИ ===
+   Джерело: packages/design-tokens/tokens.json
+   Специфікація: development/platform/docs/design-system.md
+   Регенерація: pnpm --filter @fade/design-tokens build
+*/
+:root {
+  --color-surface-base: #0E0E10; /* Night — база всіх поверхонь */
+  --color-surface-raised: #151619; /* Картки, шіти, дропдауни */
+  --color-surface-sunken: #0A0A0C; /* Вкладені зони, поля вводу */
+  --color-border-default: #26282C; /* Глибина через 1px-межі, не тіні */
+  --color-border-strong: #3A3D42;
+  --color-text-primary: #F4F4F6; /* Bone — контраст на base 17.6:1 (AAA) */
+  --color-text-secondary: #9CA0A8; /* Контраст 7.35:1 (AA) */
+  --color-text-muted: #898D94; /* Контраст 5.7:1 (AA) — підписи, placeholders, muted-стани */
+  --color-text-dangerText: #F87171; /* text-red-600 — помилки/попередження */
+  --color-text-dangerHoverText: #FCA5A5; /* hover:text-red-700 */
+  --color-text-textFg: #F4F4F6; /* alias for text.primary */
+  --color-text-textFgSecondary: #9CA0A8; /* alias for text.secondary */
+  --color-text-textFgMuted: #898D94; /* alias for text.muted */
+  --color-accent-solid: #F4F4F6; /* Інверсія: заливка CTA. Ніколи — великі фонові площі */
+  --color-accent-onSolid: #0E0E10; /* Вміст на accent-заливці */
+  --color-accent-blue: #5C7CFA; /* steel blue, 5.6:1 на base. ЛИШЕ: AI-флоу і focus-visible, малі площі. Фінальний тон — контраст-тест T-004 */
+  --color-interactive-default: #26282C; /* CTA і лінки; hover/active — сходинками сірої шкали, не кольором */
+  --color-interactive-hover: #3A3D42;
+  --color-interactive-active: #4A4E55;
+  --color-semantic-success: #4ADE80; /* Дозуються до бейджів/пілів, не фони */
+  --color-semantic-warning: #FBBF24;
+  --color-semantic-danger: #F87171;
+  --color-semantic-info: #93C5FD;
+  --color-lightTheme-paper: #F4F1EA; /* Світла тема: роздруківки, email, документи — не основні поверхні */
+  --color-lightTheme-ink: #111111;
+  --radius-input: 8px; /* Поля, тайли часу, чипи, OTP-комірки */
+  --radius-card: 12px; /* Картки вибору, шіти, модальні, слот QR-таблички */
+  --radius-pill: 999px; /* Бейджі, статуси, прогрес-сегменти — капсули будь-якої висоти */
+  --radius-micro: 4px; /* Лише мікроелементи всередині карток (CSS-змінна kit --radius-sm) */
+  --radius-radiusMd: 6px; /* rounded-md-like 6px */
+  --radius-radiusLg: 10px; /* rounded-lg-like 10px */
+  --radius-radiusFull: 9999px; /* rounded-full */
+  --radius-radiusT: 0px; /* 0 for rounded-t-lg compound */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-base: 4px; /* база 4px */
+  --font-display: 'Fixel Display', system-ui, sans-serif; /* Заголовки, ціни, hero. Дефолт 2026-09-19, очікує підтвердження засновника */
+  --font-text: 'Fixel Text', system-ui, sans-serif; /* UI, форми */
+  --font-size-caption: 12px;
+  --font-size-body: 14px; /* admin (data-dense) */
+  --font-size-bodyLg: 16px; /* клієнтські поверхні */
+  --font-size-h4: 18px;
+  --font-size-h3: 20px;
+  --font-size-h2: 24px;
+  --font-size-h1: 32px;
+  --font-size-display: 40px;
+  --font-size-textCaption: 12px; /* 12px — alternative caption/micro text */
+  --font-size-text-sm: 13px; /* 13px — compact text variant (compat class for existing інтерфейси) */
+  --font-size-text-xs: 12px; /* 12px — compat micro text (часто разом зі text-sm) */
+  --font-size-textBodyS: 13px; /* 13px — secondary micro text (text-body-s, text-bodyS — один токен, дві форми класу) */
+  --font-size-textBodyXs: 12px; /* 12px — very small text (text-body-xs, text-bodyXs — один токен) */
+  --font-size-textH5: 15px; /* 15px — subheading H5 */
+  --font-size-textH6: 13px; /* 13px — subheading H6 */
+  --email-bg: #F4F1EA; /* Тло листа = lightTheme.paper */
+  --email-surface: #FFFFFF; /* Картка листа на тлі — декоративна поверхня, не текст (контраст 1.08:1) */
+  --email-text-primary: #111111; /* Основний текст = lightTheme.ink; 16.7:1 на bg (AAA) */
+  --email-text-secondary: #555452; /* 60/40 суміш ink/paper; 6.7:1 на bg (AA) */
+  --email-border: #82817e; /* 50/50 суміш ink/paper; 3.45:1 на bg — проходить поріг 3:1 для меж */
+  --email-accent-solid: #111111; /* Заливка CTA = ink */
+  --email-accent-onSolid: #FFFFFF; /* Вміст на accent.solid; 18.9:1 */
+  --email-radius: 8px; /* = radius.input; у листах лише прямий px */
+  --email-spacing: 16px; /* = spacing.scale[3]; базовий внутрішній відступ листа */
+  --email-fontStack: -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; /* Системний стек: Fixel у листах НЕ використовується (Gmail вирізає webfont, Outlook не підтримує). Фіксований токеном, не рядком у шаблоні. */
+  --email-fontSize-body: 14px; /* = typography.fontSize.body; мінімум для тексту листа */
+  --email-fontSize-caption: 12px; /* = typography.fontSize.caption; мінімум для підписів */
+  --email-fontSize-title: 20px; /* Заголовок листа (h1); єдиний розмір заголовка в email */
+  --email-fontSize-figure: 28px; /* Велика цифра (сума, бонуси) — figure-примітив */
+}
+
+/* Світла тема: роздруківки, email, документи — не основні поверхні */
+.theme-paper {
+  --color-surface-base: #F4F1EA;
+  --color-text-primary: #111111;
+}

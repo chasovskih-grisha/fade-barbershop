@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" fill="none" shape-rendering="geometricPrecision">
+  <title>FADE iOS app icon 1024 — square, unmasked</title>
+  
+  <rect width="1024" height="1024" fill="#0E0E10"/>
+  <g><polygon id="FA / top" points="225.5,267 584.5,267 533,340 225.5,340" fill="#F4F4F6"/>
+    <polygon id="FA / mid" points="225.5,412 481.5,412 429.5,490.5 225.5,490.5" fill="#F4F4F6"/>
+    <polygon id="FA / stem" points="225.5,412 311,412 311,631.5 225.5,736.5" fill="#F4F4F6"/>
+    <polygon id="FA / A" points="594,380 798,690.5 702.5,690.5 592,522.5 474,690.5 375.5,690.5" fill="#F4F4F6"/></g>
+</svg>

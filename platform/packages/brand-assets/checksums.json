@@ -1,0 +1,16 @@
+{
+  "source": "brand/logo/system",
+  "files": {
+    "mark-fa.svg": "a18bae242b0558e449e5deba0c225969abec6f64e28330873a1c40daa4e4ab8d",
+    "mark-fa-on-dark.svg": "7e2420401991334dcf417666a3e38ec07d04907e33c7ee4ae31a6b1b1394052c",
+    "mark-fa-on-milk.svg": "8ad9fb8679ca2bef4a3b2f12831e6c5bf226f6f54acb840e3c93eafc2e547001",
+    "lockup.svg": "9f7e0edc3374ff38eed84c0959f41151d8301bc6c0cef12f189126165fa6ff70",
+    "lockup-on-dark.svg": "8b4fcff87450bfed844887f1ec34d62c0acb7ad74f9eb12b489678ecc5e19abf",
+    "lockup-on-milk.svg": "9967ad1ff0234e58ec143ecd77ee1d62cf92c75f9526b32047222f2143c384af",
+    "favicon.svg": "166615063d67e9c56e0bc69d279f2e921f9b04d7e8005c520a6d9ba3dd851637",
+    "favicon-16.png": "99d6ede18350c69425e2808b32b91dfabe1b869854c6f07a30622b2066b68378",
+    "favicon-32.png": "73e6337c7a5e6fd21a8bb151efb2610a35478451ae8270f6b0d374f97c71da73",
+    "app-icon-1024.svg": "035a0bea130abdb20b01b05e6d3abd3473222f6e70920961e6ee6f75ba694fe3",
+    "app-icon-1024.png": "5b486ec612012f9e3c701f452b74703694b96240518fa11c8c1cbe52f9b7f5e8"
+  }
+}

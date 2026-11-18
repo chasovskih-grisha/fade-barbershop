@@ -1,0 +1,31 @@
+{
+  "name": "@fade/design-tokens",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Barbershop design tokens — єдине джерело значень UI (design-system.md). JSON → CSS-змінні (web/admin) + JS-експорт (NativeWind-тема mobile).",
+  "type": "module",
+  "main": "./dist/tokens.js",
+  "types": "./dist/tokens.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/tokens.d.ts",
+      "default": "./dist/tokens.js"
+    },
+    "./css": "./dist/tokens.css",
+    "./fonts": "./dist/fonts.css",
+    "./tokens.js": "./dist/tokens.js",
+    "./tailwind-preset.cjs": "./dist/tailwind-preset.cjs",
+    "./nativewind-theme": "./dist/nativewind-theme.js",
+    "./tokens.json": "./tokens.json"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "contrast": "node contrast.mjs",
+    "verify": "node build.mjs --check && node contrast.mjs"
+  },
+  "files": [
+    "dist",
+    "fonts",
+    "tokens.json"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "eslint-plugin-uuid-keys",
+  "version": "1.0.0",
+  "description": "ESLint rules enforcing ADR 0021: UUID v7 ids from the shared kernel, no hardcoded readable ids",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test index.test.mjs",
+    "lint": "node --check index.js"
+  },
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "uuid",
+    "adr-0021"
+  ],
+  "peerDependencies": {
+    "eslint": ">=8.0.0"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@fade/brand-assets",
+  "private": true,
+  "version": "0.0.0",
+  "description": "FADE brand kit shipped from brand/logo/system (source of truth lives outside the platform repo; package is a synced artifact).",
+  "scripts": {
+    "sync": "node scripts/sync.mjs",
+    "verify": "node scripts/sync.mjs --verify",
+    "test": "node --test scripts/sync.test.mjs"
+  },
+  "exports": {
+    "./assets/*": "./assets/*"
+  }
+}

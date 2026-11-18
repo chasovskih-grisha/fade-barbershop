@@ -1,0 +1,483 @@
+openapi: 3.1.0
+info:
+  title: Fade Identity API
+  description: Authentication and identity management endpoints for web, mobile, and admin clients
+  version: '1.0'
+  contact:
+    name: Fade Team
+servers:
+  - url: http://api.test
+    description: Test server
+paths:
+  # OTP Endpoints
+  /identity/otp/request:
+    post:
+      summary: Request OTP code
+      operationId: requestOtp
+      tags:
+        - Identity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestOtpInput'
+      responses:
+        '200':
+          description: OTP requested successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestOtpResult'
+        '429':
+          description: Rate limit exceeded
+        '400':
+          description: Invalid phone number
+  /identity/otp/verify:
+    post:
+      summary: Verify OTP code
+      operationId: verifyOtp
+      tags:
+        - Identity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpInput'
+      responses:
+        '200':
+          description: OTP verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyOtpResult'
+        '400':
+          description: Invalid or expired code
+  # Admin Login
+  /admin/auth/login:
+    post:
+      summary: Admin login
+      operationId: adminLogin
+      tags:
+        - Identity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminLoginInput'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminLoginResult'
+        '401':
+          description: Invalid credentials
+  # Admin Account
+  /admin/account/password:
+    post:
+      summary: Change admin password
+      operationId: adminChangePassword
+      tags:
+        - Identity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPasswordInput'
+      responses:
+        '200':
+          description: Password changed successfully
+  /admin/admins/{id}/password:
+    post:
+      summary: Admin change another admin's password
+      operationId: adminChangeAnotherPassword
+      tags:
+        - Identity
+      parameters:
+        - $ref: '#/components/parameters/AdminId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPasswordInput'
+      responses:
+        '200':
+          description: Password changed successfully
+  /admin/admins/{id}/active:
+    post:
+      summary: Activate/deactivate admin
+      operationId: adminToggleActive
+      tags:
+        - Identity
+      parameters:
+        - $ref: '#/components/parameters/AdminId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminToggleActiveInput'
+      responses:
+        '200':
+          description: Admin status toggled
+  /admin/admins/{id}/logins:
+    get:
+      summary: Get admin login audit log
+      operationId: adminListLogins
+      tags:
+        - Identity
+      parameters:
+        - $ref: '#/components/parameters/AdminId'
+      responses:
+        '200':
+          description: Login audit log retrieved
+  /admin/auth/logout:
+    post:
+      summary: Admin logout
+      operationId: adminLogout
+      tags:
+        - Identity
+  # Client Sessions
+  /identity/client/sessions:
+    get:
+      summary: List client sessions
+      operationId: listClientSessions
+      tags:
+        - Identity
+      responses:
+        '200':
+          description: Sessions listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListClientSessionsResult'
+    post:
+      summary: Revoke all sessions
+      operationId: revokeAllSessions
+      tags:
+        - Identity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevokeAllSessionsInput'
+      responses:
+        '200':
+          description: Sessions revoked
+  /identity/client/sessions/revoke-all:
+    post:
+      summary: Revoke all sessions (except current)
+      operationId: revokeAllSessionsExceptCurrent
+      tags:
+        - Identity
+      responses:
+        '200':
+          description: Sessions revoked count
+  # Push Tokens
+  /identity/client/push-tokens:
+    post:
+      summary: Register push token
+      operationId: registerPushToken
+      tags:
+        - Identity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterPushTokenInput'
+      responses:
+        '200':
+          description: Push token registered
+  /identity/client/push-tokens/revoke:
+    post:
+      summary: Revoke push token
+      operationId: revokePushToken
+      tags:
+        - Identity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevokePushTokenInput'
+      responses:
+        '200':
+          description: Push token revoked
+  # Profile
+  /identity/profile:
+    get:
+      summary: Get current user profile
+      operationId: getProfile
+      tags:
+        - Identity
+      responses:
+        '200':
+          description: Profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /identity/profile/name:
+    patch:
+      summary: Update user name
+      operationId: updateProfileName
+      tags:
+        - Identity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchProfileNameInput'
+      responses:
+        '200':
+          description: Name updated
+  /identity/profile/preferences:
+    patch:
+      summary: Update user preferences
+      operationId: updateProfilePreferences
+      tags:
+        - Identity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchProfilePreferencesInput'
+      responses:
+        '200':
+          description: Preferences updated
+components:
+  parameters:
+    AdminId:
+      name: id
+      in: path
+      required: true
+      description: Ідентифікатор адміна
+      schema:
+        $ref: '#/components/schemas/Uuid'
+  schemas:
+    # T-4300d / ADR 0021: кожен id у контракті — рядок UUID, ніколи не число.
+    Uuid:
+      type: string
+      format: uuid
+      description: >-
+        Ідентифікатор доменного об'єкта. Домен генерує UUID v7; на вході
+        приймаємо v1–v8 (dev-фікстури — v4, сід-ключі — v5).
+      pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+      example: 0192f1a4-7c3b-7a8e-9b41-2f6d5c8e0a13
+    OtpChannel:
+      type: string
+      enum: [web, mobile, admin]
+    ClientSessionChannel:
+      type: string
+      enum: [web, mobile]
+    SessionUser:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        phone:
+          type: string
+        username:
+          type: string
+    AdminUser:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SessionUser'
+        - type: object
+          properties:
+            username:
+              type: string
+    ClientSession:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        channel:
+          $ref: '#/components/schemas/ClientSessionChannel'
+        createdAt:
+          type: string
+        current:
+          type: boolean
+    RequestOtpInput:
+      type: object
+      properties:
+        phone:
+          type: string
+          format: phone
+    RequestOtpResult:
+      type: object
+      properties:
+        retryAfterSec:
+          type: integer
+    VerifyOtpInput:
+      type: object
+      properties:
+        phone:
+          type: string
+          format: phone
+        code:
+          type: string
+        channel:
+          $ref: '#/components/schemas/OtpChannel'
+    VerifyOtpResult:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/SessionUser'
+        refreshToken:
+          type: string
+    IdentityErrorBody:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        retryAfterSec:
+          type: integer
+    AdminLoginInput:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    AdminLoginResult:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/AdminUser'
+    RevokeSessionInput:
+      type: object
+      properties:
+        token:
+          type: string
+    RevokeSessionResult:
+      type: object
+      properties:
+        ok:
+          type: boolean
+    RefreshSessionInput:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+    RefreshSessionResult:
+      type: object
+      properties:
+        token:
+          type: string
+        refreshToken:
+          type: string
+        expiresInSec:
+          type: integer
+        user:
+          $ref: '#/components/schemas/SessionUser'
+    ListClientSessionsResult:
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientSession'
+    RevokeAllSessionsResult:
+      type: object
+      properties:
+        revokedCount:
+          type: integer
+    SetClientEmailInput:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+    SetClientEmailResult:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        email:
+          type: string
+    PushPlatform:
+      type: string
+      enum: [ios, android, web]
+    RegisterPushTokenInput:
+      type: object
+      properties:
+        token:
+          type: string
+        platform:
+          $ref: '#/components/schemas/PushPlatform'
+    RegisterPushTokenResult:
+      type: object
+      properties:
+        ok:
+          type: boolean
+    RevokePushTokenInput:
+      type: object
+      properties:
+        token:
+          type: string
+    RevokePushTokenResult:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        revoked:
+          type: boolean
+    ClientProfileResult:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        userId:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+        phone:
+          type: string
+        preferences:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                $ref: '#/components/schemas/Uuid'
+              text:
+                type: string
+              createdAt:
+                type: string
+        vipDiscountPercent:
+          type: number
+        loyaltyVisitsCount:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+    PatchProfileNameInput:
+      type: object
+      properties:
+        name:
+          type: string
+    PatchProfilePreferencesInput:
+      type: object
+      properties:
+        preferences:
+          type: array
+          items:
+            type: string

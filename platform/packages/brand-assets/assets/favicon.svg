@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none" shape-rendering="geometricPrecision">
+  <title>FADE favicon</title>
+  
+  <defs>
+    <clipPath id="squircle"><rect width="32" height="32" rx="7.16" ry="7.16"/></clipPath>
+  </defs>
+  <g clip-path="url(#squircle)">
+    <rect width="32" height="32" fill="#0E0E10"/>
+    <polygon id="FA / top" points="4.5,6 19,6 17,9 4.5,9" fill="#F4F4F6"/>
+  <polygon id="FA / mid" points="4.5,12 15,12 12.5,15 4.5,15" fill="#F4F4F6"/>
+  <polygon id="FA / stem" points="4.5,12 8,12 8,20.5 4.5,25" fill="#F4F4F6"/>
+  <polygon id="FA / A" points="19.5,10.5 27.5,23 23.5,23 19,16.5 14.5,23 10.5,23" fill="#F4F4F6"/>
+  </g>
+</svg>
