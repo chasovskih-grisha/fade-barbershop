@@ -1,0 +1,243 @@
+{
+  "title": "Fade — Overview",
+  "uid": "fade-overview",
+  "tags": ["fade", "overview"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Outbox lag (пороги = пороги /health warning)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Outbox pending messages (warn > 50)",
+      "datasource": { "type": "prometheus", "uid": "prometheus-fade" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "thresholdsStyle": { "mode": "line" },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "red", "value": 50 }
+              ]
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "fade_outbox_pending_messages",
+          "legendFormat": "pending {{instance}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Oldest pending outbox message (warn > 60s)",
+      "datasource": { "type": "prometheus", "uid": "prometheus-fade" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "thresholdsStyle": { "mode": "line" },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "red", "value": 60 }
+              ]
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "fade_outbox_oldest_pending_seconds",
+          "legendFormat": "oldest {{instance}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "row",
+      "title": "Geocoder",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Geocoder counters (increment per interval)",
+      "datasource": { "type": "prometheus", "uid": "prometheus-fade" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "custom": { "drawStyle": "bars" } },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "increase(fade_geocoder_cache_hit[5m])",
+          "legendFormat": "cache_hit"
+        },
+        {
+          "refId": "B",
+          "expr": "increase(fade_geocoder_cache_miss[5m])",
+          "legendFormat": "cache_miss"
+        },
+        {
+          "refId": "C",
+          "expr": "increase(fade_geocoder_provider_success[5m])",
+          "legendFormat": "provider_success"
+        },
+        {
+          "refId": "D",
+          "expr": "increase(fade_geocoder_provider_failure[5m])",
+          "legendFormat": "provider_failure"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Provider failures (total)",
+      "datasource": { "type": "prometheus", "uid": "prometheus-fade" },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 10 },
+      "fieldConfig": {
+        "defaults": { "unit": "short" },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        { "refId": "A", "expr": "sum(fade_geocoder_provider_failure)", "legendFormat": "failures" }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Rate-limit rejections (total)",
+      "datasource": { "type": "prometheus", "uid": "prometheus-fade" },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 10 },
+      "fieldConfig": {
+        "defaults": { "unit": "short" },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(fade_geocoder_rate_limit_rejected)",
+          "legendFormat": "rejected"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "row",
+      "title": "Процес api",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 }
+    },
+    {
+      "id": 11,
+      "type": "row",
+      "title": "Логи api (Loki)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 }
+    },
+    {
+      "id": 12,
+      "type": "logs",
+      "title": "api.log — JSON-контракт observability.md §2 (ts/level/ctx/src/msg)",
+      "datasource": { "type": "loki", "uid": "loki-fade" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 28 },
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{app=\"api\", job=\"fade-api\"} | json | line_format \"{{.level}} [{{.ctx}}] {{.msg}}\"",
+          "queryType": "range"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "API uptime",
+      "datasource": { "type": "prometheus", "uid": "prometheus-fade" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 19 },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        { "refId": "A", "expr": "fade_uptime_seconds", "legendFormat": "uptime {{instance}}" }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Resident memory (MiB)",
+      "datasource": { "type": "prometheus", "uid": "prometheus-fade" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 19 },
+      "fieldConfig": { "defaults": { "unit": "decmbytes" }, "overrides": [] },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "fade_process_resident_memory_megabytes",
+          "legendFormat": "rss {{instance}}"
+        }
+      ]
+    }
+  ]
+}

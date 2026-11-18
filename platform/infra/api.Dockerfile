@@ -1,0 +1,47 @@
+# Dev image for the platform apps (ADR 0018) with pnpm fetch caching optimization.
+# Build context is the platform root (see infra/docker-compose.yml: context: ..).
+FROM node:20-alpine
+
+RUN apk add --no-cache libc6-compat
+RUN corepack enable
+
+WORKDIR /app
+
+# Copy root configuration and workspace lockfile first
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json tsconfig.json ./
+
+# Copy all package.json files across the workspace for dependency resolution and fetch
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
+COPY apps/admin/package.json ./apps/admin/
+COPY apps/mobile/package.json ./apps/mobile/
+COPY packages/contracts/package.json ./packages/contracts/
+COPY packages/domain-shared/package.json ./packages/domain-shared/
+COPY packages/test-utils/package.json ./packages/test-utils/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/brand-assets/package.json ./packages/brand-assets/
+COPY packages/design-tokens/package.json ./packages/design-tokens/
+COPY packages/eslint-plugin-no-phantom-classes/package.json ./packages/eslint-plugin-no-phantom-classes/
+COPY packages/eslint-plugin-uuid-keys/package.json ./packages/eslint-plugin-uuid-keys/
+COPY mcp/package.json ./mcp/
+COPY vendor/braces/package.json ./vendor/braces/
+COPY vendor/ip/package.json ./vendor/ip/
+COPY vendor/node-forge/package.json ./vendor/node-forge/
+
+# Fetch dependencies into pnpm store (cached unless dependencies/lockfile change)
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm fetch
+
+# Copy workspace source code
+COPY apps/api ./apps/api
+COPY packages ./packages
+COPY mcp ./mcp
+COPY vendor ./vendor
+
+# Patch mobile package.json postinstall script
+RUN node -e "const fs=require('fs');const f='apps/mobile/package.json';const p=JSON.parse(fs.readFileSync(f,'utf8'));delete p.scripts.postinstall;fs.writeFileSync(f,JSON.stringify(p,null,2)+'\n')"
+
+# Install dependencies offline from the fetched pnpm store
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --offline --frozen-lockfile
+
+# Generate Prisma Client into the image
+RUN pnpm --filter @fade/api exec prisma generate

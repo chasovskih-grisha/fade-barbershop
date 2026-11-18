@@ -1,0 +1,18 @@
+# Datasource Tempo для Grafana (T-4204f): трейси з колектора (OTLP gRPC 4317).
+# uid зафіксований — derived_fields promtail і trace→logs лінки силаються на нього.
+apiVersion: 1
+
+datasources:
+  - name: Tempo
+    uid: tempo-fade
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    isDefault: false
+    editable: false
+    jsonData:
+      tracesToLogs:
+        datasourceUid: loki-fade
+        filterByTraceID: true
+      lokiSearch:
+        datasourceUid: loki-fade

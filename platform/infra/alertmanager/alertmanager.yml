@@ -1,0 +1,25 @@
+# Alertmanager — dev-конфіг (T-4204c). Алерти з Prometheus (правила лагу
+# outbox) надходять сюди; у dev receiver порожній — алерти видно в UI
+# (http://localhost:19093) і API (/api/v2/alerts), доставки немає.
+# Прод-доставка — розкоментувати Slack-блок і винести webhook у секрети
+# (не комітиться; env-підстановка AM не робить — шаблон дляручну).
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: dev-null
+  group_by: ['alertname']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  - name: dev-null
+
+# Прод-шаблон (T-4204c прод-крок):
+# receivers:
+#   - name: 'slack-notifications'
+#     slack_configs:
+#       - api_url: '<SECRET_SLACK_WEBHOOK>'
+#         channel: '#fade-alerts'
+#         send_resolved: true

@@ -1,0 +1,24 @@
+node_modules
+dist
+.next
+.expo
+coverage
+test-results
+playwright-report
+# Jest-снапшоти — генеровані, без парсера Prettier.
+*.snap
+*.lock
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Локальні форки пакетів (`overrides: file:./vendor/...`): код третіх сторін,
+# тримаємо його байт-у-байт близько до апстріму, щоб діфи фіксів лишались
+# читабельними. `pnpm vendor:test` є окремим гейтом.
+vendor/
+
+# Editorial prose (Ukrainian docs, specs, backlog) is maintained by hand,
+# not formatted by Prettier. Code and config are still enforced.
+**/*.md
+docs/
+backlog/

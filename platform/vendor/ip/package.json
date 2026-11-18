@@ -1,0 +1,17 @@
+{
+  "name": "ip",
+  "version": "2.0.2",
+  "description": "Vendored copy of ip with the CVE-2024-29415 isPublic misclassification fixed (see README.md).",
+  "author": "Fedor Indutny <fedor@indutny.com>",
+  "homepage": "https://github.com/indutny/node-ip",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/indutny/node-ip.git"
+  },
+  "files": [
+    "lib",
+    "README.md"
+  ],
+  "main": "lib/ip",
+  "license": "MIT"
+}

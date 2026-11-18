@@ -1,0 +1,490 @@
+# Dev-оточення платформи — залежності і застосунки в Docker (ADR 0018).
+# Єдиний вхід (з кореня репозиторію platform, або make up):
+#   docker compose -f infra/docker-compose.yml --env-file infra/.env.docker --profile deps up -d
+# Мобільний (Expo) НЕ контейнеризуємо — симулятор на хості, стукається в API через localhost (ADR 0018 §2).
+#
+# ТРИ РЕЖИМИ:
+#   1) `--profile deps` — лише Postgres + Redis + MinIO (швидкий старт).
+#   2) `--profile apps` — додає api/web/admin у контейнерах (Dockerfile-и T-001).
+#   3) `--profile obs` — додає Prometheus + Alertmanager (T-4204b/c): /metrics з api, алерти лагу outbox.
+#
+# Домени, порти і сесійна модель — за ADR 0017. Секрети не комітяться:
+# .env.docker локальний (копія з .env.docker.example).
+#
+# УНИКНЕННЯ КОНФЛІКТІВ: стек ізольований від інших проєктів трьома шарами:
+# - проєкт `fade-platform` + явні container_name `fade-platform-*` (унікальні імена в `docker ps`);
+# - власна мережа `fade-platform-net` (DNS-імена контейнерів не перетинаються з сусідніми стеками);
+# - нестандартні хост-порти, прив'язані лише до loopback 127.0.0.1:
+#     Postgres 15432 (замість 5432) · Redis 16379 (замість 6379)
+#     MinIO API 19000 (замість 9000) · MinIO Console 19001 (замість 9001)
+#     Prometheus (профіль obs): 19090 (замість 9090) · Alertmanager: 19093 (замість 9093)
+#     Grafana (профіль obs): 19094 (всередині контейнера 3000) · Loki: 19095 (замість 3100)
+#     SMSPitt/Mailpit (T-4301): 19096 (Web UI 8025 всередині)
+#     Застосунки (профіль apps): api 13000 · web 13001 · admin 13002
+#     (3000/3001 часто зайняті іншими проєктами — див. .env.example)
+# Перевизначити порти можна в infra/.env.docker (POSTGRES_PORT, REDIS_PORT,
+# MINIO_API_PORT, MINIO_CONSOLE_PORT) — імена і внутрішні порти контейнерів не змінюються.
+
+name: fade-platform
+
+# Живе дерево платформи з хоста. node_modules, кеші Next і dist API — томи
+# з linux-бінарниками (хостовий macOS node_modules сюди не потрапляє).
+# infra/dev-sync.sh ставить залежності, коли змінюється pnpm-lock.yaml.
+# pnpm 11+ ignores minimum-release-age in .npmrc and defaults it to one day,
+# which rejects a frozen lockfile that already pins a package published today.
+x-pnpm-env: &pnpm-env
+  pnpm_config_minimum_release_age: "0"
+  pnpm_config_minimum_release_age_strict: "false"
+  pnpm_config_fetch_timeout: "600000"
+  pnpm_config_fetch_retries: "5"
+  pnpm_config_network_concurrency: "4"
+
+x-dev-mounts: &dev-mounts
+  - ..:/app
+  - platform_nm:/app/node_modules
+  - platform_nm_api:/app/apps/api/node_modules
+  - platform_nm_web:/app/apps/web/node_modules
+  - platform_nm_admin:/app/apps/admin/node_modules
+  - platform_nm_mobile:/app/apps/mobile/node_modules
+  - platform_nm_mcp:/app/mcp/node_modules
+  - platform_nm_contracts:/app/packages/contracts/node_modules
+  - platform_nm_domain_shared:/app/packages/domain-shared/node_modules
+  - platform_nm_test_utils:/app/packages/test-utils/node_modules
+  - platform_nm_ui:/app/packages/ui/node_modules
+  - platform_nm_brand_assets:/app/packages/brand-assets/node_modules
+  - platform_nm_design_tokens:/app/packages/design-tokens/node_modules
+  - platform_nm_phantom:/app/packages/eslint-plugin-no-phantom-classes/node_modules
+  - platform_nm_uuid:/app/packages/eslint-plugin-uuid-keys/node_modules
+  - platform_nm_braces:/app/vendor/braces/node_modules
+  - platform_nm_ip:/app/vendor/ip/node_modules
+  - platform_nm_forge:/app/vendor/node-forge/node_modules
+  - pnpm_store:/pnpm
+  - web_next:/app/apps/web/.next
+  - admin_next:/app/apps/admin/.next
+  # Mount point: nest must not fs.rm this directory (deleteOutDir stays false).
+  - api_dist:/app/apps/api/dist
+  - api_logs:/app/apps/api/var/logs
+
+services:
+  # ── Залежності (профіль deps — стартова точка) ─────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: fade-platform-postgres
+    profiles: [deps, apps]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-barbershop}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-barbershop}
+      POSTGRES_DB: ${POSTGRES_DB:-barbershop}
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-15432}:5432' # хост-порт для psql/міграцій з хоста (loopback)
+    networks:
+      - fade-platform-net
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-barbershop} -d ${POSTGRES_DB:-barbershop}']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    container_name: fade-platform-redis
+    profiles: [deps, apps]
+    ports:
+      - '127.0.0.1:${REDIS_PORT:-16379}:6379'
+    networks:
+      - fade-platform-net
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  # S3-сумісне об'єкт-сховище — майбутній media.fade.ua (ADR 0017 §2).
+  # Три окремі приватні бакети з першого дня (ADR 0008 §3 — haircut-ai;
+  # ADR 0015 §4 — feedback; online-shop.md — медіа магазину).
+  # Образи з quay.io: docker hub-образи minio виведені з обігу.
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: fade-platform-minio
+    profiles: [deps, apps]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - '127.0.0.1:${MINIO_API_PORT:-19000}:9000' # S3 API (SDK з хоста: http://localhost:19000)
+      - '127.0.0.1:${MINIO_CONSOLE_PORT:-19001}:9001' # веб-консоль http://localhost:19001
+    networks:
+      - fade-platform-net
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  # ── Observability (профіль obs) ─────────────────────────────────────────────
+
+  # Prometheus (T-4204b): скрейпить /metrics з api (fade-platform-net),
+  # правило алертів — лаг outbox (пороги як у /health, T-042c). Алерти
+  # відправляє в Alertmanager (T-4204c). UI: http://localhost:19090.
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: fade-platform-prometheus
+    profiles: [obs]
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    volumes:
+      - ./prometheus:/etc/prometheus:ro
+      - prometheus_data:/prometheus
+    ports:
+      - '127.0.0.1:19090:9090'
+    networks:
+      - fade-platform-net
+    depends_on:
+      - alertmanager
+
+  # Alertmanager (T-4204c): приймає алерти Prometheus. Dev-receiver порожній
+  # (алерти видно в UI http://localhost:19093 і /api/v2/alerts); Slack-доставка
+  # — прод-крок (шаблон у infra/alertmanager/alertmanager.yml).
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: fade-platform-alertmanager
+    profiles: [obs]
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    volumes:
+      - ./alertmanager:/etc/alertmanager:ro
+    ports:
+      - '127.0.0.1:19093:9093'
+    networks:
+      - fade-platform-net
+
+  # Grafana (T-4204d): дашборди з provisioning (infra/grafana/). Datasource —
+  # Prometheus сервіс мережі; пароль адміна — dev-дефолт, прод дає секрети.
+  # UI: http://localhost:19094 (admin / admin), дашборд «Fade — Overview».
+  grafana:
+    image: grafana/grafana:latest
+    container_name: fade-platform-grafana
+    profiles: [obs]
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - '127.0.0.1:19094:3000'
+    networks:
+      - fade-platform-net
+    depends_on:
+      - prometheus
+
+  # Loki (T-4204e): single-binary, filesystem-сховище. Конфіг —
+  # infra/loki/loki.yml; API: http://localhost:19095.
+  loki:
+    image: grafana/loki:latest
+    container_name: fade-platform-loki
+    profiles: [obs]
+    command: -config.file=/etc/loki/loki.yml
+    volumes:
+      - ./loki:/etc/loki:ro
+      - loki_data:/loki
+    ports:
+      - '127.0.0.1:19095:3100'
+    networks:
+      - fade-platform-net
+
+  # OTel Collector (T-4204f): приймає OTLP/HTTP трейси від api (4318,
+  # OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318) і роздає бекендам
+  # (dev: Tempo + stdout-дзеркало). Конфіг — infra/otel-collector/otel.yml.
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: fade-platform-otel-collector
+    profiles: [obs]
+    command: ['--config=/etc/otelcol/otel.yml']
+    volumes:
+      - ./otel-collector:/etc/otelcol:ro
+    ports:
+      - '127.0.0.1:14318:4318'
+    networks:
+      - fade-platform-net
+
+  # Tempo (T-4204f): dev-сховище трейсів (single-binary, filesystem, 24h).
+  # UI — через Grafana Explore (datasource tempo-fade); API: http://localhost:13200.
+  tempo:
+    image: grafana/tempo:latest
+    container_name: fade-platform-tempo
+    profiles: [obs]
+    command: ['-config.file=/etc/tempo/tempo.yml']
+    volumes:
+      - ./tempo:/etc/tempo:ro
+      - tempo_data:/var/tempo
+    ports:
+      - '127.0.0.1:13200:3200'
+    networks:
+      - fade-platform-net
+
+  # Promtail (T-4204e): хвостить денні логи api зі спільного volume і штовхає
+  # в Loki. Pipeline парсить JSON-контракт observability.md §2: timestamp з ts,
+  # label level; derived_fields лінкують лог ↔ трейс у Tempo (T-4204f).
+  # Конфіг — infra/promtail/promtail.yml.
+  promtail:
+    image: grafana/promtail:latest
+    container_name: fade-platform-promtail
+    profiles: [obs]
+    command: -config.file=/etc/promtail/promtail.yml
+    volumes:
+      - ./promtail:/etc/promtail:ro
+      - api_logs:/var/log/fade:ro
+    networks:
+      - fade-platform-net
+    depends_on:
+      - loki
+
+  # «SMSPitt» (T-4301): Mailpit як дев-контейнер SMS-каналу — OTP-коди йдуть
+  # як email на <phone>@sms.dev; Web UI http://localhost:19096. Сервіс api
+  # шле сюди (OTP_PROVIDER=mailpit, MAILPIT_URL=http://smspit:8025).
+  smspit:
+    image: axllent/mailpit:latest
+    container_name: fade-platform-smspitt
+    profiles: [deps, obs]
+    environment:
+      MP_DATA_FILE: /data/mailpit.db
+    ports:
+      - '127.0.0.1:19096:8025' # Web UI + HTTP API
+    networks:
+      - fade-platform-net
+    volumes:
+      - smspitt_data:/data
+
+  # Одноразова ініціалізація бакетів (ідемпотентно, при кожному up).
+  minio-init:
+    image: quay.io/minio/mc:latest
+    container_name: fade-platform-minio-init
+    profiles: [deps, apps]
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - fade-platform-net
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    entrypoint: >
+      /bin/sh -c '
+      mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" &&
+      mc mb --ignore-existing local/haircut-ai-photos &&
+      mc mb --ignore-existing local/feedback-photos &&
+      mc mb --ignore-existing local/media &&
+      mc anonymous set none local/haircut-ai-photos &&
+      mc anonymous set none local/feedback-photos &&
+      mc anonymous set none local/media &&
+      echo "Бакети готові і приватні: haircut-ai-photos, feedback-photos, media"
+      '
+
+  # One-shot ініціалізатор БД (T-2104, патерн minio-init): міграції + сід
+  # (докладно — docs/seeding.md). Ідемпотентний: повторний `up` = update,
+  # не дублікати; без outbox-подій (конвенція T-012/T-2104a). api чекає
+  # на його успішне завершення — свіже середовище піднімається з даними.
+  # Порядок сіду захищений кодом: довідники → клієнти → записи
+  # (FADE_SEED_REQUIRE_CLIENTS=1 ламає сід з помилкою, якщо клієнтів ще нема —
+  # web/mobile демо-записи ніколи не виходять без clientId на свіжій БД).
+  db-seed:
+    build:
+      context: ..
+      dockerfile: infra/api.Dockerfile
+    container_name: fade-platform-db-seed
+    profiles: [deps, apps]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fade-platform-net
+    environment:
+      <<: *pnpm-env
+      DATABASE_URL: postgresql://barbershop:barbershop@postgres:5432/barbershop
+      FADE_SEED_REQUIRE_CLIENTS: '1'
+    # Повне дерево з хоста; linux node_modules — на томах (див. x-dev-mounts).
+    volumes: *dev-mounts
+    command: sh -c '/app/infra/dev-sync.sh && pnpm --filter @fade/api exec prisma generate && pnpm --filter @fade/api exec prisma migrate deploy && pnpm --filter @fade/api seed:dev && pnpm --filter @fade/api seed:customers && pnpm --filter @fade/api seed:appointments && pnpm --filter @fade/api seed:admin && echo "Сід застосовано — міграції, довідники, клієнти, записи, адмін"'
+
+  # ── Застосунки (профіль apps) ───────────────────────────────────────────────
+  # Збираються з кореня монорепо (context: ..); спільний рецепт образу —
+  # infra/{api,web,admin}.Dockerfile (ідентичні: pnpm install + вихідники,
+  # dev-команда задається тут через `command:`). Хост-порти — нестандартні й
+  # лише на loopback 127.0.0.1; усередині контейнера застосунки слухають
+  # 13000–13002 (як і хостовий `pnpm dev`, див. .env.example).
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/api.Dockerfile
+    container_name: fade-platform-api
+    profiles: [apps]
+    # Живий запуск через власний супервізор (scripts/dev-watch.mjs), а не
+    # `nest start --watch`: Nest перезапускає API лише після *успішної*
+    # перебудови, тож невдалий rebuild лишав контейнер зі старим бандлом.
+    # Супервізор тримає build-status із webpack (webpack.config.js) і гасить
+    # сервер на невдалій збірці — див. коментар у самому скрипті.
+    command: sh -c '/app/infra/dev-sync.sh && pnpm --filter @fade/api exec prisma generate && node /app/apps/api/scripts/dev-watch.mjs'
+    # Повне дерево з хоста, включно з package.json і lockfile. linux
+    # node_modules і dist лишаються на томах, тож macOS-бінарники хоста не
+    # підміняють контейнерні. Нова залежність ставиться в dev-sync.sh без
+    # перебудови образу. api_logs читає promtail (T-4204e).
+    volumes: *dev-mounts
+    # Локальні секрети (GEMINI_API_KEY, AI_PROVIDER). Файл у .gitignore.
+    # Немає файлу — змінні не задані, код лишає AI_PROVIDER=fake.
+    env_file:
+      - path: ../apps/api/.env
+        required: false
+    environment:
+      <<: *pnpm-env
+      API_PORT: '13000'
+      # Local hostnames are localhost, not fade.com.ua. Empty domain = host-only
+      # cookie, otherwise the browser drops the admin session and login loops.
+      FADE_CLIENT_DOMAIN: ''
+      FADE_ADMIN_DOMAIN: ''
+      DATABASE_URL: postgresql://barbershop:barbershop@postgres:5432/barbershop
+      REDIS_URL: redis://redis:6379
+      # Розподілені сховища геокодера (ADR 0050): кеш/ліміти/надгробок спільні
+      # між контейнерами api. Прибирайте FADE_GEOCODER_STORE — і api чесно
+      # повернеться до in-process сховищ (fail-open деградація без Redis).
+      FADE_GEOCODER_STORE: redis
+      FADE_REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-minioadmin}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-minioadmin}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_FORCE_PATH_STYLE: 'true'
+      # Підпис URL для браузера на хості. Запис/читання лишаються на S3_ENDPOINT (minio:9000).
+      S3_PUBLIC_ENDPOINT: http://127.0.0.1:19000
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:13001,http://localhost:13002}
+      # OTP у SMSPitt (той самий Mailpit, Web UI http://localhost:19096).
+      # З контейнера api localhost:19096 недоступний — шлемо на сервіс smspit:8025.
+      OTP_PROVIDER: mailpit
+      MAILPIT_URL: http://smspit:8025
+      # Email-канал (T-4408) — у той самий спільний Mailpit (smspit);
+      # без цього фабрика EmailSender падає в console і листи йдуть у логи.
+      EMAIL_PROVIDER: mailpit
+      EMAIL_URL: http://smspit:8025
+      # Поллер outbox notifications (T-4608): дефолт 15s.
+      NOTIFICATIONS_OUTBOX_POLL_MS: 15000
+      # Трейсинг (T-4204f): OTLP/HTTP на колектор obs-профілю. Без змінної
+      # SDK живе, але нічого не експортує (локальний dev без obs).
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    ports:
+      - '127.0.0.1:13000:13000'
+    networks:
+      - fade-platform-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      # Бакети створює one-shot minio-init: без цього залежності
+      # `up --wait` (fresh-bootstrap e2e) падає на «exited (0)» — compose
+      # не вміє завершити wait для one-shot, якого ніхто не споживає.
+      minio-init:
+        condition: service_completed_successfully
+      db-seed:
+        condition: service_completed_successfully
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/web.Dockerfile
+    container_name: fade-platform-web
+    profiles: [apps]
+    command: sh /app/infra/dev-sync.sh pnpm --filter @fade/web dev
+    volumes: *dev-mounts
+    environment:
+      <<: *pnpm-env
+      WEB_URL: http://localhost:13001
+      # У контейнері localhost:13000 — це сам web, не API. Без цього SSR і
+      # rewrites б'ють у порожнечу і сайт показує «Не вдалося завантажити».
+      API_ORIGIN: http://api:13000
+      WEB_API_URL: http://api:13000
+      LOCATION_API_URL: http://api:13000
+      # Web-shell/SEO: канонік + футер (T-4508). Порожні = секції не рендеряться.
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-}
+      NEXT_PUBLIC_CONTACT_PHONE: ${NEXT_PUBLIC_CONTACT_PHONE:-}
+      NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
+      NEXT_PUBLIC_CONTACT_ADDRESS: ${NEXT_PUBLIC_CONTACT_ADDRESS:-}
+      NEXT_PUBLIC_SOCIAL_INSTAGRAM: ${NEXT_PUBLIC_SOCIAL_INSTAGRAM:-}
+      NEXT_PUBLIC_SOCIAL_TELEGRAM: ${NEXT_PUBLIC_SOCIAL_TELEGRAM:-}
+      NEXT_PUBLIC_SOCIAL_VIBER: ${NEXT_PUBLIC_SOCIAL_VIBER:-}
+    ports:
+      - '127.0.0.1:13001:13001'
+    networks:
+      - fade-platform-net
+    depends_on:
+      api:
+        condition: service_started
+
+  admin:
+    build:
+      context: ..
+      dockerfile: infra/admin.Dockerfile
+    container_name: fade-platform-admin
+    profiles: [apps]
+    command: sh /app/infra/dev-sync.sh pnpm --filter @fade/admin dev
+    volumes: *dev-mounts
+    environment:
+      <<: *pnpm-env
+      ADMIN_URL: http://localhost:13002
+      ADMIN_API_UPSTREAM: http://api:13000
+    ports:
+      - '127.0.0.1:13002:13002'
+    networks:
+      - fade-platform-net
+    depends_on:
+      api:
+        condition: service_started
+
+networks:
+  fade-platform-net:
+    name: fade-platform-net
+
+volumes:
+  pg_data:
+  redis_data:
+  minio_data:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+  tempo_data:
+  api_logs:
+  smspitt_data:
+  platform_nm:
+  platform_nm_api:
+  platform_nm_web:
+  platform_nm_admin:
+  platform_nm_mobile:
+  platform_nm_mcp:
+  platform_nm_contracts:
+  platform_nm_domain_shared:
+  platform_nm_test_utils:
+  platform_nm_ui:
+  platform_nm_brand_assets:
+  platform_nm_design_tokens:
+  platform_nm_phantom:
+  platform_nm_uuid:
+  platform_nm_braces:
+  platform_nm_ip:
+  platform_nm_forge:
+  pnpm_store:
+  web_next:
+  admin_next:
+  api_dist:

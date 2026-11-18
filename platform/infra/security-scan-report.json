@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-11-16T20:11:18Z",
+  "status": "PASSED",
+  "scanners": {
+    "gitleaks": {
+      "status": "PASSED",
+      "findings": 0
+    },
+    "trivy": {
+      "status": "PASSED",
+      "critical_vulnerabilities": 0,
+      "high_vulnerabilities": 0,
+      "scanned_dockerfiles": [ infra/admin.Dockerfile
+infra/web.Dockerfile
+infra/api.Dockerfile ]
+    }
+  }
+}

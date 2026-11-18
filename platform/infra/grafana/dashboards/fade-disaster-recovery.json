@@ -1,0 +1,105 @@
+{
+  "title": "Fade — Disaster Recovery & Chaos Drills",
+  "uid": "fade-disaster-recovery",
+  "tags": ["fade", "chaos", "drills", "reliability"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1h",
+  "time": { "from": "now-30d", "to": "now" },
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Disaster Recovery Drill Status & SLO Compliance",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Drill Status (1 = Pass, 0 = Fail)",
+      "datasource": { "type": "prometheus", "uid": "prometheus-fade" },
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 1 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "fade_chaos_drill_status",
+          "legendFormat": "Drill Status"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Last Measured RTO",
+      "datasource": { "type": "prometheus", "uid": "prometheus-fade" },
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 1 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 60 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "fade_chaos_drill_rto_seconds",
+          "legendFormat": "RTO (s)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Last Measured RPO (Data Loss)",
+      "datasource": { "type": "prometheus", "uid": "prometheus-fade" },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 1 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "fade_chaos_drill_rpo_messages",
+          "legendFormat": "RPO (messages)"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Historical Drill RTO & RPO Trends",
+      "datasource": { "type": "prometheus", "uid": "prometheus-fade" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 5 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "fade_chaos_drill_rto_seconds",
+          "legendFormat": "RTO seconds (target < 60)"
+        },
+        {
+          "refId": "B",
+          "expr": "fade_chaos_drill_rpo_messages",
+          "legendFormat": "RPO lost messages (target 0)"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+# Alert-правила (T-4204b): пороги ідентичні порогам /health outbox-секції
+# (OUTBOX_LAG_WARN_PENDING=50, OUTBOX_LAG_WARN_MS=60_000 — outbox-health.contributor.ts).
+# Доставка (Alertmanager → Slack/PagerDuty) — окремий крок прод-розгортання;
+# у dev алерти видно в UI Prometheus (http://localhost:19090/alerts).
+# SLO-група (docs/slo.md): multiwindow burn rate за Google SRE Book — швидке
+# спалення (1h+5m вікна, 14.4× бюджету/год) і повільне (6h+30m, 6×).
+groups:
+  - name: outbox-lag
+    rules:
+      - alert: OutboxRelayBacklog
+        expr: fade_outbox_pending_messages > 50
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Outbox relay backlog: {{ $value }} pending messages'
+          description: 'Реле подій не встигає — події життєвого циклу записів затримуються.'
+
+      - alert: OutboxOldestPendingTooOld
+        expr: fade_outbox_oldest_pending_seconds > 60
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Oldest outbox message is {{ $value | humanizeDuration }} old'
+          description: 'Найстаріша неотримана подія старша за 60s — перевірити relay/consumer.'
+
+  - name: slo-burn-rate
+    rules:
+      # Availability SLO 99.5% (budget 0.5%/28d). Burn 14.4× = весь бюджет за 2 дні.
+      - alert: AvailabilityBurnRateFast
+        expr: |
+          (1 - (sum(rate(fade_http_requests_total{code!~"5xx"}[1h])) / sum(rate(fade_http_requests_total[1h])))) > 0.072
+          and
+          (1 - (sum(rate(fade_http_requests_total{code!~"5xx"}[5m])) / sum(rate(fade_http_requests_total[5m])))) > 0.072
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Availability burn rate > 14.4x (1h + 5m)'
+          description: '5xx-частка спалює 0.5% бюджет за ~2 дні — інцидент (docs/slo.md §3).'
+
+      - alert: AvailabilityBurnRateSlow
+        expr: |
+          (1 - (sum(rate(fade_http_requests_total{code!~"5xx"}[6h])) / sum(rate(fade_http_requests_total[6h])))) > 0.03
+          and
+          (1 - (sum(rate(fade_http_requests_total{code!~"5xx"}[30m])) / sum(rate(fade_http_requests_total[30m])))) > 0.03
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Availability burn rate > 6x (6h + 30m)'
+          description: 'Стійке спалення бюджету availability — дивитись тренд на SLO-дашборді.'
+
+      # Booking latency SLO 95% (budget 5%/28d): частка /booking-запитів ≥500мс.
+      - alert: BookingLatencyBurnRateFast
+        expr: |
+          (rate(fade_http_booking_slow_total[1h]) / rate(fade_http_requests_total{route="booking"}[1h])) > 0.72
+          and
+          (rate(fade_http_booking_slow_total[5m]) / rate(fade_http_requests_total{route="booking"}[5m])) > 0.72
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Booking latency burn rate > 14.4x (1h + 5m)'
+          description: 'Повільні /booking-запити спалюють 5% бюджет за ~2 дні (docs/slo.md §3).'
+
+      - alert: BookingLatencyBurnRateSlow
+        expr: |
+          (rate(fade_http_booking_slow_total[6h]) / rate(fade_http_requests_total{route="booking"}[6h])) > 0.3
+          and
+          (rate(fade_http_booking_slow_total[30m]) / rate(fade_http_requests_total{route="booking"}[30m])) > 0.3
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Booking latency burn rate > 6x (6h + 30m)'
+          description: 'Стійке спалення бюджету latency booking — перевірити слоти/БД (docs/slo.md §3).'

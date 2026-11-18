@@ -1,0 +1,53 @@
+# Deploys api, web, and admin after CI is green on stage or main (ADR 0052).
+# Mobile is not deployed from here.
+#
+# Each GitHub Environment (stage, production) needs:
+#   COOLIFY_TOKEN    — Coolify API token
+#   COOLIFY_WEBHOOKS — space-separated Coolify deploy URLs, one per service
+#                      (api, web, admin), for example
+#                      https://<coolify>/api/v1/deploy?uuid=<app-uuid>
+# Until those secrets exist the job reports that and does not fail:
+# the VPS is not connected yet (T-303).
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [stage, main]
+
+concurrency:
+  group: deploy-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.workflow_run.head_branch == 'main' && 'production' || 'stage' }}
+    steps:
+      - name: Trigger Coolify
+        env:
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          WEBHOOKS: ${{ secrets.COOLIFY_WEBHOOKS }}
+        run: |
+          set -eu
+          if [ -z "$WEBHOOKS" ]; then
+            echo "::notice title=Deploy not connected::Set COOLIFY_TOKEN and COOLIFY_WEBHOOKS on the ${BRANCH} environment. Coolify then deploys api, web, and admin."
+            exit 0
+          fi
+          if [ -z "$TOKEN" ]; then
+            echo "COOLIFY_TOKEN is empty."
+            exit 1
+          fi
+          for url in $WEBHOOKS; do
+            curl --fail-with-body --retry 3 --retry-delay 5 \
+              -H "Authorization: Bearer ${TOKEN}" \
+              "$url"
+          done

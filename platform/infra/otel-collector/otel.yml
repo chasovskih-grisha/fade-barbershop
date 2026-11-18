@@ -1,0 +1,29 @@
+# OTel Collector (T-4204f): приймає OTLP/HTTP трейси від api (4318) і
+# роздає бекендам. Dev: Tempo (трейси). Прод: ті самі receivers — експортери
+# змінюються конфігом (Jaeger/вендор), код api не рухається.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 2s
+    send_batch_size: 256
+
+exporters:
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  # Дзеркало у stdout у dev — видно потік батчів у `docker logs`.
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo, debug]

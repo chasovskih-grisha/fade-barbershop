@@ -1,0 +1,4 @@
+#!/bin/sh
+# T-4807 · Pre-commit гейт секретів. Увімкнути: `pnpm hooks:install`.
+# Той самий скрипт, що й у CI (`pnpm secrets:check`) — без дублювання правил.
+exec pnpm secrets:check

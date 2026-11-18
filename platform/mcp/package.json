@@ -1,0 +1,20 @@
+{
+  "name": "@fade/mcp",
+  "private": true,
+  "version": "0.0.0",
+  "description": "MCP server exposing Fade APIs to external tools (Claude Code).",
+  "type": "module",
+  "main": "fade-mcp-server.ts",
+  "scripts": {
+    "start": "node fade-mcp-server.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.1",
+    "typescript": "^5.1.3"
+  }
+}

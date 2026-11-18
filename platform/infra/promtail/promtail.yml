@@ -1,0 +1,41 @@
+# Promtail — dev-конфіг (T-4204e + T-4204f): читає денні JSON-логи api
+# (/var/log/fade/{YYYY}/{MM}/{DD}/api.log — спільний volume з api) і штовхає
+# в Loki. Pipeline: парс JSON-рядка контракту observability.md §2
+# ({"ts","level","ctx","src","msg",traceId?,spanId?}) → timestamp з ts,
+# label level; derived_fields лінкують лог ↔ трейс у Tempo (T-4204f):
+# у Grafana з рядка лога стрибок на трейс за traceId.
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: fade-api
+    static_configs:
+      - targets: [localhost]
+        labels:
+          app: api
+          job: fade-api
+          __path__: /var/log/fade/*/*/*/api.log
+    pipeline_stages:
+      - json:
+          expressions:
+            ts: ts
+            level: level
+      - timestamp:
+          source: ts
+          format: RFC3339Nano
+      - labels:
+          level:
+      # T-4204f: кореляція лог ↔ трейс — Tempo Explore приймає посилання
+      # http://tempo:3200/api/traces/{traceId} (datasource uid tempo-fade).
+      - derived_fields:
+          - source: traceId
+            name: TraceID
+            url: 'http://tempo:3200/api/traces/$${__value__}'
+            url_display_label: 'trace in Tempo'

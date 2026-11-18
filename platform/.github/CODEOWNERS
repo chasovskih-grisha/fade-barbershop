@@ -1,0 +1,18 @@
+# CODEOWNERS — автоматичне призначення рев'юверів.
+# Діє, коли у гілки увімкнено branch protection («Require review from Code Owners»).
+#
+# УВАГА: перевірте свій GitHub-хендл — CODEOWNERS мовчки ігнорує невідомі хендли.
+# Якщо хендл не @chasovskih-grisha (виведено з email коммітера) — замініть на реальний.
+
+# Все за замовчуванням — засновник (поки команда — одна людина)
+*                                           @chasovskih-grisha
+
+# ── Делегування на майбутнє (розкоментувати, коли з'являться люди; фаза 9+) ──
+# Правило: той, хто веде контекст, рев'юїть свій контекст; засновник лишається
+# на перетинах контекстів і «філософських» файлах (принципи, ADR, беклог).
+
+# apps/api/src/scheduling/   @barber-lead
+# apps/api/src/billing/      @payments-lead
+# packages/ui/               @design-lead
+# docs/adr/                  @chasovskih-grisha
+# backlog/                   @chasovskih-grisha

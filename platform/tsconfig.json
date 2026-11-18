@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/contracts" },
+    { "path": "./packages/domain-shared" },
+    { "path": "./packages/test-utils" },
+    { "path": "./packages/ui" },
+    { "path": "./apps/api" },
+    { "path": "./apps/web" },
+    { "path": "./apps/admin" },
+    { "path": "./apps/mobile" }
+  ]
+}

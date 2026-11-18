@@ -1,0 +1,23 @@
+# Tempo (T-4204f): single-binary dev-сховище трейсів (filesystem). Приймає
+# OTLP gRPC від колектора (4317). Конфіг свідомо мінімальний: Tempo v3 викинув
+# top-level compactor/multitenancy_enabled; дефолтний retention 336h (14 днів)
+# — для dev достатньо, прод-retention — окреме рішення T-4204.
+server:
+  http_listen_port: 3200
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /var/tempo/blocks
+    wal:
+      path: /var/tempo/wal

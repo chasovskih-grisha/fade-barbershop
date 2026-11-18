@@ -1,0 +1,22 @@
+# T-4807 · Конфіг Gitleaks для CI (security-hardening.md §2).
+#
+# Розширює типовий набір правил: сканує історію git на секрети. Allowlist
+# тримає лише dev-плейсхолдери та приклади конфігів — не справжні ключі.
+# Новий виняток додається з причиною, а не вимкненням перевірки.
+title = "FADE platform gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Приклади конфігів і локальні dev-креденшели (не прод)"
+paths = [
+  # Приклади .env: значення — плейсхолдери або локальні docker-паролі.
+  '''^\.env\.example$''',
+  '''^infra/\.env\.docker\.example$''',
+  # Гейт секретів тримає власні навчальні зразки (не справжні ключі).
+  '''^scripts/check-secrets\.mjs$''',
+  '''^scripts/check-secrets\.test\.mjs$''',
+  # Лок-файли і згенеровані артефакти.
+  '''pnpm-lock\.yaml$''',
+]

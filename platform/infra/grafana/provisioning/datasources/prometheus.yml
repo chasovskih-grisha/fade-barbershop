@@ -1,0 +1,12 @@
+# Datasource Prometheus для Grafana (T-4204d): ім'я сервісу в мережі
+# fade-platform-net; uid зафіксований — дашборди силаються на нього.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus-fade
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false

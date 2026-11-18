@@ -1,0 +1,224 @@
+name: CI
+
+on:
+  push:
+    branches: [stage, main]
+  pull_request:
+    branches: [stage, main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  style:
+    name: Style checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm format:check
+      - run: pnpm lint
+      # T-4300f: гейт «UUID only» (ADR 0021) — Prisma PK, генерація id, читабельні id.
+      - run: pnpm uuid:check
+      - run: pnpm uuid:test
+      # T-4812: гейт безпеки Prisma-міграцій — деструктивні зміни ламають rolling deploy.
+      - run: pnpm db:migration:check
+      - run: pnpm db:migration:test
+      # T-4611a: email = системний стек, Fixel у листах не використовується.
+      - run: pnpm email:check
+      - run: pnpm email:test
+      # T-4611a: dist == tokens.json + контраст-гейт (email.* разом з рештою пар).
+      - run: pnpm --filter @fade/design-tokens verify
+      # T-4609a: гейт цілісності бренд-асетів (assets/ == checksums.json).
+      - run: pnpm --filter @fade/brand-assets verify
+
+  security:
+    name: Security scans (secrets, container CVEs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      # T-4807: високоточний гейт секретів у відстежуваних файлах.
+      - run: pnpm secrets:check
+      - run: pnpm secrets:test
+      # T-4807: повнотекстовий скан історії git (Gitleaks, MIT-образ).
+      - name: Gitleaks scan (git history)
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.21.2 \
+            detect --source /repo --config /repo/.gitleaks.toml \
+            --report-format sarif --report-path /repo/gitleaks-report.sarif \
+            --exit-code 1 --no-banner
+      # T-4807: вразливості конфігурації Dockerfile (Trivy config).
+      - name: Trivy config scan (Dockerfiles)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: infra
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          format: sarif
+          output: trivy-config.sarif
+      # T-4807: вразливості образу API (Trivy image).
+      - name: Build API image for vulnerability scan
+        run: docker build -f infra/api.Dockerfile -t fade-api:scan .
+      - name: Trivy image scan (API)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: fade-api:scan
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+          format: sarif
+          output: trivy-image.sarif
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            gitleaks-report.sarif
+            trivy-config.sarif
+            trivy-image.sarif
+          if-no-files-found: ignore
+
+  infra:
+    name: Infrastructure configuration validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Docker Compose configuration
+        run: |
+          cd infra
+          docker compose -f docker-compose.yml --env-file .env.docker.example config
+
+  # Обов'язковий гейт: tsc --noEmit по кожному workspace + docs:validate.
+  # Ломаний WIP не потрапляє в stage/main непомітно — job падає до merge.
+  typecheck:
+    name: Typecheck (tsc --noEmit) and docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Build package declarations (types for apps)
+        run: pnpm --filter "./packages/**" build
+      - name: Typecheck contracts, domain-shared, test-utils, ui
+        run: pnpm --filter "@fade/contracts" --filter "@fade/domain-shared" --filter "@fade/test-utils" --filter "@fade/ui" typecheck
+      - name: Typecheck api
+        run: pnpm --filter @fade/api typecheck
+      - name: Typecheck web
+        run: pnpm --filter @fade/web typecheck
+      - name: Typecheck admin
+        run: pnpm --filter @fade/admin typecheck
+      - name: Typecheck mobile
+        run: pnpm --filter @fade/mobile typecheck
+      - name: Validate docs and backlog index
+        run: pnpm docs:validate
+      - name: Test the docs validator
+        run: pnpm docs:test
+      - name: Test the vendored dependency forks
+        run: pnpm vendor:test
+
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: API unit tests
+        run: pnpm --filter @fade/api test:unit
+      - name: Build shared UI
+        run: pnpm --filter @fade/ui build
+      - name: Web, admin, mobile, and packages
+        run: pnpm --filter "@fade/web" --filter "@fade/admin" --filter "@fade/mobile" --filter "@fade/ui" --filter "@fade/contracts" --filter "@fade/domain-shared" --filter "@fade/test-utils" test
+      - name: Brand assets integrity
+        run: pnpm --filter @fade/brand-assets test
+
+  database:
+    name: Database
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: barbershop
+          POSTGRES_PASSWORD: barbershop
+          POSTGRES_DB: barbershop
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U barbershop -d barbershop"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://barbershop:barbershop@127.0.0.1:5432/barbershop?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Apply migrations
+        run: pnpm --filter @fade/api exec prisma migrate deploy
+
+  fixtures:
+    name: Fixtures
+    needs: database
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: barbershop
+          POSTGRES_PASSWORD: barbershop
+          POSTGRES_DB: barbershop
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U barbershop -d barbershop"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://barbershop:barbershop@127.0.0.1:5432/barbershop?schema=public
+      FADE_SEED_REQUIRE_CLIENTS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Apply migrations
+        run: pnpm --filter @fade/api exec prisma migrate deploy
+      - name: Seed catalogs, clients, appointments, and admin
+        run: |
+          pnpm --filter @fade/api seed
+          pnpm --filter @fade/api seed:admin
+
+  functional:
+    name: Functional tests
+    needs: fixtures
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: barbershop
+          POSTGRES_PASSWORD: barbershop
+          POSTGRES_DB: barbershop
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U barbershop -d barbershop"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://barbershop:barbershop@127.0.0.1:5432/barbershop?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Apply migrations
+        run: pnpm --filter @fade/api exec prisma migrate deploy
+      - name: API functional tests
+        run: pnpm --filter @fade/api test:functional

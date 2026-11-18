@@ -1,0 +1,28 @@
+# Loki — dev-конфіг (T-4204e): single-binary, filesystem-сховище, tsdb-індекс.
+# Порт всередині 3100 (хост 19095). Retention не обмежуємо — dev; прод (T-4204
+# прод-крок) задає retention 30d hot / 1y cold за docs/observability.md.
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+
+common:
+  path_prefix: /loki
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+
+schema_config:
+  configs:
+    - from: 2026-09-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h

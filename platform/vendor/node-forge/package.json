@@ -1,0 +1,23 @@
+{
+  "name": "node-forge",
+  "version": "1.4.1",
+  "description": "Vendored copy of node-forge 1.4.0 with the RSA PKCS#1 v1.5 DigestInfo element-count fix (CVE-2026-85393); see README.md.",
+  "homepage": "https://github.com/digitalbazaar/forge",
+  "author": "Digital Bazaar, Inc.",
+  "license": "(BSD-3-Clause OR GPL-2.0)",
+  "keywords": [
+    "crypto",
+    "tls",
+    "x.509",
+    "asn.1",
+    "rsa"
+  ],
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/digitalbazaar/forge"
+  },
+  "files": [
+    "lib/*.js"
+  ]
+}
