@@ -91,6 +91,11 @@ export class Referral {
     this.props.status = 'REVOKED';
   }
 
+  /** Відновлення зі сховища (або фікстура з явними датами) без побічних ефектів. */
+  static reconstitute(props: ReferralProps): Referral {
+    return new Referral({ ...props });
+  }
+
   static create(referrerId: string, referredId: string, code: string): Referral {
     if (referrerId === referredId) {
       throw new Error('Self-referral is not allowed');

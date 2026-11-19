@@ -31,6 +31,7 @@ import { PricingModule } from './pricing/pricing.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
 import { GiftCertificatesModule } from './gift-certificates/gift-certificates.module';
+import { ReferralsModule } from './referrals/referrals.module';
 import { IdempotencyInterceptor } from './shared/idempotency/idempotency.interceptor';
 
 // HTTP-middleware обліку (SLO SLI, docs/slo.md) вішаються першими — до guard'ів
@@ -66,6 +67,7 @@ import { IdempotencyInterceptor } from './shared/idempotency/idempotency.interce
     CampaignsModule,
     PortfolioModule,
     GiftCertificatesModule,
+    ReferralsModule,
   ],
   providers: [
     {
