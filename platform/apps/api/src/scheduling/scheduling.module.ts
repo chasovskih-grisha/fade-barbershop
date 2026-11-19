@@ -1,5 +1,11 @@
 import { Module } from '@nestjs/common';
 import { WaitlistDepositController } from './application/waitlist-deposit.controller';
+import { AdminWaitlistController } from './application/admin-waitlist.controller';
+import {
+  InMemoryWaitlistExtendedRepository,
+  ManageWaitlistService,
+  WAITLIST_EXTENDED_REPOSITORY,
+} from './application/manage-waitlist.use-case';
 import {
   WaitlistDepositFlow,
   createInMemoryWaitlistPaymentRepository,
@@ -28,7 +34,7 @@ export const DEPOSIT_SETTLEMENT_DEPS = Symbol('DEPOSIT_SETTLEMENT_DEPS');
 
 @Module({
   imports: [BookingModule],
-  controllers: [WaitlistDepositController],
+  controllers: [WaitlistDepositController, AdminWaitlistController],
   providers: [
     {
       provide: WAITLIST_PAYMENT_REPOSITORY,
@@ -46,6 +52,12 @@ export const DEPOSIT_SETTLEMENT_DEPS = Symbol('DEPOSIT_SETTLEMENT_DEPS');
       provide: WaitlistDepositFlow,
       useFactory: (deps: WaitlistDepositDeps) => new WaitlistDepositFlow(deps),
       inject: [WAITLIST_DEPOSIT_DEPS],
+    },
+    // T-4559: керована черга — пріоритети, каскад, відмова, дії адміна.
+    ManageWaitlistService,
+    {
+      provide: WAITLIST_EXTENDED_REPOSITORY,
+      useClass: InMemoryWaitlistExtendedRepository,
     },
     {
       provide: DEPOSIT_SETTLEMENT_DEPS,

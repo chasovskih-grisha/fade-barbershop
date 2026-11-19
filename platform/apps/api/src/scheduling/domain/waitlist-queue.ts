@@ -103,7 +103,14 @@ export interface FreedSlot {
   groupSize?: number;
 }
 
-export type WaitlistEntryStatus = 'waiting' | 'offered' | 'expired' | 'paused' | 'fulfilled';
+export type WaitlistEntryStatus =
+  | 'waiting'
+  | 'offered'
+  | 'expired'
+  | 'paused'
+  | 'fulfilled'
+  /** T-4559: клієнт сам відмовився від черги. */
+  | 'cancelled';
 
 /** Ручне втручання оператора (T-4453): підняти заявку з причиною і логом. */
 export interface OperatorOverride {
@@ -125,6 +132,20 @@ export interface WaitlistEntryData {
   completedVisits?: number;
   /** Піднятий оператором вручну; причина обовʼязкова для аудиту. */
   override?: OperatorOverride;
+  /** T-4559: рівень лояльності (BRONZE…PLATINUM) з crm — вага пріоритету. */
+  vipTier?: string;
+  /** T-4559: ручне зміщення оператором (+/-); причина — в history. */
+  manualBias?: number;
+  /** T-4559: журнал дій (каскад, відмова, дії адміна). */
+  history?: WaitlistEntryHistoryEntry[];
+}
+
+/** Запис журналу заявки: хто/коли/чому (T-4559, audit). */
+export interface WaitlistEntryHistoryEntry {
+  at: Date;
+  action: string;
+  by: string;
+  reason: string;
 }
 
 /** Soft-hold на пропозицію: 15 хвилин (WTL-003/005). */
@@ -147,6 +168,19 @@ export const PRIORITY_WEIGHTS = {
   /** Ручне підняття оператором переважає будь-яку конструктивну вагу. */
   operatorBoost: 100,
 } as const;
+
+/** T-4559: вага рівня лояльності; PLATINUM обходить звичайну чергу. */
+export const VIP_TIER_BONUS: Record<string, number> = {
+  BRONZE: 0,
+  SILVER: 2,
+  GOLD: 5,
+  PLATINUM: 8,
+};
+
+function vipBonus(tier: string | undefined): number {
+  if (!tier) return 0;
+  return VIP_TIER_BONUS[tier.toUpperCase()] ?? 0;
+}
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -194,6 +228,9 @@ export function priorityScore(entry: WaitlistEntryData): number {
   }
 
   score -= Math.max(0, entry.consecutiveMisses) * PRIORITY_WEIGHTS.missPenalty;
+
+  score += vipBonus(entry.vipTier);
+  score += entry.manualBias ?? 0;
 
   if (entry.override) score += PRIORITY_WEIGHTS.operatorBoost;
 

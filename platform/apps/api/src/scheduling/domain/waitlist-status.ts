@@ -101,6 +101,7 @@ export function statusLabel(status: WaitlistEntryData['status']): WaitlistEntryS
       return 'на паузі';
     case 'expired':
     case 'fulfilled':
+    case 'cancelled':
       return 'закрита';
   }
 }
