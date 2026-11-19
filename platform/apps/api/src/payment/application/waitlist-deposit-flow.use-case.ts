@@ -1,4 +1,5 @@
-import { Booking, BookingConflictError, PaymentStatus } from '../../scheduling/domain/booking';
+import { Booking, BookingConflictError } from '../../scheduling/domain/booking';
+import { PaymentStatus } from '../../scheduling/domain/payment-status';
 import { BookingRepository } from '../../scheduling/domain/booking-repository';
 import { PriceSnapshot } from '../../scheduling/application/book-appointment.pricing';
 import { DepositPolicy } from '../../scheduling/domain/deposit-terms';
@@ -11,6 +12,9 @@ import { Payment } from '../../billing/domain/payment.entity';
 import { PaymentStatus as BillingPaymentStatus } from '../../billing/domain/payment-status.enum';
 import { FiscalGateway, FiscalReceiptDetails } from '../../billing/domain/fiscal.gateway.interface';
 import { CheckboxFiscalGateway, CheckboxReceiptType } from './checkbox-fiscal-gateway';
+import type { CheckboxReceipt } from './checkbox-fiscal-gateway';
+
+export { CheckboxReceiptType };
 
 export type { BookAppointmentDeps };
 
@@ -34,7 +38,7 @@ export interface WaitlistDepositResult {
   booking?: Booking;
   depositAmount: number;
   requiresBalance: boolean;
-  depositReceipt?: CheckboxReceipt;
+  depositReceipt?: CheckboxReceipt | null;
 }
 
 /** Payment props compatible with both booking and billing domains. */
@@ -70,12 +74,32 @@ export class WaitlistDepositFlow {
   constructor(
     private readonly deps: {
       bookingRepo: BookingRepository;
-      paymentRepo: { create: (p: PaymentProps) => Payment; update: (id: string, s: Partial<PaymentProps>) => Payment };
+      paymentRepo: {
+        create: (p: PaymentProps) => Payment;
+        update: (id: string, s: Partial<PaymentProps>) => Payment;
+        findByWaitlistId?: (waitlistId: string) => Promise<Payment | null>;
+      };
       depositPolicy?: () => Promise<DepositPolicy>;
       checkboxGateway?: CheckboxFiscalGateway;
       eventBus?: { publish: (e: { type: string; data: any }) => Promise<void> };
     }
   ) {}
+
+  /** Платіж, привʼязаний до запису черги (T-197): читання для контролера. */
+  async findPaymentByWaitlistId(waitlistId: string): Promise<Payment | null> {
+    return (await this.deps.paymentRepo.findByWaitlistId?.(waitlistId)) ?? null;
+  }
+
+  /** Фіскальний чек по депозиту (T-197); `null`, якщо gateway не підключений. */
+  async issueDepositReceipt(waitlistId: string, amount: number, receiptId: string) {
+    if (!this.deps.checkboxGateway) return null;
+    return this.deps.checkboxGateway.issueReceipt(
+      waitlistId,
+      amount,
+      CheckboxReceiptType.Deposit,
+      receiptId
+    );
+  }
 
   async execute(input: WaitlistDepositInput): Promise<WaitlistDepositResult> {
     return withSpan({
@@ -94,16 +118,17 @@ export class WaitlistDepositFlow {
             payment: existingPayment,
             depositAmount: existingPayment.amount,
             requiresBalance: false,
-            depositReceipt: existingPayment.receiptId ? await this.deps.checkboxGateway?.issueReceipt(
-              input.waitlistId,
-              existingPayment.amount,
-              CheckboxReceiptType.Deposit,
-              existingPayment.receiptId
-            ) : undefined,
+            depositReceipt: existingPayment.receiptId
+              ? await this.issueDepositReceipt(
+                  input.waitlistId,
+                  existingPayment.amount,
+                  existingPayment.receiptId
+                )
+              : null,
           };
         }
 
-        const depositPolicy = await this.deps.depositPolicy?.get() ?? defaultDepositPolicy;
+        const depositPolicy = (await this.deps.depositPolicy?.()) ?? defaultDepositPolicy;
         const depositAmount = this.calculateDepositAmount(input.finalPrice, depositPolicy);
 
         // Create payment record for waitlist deposit

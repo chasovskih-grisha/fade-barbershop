@@ -47,9 +47,9 @@ export class WaitlistDepositController {
     @Param('waitlistId') waitlistId: string,
     @Body() body: {
       clientId: string;
-      slotId?: string;
+      slotId: string;
       paymentMethod?: PaymentForm;
-      finalPrice?: number;
+      finalPrice: number;
     },
     @Query('traceId') traceId?: string,
   ): Promise<{
@@ -98,7 +98,7 @@ export class WaitlistDepositController {
     receiptId?: string;
     updatedAt: Date;
   }> {
-    const payment = await this.depositFlow.deps.paymentRepo.findByWaitlistId(waitlistId);
+    const payment = await this.depositFlow.findPaymentByWaitlistId(waitlistId);
 
     if (!payment) {
       return {
@@ -138,7 +138,7 @@ export class WaitlistDepositController {
     errorCode?: string;
     errorMessage?: string;
   }> {
-    const payment = await this.depositFlow.deps.paymentRepo.findByWaitlistId(waitlistId);
+    const payment = await this.depositFlow.findPaymentByWaitlistId(waitlistId);
 
     if (!payment || !payment.receiptId) {
       return {
@@ -150,22 +150,41 @@ export class WaitlistDepositController {
       };
     }
 
-    const receipt = await this.depositFlow.deps.checkboxGateway?.issueReceipt(
+    const receipt = await this.depositFlow.issueDepositReceipt(
       waitlistId,
       payment.amount,
-      CheckboxReceiptType.Deposit,
       payment.receiptId
     );
 
-    return {
+    if (!receipt) {
+      return {
+        checkId: '',
+        type: CheckboxReceiptType.Deposit,
+        amount: payment.amount,
+        status: 'pending',
+        createdAt: new Date(),
+      };
+    }
+
+    const result = {
       checkId: receipt.check_id,
       type: receipt.type,
       amount: receipt.amount,
       status: receipt.status,
       createdAt: receipt.created_at,
-      signedAt: receipt.signed_at,
-      errorCode: receipt.error_code,
-      errorMessage: receipt.error_message,
+    } as {
+      checkId: string;
+      type: CheckboxReceiptType;
+      amount: number;
+      status: 'pending' | 'signed' | 'failed';
+      createdAt: Date;
+      signedAt?: Date;
+      errorCode?: string;
+      errorMessage?: string;
     };
+    if (receipt.signed_at) result.signedAt = receipt.signed_at;
+    if (receipt.error_code) result.errorCode = receipt.error_code;
+    if (receipt.error_message) result.errorMessage = receipt.error_message;
+    return result;
   }
 }

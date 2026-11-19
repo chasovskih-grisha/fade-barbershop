@@ -16,6 +16,8 @@ export const TRACING = {
   BOOKING_BOOK: 'booking.book',
   /** Спан перенесення запису (T-4533; подія rescheduled теж каузально зв'язана). */
   BOOKING_RESCHEDULE: 'booking.reschedule',
+  /** Спан депозиту в черзі (T-197). */
+  WAITLIST_DEPOSIT_FLOW: 'waitlist.deposit',
   /** Атрибут: тип події outbox. */
   EVENT_TYPE: 'fade.event_type',
   /** Атрибут: id події outbox. */
