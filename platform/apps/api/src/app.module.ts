@@ -28,6 +28,7 @@ import { RetentionModule } from './shared/retention/retention.module';
 import { DbPoolModule } from './shared/database/pool/db-pool.module';
 import { ArchiveModule } from './shared/archive/archive.module';
 import { PricingModule } from './pricing/pricing.module';
+import { CampaignsModule } from './campaigns/campaigns.module';
 import { IdempotencyInterceptor } from './shared/idempotency/idempotency.interceptor';
 
 // HTTP-middleware обліку (SLO SLI, docs/slo.md) вішаються першими — до guard'ів
@@ -60,6 +61,7 @@ import { IdempotencyInterceptor } from './shared/idempotency/idempotency.interce
     DbPoolModule,
     ArchiveModule,
     PricingModule,
+    CampaignsModule,
   ],
   providers: [
     {
