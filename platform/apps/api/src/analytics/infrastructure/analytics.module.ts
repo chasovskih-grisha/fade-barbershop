@@ -17,12 +17,20 @@ import { AnalyticsForwardingWorker } from './analytics-forwarding.worker';
 import { PrismaBookingSourceStats } from './prisma-booking-source.stats';
 import { BookingSourceController } from './booking-source.controller';
 import { GetBookingSourceBreakdown, BOOKING_SOURCE_STATS } from '../application/booking-source-breakdown';
+import { AdminSlowHoursController } from './admin-slow-hours.controller';
+import { PrismaSlowHoursSource } from './prisma-slow-hours.source';
+import {
+  GetSlowHours,
+  SLOW_HOURS_CLOCK,
+  SLOW_HOURS_SOURCE,
+  type SlowHoursClock,
+} from '../application/get-slow-hours';
 
 const analyticsLogger = new Logger('AnalyticsForwarding');
 
 @Module({
   imports: [MetricsModule],
-  controllers: [AdminLaunchDashboardController, BookingSourceController],
+  controllers: [AdminLaunchDashboardController, BookingSourceController, AdminSlowHoursController],
   providers: [
     PrismaService,
     PrismaLaunchMetricsSource,
@@ -58,7 +66,16 @@ const analyticsLogger = new Logger('AnalyticsForwarding');
       useFactory: (stats) => new GetBookingSourceBreakdown(stats),
       inject: [BOOKING_SOURCE_STATS],
     },
+    // T-4464: «слабкі години» — поріг і години конфігуруються, час інжектується.
+    PrismaSlowHoursSource,
+    { provide: SLOW_HOURS_SOURCE, useExisting: PrismaSlowHoursSource },
+    { provide: SLOW_HOURS_CLOCK, useFactory: (): SlowHoursClock => ({ now: () => new Date() }) },
+    {
+      provide: GetSlowHours,
+      useFactory: (source, clock) => new GetSlowHours(source, clock),
+      inject: [SLOW_HOURS_SOURCE, SLOW_HOURS_CLOCK],
+    },
   ],
-  exports: [GetLaunchDashboard],
+  exports: [GetLaunchDashboard, GetSlowHours],
 })
 export class AnalyticsModule {}
