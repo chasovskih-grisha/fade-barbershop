@@ -2,14 +2,36 @@
 // Клієнт: «Залишити відгук» / «Мої відгуки». Майстер: свої відгуки й середня.
 // Адмін: список з фільтрами та відповідь. Публікація — фаза 25 (FDB-006).
 
-import { Body, Controller, Get, Header, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Header,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { AdminListInput, AdminReplyInput, CanSubmitInput } from './feedback-surfaces.dto';
+import {
+  AdminListInput,
+  AdminReplyInput,
+  CanSubmitInput,
+  ReviewReplyBody,
+  ReviewStatusBody,
+} from './feedback-surfaces.dto';
 import { FeedbackSurfacesService } from './feedback-surfaces.service';
+import { ReviewProcessingService } from './review-processing.service';
 
 @Controller('feedback-surfaces')
 export class FeedbackSurfacesController {
-  constructor(private readonly feedbackSurfacesService: FeedbackSurfacesService) {}
+  constructor(
+    private readonly feedbackSurfacesService: FeedbackSurfacesService,
+    private readonly reviewProcessing: ReviewProcessingService
+  ) {}
 
   /** Стан вікна для візиту (кабінет/мобільний). */
   @Get('appointment/:appointmentId')
@@ -123,5 +145,62 @@ export class FeedbackSurfacesController {
       body.replyText
     );
     return { success: true, data: reply };
+  }
+
+  // ─── T-4451: опрацювання відгуків ────────────────────────────────────────
+
+  /** Черга «неопрацьовані» для підтримки (найстаріші спершу). */
+  @Get('admin/reviews/unprocessed')
+  @ApiOperation({ summary: 'Admin: reviews awaiting the first reply, oldest first' })
+  @ApiQuery({ name: 'limit', required: false })
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'private, no-store')
+  async unprocessedReviews(@Query('limit') limit?: string) {
+    const parsed = limit === undefined ? undefined : Number.parseInt(limit, 10);
+    const safeLimit = parsed === undefined || Number.isNaN(parsed) ? undefined : parsed;
+    const items = await this.reviewProcessing.listUnprocessed(safeLimit);
+    return { success: true, data: { total: items.length, reviews: items } };
+  }
+
+  /** Публічна відповідь адміна; переводить відгук у «опрацьований». */
+  @Post('admin/reviews/:reviewId/reply')
+  @ApiOperation({ summary: 'Admin: reply to a review and mark it processed' })
+  @ApiParam({ name: 'reviewId' })
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'private, no-store')
+  async replyToReview(@Param('reviewId') reviewId: string, @Body() body: ReviewReplyBody) {
+    try {
+      const result = await this.reviewProcessing.reply(reviewId, {
+        adminId: body.adminId,
+        text: body.text,
+      });
+      return { success: true, data: result };
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  /** Перемикання статусу: новий / опрацьований / архів. */
+  @Patch('admin/reviews/:reviewId/status')
+  @ApiOperation({ summary: 'Admin: move a review between new / processed / archived' })
+  @ApiParam({ name: 'reviewId' })
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'private, no-store')
+  async setReviewStatus(@Param('reviewId') reviewId: string, @Body() body: ReviewStatusBody) {
+    try {
+      const review = await this.reviewProcessing.setStatus(reviewId, body.status, body.actorId);
+      return { success: true, data: review };
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  /** Охоплення SLA: неопрацьовані, прострочені, найдовше очікування. */
+  @Get('admin/reviews/sla')
+  @ApiOperation({ summary: 'Admin: review-processing SLA summary' })
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'private, no-store')
+  async reviewSla() {
+    return { success: true, data: await this.reviewProcessing.sla() };
   }
 }

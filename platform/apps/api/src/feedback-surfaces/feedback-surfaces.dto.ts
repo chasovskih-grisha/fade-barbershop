@@ -80,3 +80,18 @@ export interface AdminReviewItem {
   submittedAt: Date;
   windowEndsAt: Date;
 }
+
+// T-4451: опрацювання відгуків.
+export class ReviewReplyBody {
+  @IsString()
+  adminId!: string;
+  @IsString()
+  text!: string;
+}
+
+export class ReviewStatusBody {
+  @IsString()
+  status!: 'new' | 'processed' | 'archived';
+  @IsString()
+  actorId!: string;
+}
