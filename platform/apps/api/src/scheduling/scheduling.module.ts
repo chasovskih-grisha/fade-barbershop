@@ -17,6 +17,20 @@ import {
   type DepositSettlementDeps,
   type SettlementPaymentRepository,
 } from './application/deposit-settlement.service';
+import {
+  ClientScheduleChangeController,
+  AdminScheduleChangeController,
+} from './infrastructure/schedule-change.controller';
+import {
+  InMemoryScheduleChangeRepository,
+  SCHEDULE_CHANGE_AVAILABILITY,
+  SCHEDULE_CHANGE_CLOCK,
+  SCHEDULE_CHANGE_EVENTS,
+  SCHEDULE_CHANGE_REPOSITORY,
+  ScheduleChangeApprovalService,
+} from './application/schedule-change-approval.service';
+import { PrismaScheduleChangeAvailability } from './infrastructure/prisma-schedule-change.availability';
+import { RecordingScheduleChangeEvents } from './infrastructure/recording-schedule-change.events';
 import { BookingModule } from '../booking/booking.module';
 import { DepositPolicyProvider } from './infrastructure/deposit-policy.provider';
 
@@ -34,7 +48,12 @@ export const DEPOSIT_SETTLEMENT_DEPS = Symbol('DEPOSIT_SETTLEMENT_DEPS');
 
 @Module({
   imports: [BookingModule],
-  controllers: [WaitlistDepositController, AdminWaitlistController],
+  controllers: [
+    WaitlistDepositController,
+    AdminWaitlistController,
+    ClientScheduleChangeController,
+    AdminScheduleChangeController,
+  ],
   providers: [
     {
       provide: WAITLIST_PAYMENT_REPOSITORY,
@@ -53,6 +72,17 @@ export const DEPOSIT_SETTLEMENT_DEPS = Symbol('DEPOSIT_SETTLEMENT_DEPS');
       useFactory: (deps: WaitlistDepositDeps) => new WaitlistDepositFlow(deps),
       inject: [WAITLIST_DEPOSIT_DEPS],
     },
+    // T-4458: погодження зміни графіка — заявка → рішення → згода клієнта.
+    RecordingScheduleChangeEvents,
+    { provide: SCHEDULE_CHANGE_EVENTS, useExisting: RecordingScheduleChangeEvents },
+    PrismaScheduleChangeAvailability,
+    { provide: SCHEDULE_CHANGE_AVAILABILITY, useExisting: PrismaScheduleChangeAvailability },
+    {
+      provide: SCHEDULE_CHANGE_REPOSITORY,
+      useClass: InMemoryScheduleChangeRepository,
+    },
+    { provide: SCHEDULE_CHANGE_CLOCK, useFactory: () => ({ now: () => new Date() }) },
+    ScheduleChangeApprovalService,
     // T-4559: керована черга — пріоритети, каскад, відмова, дії адміна.
     ManageWaitlistService,
     {
@@ -79,6 +109,6 @@ export const DEPOSIT_SETTLEMENT_DEPS = Symbol('DEPOSIT_SETTLEMENT_DEPS');
       inject: [DEPOSIT_SETTLEMENT_DEPS],
     },
   ],
-  exports: [WaitlistDepositFlow, DepositSettlementService],
+  exports: [WaitlistDepositFlow, DepositSettlementService, ScheduleChangeApprovalService],
 })
 export class SchedulingModule {}
