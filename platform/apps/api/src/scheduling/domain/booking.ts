@@ -84,4 +84,12 @@ export class Booking {
   get deposit(): DepositTerms | null {
     return this.data.deposit ?? null;
   }
+  /** false — візит безкоштовний (100% знижка, DSC-013): без Payment і чека. */
+  get requiresPayment(): boolean {
+    return this.data.requiresPayment ?? true;
+  }
+  /** Причина безкоштовного візиту для екранів і адмінки (DSC-013). */
+  get discountReason(): string | null {
+    return this.data.discountReason ?? null;
+  }
 }

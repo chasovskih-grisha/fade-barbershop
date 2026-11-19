@@ -33,6 +33,10 @@ export interface BookingData {
   source?: string | null;
   /** Снепшот умов депозиту (PAY-ADM-09); null — візит без депозиту. */
   deposit?: DepositTerms | null;
+  /** Чи є що платити (DSC-013): 100% знижка — візит безкоштовний. */
+  requiresPayment?: boolean | null;
+  /** Причина безкоштовного візиту (`full_discount_promo` тощо). */
+  discountReason?: string | null;
   /** Позиції послуг у записі (T-4520a): для композитного слота. */
   servicePositions?: ServicePosition[] | null;
 }
@@ -64,6 +68,9 @@ export interface BookingCreateParams {
   /** Снепшот surge (T-4811): множник у базисних пунктів і id правила. */
   surgeBasisPoints?: number | null;
   surgeRuleId?: string | null;
+  /** Результат T-152: чи є що платити і чому візит безкоштовний. */
+  requiresPayment?: boolean;
+  discountReason?: string;
   /** Позиції послуг у записі (T-4520a): для композитного слота. */
   servicePositions?: ServicePosition[];
 }
@@ -86,6 +93,8 @@ function surgeOptionalFields(params: BookingCreateParams) {
     clientId: params.clientId ?? null,
     surgeBasisPoints: params.surgeBasisPoints ?? null,
     surgeRuleId: params.surgeRuleId ?? null,
+    requiresPayment: params.requiresPayment ?? null,
+    discountReason: params.discountReason ?? null,
   };
 }
 

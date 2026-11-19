@@ -34,15 +34,15 @@ export interface ApplyDiscountInput {
   /** Базова ціна візиту з каталогу, у копійках (ADR 0006). */
   agreedPriceCents: number;
   clientId: string;
-  serviceId?: string;
+  serviceId?: string | undefined;
   /** Сирий код від клієнта; нечутливий до регістру (DSC-WEB-03). */
-  promoCode?: string;
+  promoCode?: string | undefined;
   /** Обраний слот — потрібен для правила «непікові години». */
-  slotStart?: Date;
-  timeZone?: string;
+  slotStart?: Date | undefined;
+  timeZone?: string | undefined;
   /** Кап сумарної знижки у %, дефолт 30 (DSC-ADM-06). */
-  capPercent?: number;
-  now?: Date;
+  capPercent?: number | undefined;
+  now?: Date | undefined;
 }
 
 export type DiscountReason = 'full_discount_promo' | 'full_discount_rule' | 'full_discount_vip';

@@ -8,6 +8,7 @@ import type { BookingSource } from '../domain/booking.data';
 import type { DailyLoadPolicy } from '../domain/daily-load-limit';
 import type { DepositPolicySettingsPort } from '../domain/deposit-policy-settings';
 import type { DiscountInput } from '../../discounts/domain/discount-calculator';
+import type { AppliedDiscount, PriceBreakdown } from '../../discounts/domain/price-breakdown';
 import type { ServicePosition } from '../domain/composed-slot-span';
 
 export interface BookAppointmentDeps {
@@ -29,6 +30,26 @@ export interface BookAppointmentDeps {
    * `DiscountCalculator` застосовується в use case і снепшотиться на Booking.
    */
   discounts?: Omit<DiscountInput, 'agreedPrice'>;
+  /**
+   * T-152: застосування знижок сервісом (`ApplyDiscountService`): промокод,
+   * автоматичні правила й VIP. Має пріоритет над готовими `discounts`.
+   */
+  discountApplication?: {
+    apply(input: {
+      agreedPriceCents: number;
+      clientId?: string;
+      serviceId?: string;
+      promoCode?: string;
+      slotStart: Date;
+    }): Promise<{
+      breakdown: PriceBreakdown;
+      appliedDiscounts: AppliedDiscount[];
+      requiresPayment: boolean;
+      reason?: string;
+    }>;
+  };
+  /** Промокод, який ввів клієнт (DSC-WEB-01), для `discountApplication`. */
+  promoCode?: string;
   /** Референс/коментар (T-043): снепшот на записі при створенні. */
   reference?: { haircutReferenceId?: string; appointmentComment?: string };
   /** Джерело запису (T-046, ANL-004): канал + посилання на клієнта. */
