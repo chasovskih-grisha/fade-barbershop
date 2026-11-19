@@ -54,6 +54,13 @@ export interface BookingCreateParams {
   haircutReferenceId?: string;
   appointmentComment?: string;
   clientId?: string;
+  /** Канал запису (ANL-004); без нього — «web». */
+  source?: BookingSource;
+  /**
+   * Політика депозиту з адмін-налаштувань (PAY-ADM-09): з неї рахується
+   * снепшот умов; без неї — дефолти політики.
+   */
+  depositPolicy?: DepositPolicy;
   /** Снепшот surge (T-4811): множник у базисних пунктів і id правила. */
   surgeBasisPoints?: number | null;
   surgeRuleId?: string | null;
@@ -108,10 +115,14 @@ function resolveDuration(params: BookingCreateParams): number {
   );
 }
 
-/** Визначення депозиту. */
+/**
+ * Снепшот умов депозиту (PAY-ADM-09, T-160): рахується від підсумкової ціни
+ * візиту, тож 100% зничка (FinalPrice = 0) дає `null` — без Payment і чека
+ * (DSC-013), а депозит вимкнений політикою теж не створюється.
+ */
 function resolveDeposit(params: BookingCreateParams): DepositTerms | null {
-  // TODO: implement deposit logic based on params
-  return null;
+  const price = params.finalPrice ?? params.agreedPrice;
+  return depositTermsFor(price, params.depositPolicy);
 }
 
 /** Розрахунок кінцеової ціни з урахуванням знижок. */

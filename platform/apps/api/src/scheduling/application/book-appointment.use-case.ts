@@ -109,7 +109,7 @@ export class BookAppointment {
       if (barberId) throw new BookingConflictError('Barber is already booked for this slot');
       return null;
     }
-    const priceSnap = await priceSnapshot(this.deps);
+    const priceSnap = await priceSnapshot(this.deps, start, locationId);
     const booking = Booking.create({
       barberId: schedule.getBarberId(),
       locationId,

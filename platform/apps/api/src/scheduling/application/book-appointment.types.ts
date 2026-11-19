@@ -8,6 +8,7 @@ import type { BookingSource } from '../domain/booking.data';
 import type { DailyLoadPolicy } from '../domain/daily-load-limit';
 import type { DepositPolicySettingsPort } from '../domain/deposit-policy-settings';
 import type { DiscountInput } from '../../discounts/domain/discount-calculator';
+import type { ServicePosition } from '../domain/composed-slot-span';
 
 export interface BookAppointmentDeps {
   bookingRepo: BookingRepository;
@@ -21,6 +22,8 @@ export interface BookAppointmentDeps {
   appointmentRepo?: AppointmentRepository;
   // prettier-ignore
   serviceSnapshot?: { serviceId: string; agreedPrice: number; agreedDuration?: number; fulfillmentMode?: 'sequential' | 'parallel' };
+  /** Складові послуги композитного слота (T-4520a/b). */
+  servicePositions?: ServicePosition[];
   /**
    * Знижки при записі (T-090, ADR 0007): клієнт + слот + послуга + промокод.
    * `DiscountCalculator` застосовується в use case і снепшотиться на Booking.
