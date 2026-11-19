@@ -51,4 +51,17 @@ export const styles = StyleSheet.create({
     backgroundColor: COLOR.surface.sunken.value,
     borderRadius: RADIUS.input.value,
   },
+  navBar: { flexDirection: 'row', justifyContent: 'space-around', padding: 10 },
+  navItem: { color: COLOR.text.muted.value },
+  navItemActive: { color: COLOR.text.primary.value },
+  loginInput: {
+    backgroundColor: COLOR.surface.raised.value,
+    color: COLOR.text.primary.value,
+    padding: 12,
+    borderRadius: RADIUS.input.value,
+    marginVertical: 10,
+  },
 });
+
+/** Колір спінера/індикатора на accent-заливці (ActivityIndicator бере рядок, не стиль). */
+export const SPINNER_COLOR = COLOR.accent.onSolid.value;

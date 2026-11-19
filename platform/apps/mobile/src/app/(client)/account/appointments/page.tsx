@@ -2,7 +2,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import type { ExtendedAppointment } from '../../../../lib/booking-contract';
-import { getAppointments, rescheduleAppointment, cancelAppointment } from '../../../../lib/api/appointments';
+import {
+  getAppointments,
+  rescheduleAppointment,
+  cancelAppointment,
+} from '../../../../lib/api/appointments';
 import { AppointmentRow } from './list-item';
 import type { StatusFilter } from './status-filter';
 import { VisitsBody } from './visits-body';
@@ -105,6 +109,7 @@ export function MyVisitsScreen() {
         setActionError(null);
         setCancellingApp(app);
       }}
+      onBookAgain={(params) => router.push({ pathname: '/(client)/booking', params })}
     />
   );
 

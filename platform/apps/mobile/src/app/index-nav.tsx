@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
+import { styles } from './index.styles';
 
 export function IndexNav({
   activeTab,
@@ -18,10 +19,11 @@ export function IndexNav({
   onAccount: () => void;
   onVisits: () => void;
 }) {
+  const itemStyle = (active: boolean) => (active ? styles.navItemActive : styles.navItem);
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-around', padding: 10 }}>
+    <View style={styles.navBar}>
       <Pressable onPress={onHome} accessibilityRole="button">
-        <Text style={{ color: activeTab === 'home' ? '#fff' : '#888' }}>Головна</Text>
+        <Text style={itemStyle(activeTab === 'home')}>Головна</Text>
       </Pressable>
       {signedIn ? (
         <Pressable
@@ -29,15 +31,15 @@ export function IndexNav({
           accessibilityRole="button"
           accessibilityLabel={sessionName ? `Кабінет, ${sessionName}` : 'Кабінет'}
         >
-          <Text style={{ color: '#888' }}>Кабінет</Text>
+          <Text style={styles.navItem}>Кабінет</Text>
         </Pressable>
       ) : (
         <Pressable onPress={onLogin} accessibilityRole="button">
-          <Text style={{ color: activeTab === 'login' ? '#fff' : '#888' }}>Вхід</Text>
+          <Text style={itemStyle(activeTab === 'login')}>Вхід</Text>
         </Pressable>
       )}
       <Pressable onPress={onVisits} accessibilityRole="button">
-        <Text style={{ color: '#888' }}>Мої візити</Text>
+        <Text style={styles.navItem}>Мої візити</Text>
       </Pressable>
     </View>
   );

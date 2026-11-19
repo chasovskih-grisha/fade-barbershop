@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, Pressable, ActivityIndicator } from 'react-native';
-import { styles } from './index.styles';
+import { styles, SPINNER_COLOR } from './index.styles';
 import { BiometricLoginPrompt } from '../components/BiometricLoginPrompt';
 
 export function IndexLogin({
@@ -31,13 +31,7 @@ export function IndexLogin({
         placeholder="+380..."
         value={phone}
         onChangeText={setPhone}
-        style={{
-          backgroundColor: '#222',
-          color: '#fff',
-          padding: 12,
-          borderRadius: 8,
-          marginVertical: 10,
-        }}
+        style={styles.loginInput}
       />
       <Pressable
         accessibilityRole="button"
@@ -46,7 +40,7 @@ export function IndexLogin({
         style={[styles.cta, submitting && styles.ctaDisabled]}
       >
         {submitting ? (
-          <ActivityIndicator testID="submit-spinner" color="#fff" />
+          <ActivityIndicator testID="submit-spinner" color={SPINNER_COLOR} />
         ) : (
           <Text style={styles.ctaLabel}>Отримати код</Text>
         )}

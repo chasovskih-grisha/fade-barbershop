@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text } from 'react-native';
 import type { ExtendedAppointment } from '../../../../lib/booking-contract';
 import { ReferenceThumbnail } from './reference-thumbnail';
 import { ReferenceEditForm } from './reference-edit-form';
 import type { ReferenceEdit } from './use-reference-editor';
 import { styles } from './list-item-styles';
 import { visitStatusBadge } from './visit-status';
+import { BookAgainAction } from './book-again-action';
+import { UpcomingActions } from './upcoming-actions';
 
 export interface AppointmentRowProps {
   app: ExtendedAppointment;
@@ -17,6 +19,7 @@ export interface AppointmentRowProps {
   onSaveReference: (app: ExtendedAppointment, edit: ReferenceEdit) => void;
   onReschedule?: (app: ExtendedAppointment) => void;
   onCancelVisit?: (app: ExtendedAppointment) => void;
+  onBookAgain?: (params: Record<string, string>) => void;
 }
 
 export function AppointmentRow({
@@ -29,6 +32,7 @@ export function AppointmentRow({
   onSaveReference,
   onReschedule,
   onCancelVisit,
+  onBookAgain,
 }: AppointmentRowProps) {
   const isUpcoming = app.status === 'upcoming' || app.status === 'confirmed';
   const badge = visitStatusBadge(app.status);
@@ -67,29 +71,17 @@ export function AppointmentRow({
         />
       ) : null}
 
-      {isUpcoming && (onReschedule || onCancelVisit) ? (
-        <View style={styles.actionsRow}>
-          {onReschedule ? (
-            <Pressable
-              accessibilityRole="button"
-              style={[styles.actionButton, styles.rescheduleButton]}
-              onPress={() => onReschedule(app)}
-              disabled={busy}
-            >
-              <Text style={styles.rescheduleButtonText}>Перенести</Text>
-            </Pressable>
-          ) : null}
-          {onCancelVisit ? (
-            <Pressable
-              accessibilityRole="button"
-              style={[styles.actionButton, styles.cancelButton]}
-              onPress={() => onCancelVisit(app)}
-              disabled={busy}
-            >
-              <Text style={styles.cancelButtonText}>Скасувати</Text>
-            </Pressable>
-          ) : null}
-        </View>
+      {isUpcoming ? (
+        <UpcomingActions
+          app={app}
+          busy={busy}
+          onReschedule={onReschedule}
+          onCancelVisit={onCancelVisit}
+        />
+      ) : null}
+
+      {app.status === 'completed' && app.canBookAgain && onBookAgain ? (
+        <BookAgainAction app={app} onBook={onBookAgain} />
       ) : null}
     </View>
   );

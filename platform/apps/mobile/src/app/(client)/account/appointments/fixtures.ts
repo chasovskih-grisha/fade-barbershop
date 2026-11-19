@@ -18,6 +18,7 @@ export function makeVisit(overrides: Partial<ExtendedAppointment> = {}): Extende
     referenceId: null,
     referenceComment: '',
     canEditReference: true,
+    canBookAgain: true,
     ...overrides,
   };
 }

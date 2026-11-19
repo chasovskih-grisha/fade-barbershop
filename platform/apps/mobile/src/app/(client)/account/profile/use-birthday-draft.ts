@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { updateProfileBirthday, type Birthday } from '@/lib/api/identity';
+import { clampDay } from './birthday';
 
 function same(a: Birthday | null, b: Birthday | null): boolean {
   return a?.day === b?.day && a?.month === b?.month;
@@ -21,6 +22,13 @@ export function useBirthdayDraft(initial: Birthday | null) {
 
   const draft: Birthday | null = day > 0 && month > 0 ? { day, month } : null;
 
+  // Скорочення місяця (31 → лютий) прибирає неможливий день, інакше PATCH
+  // отримує 31 лютого і відмовляє.
+  const pickMonth = (value: number) => {
+    setMonth(value);
+    setDay((current) => clampDay(current, value));
+  };
+
   const persist = async (next: Birthday | null) => {
     setStatus('saving');
     try {
@@ -39,7 +47,7 @@ export function useBirthdayDraft(initial: Birthday | null) {
     day,
     month,
     setDay,
-    setMonth,
+    setMonth: pickMonth,
     status,
     dirty: !same(draft, saved),
     save: () => persist(draft),

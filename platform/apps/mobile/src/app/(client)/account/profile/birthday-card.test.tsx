@@ -43,4 +43,15 @@ describe('BirthdayCard — день народження (T-4730c)', () => {
     await waitFor(() => expect(update).toHaveBeenCalledWith({ day: 5, month: 3 }));
     expect(getByText('5 березня')).toBeTruthy();
   });
+
+  it('скорочений місяць зменшує неможливий день (31 → лютий → 29)', async () => {
+    update.mockResolvedValue({ day: 29, month: 2 });
+    const { getByTestId } = render(<BirthdayCard initial={null} />);
+
+    fireEvent.press(getByTestId('birth-day-31'));
+    fireEvent.press(getByTestId('birth-month-2'));
+    fireEvent.press(getByTestId('birth-save'));
+
+    await waitFor(() => expect(update).toHaveBeenCalledWith({ day: 29, month: 2 }));
+  });
 });

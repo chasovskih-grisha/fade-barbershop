@@ -1,6 +1,6 @@
 // T-4730c: день і місяць без року — днів у місяці (з урахуванням лютого)
 // і показ «12 листопада». Рік у контролі відсутній.
-import { daysInMonth, formatBirthday } from './birthday';
+import { clampDay, daysInMonth, formatBirthday } from './birthday';
 
 describe('birthday — день і місяць без року (T-4730c)', () => {
   it('formatBirthday показує «12 листопада» без року', () => {
@@ -15,5 +15,16 @@ describe('birthday — день і місяць без року (T-4730c)', () =
     expect(daysInMonth(2)).toBe(29);
     expect(daysInMonth(4)).toBe(30);
     expect(daysInMonth(12)).toBe(31);
+  });
+
+  it('clampDay зменшує неможливий день скороченого місяця', () => {
+    expect(clampDay(31, 2)).toBe(29);
+    expect(clampDay(31, 4)).toBe(30);
+    expect(clampDay(15, 2)).toBe(15);
+  });
+
+  it('clampDay не чіпає невибраний день або місяць', () => {
+    expect(clampDay(0, 2)).toBe(0);
+    expect(clampDay(31, 0)).toBe(31);
   });
 });
