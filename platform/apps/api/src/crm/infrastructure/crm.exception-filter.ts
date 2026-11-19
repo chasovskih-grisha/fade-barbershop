@@ -1,5 +1,12 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
-import { ClientProfileNotFoundError, PreferenceNotFoundError, NoteNotFoundError, InvalidClientListQueryError } from '../application/crm-errors';
+import {
+  ClientProfileNotFoundError,
+  PreferenceNotFoundError,
+  NoteNotFoundError,
+  InvalidClientListQueryError,
+  SavedFilterNotFoundError,
+  SavedFilterConflictError,
+} from '../application/crm-errors';
 import { InvalidBirthdayError } from '../domain/birthday';
 
 @Catch()
@@ -28,6 +35,22 @@ export class CrmExceptionFilter implements ExceptionFilter {
       return response.status(HttpStatus.NOT_FOUND).json({
         statusCode: HttpStatus.NOT_FOUND,
         error: 'Not Found',
+        message: exception.message,
+      });
+    }
+
+    if (exception instanceof SavedFilterNotFoundError) {
+      return response.status(HttpStatus.NOT_FOUND).json({
+        statusCode: HttpStatus.NOT_FOUND,
+        error: 'Not Found',
+        message: exception.message,
+      });
+    }
+
+    if (exception instanceof SavedFilterConflictError) {
+      return response.status(HttpStatus.CONFLICT).json({
+        statusCode: HttpStatus.CONFLICT,
+        error: 'Conflict',
         message: exception.message,
       });
     }

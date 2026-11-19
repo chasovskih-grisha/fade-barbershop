@@ -26,3 +26,19 @@ export class NoteNotFoundError extends Error {
     this.name = 'NoteNotFoundError';
   }
 }
+
+/** Збережений фільтр (T-4461) не знайдено або він належить іншому власнику. */
+export class SavedFilterNotFoundError extends Error {
+  constructor(id: string) {
+    super(`Saved filter ${id} not found`);
+    this.name = 'SavedFilterNotFoundError';
+  }
+}
+
+/** Дубль назви або перевищена квота збережених фільтрів (T-4461). */
+export class SavedFilterConflictError extends Error {
+  constructor(detail: string) {
+    super(detail);
+    this.name = 'SavedFilterConflictError';
+  }
+}

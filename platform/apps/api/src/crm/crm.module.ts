@@ -7,6 +7,12 @@ import { SystemClock } from './system-clock';
 import { UuidIdGenerator } from './uuid-id-generator';
 import { AdminClientsController, ADMIN_CLIENTS_HANDLERS } from './infrastructure/admin-clients.controller';
 import { AdminClientNotesController } from './infrastructure/admin-client-notes.controller';
+import { AdminClientFiltersController } from './infrastructure/admin-client-filters.controller';
+import {
+  InMemorySavedClientFilterRepository,
+  SAVED_CLIENT_FILTER_REPOSITORY,
+  SavedClientFilterService,
+} from './application/saved-client-filter.service';
 import { AdminClientList, CLIENT_LIST_CLOCK } from './application/admin-client-list';
 import { PrismaClientListReader } from './infrastructure/prisma-client-list.reader';
 import { CLIENT_LIST_READER } from './application/client-list-reader';
@@ -51,7 +57,7 @@ const ADMIN_CLIENTS_HANDLERS_PROVIDER = {
 };
 
 @Module({
-  controllers: [AdminClientsController, AdminClientNotesController],
+  controllers: [AdminClientsController, AdminClientNotesController, AdminClientFiltersController],
   providers: [
     PrismaService,
     PrismaUnitOfWork,
@@ -62,6 +68,12 @@ const ADMIN_CLIENTS_HANDLERS_PROVIDER = {
     ADMIN_CLIENTS_HANDLERS_PROVIDER,
     AdminClientList,
     { provide: CLIENT_LIST_READER, useClass: PrismaClientListReader },
+    // T-4461: збережені фільтри списку клієнтів — запит, не сегмент.
+    SavedClientFilterService,
+    {
+      provide: SAVED_CLIENT_FILTER_REPOSITORY,
+      useClass: InMemorySavedClientFilterRepository,
+    },
     // Вікно підсумків (T-4606b) рахує той самий годинник, що й команди crm.
     { provide: CLIENT_LIST_CLOCK, useExisting: SystemClock },
     // Проєкція історії візитів (T-061): подія scheduling → факт Visit.
