@@ -1,124 +1,184 @@
-// ApplyDiscount use-case — T-152: Discount Mechanics.
-// Calculates applied discounts for an appointment using the DiscountCalculator.
-// Integrates PromoCode, VIP, and automatic rules (first-visit, off-peak, day-of-week).
-// Fixates AppliedDiscounts on the Appointment; ensures FinalPrice ≥ 0 (DSC-004).
-// Reason `full_discount_promo` (DSC-013) when 100% promo code → no payment, no receipt.
-import { prisma } from '../../index';
-import { Appointment, Booking, Service, ClientProfile } from '../../domain';
-import { DiscountInput, calculateDiscounts, AppliedDiscount, PriceBreakdown, DiscountSource } from '../domain/discount-calculator';
-import { randomUUID } from 'node:crypto';
+// ApplyDiscountService — T-152: застосування знижок при записі.
+//
+// Один калькулятор (T-090) і три джерела: промокод, автоматичні правила
+// (перший візит / непікові години) і VIP-рівень клієнта. Рішення DSC-003:
+// комбінуються лише VIP + промокод; правила — одне найвигідніше і без них;
+// сумарна знижка ≤ кап. 100% знижка дає FinalPrice = 0 і причину
+// `full_discount_promo` — без Payment і чека (DSC-013).
+import {
+  calculateDiscounts,
+  type DiscountSource,
+} from '../domain/discount-calculator';
+import type { AppliedDiscount, PriceBreakdown } from '../domain/price-breakdown';
+import {
+  evaluatePromoCode,
+  isFullDiscount,
+  normalizePromoCode,
+  type PromoCode,
+  type PromoCodeUsage,
+  type PromoCodeEvaluation,
+} from '../domain/promo-code';
+import { applicableRuleSources, type DiscountRule } from '../domain/discount-rules';
+import { vipDiscountSource, type ClientDiscountLevel } from '../domain/client-discount-level';
 
-/** Result of applying discounts to an appointment. */
+/** Порти, потрібні застосуванню знижок. */
+export interface DiscountPorts {
+  findPromoCode(code: string): Promise<PromoCode | null>;
+  promoCodeUsage(codeId: string, clientId: string): Promise<PromoCodeUsage>;
+  activeRules(): Promise<DiscountRule[]>;
+  clientDiscountLevel(clientId: string): Promise<ClientDiscountLevel | null>;
+  hasCompletedVisit(clientId: string): Promise<boolean>;
+}
+
+export interface ApplyDiscountInput {
+  /** Базова ціна візиту з каталогу, у копійках (ADR 0006). */
+  agreedPriceCents: number;
+  clientId: string;
+  serviceId?: string;
+  /** Сирий код від клієнта; нечутливий до регістру (DSC-WEB-03). */
+  promoCode?: string;
+  /** Обраний слот — потрібен для правила «непікові години». */
+  slotStart?: Date;
+  timeZone?: string;
+  /** Кап сумарної знижки у %, дефолт 30 (DSC-ADM-06). */
+  capPercent?: number;
+  now?: Date;
+}
+
+export type DiscountReason = 'full_discount_promo' | 'full_discount_rule' | 'full_discount_vip';
+
+export interface PromoCodeVerdict {
+  code: string;
+  valid: boolean;
+  message: string;
+}
+
 export interface ApplyDiscountResult {
-  success: boolean;
   breakdown: PriceBreakdown;
   appliedDiscounts: AppliedDiscount[];
-  discountReason?: string; // e.g. 'full_discount_promo' (DSC-013)
+  /** false — візит безкоштовний: без Payment, чека й депозиту (DSC-013/PAY-003). */
+  requiresPayment: boolean;
+  reason?: DiscountReason;
+  /** Присутній, лише якщо клієнт ввів код (DSC-WEB-02). */
+  promo?: PromoCodeVerdict;
 }
 
-/** Input for applying discounts. */
-export interface ApplyDiscountInput {
-  agreedPrice: number; // from service catalog at booking time
-  clientId: string;
-  promoCode?: string;
-  /** Automatic rule identifiers: 'first_visit', 'off_peak', 'day_of_week' */
-  rules?: string[];
-  vipDiscountPercent?: number; // from ClientProfile
-}
+export class ApplyDiscountService {
+  constructor(private readonly ports: DiscountPorts) {}
 
-/** Apply discounts to an appointment. */
-export async function applyDiscounts(
-  input: ApplyDiscountInput
-): Promise<ApplyDiscountResult> {
-  const agreedPriceCents = Math.round(input.agreedPrice * 100); // ensure cents
+  /** Розрахунок знижок для запису; недійсний код запис не блокує. */
+  async apply(input: ApplyDiscountInput): Promise<ApplyDiscountResult> {
+    const now = input.now ?? new Date();
 
-  // Build DiscountInput for the calculator
-  const calculatorInput: DiscountInput = {
-    agreedPrice: agreedPriceCents,
-    promoCode: input.promoCode
-      ? { type: 'promo_code', sourceId: input.promoCode.toUpperCase() }
-      : undefined,
-    rules: input.rules
-      ? input.rules.map((rule) => ({ type: 'rule', sourceId: rule }))
-      : undefined,
-    vip: input.vipDiscountPercent !== undefined
-      ? { type: 'vip', sourceId: `vip_${input.clientId}`, percent: input.vipDiscountPercent }
-      : undefined,
-    capPercent: 30, // default cap from DSC-ADM-06
-  };
+    let promoSource: DiscountSource | undefined;
+    let promo: PromoCodeVerdict | undefined;
+    if (input.promoCode) {
+      const evaluation = await this.checkPromoCode(
+        input.promoCode,
+        input.clientId,
+        input.serviceId,
+        now
+      );
+      promo = { code: normalizePromoCode(input.promoCode), valid: evaluation.valid, message: evaluation.message };
+      if (evaluation.valid && evaluation.source) promoSource = evaluation.source;
+    }
 
-  // Calculate discounts using the existing calculator
-  const breakdown: PriceBreakdown = calculateDiscounts(calculatorInput);
+    const rules = await this.ports.activeRules();
+    const hasCompletedVisit = await this.ports.hasCompletedVisit(input.clientId);
+    const ruleSources = applicableRuleSources(rules, {
+      hasCompletedVisit,
+      slotStart: input.slotStart ?? now,
+      ...(input.timeZone ? { timeZone: input.timeZone } : {}),
+    });
 
-  // Determine the discount reason
-  let discountReason: string | undefined;
-  const hasPromoCode = !!input.promoCode;
-  const hasVip = input.vipDiscountPercent && input.vipDiscountPercent > 0;
-  const hasRule = input.rules && input.rules.length > 0;
+    const vip = vipDiscountSource(await this.ports.clientDiscountLevel(input.clientId));
 
-  // DSC-013: 100% promo code → FinalPrice 0, no payment, no receipt
-  if (hasPromoCode && breakdown.finalPrice === 0) {
-    discountReason = 'full_discount_promo';
+    const breakdown = calculateDiscounts({
+      agreedPrice: input.agreedPriceCents,
+      ...(promoSource ? { promoCode: promoSource } : {}),
+      ...(ruleSources.length > 0 ? { rules: ruleSources } : {}),
+      ...(vip ? { vip } : {}),
+      ...(input.capPercent !== undefined ? { capPercent: input.capPercent } : {}),
+    });
+
+    const result: ApplyDiscountResult = {
+      breakdown,
+      appliedDiscounts: breakdown.appliedDiscounts,
+      requiresPayment: breakdown.finalPrice > 0,
+    };
+
+    if (promo) result.promo = promo;
+
+    const reason = this.fullDiscountReason(breakdown, promoSource, ruleSources, vip, input.agreedPriceCents);
+    if (reason && breakdown.finalPrice === 0) {
+      result.reason = reason;
+      result.requiresPayment = false;
+    }
+
+    return result;
   }
 
-  // DSC-003: VIP + promo code combine; automatic rules only the best one
-  // The calculator already handles this logic
-
-  return {
-    success: true,
-    breakdown,
-    appliedDiscounts: breakdown.appliedDiscounts,
-    discountReason,
-  };
-}
-
-/** Validate a promo code (case-insensitive, check limits, expiry). */
-// In production: query PromoCode repository for active codes
-export function validatePromoCode(
-  code: string,
-  clientId?: string
-): { valid: boolean; message?: string; discountPercent?: number } {
-  const upperCode = code.toUpperCase();
-
-  // Example promo codes (WNB-003 series, phase 18 win-back campaigns)
-  // Format: prefix-number, case-insensitive, 1 use per client segment
-  const promoCodePatterns = {
-    WNB003: { percent: 10, maxUses: 1, segment: 'winback' },
-    WNB004: { percent: 15, maxUses: 1, segment: 'winback' },
-    WNB005: { percent: 20, maxUses: 1, segment: 'winback' },
-    // New client promos
-    NEW001: { percent: 25, maxUses: 1, segment: 'new' },
-    // VIP codes
-    VIP001: { percent: 30, maxUses: -1, segment: 'vip' }, // unlimited
-  };
-
-  const pattern = Object.values(promoCodePatterns).find(
-    (p) => upperCode.startsWith(p.segment.substring(0, 3))
-  );
-
-  if (!pattern) {
-    return { valid: false, message: 'Invalid promo code' };
+  /** Валідація коду для поля «Промокод» (DSC-WEB-01/02). */
+  async validatePromoCode(
+    rawCode: string,
+    clientId: string,
+    serviceId?: string
+  ): Promise<PromoCodeVerdict> {
+    const evaluation = await this.checkPromoCode(rawCode, clientId, serviceId, new Date());
+    return { code: normalizePromoCode(rawCode), valid: evaluation.valid, message: evaluation.message };
   }
 
-  // Check usage limits (simplified - in production: query DB)
-  // 1-use codes: only allow if not already used
-  if (pattern.maxUses === 1 && clientId) {
-    // Check if client has already used this code type
-    // In production: query PromoCode usage table
-    // For now: allow (real validation would check DB)
+  /** VIP-рівень клієнта для профілю та розбивки (DSC-VIP-02). */
+  async vipDiscount(
+    clientId: string
+  ): Promise<{ percent: number | null; amount: number | null; isVip: boolean }> {
+    const source = vipDiscountSource(await this.ports.clientDiscountLevel(clientId));
+    if (!source) return { percent: null, amount: null, isVip: false };
+    return {
+      percent: source.percent ?? null,
+      amount: source.amount ?? null,
+      isVip: true,
+    };
   }
 
-  return {
-    valid: true,
-    message: `Promo code valid: ${pattern.percent}% discount`,
-    discountPercent: pattern.percent,
-  };
-}
+  private async checkPromoCode(
+    rawCode: string,
+    clientId: string,
+    serviceId: string | undefined,
+    now: Date
+  ): Promise<PromoCodeEvaluation> {
+    const code = await this.ports.findPromoCode(normalizePromoCode(rawCode));
+    if (!code) return evaluatePromoCode({ code: null, now });
 
-/** Get client's VIP discount level from CRM. */
-// In production: query ClientProfile from CRM
-export function getClientVipDiscount(clientId: string): { percent: number | null; isVip: boolean } {
-  // Placeholder: return null unless configured
-  // In production: import and use CRM client profile
-  return { percent: null, isVip: false };
+    const usage = await this.ports.promoCodeUsage(code.id, clientId);
+    return evaluatePromoCode({
+      code,
+      usage,
+      now,
+      ...(serviceId ? { serviceId } : {}),
+    });
+  }
+
+  private fullDiscountReason(
+    breakdown: PriceBreakdown,
+    promo: DiscountSource | undefined,
+    rules: DiscountSource[],
+    vip: DiscountSource | undefined,
+    agreedPrice: number
+  ): DiscountReason | undefined {
+    if (breakdown.finalPrice !== 0 || agreedPrice <= 0) return undefined;
+    if (promo && this.reachesPrice(promo, agreedPrice)) return 'full_discount_promo';
+    if (vip && this.reachesPrice(vip, agreedPrice)) return 'full_discount_vip';
+    const rule = rules.find((candidate) => this.reachesPrice(candidate, agreedPrice));
+    return rule ? 'full_discount_rule' : undefined;
+  }
+
+  private reachesPrice(source: DiscountSource, agreedPrice: number): boolean {
+    return isFullDiscount(
+      source.amount !== undefined
+        ? { kind: 'amount', amount: source.amount }
+        : { kind: 'percent', percent: source.percent ?? 0 },
+      agreedPrice
+    );
+  }
 }

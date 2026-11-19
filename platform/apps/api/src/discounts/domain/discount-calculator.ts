@@ -5,6 +5,8 @@
 
 import { buildPriceBreakdown, type AppliedDiscount, type PriceBreakdown } from './price-breakdown';
 
+export type { AppliedDiscount, PriceBreakdown };
+
 /** Джерело знижки: % від `AgreedPrice` або фіксована сума в копійках (DSC-002). */
 export interface DiscountSource {
   type: AppliedDiscount['type'];

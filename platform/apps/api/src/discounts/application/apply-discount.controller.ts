@@ -1,55 +1,49 @@
-// ApplyDiscount API — T-152: Discount Mechanics.
-// Endpoint: POST /api/discounts/apply
-// Calculates applied discounts for an appointment using PromoCode, VIP, and rules.
+// Discounts API — T-152: promocode, rules and VIP applied by one calculator.
+// Endpoints: POST /api/discounts/apply, /validate-promo, /vip-discount.
 
-import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IdempotencyKey } from '../../shared/decorators/idempotency-key.decorator';
-import type { ApplyDiscountInput } from './apply-discount.use-case';
-import { ApplyDiscountResult } from './apply-discount.use-case';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApplyDiscountService, type ApplyDiscountResult } from './apply-discount.use-case';
+import {
+  ApplyDiscountRequest,
+  ValidatePromoCodeRequest,
+  VipDiscountRequest,
+} from './apply-discount.dto';
 
 @Controller('discounts')
 @ApiTags('discounts')
 export class DiscountsController {
+  constructor(private readonly discounts: ApplyDiscountService) {}
+
+  /** Розбивка ціни із застосованими знижками (DSC-006). */
   @Post('apply')
-  @ApiOperation({ summary: 'Apply discounts to appointment (PromoCode, VIP, rules)' })
-  @ApiResponse({
-    status: 200,
-    type: ApplyDiscountResult,
-    description: 'Return price breakdown with applied discounts',
-  })
+  @ApiOperation({ summary: 'Apply promo code, automatic rules and VIP to an appointment' })
   @HttpCode(HttpStatus.OK)
-  async applyDiscounts(
-    @Body() body: ApplyDiscountInput,
-  ): Promise<ApplyDiscountResult> {
-    return applyDiscounts(body);
+  async applyDiscounts(@Body() body: ApplyDiscountRequest): Promise<ApplyDiscountResult> {
+    return this.discounts.apply({
+      agreedPriceCents: body.agreedPriceCents,
+      clientId: body.clientId,
+      ...(body.serviceId ? { serviceId: body.serviceId } : {}),
+      ...(body.promoCode ? { promoCode: body.promoCode } : {}),
+      ...(body.slotStart ? { slotStart: new Date(body.slotStart) } : {}),
+      ...(body.timeZone ? { timeZone: body.timeZone } : {}),
+      ...(body.capPercent !== undefined ? { capPercent: body.capPercent } : {}),
+    });
   }
 
-  /** Validate a promo code. */
+  /** Миттєва перевірка коду для поля «Промокод» (DSC-WEB-01/02). */
   @Post('validate-promo')
-  @ApiOperation({ summary: 'Validate a promo code' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return whether promo code is valid and discount amount',
-  })
+  @ApiOperation({ summary: 'Validate a promo code (case-insensitive)' })
   @HttpCode(HttpStatus.OK)
-  async validatePromoCode(
-    @Body() { code, clientId }: { code: string; clientId?: string },
-  ) {
-    return validatePromoCode(code, clientId);
+  async validatePromoCode(@Body() body: ValidatePromoCodeRequest) {
+    return this.discounts.validatePromoCode(body.code, body.clientId, body.serviceId);
   }
 
-  /** Get client's VIP discount level. */
+  /** VIP-рівень клієнта для профілю (DSC-VIP-02). */
   @Post('vip-discount')
   @ApiOperation({ summary: 'Get client VIP discount level' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return VIP discount percent and VIP status',
-  })
   @HttpCode(HttpStatus.OK)
-  async getVipDiscount(
-    @Body() { clientId }: { clientId: string },
-  ) {
-    return getClientVipDiscount(clientId);
+  async getVipDiscount(@Body() body: VipDiscountRequest) {
+    return this.discounts.vipDiscount(body.clientId);
   }
 }
