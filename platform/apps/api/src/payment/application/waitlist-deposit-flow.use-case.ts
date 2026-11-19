@@ -249,8 +249,5 @@ export function createInMemoryWaitlistPaymentRepository(): WaitlistPaymentReposi
   };
 }
 
-/** Типовий екземпляр для wiring без зовнішніх залежностей. */
-export const waitlistDepositFlow = new WaitlistDepositFlow({
-  paymentRepo: createInMemoryWaitlistPaymentRepository(),
-  depositPolicy: async () => defaultDepositPolicy,
-});
+// Єдиний екземпляр флоу створює SchedulingModule (див. scheduling.module.ts);
+// модульний синглтон тут раніше створював другу, нічим не підключену копію.

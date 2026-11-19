@@ -1,22 +1,72 @@
 import { Module } from '@nestjs/common';
 import { WaitlistDepositController } from './application/waitlist-deposit.controller';
-import { WaitlistDepositFlow } from '../payment/application/waitlist-deposit-flow.use-case';
+import {
+  WaitlistDepositFlow,
+  createInMemoryWaitlistPaymentRepository,
+  type WaitlistDepositDeps,
+  type WaitlistPaymentRepository,
+} from '../payment/application/waitlist-deposit-flow.use-case';
+import {
+  DepositSettlementService,
+  type DepositSettlementDeps,
+  type SettlementPaymentRepository,
+} from './application/deposit-settlement.service';
 import { BookingModule } from '../booking/booking.module';
 import { DepositPolicyProvider } from './infrastructure/deposit-policy.provider';
 
+/**
+ * Провайдери грошової гілки запису (T-197, T-160).
+ *
+ * Репозиторій платежів поки живе в памʼяті: у Prisma-схемі ще немає моделі
+ * Payment (billing-персистенція окремим слайсом), тож підмінювати її фейком
+ * було б гірше, ніж явно тримати контракт. Коли зʼявиться адаптер, зміниться
+ * лише значення WAITLIST_PAYMENT_REPOSITORY.
+ */
+export const WAITLIST_PAYMENT_REPOSITORY = Symbol('WAITLIST_PAYMENT_REPOSITORY');
+export const WAITLIST_DEPOSIT_DEPS = Symbol('WAITLIST_DEPOSIT_DEPS');
+export const DEPOSIT_SETTLEMENT_DEPS = Symbol('DEPOSIT_SETTLEMENT_DEPS');
+
 @Module({
-  imports: [
-    BookingModule,
-  ],
-  controllers: [
-    WaitlistDepositController,
-  ],
+  imports: [BookingModule],
+  controllers: [WaitlistDepositController],
   providers: [
-    WaitlistDepositFlow,
-    DepositPolicyProvider,
+    {
+      provide: WAITLIST_PAYMENT_REPOSITORY,
+      useFactory: (): WaitlistPaymentRepository => createInMemoryWaitlistPaymentRepository(),
+    },
+    {
+      provide: WAITLIST_DEPOSIT_DEPS,
+      useFactory: (paymentRepo: WaitlistPaymentRepository): WaitlistDepositDeps => ({
+        paymentRepo,
+        depositPolicy: async () => DepositPolicyProvider.get(),
+      }),
+      inject: [WAITLIST_PAYMENT_REPOSITORY],
+    },
+    {
+      provide: WaitlistDepositFlow,
+      useFactory: (deps: WaitlistDepositDeps) => new WaitlistDepositFlow(deps),
+      inject: [WAITLIST_DEPOSIT_DEPS],
+    },
+    {
+      provide: DEPOSIT_SETTLEMENT_DEPS,
+      useFactory: (paymentRepo: WaitlistPaymentRepository): DepositSettlementDeps => {
+        const settlementRepo: SettlementPaymentRepository = {
+          load: async (id) => paymentRepo.findById?.(id) ?? null,
+          save: async (payment) => {
+            await paymentRepo.update(payment.id, payment.toJSON());
+            return payment;
+          },
+        };
+        return { payments: settlementRepo };
+      },
+      inject: [WAITLIST_PAYMENT_REPOSITORY],
+    },
+    {
+      provide: DepositSettlementService,
+      useFactory: (deps: DepositSettlementDeps) => new DepositSettlementService(deps),
+      inject: [DEPOSIT_SETTLEMENT_DEPS],
+    },
   ],
-  exports: [
-    WaitlistDepositFlow,
-  ],
+  exports: [WaitlistDepositFlow, DepositSettlementService],
 })
 export class SchedulingModule {}

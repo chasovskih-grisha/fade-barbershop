@@ -6,6 +6,13 @@ import { UseInterceptors } from '@nestjs/common';
 import { ClassSerializerInterceptor } from '@nestjs/common';
 import { IdempotencyGuard } from '../../shared/idempotency/idempotency.guard';
 import { TracingInterceptor } from '../../shared/tracing/tracing.interceptor';
+import {
+  DepositSettlementService,
+  type DepositSettlementResult,
+} from './deposit-settlement.service';
+import { DepositPolicyProvider } from '../infrastructure/deposit-policy.provider';
+import type { AppointmentOutcome } from '../domain/deposit-settlement';
+import type { DepositTerms } from '../domain/deposit-terms';
 
 /** T-197: Waitlist Deposit Payment Controller
  * 
@@ -27,7 +34,8 @@ import { TracingInterceptor } from '../../shared/tracing/tracing.interceptor';
 @UseInterceptors(ClassSerializerInterceptor, TracingInterceptor)
 export class WaitlistDepositController {
   constructor(
-    private readonly depositFlow: WaitlistDepositFlow
+    private readonly depositFlow: WaitlistDepositFlow,
+    private readonly settlement: DepositSettlementService
   ) {}
 
   /**
@@ -135,6 +143,74 @@ export class WaitlistDepositController {
       updatedAt: payment.updatedAt,
     };
     if (payment.receiptId) response.receiptId = payment.receiptId;
+    return response;
+  }
+
+  /**
+   * Розрахунок депозита при завершенні візиту (T-160): no-show і пізнє
+   * скасування лишають депозит у салоні, своєчасне — повертають, візит —
+   * зараховує його в рахунок. Суму беремо з платежу, а не з запиту.
+   */
+  @Post('waitlist/:waitlistId/deposit/settle')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(IdempotencyGuard)
+  async settleWaitlistDeposit(
+    @Param('waitlistId') waitlistId: string,
+    @Body() body: {
+      outcome: AppointmentOutcome;
+      appointmentStart: string;
+      occurredAt?: string;
+    },
+  ): Promise<{
+    paymentId: string;
+    status: BillingPaymentStatus;
+    action: string;
+    reason: string;
+    refundAmount: number;
+    retainedAmount: number;
+    refunded: boolean;
+    refundReceiptId?: string;
+  }> {
+    const payment = await this.depositFlow.findPaymentByWaitlistId(waitlistId);
+    if (!payment) {
+      throw new Error(`No deposit for waitlist entry ${waitlistId}`);
+    }
+
+    const policy = await DepositPolicyProvider.get();
+    const terms: DepositTerms = {
+      amount: payment.amount,
+      percent: policy.percent,
+      rounding: policy.rounding,
+      cancellationWindowHours: policy.cancellationWindowHours,
+    };
+
+    const result: DepositSettlementResult = await this.settlement.settle({
+      paymentId: payment.id,
+      terms,
+      outcome: body.outcome,
+      appointmentStart: new Date(body.appointmentStart),
+      ...(body.occurredAt ? { occurredAt: new Date(body.occurredAt) } : {}),
+    });
+
+    const response: {
+      paymentId: string;
+      status: BillingPaymentStatus;
+      action: string;
+      reason: string;
+      refundAmount: number;
+      retainedAmount: number;
+      refunded: boolean;
+      refundReceiptId?: string;
+    } = {
+      paymentId: result.payment.id,
+      status: result.payment.status,
+      action: result.action,
+      reason: result.reason,
+      refundAmount: result.refundAmount,
+      retainedAmount: result.retainedAmount,
+      refunded: result.refunded,
+    };
+    if (result.refundReceiptId) response.refundReceiptId = result.refundReceiptId;
     return response;
   }
 
