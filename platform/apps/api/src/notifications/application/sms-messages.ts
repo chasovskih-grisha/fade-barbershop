@@ -86,3 +86,58 @@ export function renderMarketingOptInSms(): string {
 export function renderMarketingOptOutSms(): string {
   return 'FADE: ви відписалися від маркетингових SMS. Нагадування про візити надходитимуть далі.';
 }
+
+// ─── T-4462: події лояльності ──────────────────────────────────────────────
+
+export interface LoyaltyPointsSmsData {
+  points: number;
+  newBalance: number;
+}
+
+export interface LoyaltyTierSmsData {
+  tier: string;
+  discountPercent: number;
+}
+
+export interface LoyaltyExpiringSmsData {
+  points: number;
+  expiresAt: Date;
+}
+
+/** Нараховані бали після візиту (LYL). */
+export function renderLoyaltyPointsEarnedSms(data: LoyaltyPointsSmsData): string {
+  return clampToSmsLimit(
+    `FADE: +${data.points} балів за візит. Баланс: ${data.newBalance}.`
+  );
+}
+
+/** Досягнуто нового рівня. */
+export function renderLoyaltyTierReachedSms(data: LoyaltyTierSmsData): string {
+  return clampToSmsLimit(
+    `FADE: новий рівень — ${data.tier}, знижка ${data.discountPercent}%.`
+  );
+}
+
+/** Використані бали. */
+export function renderLoyaltyPointsSpentSms(data: LoyaltyPointsSmsData): string {
+  return clampToSmsLimit(
+    `FADE: списано ${data.points} балів. Залишок: ${data.newBalance}.`
+  );
+}
+
+/** Попередження за 7 днів до згорання балів. */
+export function renderLoyaltyPointsExpiringSms(data: LoyaltyExpiringSmsData): string {
+  const date = new Intl.DateTimeFormat('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    timeZone: 'Europe/Kyiv',
+  }).format(data.expiresAt);
+  return clampToSmsLimit(
+    `FADE: ${data.points} балів згорять ${date}. Використайте їх на наступному візиті.`
+  );
+}
+
+/** Один дайджест замість трьох пушів на день. */
+export function renderLoyaltyDigestSms(lines: string[]): string {
+  return clampToSmsLimit(['FADE: оновлення лояльності', ...lines].join('\n'));
+}
