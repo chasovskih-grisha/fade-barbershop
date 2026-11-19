@@ -1,130 +1,77 @@
 // Feedback Window API — T-150: Feedback Window.
-// Subscription: AppointmentCompleted (outbox)
-// Endpoints: GET /api/feedbackwindow/:appointmentId, POST /api/feedbackwindow/submit,
-// POST /api/feedbackwindow/reminder
+// Підписка: AppointmentCompleted (outbox, ідемпотентно — ADR 0016).
+// Endpoints: POST /api/feedbackwindow/subscribe, POST /api/feedbackwindow/submit,
+//            POST /api/feedbackwindow/reminder, GET /api/feedbackwindow/:appointmentId
 
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
+import { Body, Controller, Get, Header, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FeedbackWindowService } from './feedbackwindow.service';
-import { type CreateFeedbackWindowInput, type SubmitFeedbackInput, FeedbackWindowOutput } from './feedbackwindow.dto';
-import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
-
-export const FEEDBACKWINDOW_IO = Symbol('FEEDBACKWINDOW_IO');
-
-export interface FeedbackWindowDeps {
-  createFeedbackWindowIfNeeded: (
-    appointmentId: string,
-    clientId: string,
-    locationId: string,
-  ) => Promise<FeedbackWindowOutput>;
-  submitFeedback: (windowId: string, rating: number, text: string, photoIds?: string[]) => Promise<any>;
-  sendReminderIfNeeded: (windowId: string) => Promise<{ reminded: boolean; reminderSentAt: Date | null }>;
-  getWindowForAppointment: (appointmentId: string) => Promise<FeedbackWindowOutput | null>;
-}
+import { SubmitFeedbackInput } from './feedbackwindow.dto';
+import type { FeedbackWindowOutput } from './feedbackwindow.domain';
 
 @Controller('feedbackwindow')
 @ApiTags('feedbackwindow')
 export class FeedbackWindowController {
   constructor(private readonly feedbackWindowService: FeedbackWindowService) {}
 
-  /** Subscription endpoint: called by outbox processor when appointment is completed.
-   * Idempotent: checks appointmentId before creating window (ADR 0016).
-   */
+  /** Підписка на AppointmentCompleted: створює вікно один раз на візит. */
   @Post('subscribe')
   @ApiOperation({ summary: 'Create FeedbackWindow on AppointmentCompleted (outbox subscription)' })
-  @ApiResponse({
-    status: 201,
-    type: FeedbackWindowOutput,
-    description: 'Feedback window created; 30-day window opens for submissions',
-  })
+  @ApiResponse({ status: 201, description: 'created=true лише для першого візиту' })
   @HttpCode(HttpStatus.CREATED)
   async subscribe(
     @Body('appointmentId') appointmentId: string,
     @Body('clientId') clientId: string,
-    @Body('locationId') locationId: string,
-  ): Promise<FeedbackWindowOutput> {
-    return this.feedbackWindowService.createFeedbackWindowIfNeeded(
+    @Body('locationId') locationId: string
+  ): Promise<{ success: boolean; created: boolean; data: FeedbackWindowOutput | null }> {
+    const result = await this.feedbackWindowService.createFeedbackWindowIfNeeded(
       appointmentId,
       clientId,
       locationId
     );
+    return { success: true, created: result.created, data: result.window };
   }
 
-  /** Submit feedback within the 30-day window. */
+  /** Подання відгуку в межах 30-денного вікна (повторне — редагування, FDB-002). */
   @Post('submit')
-  @ApiOperation({ summary: 'Submit feedback (rating, text, photos)' })
-  @ApiResponse({
-    status: 200,
-    type: FeedbackWindowOutput,
-    description: 'Feedback submitted; window closed after submission',
-  })
+  @ApiOperation({ summary: 'Submit or edit feedback (rating, text, photos)' })
   @HttpCode(HttpStatus.OK)
-  async submitFeedback(
-    @Body() body: SubmitFeedbackInput,
-  ): Promise<FeedbackWindowOutput> {
-    // The service handles submission; controller returns window state
-    await this.feedbackWindowService.submitFeedback(
+  async submitFeedback(@Body() body: SubmitFeedbackInput): Promise<{
+    success: boolean;
+    data: { submissionId: string };
+  }> {
+    const submission = await this.feedbackWindowService.submitFeedback(
       body.windowId,
       body.rating,
       body.text,
-      body.photoIds
+      body.photoIds ?? []
     );
-
-    // Return updated window state
-    return this.feedbackWindowService.getWindowForAppointment(body.windowId) || {
-      id: body.windowId,
-      appointmentId: body.windowId,
-      clientId: '',
-      locationId: '',
-      openedAt: new Date(),
-      windowEndsAt: new Date(),
-      status: 'closed',
-      submission: undefined,
-      reminderSent: false,
-      daysRemaining: 0,
-    };
+    return { success: true, data: { submissionId: submission.id } };
   }
 
-  /** Send reminder after exactly 2 hours if feedback not yet submitted (FDB-MOB-02). */
+  /** Нагадування через 2 години, рівно одне (FDB-MOB-02). */
   @Post('reminder')
   @ApiOperation({ summary: 'Send reminder if 2h elapsed and feedback not submitted' })
-  @ApiResponse({
-    status: 200,
-    type: FeedbackWindowOutput,
-    description: 'Reminder sent or skipped; window state returned',
-  })
   @HttpCode(HttpStatus.OK)
-  async sendReminderIfNeeded(
-    @Body('windowId') windowId: string,
-  ): Promise<{ reminded: boolean; reminderSentAt: Date | null }> {
-    return this.feedbackWindowService.sendReminderIfNeeded(windowId);
+  async sendReminderIfNeeded(@Body('windowId') windowId: string): Promise<{
+    success: boolean;
+    data: { reminded: boolean; reminderSentAt: Date | null };
+  }> {
+    const result = await this.feedbackWindowService.sendReminderIfNeeded(windowId);
+    return { success: true, data: result };
   }
 
-  /** Get feedback window state for an appointment. */
+  /** Стан вікна для візиту. */
   @Get(':appointmentId')
-  @ApiOperation({ summary: 'Get feedback window state for appointment' })
-  @ApiParam({ name: 'appointmentId', description: 'Appointment ID' })
-  @ApiResponse({
-    status: 200,
-    type: FeedbackWindowOutput,
-    description: 'Return feedback window state, days remaining, submission status',
-  })
+  @ApiOperation({ summary: 'Get feedback window state for an appointment' })
+  @ApiParam({ name: 'appointmentId' })
   @HttpCode(HttpStatus.OK)
-  async getWindow(
-    @Param('appointmentId') appointmentId: string,
-  ): Promise<FeedbackWindowOutput> {
-    return this.feedbackWindowService.getWindowForAppointment(appointmentId) || {
-      id: appointmentId,
-      appointmentId,
-      clientId: '',
-      locationId: '',
-      openedAt: new Date(),
-      windowEndsAt: new Date(),
-      status: 'expired',
-      submission: undefined,
-      reminderSent: false,
-      daysRemaining: 0,
-    };
+  @Header('Cache-Control', 'private, no-store')
+  async getWindow(@Param('appointmentId') appointmentId: string): Promise<{
+    success: boolean;
+    data: FeedbackWindowOutput | null;
+  }> {
+    const window = await this.feedbackWindowService.getWindowForAppointment(appointmentId);
+    return { success: true, data: window };
   }
 }

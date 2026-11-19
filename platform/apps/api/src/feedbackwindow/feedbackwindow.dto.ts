@@ -1,66 +1,29 @@
-import { Type, IsOptional, IsNumber, IsString, Length, MaxLength } from '@nestjs/common';
-import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
+// Input DTOs для T-150 FeedbackWindow. Типи вікна/подання живуть у домені,
+// щоб контролер, сервіс і домен не оголошували їх по-різному.
+import { IsInt, IsOptional, IsString, Length, Max, Min } from 'class-validator';
+import type { FeedbackWindowOutput } from './feedbackwindow.domain';
+
+export type { FeedbackWindowOutput, FeedbackSubmission, PhotoRef } from './feedbackwindow.domain';
 
 // Create FeedbackWindow input DTO
 export class CreateFeedbackWindowInput {
-  @IdempotencyKey()
-  appointmentId: string;
-  @IdempotencyKey()
-  clientId: string;
-  @IdempotencyKey()
-  locationId: string;
+  appointmentId!: string;
+  clientId!: string;
+  locationId!: string;
 }
 
-// Submit Feedback input DTO
+// Submit Feedback input DTO (FDB-001: 1-5 stars, text ≤ 1000, ≤ 3 photos)
 export class SubmitFeedbackInput {
-  @IdempotencyKey()
-  windowId: string;
-  @IsNumber()
-  rating: number; // 1-5 stars
+  windowId!: string;
+  @IsInt()
+  @Min(1)
+  @Max(5)
+  rating!: number;
   @IsString()
-  @Length(1, 1000)
-  text: string; // ≤ 1000 chars
+  @Length(0, 1000)
+  text!: string;
   @IsOptional()
-  @MaxLength(3)
-  photoIds: string[]; // ≤ 3 photos
+  photoIds?: string[];
 }
 
-// Feedback Photo reference DTO
-export class PhotoRef {
-  id: string;
-  url: string;
-  caption?: string;
-  sortOrder: number;
-}
-
-// Feedback Submission DTO
-export class FeedbackSubmission {
-  id: string;
-  rating: number;
-  text: string;
-  photos: PhotoRef[];
-  submittedAt: Date;
-}
-
-// Feedback Window Output DTO
-export class FeedbackWindowOutput {
-  success: boolean;
-  data: {
-    id: string;
-    appointmentId: string;
-    clientId: string;
-    locationId: string;
-    openedAt: Date;
-    windowEndsAt: Date;
-    status: string;
-    submission?: {
-      id: string;
-      rating: number;
-      text: string;
-      photos: PhotoRef[];
-      submittedAt: Date;
-    };
-    reminderSent: boolean;
-    daysRemaining: number;
-  };
-}
+export type FeedbackWindowResponse = FeedbackWindowOutput | null;

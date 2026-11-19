@@ -200,7 +200,7 @@ export class FeedbackWindowService {
       Math.ceil((window.windowEndsAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
     );
 
-    return {
+    const output: FeedbackWindowOutput = {
       id: window.id,
       appointmentId: window.appointmentId,
       clientId: window.clientId,
@@ -208,17 +208,20 @@ export class FeedbackWindowService {
       openedAt: window.openedAt,
       windowEndsAt: window.windowEndsAt,
       status: window.status,
-      submission: window.submission
-        ? {
-            id: window.submission.id,
-            rating: window.submission.rating,
-            text: window.submission.text,
-            photos: window.submission.photos,
-            submittedAt: window.submission.submittedAt,
-          }
-        : undefined,
       reminderSent: window.reminderSent,
       daysRemaining,
     };
+
+    if (window.submission) {
+      output.submission = {
+        id: window.submission.id,
+        rating: window.submission.rating,
+        text: window.submission.text,
+        photos: window.submission.photos,
+        submittedAt: window.submission.submittedAt,
+      };
+    }
+
+    return output;
   }
 }
