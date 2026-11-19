@@ -7,6 +7,7 @@ import { calculateChecksum } from '../shared/utils';
  * Integrates with T-095 no-show escalation and T-105 location support.
  * Hold = 15 min (not a booking); FIFO cascade; anti-spawn: dedup by client+slot,
  * anti-spam: 3 misses → pause, rate limit 5/hour.
+ * Group waitlist: supports party/booking with multiple slots.
  */
 export class WaitlistService {
   constructor(
@@ -30,7 +31,8 @@ export class WaitlistService {
     locationId: string,
     barberId: string,
     serviceId: string,
-    agreedPrice: number
+    agreedPrice: number,
+    partyId?: string // optional: group waitlist membership
   ): Promise<WaitlistEntry> {
     // Check rate limit (WTL-008)
     const now = new Date();
@@ -69,6 +71,7 @@ export class WaitlistService {
       missedCount: 0,
       createdAt: now,
       cascadeToNext: false,
+      ...(partyId && { partyId }),
     };
 
     const created = await this.deps.createWaitlistEntry(entry);
@@ -355,7 +358,7 @@ export class WaitlistService {
 
   /** Admin: Create a waitlist entry with full validation.
    *  Validates required fields: slotId, clientId, locationId, barberId, serviceId, agreedPrice.
-   *  Optional: start, end, precision, status.
+   *  Optional: start, end, precision, status, partyId.
    *  Maps validation failures to 400 errors.
    */
   async adminCreateWaitlistEntry(
@@ -368,7 +371,8 @@ export class WaitlistService {
     start?: string,
     end?: string,
     precision?: string,
-    status?: 'active' | 'on_hold' | 'expired' | 'fulfilled' | 'paused'
+    status?: 'active' | 'on_hold' | 'expired' | 'fulfilled' | 'paused',
+    partyId?: string // optional: group waitlist membership
   ): Promise<WaitlistEntry> {
     // Validate required fields
     if (!slotId?.trim()) {
@@ -423,6 +427,7 @@ export class WaitlistService {
       ...(parsedStart && { start: parsedStart }),
       ...(parsedEnd && { end: parsedEnd }),
       ...(precision !== undefined && { precision }),
+      ...(partyId && { partyId }),
     };
 
     const created = await this.deps.createWaitlistEntry(entry);
