@@ -1,218 +1,197 @@
-// Two-way SMS Service (T-???)
-// Booking confirmations, reminder 24h before, waitlist position updates,
-// and opt-in marketing. Depends on T-080 push notification infrastructure.
+// SMS-повідомлення (T-080): підтвердження, нагадування, черга, no-show,
+// маркетингові opt-in/out.
+//
+// Тут лише оркестрація: текст рендерять чисті функції
+// (booking-confirmation-sms, appointment-reminder-sms, sms-messages), а
+// контакти й налаштування приходять портами. Стара версія цього файлу
+// ходила в prisma напряму, тягнула `any` і містила зіпсовані українські
+// тексти («Слуга», «уважечого») — обидва шари тепер мають тести.
+import { renderConfirmationSms, type SmsSender } from './booking-confirmation-sms';
+import { renderReminderSms } from './appointment-reminder-sms';
+import {
+  renderMarketingOptInSms,
+  renderMarketingOptOutSms,
+  renderNoShowSms,
+  renderWaitlistOfferExpiredSms,
+  renderWaitlistOfferSms,
+  renderWaitlistPositionSms,
+  type NoShowSmsData,
+  type WaitlistOfferSmsData,
+  type WaitlistPositionSmsData,
+} from './sms-messages';
+import {
+  buildConfirmationLetterData,
+  type BookedPayload,
+  type ClientContacts,
+  type LocationContacts,
+  type NotificationEvent,
+  type ServiceCatalog,
+} from './booking-confirmation-ports';
+import type { ConfirmationLetterData } from './booking-confirmation-template';
 
-import { SmsSender } from './booking-confirmation-sms';
-import { SmsInput } from './booking-confirmation-sms';
-import { renderConfirmationSms, renderReminderSms } from './booking-confirmation-sms';
-import { renderReminderSms as renderOldReminderSms } from './appointment-reminder-sms';
-import { ConfirmationLetterData } from './booking-confirmation-ports';
-import { Booking, BookingRepository } from '../../scheduling/domain/booking';
-import { ClientProfile } from '../../crm/domain/client-profile';
-import { prisma } from '../../index';
+export type { SmsInput, SmsSender } from './booking-confirmation-sms';
 
-/** SMS Input for booking confirmation */
+export interface SmsDispatchResult {
+  success: boolean;
+  detail: string;
+}
+
+/** Скільки хвилин до візиту нагадує типовий планувальник (24 год). */
+export const DEFAULT_REMINDER_LEAD_MINUTES = 24 * 60;
+
+/** Підтвердження запису. */
 export class SendBookingConfirmationSms {
-  constructor(private readonly sms: SmsSender, private readonly clients: any, private readonly letterData: ConfirmationLetterData) {}
-
-  async send(to: string): Promise<void> {
-    const text = renderConfirmationSms(this.letterData);
-    await this.sms.send({ to, text });
-  }
-}
-
-/** SMS Input for appointment reminder 24h before */
-export class SendReminderSms {
-  constructor(private readonly sms: SmsSender, private readonly clients: any, private readonly letterData: ConfirmationLetterData) {}
-
-  async send(to: string, leadMinutes: number = 24 * 60): Promise<void> {
-    const text = renderReminderSms(this.letterData);
-    await this.sms.send({ to, text });
-  }
-}
-
-/** SMS Input for waitlist position update */
-export class SendWaitlistUpdateSms {
-  constructor(private readonly sms: SmsSender, private readonly clients: any) {}
-
-  async send(to: string, position: number, barberName: string, serviceName: string): Promise<void> {
-    const text = `FADE: ви вже на вичі waited. Ваша позиція: #${position}. Barber: ${barberName}. Слуга: ${serviceName}. Ми повідомимо, коли slot відбудеться.`;
-    await this.sms.send({ to, text });
-  }
-}
-
-/** SMS Input for marketing opt-in/out */
-export class SendSmketingSms {
   constructor(private readonly sms: SmsSender) {}
 
-  async sendOptIn(to: string): Promise<void> {
-    const text = `FADE: Ви підписалися на маркетингові SMS від Fade. Щоб відключити, reply STOP.`;
-    await this.sms.send({ to, text });
-  }
-
-  async sendOptOut(to: string): Promise<void> {
-    const text = `FADE: Ви відписалися від маркетингових SMS. Ми уважечого ставимо ваш вибір.`;
-    await this.sms.send({ to, text });
+  async send(to: string, data: ConfirmationLetterData): Promise<void> {
+    await this.sms.send({ to, text: renderConfirmationSms(data) });
   }
 }
 
-/** Handler for booking confirmation SMS */
+/** Сумісна функціональна форма для споживачів, що не тримають клас. */
+export async function sendBookingConfirmationSms(
+  sms: SmsSender,
+  to: string,
+  data: ConfirmationLetterData
+): Promise<void> {
+  await new SendBookingConfirmationSms(sms).send(to, data);
+}
+
+/** Нагадування про візит (за замовчуванням — за 24 години). */
+export class SendReminderSms {
+  constructor(private readonly sms: SmsSender) {}
+
+  async send(
+    to: string,
+    data: ConfirmationLetterData,
+    leadMinutes: number = DEFAULT_REMINDER_LEAD_MINUTES
+  ): Promise<void> {
+    if (leadMinutes <= 0) {
+      throw new Error(`Invalid reminder lead time: ${leadMinutes}`);
+    }
+    await this.sms.send({ to, text: renderReminderSms(data) });
+  }
+}
+
+/** Позиція в черзі. */
+export class SendWaitlistUpdateSms {
+  constructor(private readonly sms: SmsSender) {}
+
+  async send(to: string, data: WaitlistPositionSmsData): Promise<void> {
+    await this.sms.send({ to, text: renderWaitlistPositionSms(data) });
+  }
+}
+
+/** Пропозиція слота з тайм-аутом акцепту. */
+export class SendWaitlistOfferSms {
+  constructor(private readonly sms: SmsSender) {}
+
+  async send(to: string, data: WaitlistOfferSmsData): Promise<void> {
+    await this.sms.send({ to, text: renderWaitlistOfferSms(data) });
+  }
+
+  async sendExpired(to: string): Promise<void> {
+    await this.sms.send({ to, text: renderWaitlistOfferExpiredSms() });
+  }
+}
+
+/** NSH-007: нейтральне повідомлення про пропущений візит. */
+export class SendNoShowSms {
+  constructor(private readonly sms: SmsSender) {}
+
+  async send(to: string, data: NoShowSmsData): Promise<void> {
+    await this.sms.send({ to, text: renderNoShowSms(data) });
+  }
+}
+
+/** Порт згоди на маркетингові SMS (crm зберігає прапорець). */
+export interface MarketingSmsPreferences {
+  setMarketingOptIn(clientId: string, optIn: boolean): Promise<void>;
+}
+
+/** Підтвердження запису з події `scheduling.appointment.booked`. */
 export class BookingConfirmationHandler {
   constructor(
     private readonly sms: SmsSender,
-    private readonly clients: any,
-    private readonly locations: any,
-    private readonly services: any
+    private readonly clients: ClientContacts,
+    private readonly locations: LocationContacts,
+    private readonly services?: ServiceCatalog
   ) {}
 
-  async handle(event: any): Promise<{ success: boolean; detail: string }> {
-    const payload = event.payload;
-    const clientId = payload.clientId;
+  async handle(event: NotificationEvent): Promise<SmsDispatchResult> {
+    const payload = event.payload as BookedPayload;
+    const phone = await this.clients.findPhoneByAppointmentId(event.aggregateId);
+    if (!phone) return { success: false, detail: 'No phone number for client' };
 
-    // Get client phone
-    const phone = await this.clients.findPhoneByAppointmentId(payload.appointmentId);
-    if (!phone) {
-      return { success: false, detail: 'No phone number for client' };
-    }
-
-    // Get letter data
     const contacts = await this.locations.findContacts(payload.locationId);
-    const letterData: ConfirmationLetterData = {
-      locationName: contacts?.name || '',
-      locationAddress: contacts?.address || '',
-      serviceName: payload.serviceId ? 'Haircut' : '',
-      start: payload.start,
-    };
-
-    // Send SMS confirmation
-    await new SendBookingConfirmationSms(this.sms, this.clients, letterData).send(phone);
-
+    const data = await buildConfirmationLetterData(payload, contacts, this.services);
+    await new SendBookingConfirmationSms(this.sms).send(phone, data);
     return { success: true, detail: 'SMS confirmation sent' };
   }
 }
 
-/** Handler for appointment reminder SMS (24h before) */
+/** Нагадування з тієї ж події, коли планувальник вирішив, що час настав. */
 export class ReminderHandler {
   constructor(
     private readonly sms: SmsSender,
-    private readonly clients: any,
-    private readonly locations: any
+    private readonly clients: ClientContacts,
+    private readonly locations: LocationContacts,
+    private readonly services?: ServiceCatalog
   ) {}
 
-  async handle(event: any, leadMinutes: number = 24 * 60): Promise<{ success: boolean; detail: string }> {
-    const payload = event.payload;
-    const clientId = payload.clientId;
+  async handle(
+    event: NotificationEvent,
+    leadMinutes: number = DEFAULT_REMINDER_LEAD_MINUTES
+  ): Promise<SmsDispatchResult> {
+    const payload = event.payload as BookedPayload;
+    const phone = await this.clients.findPhoneByAppointmentId(event.aggregateId);
+    if (!phone) return { success: false, detail: 'No phone number for client' };
 
-    // Get client phone
-    const phone = await this.clients.findPhoneByAppointmentId(payload.appointmentId);
-    if (!phone) {
-      return { success: false, detail: 'No phone number for client' };
-    }
-
-    // Get letter data
     const contacts = await this.locations.findContacts(payload.locationId);
-    const letterData: ConfirmationLetterData = {
-      locationName: contacts?.name || '',
-      locationAddress: contacts?.address || '',
-      serviceName: payload.serviceId ? 'Haircut' : '',
-      start: payload.start,
-    };
-
-    // Send SMS reminder
-    await new SendReminderSms(this.sms, this.clients, letterData).send(phone, leadMinutes);
-
+    const data = await buildConfirmationLetterData(payload, contacts, this.services);
+    await new SendReminderSms(this.sms).send(phone, data, leadMinutes);
     return { success: true, detail: 'SMS reminder sent' };
   }
 }
 
-/** Handler for waitlist position update SMS */
+/** Оновлення позиції в черзі (WTL). */
 export class WaitlistUpdateHandler {
   constructor(
     private readonly sms: SmsSender,
-    private readonly clients: any
+    private readonly clients: ClientContacts
   ) {}
 
-  async handle(event: any): Promise<{ success: boolean; detail: string }> {
-    const payload = event.payload;
-    const clientId = payload.clientId;
+  async handle(event: NotificationEvent): Promise<SmsDispatchResult> {
+    const payload = event.payload as Partial<WaitlistPositionSmsData>;
+    const phone = await this.clients.findPhoneByAppointmentId(event.aggregateId);
+    if (!phone) return { success: false, detail: 'No phone number for client' };
 
-    // Get client phone
-    const phone = await this.clients.findPhoneByAppointmentId(payload.appointmentId);
-    if (!phone) {
-      return { success: false, detail: 'No phone number for client' };
-    }
-
-    // Get waitlist position and barber info
-    const position = payload.position ?? 1;
-    const barberName = payload.barberName ?? 'Barber';
-    const serviceName = payload.serviceName ?? 'Service';
-
-    // Send SMS waitlist update
-    await new SendWaitlistUpdateSms(this.sms, this.clients).send(phone, position, barberName, serviceName);
-
+    await new SendWaitlistUpdateSms(this.sms).send(phone, {
+      position: payload.position ?? 1,
+      ...(payload.barberName ? { barberName: payload.barberName } : {}),
+      ...(payload.serviceName ? { serviceName: payload.serviceName } : {}),
+      ...(payload.locationName ? { locationName: payload.locationName } : {}),
+    });
     return { success: true, detail: 'SMS waitlist update sent' };
   }
 }
 
-/** Handler for SMS marketing opt-in/opt-out */
+/** Маркетингові opt-in/opt-out: спершу згода в crm, потім підтвердження. */
 export class MarketingSmsHandler {
   constructor(
     private readonly sms: SmsSender,
-    private readonly prisma: any
+    private readonly preferences: MarketingSmsPreferences
   ) {}
 
-  async handleOptIn(event: any): Promise<{ success: boolean; detail: string }> {
-    const clientId = event.payload.clientId;
-
-    // Record opt-in in database
-    await this.prisma.clientProfile.upsert({
-      where: { clientId },
-      update: { smsMarketingOptIn: true },
-      create: { clientId, smsMarketingOptIn: true },
-    });
-
-    // Send opt-in confirmation
-    await this.sms.send({
-      to: event.payload.phone,
-      text: 'FADE: Ви підписалися на маркетингові SMS від Fade. Щоб відключити, reply STOP.',
-    });
-
+  async handleOptIn(input: { clientId: string; phone: string }): Promise<SmsDispatchResult> {
+    await this.preferences.setMarketingOptIn(input.clientId, true);
+    await this.sms.send({ to: input.phone, text: renderMarketingOptInSms() });
     return { success: true, detail: 'SMS marketing opt-in recorded' };
   }
 
-  async handleOptOut(event: any): Promise<{ success: boolean; detail: string }> {
-    const clientId = event.payload.clientId;
-
-    // Record opt-out in database
-    await this.prisma.clientProfile.upsert({
-      where: { clientId },
-      update: { smsMarketingOptOut: true },
-      create: { clientId, smsMarketingOptOut: true },
-    });
-
-    // Send opt-out confirmation
-    await this.sms.send({
-      to: event.payload.phone,
-      text: 'FADE: Ви відписалися від маркетингових SMS. Ми уважечого ставимо ваш вибір.',
-    });
-
+  async handleOptOut(input: { clientId: string; phone: string }): Promise<SmsDispatchResult> {
+    await this.preferences.setMarketingOptIn(input.clientId, false);
+    await this.sms.send({ to: input.phone, text: renderMarketingOptOutSms() });
     return { success: true, detail: 'SMS marketing opt-out recorded' };
   }
-}
-
-/** Factory functions */
-export function createBookingConfirmationHandler(sms: SmsSender, clients: any, locations: any, services: any) {
-  return new BookingConfirmationHandler(sms, clients, locations, services);
-}
-
-export function createReminderHandler(sms: SmsSender, clients: any, locations: any) {
-  return new ReminderHandler(sms, clients, locations);
-}
-
-export function createWaitlistUpdateHandler(sms: SmsSender, clients: any) {
-  return new WaitlistUpdateHandler(sms, clients);
-}
-
-export function createMarketingSmsHandler(sms: SmsSender, prisma: any) {
-  return new MarketingSmsHandler(sms, prisma);
 }
