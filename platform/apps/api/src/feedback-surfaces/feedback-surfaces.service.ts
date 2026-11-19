@@ -1,22 +1,58 @@
 import { prisma } from '../index';
-import { Appointment, Booking, ClientProfile } from '../domain';
-import { FeedbackWindow, FeedbackSubmission } from '../feedbackwindow/feedbackwindow.domain';
+import type {
+  AdminReviewItem,
+  BarberReviewItem,
+  ClientReviewItem,
+} from './feedback-surfaces.dto';
+import {
+  averageRating,
+  daysRemainingUntil,
+  evaluateSubmission,
+  validateFeedbackSubmission,
+} from './feedback-surfaces.policy';
 
-/** T-151: Feedback Surfaces - API endpoints for review surfaces.
- * Cabinets/mobile: "Leave review" button on completed visit within window
- * "My reviews" with deletion
- * Barber: reviews of own visits + own average
- * Admin: list, filters, barber/admin reply
- * Publication — phase 25 gate.
+/**
+ * T-151: Feedback Surfaces.
+ * Читання відгуків для кабінету/мобільного («Мої відгуки»), майстра та адміна.
+ * Правила вікна — у feedback-surfaces.policy, тут лише вибірки та збереження.
+ * Відгуки приватні в першому релізі (FDB-006).
  */
-export class FeedbackSurfacesService {
-  /** Get all reviews for an appointment (client sees if within window) */
-  async getAppointmentReviews(appointmentId: string): Promise<{
-    submission?: FeedbackSubmission;
+
+interface SubmissionRow {
+  id: string;
+  rating: number;
+  text: string;
+  submittedAt: Date;
+  photos?: Array<{ id: string }> | null;
+  window: {
+    appointmentId: string;
+    clientId: string;
     windowEndsAt: Date;
-    daysRemaining: number;
-    canStillSubmit: boolean;
-  }> {
+    status: string;
+    appointment?: {
+      barberId?: string | null;
+      service?: { name?: string | null } | null;
+    } | null;
+  } | null;
+}
+
+export interface AppointmentReviews {
+  submission?: {
+    id: string;
+    rating: number;
+    text: string;
+    photos: Array<{ id: string; url?: string; sortOrder?: number }>;
+    submittedAt: Date;
+  };
+  windowEndsAt: Date | null;
+  daysRemaining: number;
+  canStillSubmit: boolean;
+  canEdit: boolean;
+}
+
+export class FeedbackSurfacesService {
+  /** Стан вікна для конкретного візиту (кабінет «Залишити відгук»). */
+  async getAppointmentReviews(appointmentId: string): Promise<AppointmentReviews> {
     const window = await prisma.feedbackWindow.findUnique({
       where: { appointmentId },
       include: { submission: true },
@@ -24,203 +60,190 @@ export class FeedbackSurfacesService {
 
     if (!window) {
       return {
-        submission: undefined,
-        windowEndsAt: new Date(),
+        windowEndsAt: null,
         daysRemaining: 0,
         canStillSubmit: false,
+        canEdit: false,
       };
     }
 
-    const now = new Date();
-    const daysRemaining = Math.max(
-      0,
-      Math.ceil((window.windowEndsAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000))
-    );
-
-    return {
-      submission: window.submission,
+    const decision = evaluateSubmission({
+      status: window.status,
+      openedAt: window.openedAt,
       windowEndsAt: window.windowEndsAt,
-      daysRemaining,
-      canStillSubmit: window.status === 'open' && !window.submission,
-    };
-  }
-
-  /** Get all reviews submitted by a client (My Reviews) */
-  async getClientReviews(clientId: string, status?: 'all' | 'active' | 'expired'): Promise<{
-    totalCount: number;
-    submissions: Array<{
-      id: string;
-      appointmentId: string;
-      rating: number;
-      text: string;
-      photosCount: number;
-      submittedAt: Date;
-      appointmentBarberId?: string;
-      appointmentServiceName?: string;
-    }>;
-  }> {
-    const where = {
-      clientId,
-      ...(status !== 'all' ? { status } : {}),
-    };
-
-    const submissions = await prisma.feedbackSubmission.findMany({
-      where,
-      include: {
-        window: {
-          include: {
-            appointment: {
-              include: {
-                barber: true,
-                service: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { submittedAt: 'desc' },
+      hasSubmission: Boolean(window.submission),
     });
 
-    return {
-      totalCount: submissions.length,
-      submissions: submissions.map((s) => ({
-        id: s.id,
-        appointmentId: s.window.appointmentId,
-        rating: s.rating,
-        text: s.text,
-        photosCount: s.photos?.length ?? 0,
-        submittedAt: s.submittedAt,
-        appointmentBarberId: s.window.appointment.barberId,
-        appointmentServiceName: s.window.appointment.service?.name,
-      })),
+    const result: AppointmentReviews = {
+      windowEndsAt: window.windowEndsAt,
+      daysRemaining: decision.daysRemaining,
+      canStillSubmit: decision.canSubmit,
+      canEdit: decision.canEdit,
     };
+    if (window.submission) result.submission = window.submission;
+    return result;
   }
 
-  /** Get reviews for a barber's own visits */
-  async getBarberReviews(barberId: string, clientId?: string): Promise<{
+  /** «Мої відгуки» клієнта з позначкою, чи ще можна редагувати. */
+  async getClientReviews(
+    clientId: string,
+    status: 'all' | 'active' | 'expired' = 'all'
+  ): Promise<{ totalCount: number; submissions: ClientReviewItem[] }> {
+    const rows = (await prisma.feedbackSubmission.findMany({
+      where: {
+        window: { clientId, ...(status === 'active' ? { status: 'open' } : {}) },
+        ...(status === 'expired' ? { window: { clientId, status: 'expired' } } : {}),
+      },
+      include: { window: { include: { appointment: { include: { service: true } } } } },
+      orderBy: { submittedAt: 'desc' },
+    })) as SubmissionRow[];
+
+    const now = new Date();
+    const submissions = rows
+      .filter((row) => row.window)
+      .map((row) => {
+        const window = row.window!;
+        const decision = evaluateSubmission(
+          { status: window.status, windowEndsAt: window.windowEndsAt, hasSubmission: true },
+          now
+        );
+        const item: ClientReviewItem = {
+          id: row.id,
+          appointmentId: window.appointmentId,
+          rating: row.rating,
+          text: row.text,
+          photosCount: row.photos?.length ?? 0,
+          submittedAt: row.submittedAt,
+          editable: decision.canEdit,
+        };
+        const barberId = window.appointment?.barberId;
+        if (barberId) item.appointmentBarberId = barberId;
+        const serviceName = window.appointment?.service?.name;
+        if (serviceName) item.appointmentServiceName = serviceName;
+        return item;
+      });
+
+    return { totalCount: submissions.length, submissions };
+  }
+
+  /** Відгуки по візитах майстра + його середня оцінка (кабінет майстра). */
+  async getBarberReviews(
+    barberId: string,
+    clientId?: string
+  ): Promise<{
     totalRatings: number;
     averageRating: number;
     totalReviews: number;
-    reviews: Array<{
-      id: string;
-      clientId: string;
-      rating: number;
-      text: string;
-      photosCount: number;
-      submittedAt: Date;
-    }>;
+    reviews: BarberReviewItem[];
   }> {
-    // Find all feedback windows for appointments where this barber worked
     const windows = await prisma.feedbackWindow.findMany({
-      include: {
-        submission: true,
-        appointment: {
-          include: {
-            barber: true,
-            service: true,
-            client: true,
-          },
-        },
-      },
       where: {
-        appointment: {
-          barberId,
-          ...(clientId ? { clientId } : {}),
-        },
+        submission: { isNot: null },
+        appointment: { barberId, ...(clientId ? { clientId } : {}) },
       },
+      include: { submission: true },
+      orderBy: { openedAt: 'desc' },
     });
 
-    const submissions = windows
-      .filter((w) => w.submission)
-      .map((w) => w.submission!);
+    const rows = (windows as Array<{ clientId: string; submission: SubmissionRow | null }>).filter(
+      (w) => w.submission
+    );
 
-    const totalReviews = submissions.length;
-    const totalRatings = submissions.reduce((sum, s) => sum + s.rating, 0);
-    const averageRating = totalReviews > 0 ? totalRatings / totalReviews : 0;
+    const reviews: BarberReviewItem[] = rows.map((w) => ({
+      id: w.submission!.id,
+      clientId: w.clientId,
+      rating: w.submission!.rating,
+      text: w.submission!.text,
+      photosCount: w.submission!.photos?.length ?? 0,
+      submittedAt: w.submission!.submittedAt,
+    }));
 
+    const ratings = reviews.map((review) => review.rating);
     return {
-      totalRatings,
-      averageRating: Math.round(averageRating * 10) / 10, // 1 decimal
-      totalReviews,
-      reviews: submissions.map((s) => ({
-        id: s.id,
-        clientId: s.window.clientId,
-        rating: s.rating,
-        text: s.text,
-        photosCount: s.photos?.length ?? 0,
-        submittedAt: s.submittedAt,
-      })),
+      totalRatings: ratings.reduce((sum, value) => sum + value, 0),
+      averageRating: averageRating(ratings),
+      totalReviews: reviews.length,
+      reviews,
     };
   }
 
-  /** Admin: list all feedback submissions with filters */
+  /** Адмін: список відгуків з фільтрами та пагінацією. */
   async adminListFeedback(
-    filters: { status?: string; barberId?: string; clientId?: string; startDate?: Date; endDate?: Date },
+    filters: {
+      status?: string;
+      barberId?: string;
+      clientId?: string;
+      startDate?: Date;
+      endDate?: Date;
+    },
     pagination: { page: number; limit: number }
   ): Promise<{
     total: number;
     page: number;
     totalPages: number;
-    submissions: Array<{
-      id: string;
-      appointmentId: string;
-      clientId: string;
-      barberId: string;
-      rating: number;
-      text: string;
-      photosCount: number;
-      status: string;
-      submittedAt: Date;
-      windowEndsAt: Date;
-    }>;
+    submissions: AdminReviewItem[];
   }> {
-    const where: any = {};
+    const windowFilter: Record<string, unknown> = {};
+    if (filters.status) windowFilter.status = filters.status;
+    if (filters.clientId) windowFilter.clientId = filters.clientId;
 
-    if (filters.status) where.status = filters.status;
+    const where: Record<string, unknown> = {};
+    if (Object.keys(windowFilter).length > 0) where.window = windowFilter;
     if (filters.barberId) {
-      where.appointment = { barberId: filters.barberId };
+      where.window = { ...windowFilter, appointment: { barberId: filters.barberId } };
     }
-    if (filters.clientId) where.clientId = filters.clientId;
     if (filters.startDate || filters.endDate) {
-      where.appointment = where.appointment || {};
-      if (filters.startDate) where.appointment.startedAt = { gte: filters.startDate };
-      if (filters.endDate) where.appointment.startedAt = { lte: filters.endDate };
+      const submittedAt: Record<string, Date> = {};
+      if (filters.startDate) submittedAt.gte = filters.startDate;
+      if (filters.endDate) submittedAt.lte = filters.endDate;
+      where.submittedAt = submittedAt;
     }
 
-    const [submissions, total] = await prisma.$executeRaw`
-      SELECT fs.*, fw.status as windowStatus, fw.openedAt, fw.windowEndsAt, 
-             fb.id as barberId, fb.name as barberName
-      FROM FeedbackSubmission fs
-      JOIN FeedbackWindow fw ON fs.windowId = fw.id
-      JOIN Appointment fb ON fw.appointmentId = fb.id
-      WHERE ${JSON.stringify(where)}
-      ORDER BY fs.submittedAt DESC
-      LIMIT ${pagination.limit} OFFSET ${(pagination.page - 1) * pagination.limit}
-    `;
+    const page = Math.max(1, pagination.page);
+    const limit = Math.min(100, Math.max(1, pagination.limit));
+
+    const [rows, total] = await Promise.all([
+      prisma.feedbackSubmission.findMany({
+        where,
+        include: { window: { include: { appointment: true } } },
+        orderBy: { submittedAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }) as Promise<SubmissionRow[]>,
+      prisma.feedbackSubmission.count({ where }) as Promise<number>,
+    ]);
+
+    const submissions: AdminReviewItem[] = rows
+      .filter((row) => row.window)
+      .map((row) => ({
+        id: row.id,
+        appointmentId: row.window!.appointmentId,
+        clientId: row.window!.clientId,
+        barberId: row.window!.appointment?.barberId ?? null,
+        rating: row.rating,
+        text: row.text,
+        photosCount: row.photos?.length ?? 0,
+        status: row.window!.status,
+        submittedAt: row.submittedAt,
+        windowEndsAt: row.window!.windowEndsAt,
+      }));
 
     return {
       total,
-      page: pagination.page,
-      totalPages: Math.ceil(total / pagination.limit),
-      submissions: submissions as any,
+      page,
+      totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+      submissions,
     };
   }
 
-  /** Admin: reply to a review */
-  async adminReplyToReview(reviewId: string, adminId: string, replyText: string): Promise<{
-    id: string;
-    reviewId: string;
-    adminId: string;
-    replyText: string;
-    repliedAt: Date;
-  }> {
+  /** Адмін: відповідь на відгук (FDB-ADM-03). */
+  async adminReplyToReview(
+    reviewId: string,
+    adminId: string,
+    replyText: string
+  ): Promise<{ id: string; reviewId: string; adminId: string; replyText: string; repliedAt: Date }> {
     const reply = await prisma.adminReviewReply.create({
-      data: {
-        reviewId,
-        adminId,
-        replyText,
-        repliedAt: new Date(),
-      },
+      data: { reviewId, adminId, replyText, repliedAt: new Date() },
     });
 
     return {
@@ -232,70 +255,72 @@ export class FeedbackSurfacesService {
     };
   }
 
-  /** Check if client can submit feedback for an appointment */
-  async canClientSubmit(clientId: string, appointmentId: string): Promise<{
+  /** Чи може клієнт подати відгук; прострочене вікно позначається як expired. */
+  async canClientSubmit(
+    clientId: string,
+    appointmentId: string
+  ): Promise<{
     canSubmit: boolean;
-    reason?: string;
+    canEdit: boolean;
+    reason: string;
     daysRemaining: number;
     windowStatus: string;
   }> {
     const window = await prisma.feedbackWindow.findUnique({
       where: { appointmentId },
+      include: { submission: true },
     });
 
     if (!window) {
       return {
         canSubmit: false,
+        canEdit: false,
         reason: 'Feedback window not found for this appointment',
         daysRemaining: 0,
         windowStatus: 'closed',
       };
     }
 
-    const now = new Date();
-    const daysRemaining = Math.max(
-      0,
-      Math.ceil((window.windowEndsAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000))
-    );
-
-    if (window.status !== 'open') {
+    if (clientId && window.clientId !== clientId) {
       return {
         canSubmit: false,
-        reason: `Feedback window is ${window.status}`,
-        daysRemaining,
+        canEdit: false,
+        reason: 'This visit belongs to another client',
+        daysRemaining: 0,
         windowStatus: window.status,
       };
     }
 
-    if (window.submission) {
-      return {
-        canSubmit: false,
-        reason: 'Feedback already submitted for this appointment',
-        daysRemaining,
-        windowStatus: window.status,
-      };
-    }
+    const decision = evaluateSubmission({
+      status: window.status,
+      openedAt: window.openedAt,
+      windowEndsAt: window.windowEndsAt,
+      hasSubmission: Boolean(window.submission),
+    });
 
-    // Check if within 30-day window
-    if (now > window.windowEndsAt) {
-      // Mark as expired
+    if (decision.windowStatus === 'expired' && window.status !== 'expired') {
       await prisma.feedbackWindow.update({
         where: { id: window.id },
         data: { status: 'expired' },
       });
-      return {
-        canSubmit: false,
-        reason: 'Feedback window has expired',
-        daysRemaining: 0,
-        windowStatus: 'expired',
-      };
     }
 
     return {
-      canSubmit: true,
-      reason: 'Within feedback window',
-      daysRemaining,
-      windowStatus: 'open',
+      canSubmit: decision.canSubmit,
+      canEdit: decision.canEdit,
+      reason: decision.reason,
+      daysRemaining: decision.daysRemaining,
+      windowStatus: decision.windowStatus,
     };
+  }
+
+  /** Валідація перед збереженням відгуку (FDB-001). */
+  validateSubmission(rating: number, text: string, photoCount: number): string[] {
+    return validateFeedbackSubmission({ rating, text, photoCount });
+  }
+
+  /** Днів до кінця вікна — для віджетів. */
+  daysRemaining(windowEndsAt: Date): number {
+    return daysRemainingUntil(windowEndsAt);
   }
 }

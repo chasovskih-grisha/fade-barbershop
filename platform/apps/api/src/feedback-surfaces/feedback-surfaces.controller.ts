@@ -1,159 +1,127 @@
 // Feedback Surfaces API — T-151: Feedback Surfaces.
+// Клієнт: «Залишити відгук» / «Мої відгуки». Майстер: свої відгуки й середня.
+// Адмін: список з фільтрами та відповідь. Публікація — фаза 25 (FDB-006).
 
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
+import { Body, Controller, Get, Header, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { AdminListInput, AdminReplyInput, CanSubmitInput } from './feedback-surfaces.dto';
 import { FeedbackSurfacesService } from './feedback-surfaces.service';
-import { CanSubmitInput, AdminListInput } from './feedback-surfaces.dto';
 
 @Controller('feedback-surfaces')
-@ApiTags('feedback-surfaces')
 export class FeedbackSurfacesController {
   constructor(private readonly feedbackSurfacesService: FeedbackSurfacesService) {}
 
-  /** Get feedback window state for an appointment (cabinet/mobile). */
-  @Get(':appointmentId')
-  @ApiOperation({ summary: 'Get feedback window state for appointment' })
-  @ApiParam({ name: 'appointmentId', description: 'Appointment ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return window state, canSubmit, days remaining',
-  })
+  /** Стан вікна для візиту (кабінет/мобільний). */
+  @Get('appointment/:appointmentId')
+  @ApiOperation({ summary: 'Get feedback window state for an appointment' })
+  @ApiParam({ name: 'appointmentId' })
+  @ApiQuery({ name: 'clientId', required: false })
   @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'private, no-store')
   async getWindow(
     @Param('appointmentId') appointmentId: string,
+    @Query('clientId') clientId?: string
   ) {
-    const result = await this.feedbackSurfacesService.canClientSubmit(
-      '',
-      appointmentId
-    );
+    const [state, reviews] = await Promise.all([
+      this.feedbackSurfacesService.canClientSubmit(clientId ?? '', appointmentId),
+      this.feedbackSurfacesService.getAppointmentReviews(appointmentId),
+    ]);
 
     return {
       success: true,
       data: {
         appointmentId,
-        windowStatus: result.windowStatus,
-        daysRemaining: result.daysRemaining,
-        canSubmit: result.canSubmit,
-        reason: result.reason,
+        windowStatus: state.windowStatus,
+        daysRemaining: state.daysRemaining,
+        canSubmit: state.canSubmit,
+        canEdit: state.canEdit,
+        reason: state.reason,
+        windowEndsAt: reviews.windowEndsAt,
+        submission: reviews.submission ?? null,
       },
     };
   }
 
-  /** Get my reviews (client cabinents). */
+  /** «Мої відгуки» клієнта. */
   @Get('my-reviews')
-  @ApiOperation({ summary: 'Get client\'s submitted reviews (My Reviews)' })
+  @ApiOperation({ summary: 'Get reviews submitted by a client' })
+  @ApiQuery({ name: 'clientId' })
   @ApiQuery({ name: 'status', required: false })
-  @ApiResponse({
-    status: 200,
-    description: 'Return client\'s submitted reviews',
-  })
   @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'private, no-store')
   async getMyReviews(
-    @Query('status') status?: string,
+    @Query('clientId') clientId: string,
+    @Query('status') status?: 'all' | 'active' | 'expired'
   ) {
-    const result = await this.feedbackSurfacesService.getClientReviews('', status || 'all');
+    const result = await this.feedbackSurfacesService.getClientReviews(
+      clientId,
+      status ?? 'all'
+    );
 
-    return {
-      success: true,
-      data: {
-        totalCount: result.totalCount,
-        submissions: result.submissions,
-      },
-    };
+    return { success: true, data: result };
   }
 
-  /** Check if client can submit feedback for an appointment. */
-  @Post('can-submit')
-  @ApiOperation({ summary: 'Check if client can submit feedback' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return whether client can submit feedback and why',
-  })
+  /** Відгуки майстра та його середня оцінка. */
+  @Get('barber/:barberId')
+  @ApiOperation({ summary: 'Get reviews of a barber’s visits and their average' })
+  @ApiParam({ name: 'barberId' })
   @HttpCode(HttpStatus.OK)
-  async checkCanSubmit(
-    @Body() body: CanSubmitInput,
-  ) {
+  @Header('Cache-Control', 'private, no-store')
+  async getBarberReviews(@Param('barberId') barberId: string) {
+    const result = await this.feedbackSurfacesService.getBarberReviews(barberId);
+    return { success: true, data: result };
+  }
+
+  /** Чи може клієнт подати відгук. */
+  @Post('can-submit')
+  @ApiOperation({ summary: 'Check whether a client may submit feedback' })
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'private, no-store')
+  async checkCanSubmit(@Body() body: CanSubmitInput) {
     const result = await this.feedbackSurfacesService.canClientSubmit(
       body.clientId,
       body.appointmentId
     );
-
-    return {
-      success: true,
-      data: {
-        canSubmit: result.canSubmit,
-        reason: result.reason,
-        daysRemaining: result.daysRemaining,
-        windowStatus: result.windowStatus,
-      },
-    };
+    return { success: true, data: result };
   }
 
-  /** Admin: list all feedback submissions with filters. */
-  @Post('admin/list')
-  @ApiOperation({ summary: 'Admin list feedback submissions with filters' })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
-  @ApiQuery({ name: 'status', required: false })
-  @ApiQuery({ name: 'barberId', required: false })
-  @ApiQuery({ name: 'clientId', required: false })
-  @ApiResponse({
-    status: 200,
-    description: 'Return paginated feedback submissions list',
-  })
+  /** Адмін: список відгуків з фільтрами та пагінацією. */
+  @Get('admin/list')
+  @ApiOperation({ summary: 'Admin: paginated feedback list with filters' })
   @HttpCode(HttpStatus.OK)
-  async adminList(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('status') status?: string,
-    @Query('barberId') barberId?: string,
-    @Query('clientId') clientId?: string,
-  ) {
-    const filters: AdminListInput = {
-      status,
-      barberId,
-      clientId,
-      startDate: undefined,
-      endDate: undefined,
-    };
+  @Header('Cache-Control', 'private, no-store')
+  async adminList(@Query() query: AdminListInput) {
+    const filters: {
+      status?: string;
+      barberId?: string;
+      clientId?: string;
+      startDate?: Date;
+      endDate?: Date;
+    } = {};
+    if (query.status) filters.status = query.status;
+    if (query.barberId) filters.barberId = query.barberId;
+    if (query.clientId) filters.clientId = query.clientId;
+    if (query.startDate) filters.startDate = new Date(query.startDate);
+    if (query.endDate) filters.endDate = new Date(query.endDate);
 
-    const pagination = {
-      page: page ? Number(page) : 1,
-      limit: limit ? Number(limit) : 20,
-    };
+    const result = await this.feedbackSurfacesService.adminListFeedback(filters, {
+      page: query.page ?? 1,
+      limit: query.limit ?? 20,
+    });
 
-    const result = await this.feedbackSurfacesService.adminListFeedback(
-      filters,
-      pagination
-    );
-
-    return {
-      success: true,
-      data: result,
-    };
+    return { success: true, data: result };
   }
 
-  /** Admin: reply to a review. */
+  /** Адмін: відповідь на відгук. */
   @Post('admin/reply')
-  @ApiOperation({ summary: 'Admin reply to a review' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return admin reply record',
-  })
+  @ApiOperation({ summary: 'Admin: reply to a review' })
   @HttpCode(HttpStatus.OK)
-  async adminReply(
-    @Body() body: { reviewId: string; adminId: string; replyText: string },
-  ) {
-    // Service call - result handled by service
-    await this.feedbackSurfacesService.adminReplyToReview(
+  async adminReply(@Body() body: AdminReplyInput) {
+    const reply = await this.feedbackSurfacesService.adminReplyToReview(
       body.reviewId,
       body.adminId,
       body.replyText
     );
-
-    return {
-      success: true,
-    };
+    return { success: true, data: reply };
   }
 }

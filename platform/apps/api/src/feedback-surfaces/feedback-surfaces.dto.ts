@@ -1,66 +1,45 @@
-import { Type, IsOptional, IsString, IsNumber, Length, MaxLength } from '@nestjs/common';
-import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
+// DTO контрактів T-151 Feedback Surfaces.
+import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
-// Can submit input DTO
 export class CanSubmitInput {
-  @IdempotencyKey()
-  clientId: string;
-  @IdempotencyKey()
-  appointmentId: string;
+  @IsString()
+  clientId!: string;
+  @IsString()
+  appointmentId!: string;
 }
 
-// Feedback Surfaces Output DTO
-export class FeedbackSurfacesOutput {
-  success: boolean;
-  data: {
-    appointmentId: string;
-    windowStatus: string;
-    daysRemaining: number;
-    canSubmit: boolean;
-    reason?: string;
-  };
+export class AdminReplyInput {
+  @IsString()
+  reviewId!: string;
+  @IsString()
+  adminId!: string;
+  @IsString()
+  replyText!: string;
 }
 
-// My Reviews Output DTO
-export class MyReviewsOutput {
-  success: boolean;
-  data: {
-    totalCount: number;
-    submissions: Array<{
-      id: string;
-      appointmentId: string;
-      rating: number;
-      text: string;
-      photosCount: number;
-      submittedAt: Date;
-      appointmentBarberId?: string;
-      appointmentServiceName?: string;
-    }>;
-  };
+export class MyReviewsQuery {
+  @IsOptional()
+  status?: 'all' | 'active' | 'expired';
 }
 
-// Can Submit Output DTO
-export class CanSubmitOutput {
-  success: boolean;
-  data: {
-    canSubmit: boolean;
-    reason?: string;
-    daysRemaining: number;
-    windowStatus: string;
-  };
-}
-
-// Admin List Input DTO
 export class AdminListInput {
   @IsOptional()
+  @IsInt()
+  @Min(1)
   page?: number;
   @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(100)
   limit?: number;
   @IsOptional()
+  @IsString()
   status?: string;
   @IsOptional()
+  @IsString()
   barberId?: string;
   @IsOptional()
+  @IsString()
   clientId?: string;
   @IsOptional()
   startDate?: string;
@@ -68,36 +47,36 @@ export class AdminListInput {
   endDate?: string;
 }
 
-// Admin List Output DTO
-export class AdminListOutput {
-  success: boolean;
-  data: {
-    total: number;
-    page: number;
-    totalPages: number;
-    submissions: Array<{
-      id: string;
-      appointmentId: string;
-      clientId: string;
-      barberId: string;
-      rating: number;
-      text: string;
-      photosCount: number;
-      status: string;
-      submittedAt: Date;
-      windowEndsAt: Date;
-    }>;
-  };
+export interface ClientReviewItem {
+  id: string;
+  appointmentId: string;
+  rating: number;
+  text: string;
+  photosCount: number;
+  submittedAt: Date;
+  appointmentBarberId?: string;
+  appointmentServiceName?: string;
+  editable: boolean;
 }
 
-// Admin Reply Output DTO
-export class AdminReplyOutput {
-  success: boolean;
-  data: {
-    id: string;
-    reviewId: string;
-    adminId: string;
-    replyText: string;
-    repliedAt: Date;
-  };
+export interface BarberReviewItem {
+  id: string;
+  clientId: string;
+  rating: number;
+  text: string;
+  photosCount: number;
+  submittedAt: Date;
+}
+
+export interface AdminReviewItem {
+  id: string;
+  appointmentId: string;
+  clientId: string;
+  barberId: string | null;
+  rating: number;
+  text: string;
+  photosCount: number;
+  status: string;
+  submittedAt: Date;
+  windowEndsAt: Date;
 }
