@@ -71,15 +71,25 @@ export class WaitlistDepositController {
 
     const result = await this.depositFlow.execute(input);
 
-    return {
+    const response: {
+      paymentId: string;
+      status: BillingPaymentStatus;
+      depositAmount: number;
+      finalPrice: number;
+      requiresBalance: boolean;
+      receiptId?: string;
+      traceId: string;
+    } = {
       paymentId: result.payment.id,
       status: result.payment.status,
       depositAmount: result.depositAmount,
-      finalPrice: result.payment.amount + result.depositAmount, // simplify: final price = deposit + balance
+      finalPrice: body.finalPrice,
       requiresBalance: result.requiresBalance,
-      receiptId: result.depositReceipt?.check_id,
       traceId: result.payment.traceId,
     };
+    const receiptId = result.depositReceipt?.check_id;
+    if (receiptId) response.receiptId = receiptId;
+    return response;
   }
 
   /**
@@ -110,14 +120,22 @@ export class WaitlistDepositController {
       };
     }
 
-    return {
+    const response: {
+      paymentId: string;
+      status: BillingPaymentStatus;
+      depositAmount: number;
+      finalPrice: number;
+      receiptId?: string;
+      updatedAt: Date;
+    } = {
       paymentId: payment.id,
       status: payment.status,
       depositAmount: payment.amount,
-      finalPrice: payment.amount + (payment.refundedAmount ?? 0),
-      receiptId: payment.receiptId,
+      finalPrice: payment.amount,
       updatedAt: payment.updatedAt,
     };
+    if (payment.receiptId) response.receiptId = payment.receiptId;
+    return response;
   }
 
   /**

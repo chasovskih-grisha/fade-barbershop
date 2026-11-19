@@ -20,7 +20,7 @@ export interface CheckboxReceipt {
   check_id: string; // unique receipt ID for idempotency
   type: CheckboxReceiptType;
   amount: number; // amount in UAH (kopecks * 100, rounded to tens)
-  status: 'pending' | 'signed' | 'failed';
+  status: 'pending' | 'signed' | 'failed' | 'exempt';
   created_at: Date;
   signed_at?: Date;
   error_code?: string;
@@ -33,7 +33,10 @@ export class CheckboxFiscalGateway {
   private readonly merchantId: string;
   private readonly secretKey: string;
   private readonly testMode: boolean;
+  /** Лічильник для детермінованих check_id. */
   private readonly checkIdCounter: Map<string, number> = new Map();
+  /** Видані чеки: джерело ідемпотентності (check_id → чек). */
+  private readonly receipts: Map<string, CheckboxReceipt> = new Map();
 
   constructor(
     apiUrl: string,
@@ -69,15 +72,9 @@ export class CheckboxFiscalGateway {
 
     // Idempotency check
     const effectiveCheckId = checkId || this.generateCheckId(bookingId, receiptType);
-    const existing = this.checkIdCounter.get(effectiveCheckId);
+    const existing = this.receipts.get(effectiveCheckId);
     if (existing && existing.status !== 'failed') {
-      return {
-        check_id: effectiveCheckId,
-        type: receiptType,
-        amount: existing.amount,
-        status: existing.status,
-        created_at: existing.created_at,
-      };
+      return existing;
     }
 
     // Build Checkbox API request
@@ -103,34 +100,28 @@ export class CheckboxFiscalGateway {
       const data = (await response.json()) as any;
 
       if (response.ok && data.status === 'signed') {
-        this.checkIdCounter.set(effectiveCheckId, {
+        const signed: CheckboxReceipt = {
+          check_id: effectiveCheckId,
+          type: receiptType,
           amount,
           status: 'signed',
           created_at: new Date(),
-        });
-        return {
-          check_id: effectiveCheckId,
-          type: receiptType,
-          amount,
-          status: 'signed' as const,
-          created_at: new Date(),
           signed_at: new Date(),
         };
+        this.receipts.set(effectiveCheckId, signed);
+        return signed;
       } else {
-        this.checkIdCounter.set(effectiveCheckId, {
+        const failed: CheckboxReceipt = {
+          check_id: effectiveCheckId,
+          type: receiptType,
           amount,
           status: 'failed',
           created_at: new Date(),
-        });
-        return {
-          check_id: effectiveCheckId,
-          type: receiptType,
-          amount,
-          status: 'failed' as const,
-          created_at: new Date(),
-          error_code: data.error_code,
-          error_message: data.error_message,
         };
+        if (typeof data.error_code === 'string') failed.error_code = data.error_code;
+        if (typeof data.error_message === 'string') failed.error_message = data.error_message;
+        this.receipts.set(effectiveCheckId, failed);
+        return failed;
       }
     } catch (error) {
       console.error('Checkbox fiscal gateway error:', error);

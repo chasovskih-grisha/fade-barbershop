@@ -75,6 +75,14 @@ export class Payment {
     return this.props.retryCount ?? 0;
   }
 
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
+
+  get updatedAt(): Date {
+    return this.props.updatedAt;
+  }
+
   public markDepositPaid(receiptId: string): void {
     if (this.props.status !== PaymentStatus.AWAITING_DEPOSIT) {
       throw new Error(`Cannot mark deposit paid from status ${this.props.status}`);
