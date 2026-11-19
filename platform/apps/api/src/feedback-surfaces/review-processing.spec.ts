@@ -19,6 +19,10 @@ import {
   InMemoryReviewProcessingRepository,
   ReviewProcessingService,
 } from './review-processing.service';
+import {
+  InMemoryReviewRevaluationRepository,
+  ReviewRevaluationService,
+} from './review-revaluation.service';
 
 const NOW = new Date('2026-11-19T12:00:00Z');
 const HOUR = 60 * 60 * 1000;
@@ -208,7 +212,11 @@ describe('FeedbackSurfacesController review routes (T-4451)', () => {
     return {
       repository,
       reviews,
-      controller: new FeedbackSurfacesController(stubSurfaces, reviews),
+      controller: new FeedbackSurfacesController(
+        stubSurfaces,
+        reviews,
+        new ReviewRevaluationService(new InMemoryReviewRevaluationRepository())
+      ),
     };
   }
 

@@ -1,5 +1,6 @@
 // DTO контрактів T-151 Feedback Surfaces.
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+// T-4463: повторна оцінка, закриття циклу й модерація вітрини.
+import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class CanSubmitInput {
   @IsString()
@@ -94,4 +95,28 @@ export class ReviewStatusBody {
   status!: 'new' | 'processed' | 'archived';
   @IsString()
   actorId!: string;
+}
+
+export class RevaluationRateBody {
+  @IsInt()
+  @Min(1)
+  @Max(5)
+  rating!: number;
+  @IsString()
+  text!: string;
+}
+
+export class RevaluationCloseBody {
+  @IsString()
+  actorId!: string;
+}
+
+export class ShowcaseModerationBody {
+  @IsString()
+  moderatorId!: string;
+  @IsIn(['approved', 'rejected'])
+  decision!: 'approved' | 'rejected';
+  @IsOptional()
+  @IsString()
+  note?: string;
 }

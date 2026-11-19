@@ -20,17 +20,22 @@ import {
   AdminListInput,
   AdminReplyInput,
   CanSubmitInput,
+  RevaluationCloseBody,
+  RevaluationRateBody,
   ReviewReplyBody,
   ReviewStatusBody,
+  ShowcaseModerationBody,
 } from './feedback-surfaces.dto';
 import { FeedbackSurfacesService } from './feedback-surfaces.service';
 import { ReviewProcessingService } from './review-processing.service';
+import { ReviewRevaluationService } from './review-revaluation.service';
 
 @Controller('feedback-surfaces')
 export class FeedbackSurfacesController {
   constructor(
     private readonly feedbackSurfacesService: FeedbackSurfacesService,
-    private readonly reviewProcessing: ReviewProcessingService
+    private readonly reviewProcessing: ReviewProcessingService,
+    private readonly reviewRevaluation: ReviewRevaluationService
   ) {}
 
   /** Стан вікна для візиту (кабінет/мобільний). */
@@ -190,6 +195,96 @@ export class FeedbackSurfacesController {
     try {
       const review = await this.reviewProcessing.setStatus(reviewId, body.status, body.actorId);
       return { success: true, data: review };
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  // ─── T-4463: закритий цикл відгуку ───────────────────────────────────────
+
+  /** Клієнт змінює/покращує оцінку, поки цикл не закрито. */
+  @Post('client/reviews/:reviewId/revaluation')
+  @ApiOperation({ summary: 'Client: improve or edit a review rating' })
+  @ApiParam({ name: 'reviewId' })
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'private, no-store')
+  async rateReview(@Param('reviewId') reviewId: string, @Body() body: RevaluationRateBody) {
+    try {
+      const review = await this.reviewRevaluation.rate(reviewId, {
+        rating: body.rating,
+        text: body.text,
+      });
+      return { success: true, data: review };
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  /** Адмін відповів: за низької оцінки клієнта питаємо про покращення один раз. */
+  @Post('admin/reviews/:reviewId/revaluation/reply')
+  @ApiOperation({ summary: 'Admin: record a reply and queue a re-rating prompt if needed' })
+  @ApiParam({ name: 'reviewId' })
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'private, no-store')
+  async recordRevaluationReply(@Param('reviewId') reviewId: string) {
+    try {
+      return { success: true, data: await this.reviewRevaluation.onAdminReply(reviewId) };
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  /** Закриття циклу: оцінка фінальна. */
+  @Post('admin/reviews/:reviewId/revaluation/close')
+  @ApiOperation({ summary: 'Admin: close the review loop' })
+  @ApiParam({ name: 'reviewId' })
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'private, no-store')
+  async closeReviewLoop(@Param('reviewId') reviewId: string, @Body() body: RevaluationCloseBody) {
+    try {
+      return { success: true, data: await this.reviewRevaluation.close(reviewId, body.actorId) };
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  /** Модерація запису для публічної вітрини (4–5★, перевірений текст). */
+  @Post('admin/reviews/:reviewId/revaluation/showcase')
+  @ApiOperation({ summary: 'Admin: approve or reject a review for the public showcase' })
+  @ApiParam({ name: 'reviewId' })
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'private, no-store')
+  async moderateReviewShowcase(
+    @Param('reviewId') reviewId: string,
+    @Body() body: ShowcaseModerationBody
+  ) {
+    try {
+      const review = await this.reviewRevaluation.moderate(reviewId, body);
+      return { success: true, data: review };
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  /** Публічна проєкція вітрини: лише схвалені модерацією записи. */
+  @Get('showcase')
+  @ApiOperation({ summary: 'Public: moderated reviews for the showcase page' })
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'public, max-age=60')
+  async publicShowcase() {
+    const reviews = await this.reviewRevaluation.showcase();
+    return { success: true, data: { total: reviews.length, reviews } };
+  }
+
+  /** Зведення циклу для адмін-звіту «було → стало». */
+  @Get('admin/reviews/:reviewId/revaluation')
+  @ApiOperation({ summary: 'Admin: re-rating summary for one review' })
+  @ApiParam({ name: 'reviewId' })
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'private, no-store')
+  async reviewRevaluationSummary(@Param('reviewId') reviewId: string) {
+    try {
+      return { success: true, data: await this.reviewRevaluation.summary(reviewId) };
     } catch (error) {
       throw new BadRequestException(error instanceof Error ? error.message : String(error));
     }
