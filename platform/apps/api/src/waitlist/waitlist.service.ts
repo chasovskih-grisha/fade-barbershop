@@ -5,7 +5,8 @@ import { calculateChecksum } from '../shared/utils';
 
 /** T-170: Waitlist Management - auto-fills cancelled/no-show slots.
  * Integrates with T-095 no-show escalation and T-105 location support.
- * Hold = 15 min (not a booking); FIFO cascade; anti-spam: 3 misses → pause.
+ * Hold = 15 min (not a booking); FIFO cascade; anti-spawn: dedup by client+slot,
+ * anti-spam: 3 misses → pause, rate limit 5/hour.
  */
 export class WaitlistService {
   constructor(
@@ -20,6 +21,7 @@ export class WaitlistService {
   }
 
   /** Create a new waitlist entry for a slot.
+   * Anti-spawn: deduplicates by client+slot to prevent duplicate entries.
    * Called when appointment is cancelled or no-show, before releasing to waitlist.
    */
   async createWaitlistEntry(
@@ -36,6 +38,22 @@ export class WaitlistService {
     const rateLimited = await this.deps.checkRateLimit(clientId, now.getHours());
     if (!rateLimited) {
       throw new Error('Rate limit exceeded - too many waitlist requests');
+    }
+
+    // Anti-spawn deduplication: check if client already has active entry for this slot
+    const existingEntry = await prisma.waitlistEntry.findFirst({
+      where: {
+        slotId,
+        clientId,
+        status: WaitlistEntryStatus.ACTIVE,
+      },
+    });
+    if (existingEntry) {
+      // Return existing entry instead of creating duplicate
+      return {
+        ...existingEntry,
+        id: existingEntry.id,
+      };
     }
 
     const entry: Omit<WaitlistEntry, 'id'> = {
@@ -138,7 +156,7 @@ export class WaitlistService {
       holdExpiry: nextEntry.holdExpiry,
       offerExpiry: new Date(Date.now() + 10 * 60 * 1000), // 10 min to accept
       source,
-      message: `Ваш місце у черзі! Датуйте {time} на {barber}. Будь ласка, підтвердіть у течение 10 хвилин.`,
+      message: `Ваш місце у черзі! Датуйте {time} на {barber}. Будь ласка, підтвердіть у ciągu 10 хвилин.`,
     };
 
     // Try to create a booking from the offer
@@ -301,7 +319,7 @@ export class WaitlistService {
           holdExpiry: entry.holdExpiry,
           offerExpiry: new Date(Date.now() + 10 * 60 * 1000),
           source,
-          message: `Ваш місце у черзі! Будь ласка, підтвердіть у течение 10 хвилин.`,
+          message: `Ваш місце у черзі! Будь ласка, підтвердіть у ciągu 10 хвилин.`,
         };
 
         // Try to fulfill (create booking)
