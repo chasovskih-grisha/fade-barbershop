@@ -196,7 +196,7 @@ describe('offer timeout and cascade (T-4453)', () => {
       holdExpiresAt: new Date(NOW.getTime() + 60_000),
     };
 
-    expect(useCase.accept({ entry: offered, now: NOW }).status).toBe('fulfilled');
+    expect(useCase.accept({ entry: offered, now: NOW }).entry.status).toBe('fulfilled');
     expect(() =>
       useCase.accept({ entry: { ...offered, holdExpiresAt: new Date(NOW.getTime() - 1) }, now: NOW })
     ).toThrow('has expired');

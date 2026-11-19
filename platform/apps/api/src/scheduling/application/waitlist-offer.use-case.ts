@@ -13,6 +13,20 @@ import {
   type OperatorOverride,
   type WaitlistEntryData,
 } from '../domain/waitlist-queue';
+import {
+  WaitlistOfferAccepted,
+  WaitlistOfferExpired,
+  WaitlistOfferSent,
+  WaitlistOverrideApplied,
+} from '../domain/waitlist.events';
+import type { WaitlistEntryPaused } from '../domain/waitlist.events';
+
+export type WaitlistDomainEvent =
+  | WaitlistOfferSent
+  | WaitlistOfferAccepted
+  | WaitlistOfferExpired
+  | WaitlistOverrideApplied
+  | WaitlistEntryPaused;
 
 /** Сповіщення про пропозицію/прострочення (реалізація — SMS-адаптер). */
 export interface WaitlistOfferNotifier {
@@ -32,6 +46,8 @@ export interface OfferNextResult {
   expiredEntryIds: string[];
   /** Причини для журналу: кожен крок лишає слід. */
   log: string[];
+  /** Події для outbox (T-170a): offer_sent / offer_expired. */
+  events: WaitlistDomainEvent[];
 }
 
 export class OfferNextWaitlistCandidate {
@@ -52,6 +68,7 @@ export class OfferNextWaitlistCandidate {
   }): Promise<OfferNextResult> {
     const now = input.now ?? this.clock();
     const log: string[] = [];
+    const events: WaitlistDomainEvent[] = [];
 
     const expiredEntryIds = input.entries
       .filter(
@@ -67,6 +84,7 @@ export class OfferNextWaitlistCandidate {
       const entry = input.entries.find((candidate) => candidate.id === entryId);
       if (!entry) continue;
       log.push(`waitlist.offer.expired entry=${entry.id} client=${entry.clientId}`);
+      events.push(new WaitlistOfferExpired({ entry, occurredAt: now }));
       await this.notifier.sendExpired({ entryId: entry.id, clientId: entry.clientId });
     }
 
@@ -75,19 +93,20 @@ export class OfferNextWaitlistCandidate {
     );
     if (activeOffer) {
       log.push(`waitlist.offer.held entry=${activeOffer.id}`);
-      return { offered: null, expiredEntryIds, log };
+      return { offered: null, expiredEntryIds, log, events };
     }
 
     const next = selectNextEntry(current, input.slot);
     if (!next) {
       log.push('waitlist.offer.empty');
-      return { offered: null, expiredEntryIds, log };
+      return { offered: null, expiredEntryIds, log, events };
     }
 
     const offered = offerSlot(next, now);
     log.push(
       `waitlist.offer.sent entry=${offered.id} client=${offered.clientId} expires=${offered.holdExpiresAt?.toISOString() ?? ''}`
     );
+    events.push(new WaitlistOfferSent({ entry: offered, occurredAt: now }));
     await this.notifier.sendOffer({
       entryId: offered.id,
       clientId: offered.clientId,
@@ -95,12 +114,17 @@ export class OfferNextWaitlistCandidate {
       expiresAt: offered.holdExpiresAt ?? now,
     });
 
-    return { offered, expiredEntryIds, log };
+    return { offered, expiredEntryIds, log, events };
   }
 
   /** Акцепт у межах hold; далі запис створює booking-флоу. */
-  accept(input: { entry: WaitlistEntryData; now?: Date }): WaitlistEntryData {
-    return acceptOffer(input.entry, input.now ?? this.clock());
+  accept(input: {
+    entry: WaitlistEntryData;
+    now?: Date;
+  }): { entry: WaitlistEntryData; event: WaitlistOfferAccepted } {
+    const now = input.now ?? this.clock();
+    const entry = acceptOffer(input.entry, now);
+    return { entry, event: new WaitlistOfferAccepted({ entry, occurredAt: now }) };
   }
 
   /**
@@ -111,7 +135,7 @@ export class OfferNextWaitlistCandidate {
     entries: WaitlistEntryData[];
     entryId: string;
     override: OperatorOverride;
-  }): { entries: WaitlistEntryData[]; log: string } {
+  }): { entries: WaitlistEntryData[]; log: string; event: WaitlistOverrideApplied } {
     const target = input.entries.find((entry) => entry.id === input.entryId);
     if (!target) throw new Error(`Waitlist entry ${input.entryId} not found`);
 
@@ -119,6 +143,7 @@ export class OfferNextWaitlistCandidate {
     return {
       entries: input.entries.map((candidate) => (candidate.id === entry.id ? entry : candidate)),
       log,
+      event: new WaitlistOverrideApplied({ entry, occurredAt: input.override.at }),
     };
   }
 

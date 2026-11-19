@@ -14,9 +14,9 @@ Core waitlist logic before frontend and automation. Subscribers: loyalty, review
 - ADR 0012 (waitlist)
 
 ## Done
-- [ ] FIFO queue works
-- [ ] Soft-hold and cascade implemented
-- [ ] Events and statuses
+- [x] FIFO queue works
+- [x] Soft-hold and cascade implemented
+- [x] Events and statuses
 
 ## Dependencies
 - T-171 (waitlist surfaces — client and admin; separate indexed task, not parent slices)
