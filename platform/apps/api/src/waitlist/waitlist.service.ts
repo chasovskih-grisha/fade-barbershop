@@ -1,6 +1,6 @@
 import { prisma } from '../index';
 import { WaitlistEntry, SlotHold, WaitlistConfig, ReleaseSource, WaitlistServiceDeps, DEFAULT_WAITLIST_CONFIG, WaitlistEntryStatus, HoldStatus, ClientWaitlistHistory } from './waitlist.domain';
-import { Appointment, Booking } from '../domain';
+import { Appointment, Booking, OutboxMessage } from '../domain';
 import { calculateChecksum } from '../shared/utils';
 
 /** T-170: Waitlist Management - auto-fills cancelled/no-show slots.
@@ -11,6 +11,13 @@ export class WaitlistService {
   constructor(
     private readonly deps: WaitlistServiceDeps
   ) {}
+
+  private async publishWaitlistEvent(type: string, aggregateId: string): Promise<void> {
+    await prisma.outboxMessage.createMany({
+      data: [{ type, aggregateId }],
+      skipDuplicates: true,
+    });
+  }
 
   /** Create a new waitlist entry for a slot.
    * Called when appointment is cancelled or no-show, before releasing to waitlist.
@@ -47,6 +54,7 @@ export class WaitlistService {
     };
 
     const created = await this.deps.createWaitlistEntry(entry);
+    await this.publishWaitlistEvent('scheduling.waitlist.entry_created', created.id);
     return {
       ...created,
       id: created.id,
@@ -90,7 +98,7 @@ export class WaitlistService {
   ): Promise<{ hold: SlotHold; nextOffer?: WaitlistOffer; newBooking?: Booking }> {
     // Find and update the hold
     const hold = await prisma.$executeRaw`
-      UPDATE SlotHold 
+      UPDATE SlotHold
       SET status = 'released', releasedAt = NOW()
       WHERE id = ${holdId}
     `;
@@ -112,7 +120,7 @@ export class WaitlistService {
 
     // Remove this entry from waitlist (FIFO pop)
     await prisma.$executeRaw`
-      DELETE FROM WaitlistEntry 
+      DELETE FROM WaitlistEntry
       WHERE id = ${nextEntry.id}
     `;
 
@@ -143,7 +151,7 @@ export class WaitlistService {
     } catch (error) {
       // Booking failed (e.g., slot no longer available); mark entry expired
       await prisma.$executeRaw`
-        UPDATE WaitlistEntry 
+        UPDATE WaitlistEntry
         SET status = 'expired', releasedAt = NOW()
         WHERE id = ${nextEntry.id}
       `;
@@ -218,7 +226,6 @@ export class WaitlistService {
         clientId,
         noShowsOnWaitlist: 0,
         missesOnWaitlist: 0,
-        isPaused: false,
       };
     }
 
@@ -226,8 +233,6 @@ export class WaitlistService {
       clientId: history.clientId,
       noShowsOnWaitlist: history.noShowsOnWaitlist ?? 0,
       missesOnWaitlist: history.missesOnWaitlist ?? 0,
-      isPaused: history.isPaused ?? false,
-      pauseUntil: history.pauseUntil,
     };
   }
 
@@ -315,13 +320,98 @@ export class WaitlistService {
         errors.push(`Waitlist cascade error for entry ${entry.id}: ${error instanceof Error ? error.message : String(error)}`);
         // Mark entry as expired and continue to next
         await prisma.$executeRaw`
-          UPDATE WaitlistEntry 
+          UPDATE WaitlistEntry
           SET status = 'expired', releasedAt = NOW()
           WHERE id = ${entry.id}
         `;
       }
     }
 
+    // Publish cascade completion event
+    if (bookingsCreated > 0) {
+      await this.publishWaitlistEvent('scheduling.waitlist.cascade_completed', slotId);
+    }
+
     return { hold: {} as SlotHold, offersSent, bookingsCreated, errors };
+  }
+
+  /** Admin: Create a waitlist entry with full validation.
+   *  Validates required fields: slotId, clientId, locationId, barberId, serviceId, agreedPrice.
+   *  Optional: start, end, precision, status.
+   *  Maps validation failures to 400 errors.
+   */
+  async adminCreateWaitlistEntry(
+    slotId: string,
+    clientId: string,
+    locationId: string,
+    barberId: string,
+    serviceId: string,
+    agreedPrice: string,
+    start?: string,
+    end?: string,
+    precision?: string,
+    status?: 'active' | 'on_hold' | 'expired' | 'fulfilled' | 'paused'
+  ): Promise<WaitlistEntry> {
+    // Validate required fields
+    if (!slotId?.trim()) {
+      throw new Error('slotId is required');
+    }
+    if (!clientId?.trim()) {
+      throw new Error('clientId is required');
+    }
+    if (!locationId?.trim()) {
+      throw new Error('locationId is required');
+    }
+    if (!barberId?.trim()) {
+      throw new Error('barberId is required');
+    }
+    if (!serviceId?.trim()) {
+      throw new Error('serviceId is required');
+    }
+    if (!agreedPrice?.trim()) {
+      throw new Error('agreedPrice is required');
+    }
+
+    // Validate status if provided
+    const validStatuses = ['active', 'on_hold', 'expired', 'fulfilled', 'paused'];
+    const validatedStatus = status && validStatuses.includes(status)
+      ? status
+      : WaitlistEntryStatus.ACTIVE;
+
+    // Parse start/end dates if provided
+    const parsedStart = start ? new Date(start) : new Date();
+    const parsedEnd = end ? new Date(end) : undefined;
+
+    // Validate date range if both start and end provided
+    if (parsedStart && parsedEnd && parsedEnd <= parsedStart) {
+      throw new Error('end must be after start');
+    }
+
+    const now = new Date();
+
+    const entry: Omit<WaitlistEntry, 'id'> = {
+      slotId: slotId.trim(),
+      clientId: clientId.trim(),
+      locationId: locationId.trim(),
+      barberId: barberId.trim(),
+      serviceId: serviceId.trim(),
+      agreedPrice: Number(agreedPrice.trim()),
+      holdExpiry: new Date(Date.now() + 15 * 60 * 1000), // 15 min hold
+      status: validatedStatus as WaitlistEntryStatus,
+      holdStatus: HoldStatus.ACTIVE,
+      missedCount: 0,
+      createdAt: now,
+      cascadeToNext: false,
+      ...(parsedStart && { start: parsedStart }),
+      ...(parsedEnd && { end: parsedEnd }),
+      ...(precision !== undefined && { precision }),
+    };
+
+    const created = await this.deps.createWaitlistEntry(entry);
+    await this.publishWaitlistEvent('scheduling.waitlist.entry_created', created.id);
+    return {
+      ...created,
+      id: created.id,
+    };
   }
 }
