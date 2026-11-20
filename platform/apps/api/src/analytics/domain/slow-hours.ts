@@ -212,7 +212,7 @@ export function weakWindows(
   cells: OccupancyCell[],
   now: Date,
   config: SlowHoursConfig,
-  limit: number = 10
+  limit: number = 3
 ): WeakWindow[] {
   const nowMs = now.getTime();
 

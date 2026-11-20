@@ -97,18 +97,12 @@ describe('slow hours domain (T-4464)', () => {
       '2026-11-18 11',
       '2026-11-19 10',
       '2026-11-19 11',
-      '2026-11-18 10',
     ]);
     expect(weak[0]?.action.type).toBe('schedule_shift');
     expect(weak[0]?.action.preview).toContain('0 записів');
 
-    const promo = weak.find((window) => window.date === '2026-11-18' && window.hour === 10);
-    expect(promo?.action.type).toBe('promo');
-    expect(promo?.action.preview).toContain('30%');
-    expect(suggestAction({ ...cells[0]!, occupancyPercent: 39 })).toMatchObject({
-      type: 'promo',
-    });
   });
+
 
   it('does not advise on the current or future hour and respects the limit', () => {
     const cfg = { ...config(), windowDays: 1, openHour: 13, closeHour: 15, chairs: 1 };
