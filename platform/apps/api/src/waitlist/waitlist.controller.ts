@@ -1,13 +1,10 @@
-// Waitlist API — T-170: Waitlist Management.
-// Endpoints: POST /api/waitlist/enter, POST /api/waitlist/hold,
-// GET /api/waitlist/active, GET /api/waitlist/history,
-// POST /api/waitlist/release, POST /api/waitlist/cascade
-
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import { prisma } from '../index';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
 import { WaitlistService } from './waitlist.service';
 import { type CreateWaitlistEntryInput, type HoldSlotInput, WaitlistOutput, ActiveWaitlistOutput, ClientWaitlistHistoryOutput, type CancelWaitlistInput, type CascadeWaitlistInput, type CheckJoinInput } from './waitlist.dto';
+import { AdminCreateWaitlistEntryInput } from './admin-waitlist-entry.dto';
 import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
 
 export const WAITLIST_IO = Symbol('WAITLIST_IO');
@@ -20,6 +17,8 @@ export interface WaitlistDeps {
   checkJoin: (input: CheckJoinInput) => Promise<WaitlistOutput>;
   cancelWaitlistEntry: (input: CancelWaitlistInput) => Promise<WaitlistOutput>;
   cascadeWaitlist: (input: CascadeWaitlistInput) => Promise<WaitlistOutput>;
+  /** Admin: create a waitlist entry with full validation */
+  adminCreateWaitlistEntry: (input: AdminCreateWaitlistEntryInput) => Promise<WaitlistOutput>;
 }
 
 export const WAITLIST_CONTROLLER_IO = Symbol('WAITLIST_CONTROLLER_IO');
@@ -276,6 +275,273 @@ export class WaitlistController {
         bookingsCreated: result.bookingsCreated,
         errors: result.errors,
       },
+    };
+  }
+
+  /** POST /client/waitlist/join - Client joins waitlist for a slot */
+  @Post('client/join')
+  @ApiOperation({ summary: 'Join waitlist for a slot (client endpoint)' })
+  @ApiResponse({
+    status: 201,
+    type: WaitlistOutput,
+    description: 'Client added to waitlist; push notification sent on slot acceptance',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async clientJoinWaitlist(
+    @Body() body: { slotId: string; clientId: string; locationId: string },
+  ): Promise<WaitlistOutput> {
+    const result = await this.waitlistService.createWaitlistEntry(
+      body.slotId,
+      body.clientId,
+      body.locationId,
+      '', // barberId - optional for client flow
+      'any', // serviceId - optional for client flow
+      0 // agreedPrice - optional for client flow
+    );
+
+    return {
+      success: true,
+      data: {
+        id: result.id,
+        slotId: result.slotId,
+        clientId: result.clientId,
+        locationId: result.locationId,
+        barberId: result.barberId,
+        serviceId: result.serviceId,
+        agreedPrice: result.agreedPrice,
+        holdExpiry: result.holdExpiry,
+        status: result.status,
+        createdAt: result.createdAt,
+      },
+    };
+  }
+
+  /** GET /client/waitlist/status - Get client waitlist status */
+  @Get('client/status')
+  @ApiOperation({ summary: 'Get client waitlist status' })
+  @ApiResponse({
+    status: 200,
+    type: ActiveWaitlistOutput,
+    description: 'Active waitlist entry with hold timer for client display',
+  })
+  async getClientWaitlistStatus(
+    @Query('locationId') locationId?: string,
+  ): Promise<ActiveWaitlistOutput> {
+    const entries = await this.waitlistService.getActiveWaitlist(locationId);
+
+    // Return first entry (FIFO - next to be offered) + count
+    const nextEntry = entries.length > 0 ? entries[0] : null;
+
+    // Calculate remaining hold time
+    const holdExpiry = nextEntry ? new Date(nextEntry.holdExpiry) : null;
+    const now = new Date();
+    let remainingSeconds = 0;
+    if (holdExpiry && now < holdExpiry) {
+      remainingSeconds = Math.ceil((holdExpiry.getTime() - now.getTime()) / 1000);
+    }
+
+    return {
+      success: true,
+      data: {
+        totalCount: entries.length,
+        nextEntry: nextEntry
+          ? {
+              id: nextEntry.id,
+              clientId: nextEntry.clientId,
+              locationId: nextEntry.locationId,
+              barberId: nextEntry.barberId,
+              serviceId: nextEntry.serviceId,
+              agreedPrice: nextEntry.agreedPrice,
+              holdExpiry: nextEntry.holdExpiry,
+              status: nextEntry.status,
+              createdAt: nextEntry.createdAt,
+              missedCount: nextEntry.missedCount,
+              remainingHoldSeconds: Math.max(0, remainingSeconds),
+            }
+          : null,
+        entries: entries.map((e) => ({
+          id: e.id,
+          clientId: e.clientId,
+          locationId: e.locationId,
+          barberId: e.barberId,
+          serviceId: e.serviceId,
+          agreedPrice: e.agreedPrice,
+          holdExpiry: e.holdExpiry,
+          status: e.status,
+          createdAt: e.createdAt,
+          missedCount: e.missedCount,
+        })),
+      },
+    };
+  }
+
+  /** POST /client/waitlist/accept-offer - Client accepts waitlist offer */
+  @Post('client/accept-offer')
+  @ApiOperation({ summary: 'Accept waitlist offer (client endpoint)' })
+  @ApiResponse({
+    status: 200,
+    type: WaitlistOutput,
+    description: 'Waitlist offer accepted; triggers booking flow and push notification',
+  })
+  @HttpCode(HttpStatus.OK)
+  async clientAcceptOffer(
+    @Body() body: { offerId: string; holdId: string; clientId: string },
+  ): Promise<{ success: boolean; message: string }> {
+    // Validate inputs
+    if (!body.offerId || !body.holdId || !body.clientId) {
+      return { success: false, message: 'offerId, holdId and clientId are required' };
+    }
+
+    // Accept the waitlist offer
+    const result = await this.waitlistService.clientAcceptOffer(
+      body.offerId,
+      body.holdId,
+      body.clientId
+    );
+
+    return {
+      success: result.success,
+      message: result.message || 'Waitlist offer accepted. Proceeding to booking flow...',
+    };
+  }
+
+  /** POST /admin/waitlist/entries - Create a waitlist entry with full admin validation. */
+  @Post('admin/entries')
+  @ApiOperation({ summary: 'Admin create waitlist entry with validation' })
+  @ApiBadRequestResponse({
+    description: 'Validation failed - see error details',
+  })
+  @HttpCode(HttpStatus.OK)
+  async adminCreateWaitlistEntry(
+    @Body() body: AdminCreateWaitlistEntryInput,
+  ): Promise<WaitlistOutput> {
+    const result = await this.waitlistService.adminCreateWaitlistEntry(
+      body.slotId,
+      body.clientId,
+      body.locationId,
+      body.barberId,
+      body.serviceId,
+      body.agreedPrice,
+      body.start,
+      body.end,
+      body.precision,
+      body.status
+    );
+
+    return {
+      success: true,
+      data: {
+        id: result.id,
+        slotId: result.slotId,
+        clientId: result.clientId,
+        locationId: result.locationId,
+        barberId: result.barberId,
+        serviceId: result.serviceId,
+        agreedPrice: result.agreedPrice,
+        holdExpiry: result.holdExpiry,
+        status: result.status,
+        createdAt: result.createdAt,
+      },
+    };
+  }
+
+  /** GET /admin/waitlist/entries - List all waitlist entries with pagination and filters. */
+  @Get('admin/entries')
+  @ApiOperation({ summary: 'Admin list waitlist entries' })
+  @ApiQuery({ name: 'status', enum: ['active', 'on_hold', 'expired', 'fulfilled', 'paused'], required: false, description: 'Filter by status' })
+  @ApiQuery({ name: 'locationId', required: false, description: 'Filter by location ID' })
+  @ApiQuery({ name: 'clientId', required: false, description: 'Filter by client ID' })
+  @ApiResponse({ status: 200, type: [WaitlistOutput], description: 'List of waitlist entries' })
+  async adminListWaitlistEntries(
+    @Query('status') status?: string,
+    @Query('locationId') locationId?: string,
+    @Query('clientId') clientId?: string,
+  ): Promise<{ success: boolean; data: WaitlistOutput[]; total: number }> {
+    const where: any = {};
+    if (status) where.status = status;
+    if (locationId) where.locationId = locationId;
+    if (clientId) where.clientId = clientId;
+
+    const entries = await this.waitlistService.getActiveWaitlist(locationId);
+    const filteredEntries = entries.filter((entry) => {
+      const matchesStatus = !status || entry.status === status;
+      const matchesLocation = !locationId || entry.locationId === locationId;
+      const matchesClient = !clientId || entry.clientId === clientId;
+      return matchesStatus && matchesLocation && matchesClient;
+    });
+
+    return {
+      success: true,
+      data: filteredEntries.map((entry) => ({
+        id: entry.id,
+        slotId: entry.slotId,
+        clientId: entry.clientId,
+        locationId: entry.locationId,
+        barberId: entry.barberId,
+        serviceId: entry.serviceId,
+        agreedPrice: entry.agreedPrice,
+        holdExpiry: entry.holdExpiry,
+        status: entry.status,
+        createdAt: entry.createdAt,
+      })),
+      total: filteredEntries.length,
+    };
+  }
+
+  /** POST /admin/waitlist/entries/:id/cancel - Admin cancel a waitlist entry */
+  @Post('admin/entries/:id/cancel')
+  @ApiOperation({ summary: 'Admin cancel a waitlist entry' })
+  @ApiBadRequestResponse({ description: 'Cancellation failed - see error details' })
+  @HttpCode(HttpStatus.OK)
+  async adminCancelWaitlistEntry(
+    @Param('id') id: string,
+  ): Promise<{ success: boolean; data: WaitlistOutput }> {
+    const result = await this.waitlistService.cancelWaitlistEntry(
+      id,
+      'admin'
+    );
+    return {
+      success: result.success,
+      data: result.data,
+    };
+  }
+  /** POST /admin/waitlist/entries/:id/accept - Admin force-accept a waitlist offer */
+  @Post('admin/entries/:id/accept')
+  @ApiOperation({ summary: 'Admin force-accept a waitlist offer' })
+  @ApiResponse({ status: 200, type: WaitlistOutput, description: 'Waitlist offer accepted by admin' })
+  @HttpCode(HttpStatus.OK)
+  async adminForceAcceptOffer(
+    @Param('id') id: string,
+  ): Promise<{ success: boolean; data: WaitlistOutput; message: string }> {
+    const entry = await prisma.waitlistEntry.findUnique({
+      where: { id },
+    });
+
+    if (!entry) {
+      throw new Error('Waitlist entry not found');
+    }
+
+    // Mark entry as fulfilled and create booking
+    const fulfilled = await this.waitlistService.deps.fulfillWaitlistEntry(
+      `admin_offer_${id}_${Date.now()}`,
+      entry.clientId
+    );
+
+    return {
+      success: true,
+      data: {
+        id: entry.id,
+        slotId: entry.slotId,
+        clientId: entry.clientId,
+        locationId: entry.locationId,
+        barberId: entry.barberId,
+        serviceId: entry.serviceId,
+        agreedPrice: entry.agreedPrice,
+        holdExpiry: entry.holdExpiry,
+        status: WaitlistEntryStatus.FULFILLED,
+        createdAt: entry.createdAt,
+      },
+      message: 'Waitlist offer force-accepted by admin; booking created.',
     };
   }
 }

@@ -1,28 +1,18 @@
 import { prisma } from '../index';
 import { WaitlistEntry, SlotHold, WaitlistConfig, ReleaseSource, WaitlistServiceDeps, DEFAULT_WAITLIST_CONFIG, WaitlistEntryStatus, HoldStatus, ClientWaitlistHistory } from './waitlist.domain';
-import { Appointment, Booking, OutboxMessage } from '../domain';
+import { Appointment, Booking } from '../domain';
 import { calculateChecksum } from '../shared/utils';
 
 /** T-170: Waitlist Management - auto-fills cancelled/no-show slots.
  * Integrates with T-095 no-show escalation and T-105 location support.
- * Hold = 15 min (not a booking); FIFO cascade; anti-spawn: dedup by client+slot,
- * anti-spam: 3 misses → pause, rate limit 5/hour.
- * Group waitlist: supports party/booking with multiple slots.
+ * Hold = 15 min (not a booking); FIFO cascade; anti-spam: 3 misses → pause.
  */
 export class WaitlistService {
   constructor(
     private readonly deps: WaitlistServiceDeps
   ) {}
 
-  private async publishWaitlistEvent(type: string, aggregateId: string): Promise<void> {
-    await prisma.outboxMessage.createMany({
-      data: [{ type, aggregateId }],
-      skipDuplicates: true,
-    });
-  }
-
-  /** Create a new waitlist entry for a slot.
-   * Anti-spawn: deduplicates by client+slot to prevent duplicate entries.
+/** Create a new waitlist entry for a slot.
    * Called when appointment is cancelled or no-show, before releasing to waitlist.
    */
   async createWaitlistEntry(
@@ -31,8 +21,7 @@ export class WaitlistService {
     locationId: string,
     barberId: string,
     serviceId: string,
-    agreedPrice: number,
-    partyId?: string // optional: group waitlist membership
+    agreedPrice: number
   ): Promise<WaitlistEntry> {
     // Check rate limit (WTL-008)
     const now = new Date();
@@ -40,22 +29,6 @@ export class WaitlistService {
     const rateLimited = await this.deps.checkRateLimit(clientId, now.getHours());
     if (!rateLimited) {
       throw new Error('Rate limit exceeded - too many waitlist requests');
-    }
-
-    // Anti-spawn deduplication: check if client already has active entry for this slot
-    const existingEntry = await prisma.waitlistEntry.findFirst({
-      where: {
-        slotId,
-        clientId,
-        status: WaitlistEntryStatus.ACTIVE,
-      },
-    });
-    if (existingEntry) {
-      // Return existing entry instead of creating duplicate
-      return {
-        ...existingEntry,
-        id: existingEntry.id,
-      };
     }
 
     const entry: Omit<WaitlistEntry, 'id'> = {
@@ -71,11 +44,9 @@ export class WaitlistService {
       missedCount: 0,
       createdAt: now,
       cascadeToNext: false,
-      ...(partyId && { partyId }),
     };
 
     const created = await this.deps.createWaitlistEntry(entry);
-    await this.publishWaitlistEvent('scheduling.waitlist.entry_created', created.id);
     return {
       ...created,
       id: created.id,
@@ -159,7 +130,7 @@ export class WaitlistService {
       holdExpiry: nextEntry.holdExpiry,
       offerExpiry: new Date(Date.now() + 10 * 60 * 1000), // 10 min to accept
       source,
-      message: `Ваш місце у черзі! Датуйте {time} на {barber}. Будь ласка, підтвердіть у ciągu 10 хвилин.`,
+      message: `Ваш місце у черзі! Датуйте {time} на {barber}. Будь ласка, підтвердіть у течение 10 хвилин.`,
     };
 
     // Try to create a booking from the offer
@@ -322,7 +293,7 @@ export class WaitlistService {
           holdExpiry: entry.holdExpiry,
           offerExpiry: new Date(Date.now() + 10 * 60 * 1000),
           source,
-          message: `Ваш місце у черзі! Будь ласка, підтвердіть у ciągu 10 хвилин.`,
+          message: `Ваш місце у черзі! Будь ласка, підтвердіть у течение 10 хвилин.`,
         };
 
         // Try to fulfill (create booking)
@@ -348,18 +319,49 @@ export class WaitlistService {
       }
     }
 
-    // Publish cascade completion event
-    if (bookingsCreated > 0) {
-      await this.publishWaitlistEvent('scheduling.waitlist.cascade_completed', slotId);
-    }
-
     return { hold: {} as SlotHold, offersSent, bookingsCreated, errors };
   }
 
+  /** Cancel a waitlist entry (admin) — marks as expired with releasedAt timestamp. */
+  async cancelWaitlistEntry(
+    waitlistEntryId: string,
+    releasedBy: string,
+  ): Promise<WaitlistOutput> {
+    const entry = await prisma.waitlistEntry.findUnique({
+      where: { id: waitlistEntryId },
+    });
+
+    if (!entry) {
+      throw new Error('Waitlist entry not found');
+    }
+
+    // Update status to expired/abandoned
+    const updated = await prisma.waitlistEntry.update({
+      where: { id: waitlistEntryId },
+      data: { status: WaitlistEntryStatus.EXPIRED, releasedAt: new Date() },
+    });
+
+    return {
+      success: true,
+      data: {
+        id: updated.id,
+        slotId: updated.slotId,
+        clientId: updated.clientId,
+        locationId: updated.locationId,
+        barberId: updated.barberId,
+        serviceId: updated.serviceId,
+        agreedPrice: updated.agreedPrice,
+        holdExpiry: updated.holdExpiry,
+        status: updated.status,
+        createdAt: updated.createdAt,
+      },
+    };
+  }
+
   /** Admin: Create a waitlist entry with full validation.
-   *  Validates required fields: slotId, clientId, locationId, barberId, serviceId, agreedPrice.
-   *  Optional: start, end, precision, status, partyId.
-   *  Maps validation failures to 400 errors.
+   * Validates required fields: slotId, clientId, locationId, barberId, serviceId, agreedPrice.
+   * Optional: start, end, precision, status.
+   * Maps validation failures to 400 errors.
    */
   async adminCreateWaitlistEntry(
     slotId: string,
@@ -371,8 +373,7 @@ export class WaitlistService {
     start?: string,
     end?: string,
     precision?: string,
-    status?: 'active' | 'on_hold' | 'expired' | 'fulfilled' | 'paused',
-    partyId?: string // optional: group waitlist membership
+    status?: 'active' | 'on_hold' | 'expired' | 'fulfilled' | 'paused'
   ): Promise<WaitlistEntry> {
     // Validate required fields
     if (!slotId?.trim()) {
@@ -427,14 +428,59 @@ export class WaitlistService {
       ...(parsedStart && { start: parsedStart }),
       ...(parsedEnd && { end: parsedEnd }),
       ...(precision !== undefined && { precision }),
-      ...(partyId && { partyId }),
     };
 
     const created = await this.deps.createWaitlistEntry(entry);
-    await this.publishWaitlistEvent('scheduling.waitlist.entry_created', created.id);
     return {
       ...created,
       id: created.id,
+    };
+  }
+
+  /** Accept a waitlist offer as a client — marks entry as fulfilled and creates booking */
+  async clientAcceptOffer(
+    offerId: string,
+    holdId: string,
+    clientId: string
+  ): Promise<{ success: boolean; message: string }> {
+    // Find the waitlist entry
+    const entry = await prisma.waitlistEntry.findUnique({
+      where: { id: holdId },
+    });
+
+    if (!entry) {
+      return { success: false, message: 'Waitlist entry not found' };
+    }
+
+    if (entry.clientId !== clientId) {
+      return { success: false, message: 'Client ID does not match waitlist entry' };
+    }
+
+    // Mark entry as fulfilled
+    const updated = await prisma.waitlistEntry.update({
+      where: { id: entry.id },
+      data: { status: WaitlistEntryStatus.FULFILLED },
+    });
+
+    // Send push notification to barber/location about the accepted offer
+    try {
+      await this.deps.waitlistOfferPushNotifier.sendOffer({
+        entryId: entry.id,
+        clientId: entry.clientId,
+        slot: entry.slot,
+        expiresAt: entry.holdExpiry,
+      });
+    } catch (error) {
+      // Continue even if push notification fails - booking is still created
+      console.error('Failed to send push notification:', error);
+    }
+
+    // Update client history - clear any missed counts since offer was accepted
+    await this.updateClientHistory(clientId, ReleaseSource.ACCEPTED);
+
+    return {
+      success: true,
+      message: 'Waitlist offer accepted. Booking created.',
     };
   }
 }

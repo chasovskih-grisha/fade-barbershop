@@ -98,6 +98,19 @@ export interface WaitlistServiceDeps {
   getClientHistory: (clientId: string) => Promise<ClientWaitlistHistory>;
   checkRateLimit: (clientId: string, hour: number) => Promise<boolean>;
   fulfillWaitlistEntry: (offerId: string, clientId: string) => Promise<Booking>;
+  /** Admin: create a waitlist entry with full validation */
+  adminCreateWaitlistEntry: (
+    slotId: string,
+    clientId: string,
+    locationId: string,
+    barberId: string,
+    serviceId: string,
+    agreedPrice: string,
+    start?: string,
+    end?: string,
+    precision?: string,
+    status?: 'active' | 'on_hold' | 'expired' | 'fulfilled' | 'paused'
+  ) => Promise<WaitlistEntry>;
 }
 
 /** Default waitlist configuration */
