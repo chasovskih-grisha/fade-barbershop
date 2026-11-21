@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import * as mockReact from 'react';
 import BlogPage from '../page';
 import ArticlePage from '../[slug]/page';
 
@@ -9,6 +10,36 @@ jest.mock('@/lib/api/articles', () => ({
   getPublishedArticles: jest.fn(),
   getPublishedArticle: jest.fn(),
 }));
+// @fade/ui не резолвиться в jest-середовищі (базовий стан): підміняємо лише
+// те, що тягне картка й ErrorState — cn() і AlertBanner.
+jest.mock(
+  '@fade/ui',
+  () => {
+    const AlertBanner = ({ title, description, children }: Record<string, unknown>) =>
+      mockReact.createElement(
+        'div',
+        { role: 'alert' },
+        mockReact.createElement('p', null, title as string),
+        mockReact.createElement('p', null, description as string),
+        children as never
+      );
+    return { cn: (...args: unknown[]) => args.filter(Boolean).join(' '), AlertBanner };
+  },
+  { virtual: true }
+);
+// ErrorState тягне next-intl (ESM) і @fade/ui — у jest вони не резолвляться,
+// тож стан помилки підміняється мінімальною розміткою з тими самими ролями.
+jest.mock('@/app/components/states/ErrorState', () => {
+  return {
+    ErrorState: ({ message }: { message: string }) =>
+      mockReact.createElement(
+        'div',
+        { role: 'alert' },
+        mockReact.createElement('p', null, message),
+        mockReact.createElement('button', null, 'Спробувати ще раз')
+      ),
+  };
+});
 jest.mock('next/navigation', () => ({
   notFound: jest.fn(() => {
     throw new Error('NEXT_NOT_FOUND');
@@ -42,7 +73,7 @@ beforeEach(() => {
 /** Сід моку + рендер BlogPage (DRY для трьох станів). */
 const renderBlog = async (mock: unknown) => {
   getPublishedArticles.mockResolvedValue(mock);
-  render(await BlogPage());
+  render(await BlogPage({ searchParams: Promise.resolve({}) }));
 };
 /** Сід моку + рендер ArticlePage (DRY для чотирьох станів). */
 const renderArticle = async (mock: unknown) => {

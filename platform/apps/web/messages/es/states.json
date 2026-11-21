@@ -1,5 +1,16 @@
 {
   "loading": "Cargando...",
   "empty": "No se encontraron resultados",
-  "offline": "Estás desconectado"
+  "offline": "Estás desconectado",
+  "retry": "Intentar de nuevo",
+  "errorTitle": "No se pudieron cargar los datos",
+  "offlineTitle": "Sin conexión a Internet",
+  "offlineDescription": "Las reservas y los precios pueden no actualizarse. Inténtalo de nuevo cuando vuelva la red.",
+  "supportLink": "Contactar con soporte en Telegram →",
+  "geoDenied": "Ubicación denegada: mostraremos todas las sucursales en una lista.",
+  "geoUnavailable": "No se pudo determinar tu ubicación: elige una sucursal de la lista.",
+  "yourCity": "Tu ciudad: {city}",
+  "reset": "Restablecer",
+  "nearestFirst": "Primero, los más cercanos a ti.",
+  "showAll": "Mostrar todos"
 }

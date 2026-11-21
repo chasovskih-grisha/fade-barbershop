@@ -3,6 +3,9 @@ module.exports = {
   passWithNoTests: true,
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
+    // next-intl — ESM-only: у jest сторінки рендеряться без layout-провайдера,
+    // тому пакет підміняється uk-каталогом (див. __mocks__/next-intl.js).
+    '^next-intl$': '<rootDir>/__mocks__/next-intl.js',
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@fade/(contracts|domain-shared)$': '<rootDir>/../../packages/$1/src',
     '^.+\\.svg$': '<rootDir>/__mocks__/fileMock.js',

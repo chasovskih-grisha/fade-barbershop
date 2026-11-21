@@ -11,6 +11,7 @@ import { AccountNotificationsCard, NotificationPreferences } from './AccountNoti
 import { NextVisitSection } from './NextVisitSection';
 import { useAccountName } from './useAccountName';
 import { usePhoneChange } from './usePhoneChange';
+import { useVisitSummary } from './useVisitSummary';
 import { PhoneChangeDialog } from './PhoneChangeDialog';
 import { isWithinPreferenceLimit, splitPreferenceLines } from './preferences';
 
@@ -18,7 +19,13 @@ export default function AccountPage() {
   const { user, logout, token, refreshUser } = useAuth();
   const accountName = useAccountName(user, token, refreshUser);
   const phoneChange = usePhoneChange(logout);
+  const visits = useVisitSummary();
   const [preferences, setPreferences] = useState(user?.preferences.join('\n') || '');
+  // Цитата в картці — остання *збережена* нотатка. Після успішного PATCH її
+  // треба оновити локально: refreshUser асинхронний, а без цього текст
+  // textarea зрівнюється зі старим user.preferences і повторне збереження
+  // блокується (T-4731b).
+  const [savedPreferences, setSavedPreferences] = useState<string[]>(user?.preferences ?? []);
   const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>({
     smsReminders: true,
     emailUpdates: true,
@@ -41,7 +48,7 @@ export default function AccountPage() {
   const handleSavePreferences = useCallback(async () => {
     const prefs = splitPreferenceLines(preferences);
     if (!isWithinPreferenceLimit(prefs)) return;
-    if (!token || preferences === user?.preferences.join('\n')) return;
+    if (!token || preferences === savedPreferences.join('\n')) return;
     setSavingPrefs(true);
     setPrefSaveStatus('idle');
     try {
@@ -51,6 +58,7 @@ export default function AccountPage() {
         body: JSON.stringify({ preferences: prefs }),
       });
       if (!res.ok) throw new Error('Failed to save');
+      setSavedPreferences(prefs);
       setPrefSaveStatus('success');
       setTimeout(() => setPrefSaveStatus('idle'), 2000);
     } catch {
@@ -58,7 +66,7 @@ export default function AccountPage() {
     } finally {
       setSavingPrefs(false);
     }
-  }, [token, preferences, user?.preferences]);
+  }, [token, preferences, savedPreferences]);
 
   const handleNotifChange = useCallback((key: keyof NotificationPreferences, value: boolean) => {
     setNotifPrefs((prev) => ({ ...prev, [key]: value }));
@@ -91,10 +99,11 @@ export default function AccountPage() {
           Вийти
         </Button>
       </header>
-      <NextVisitSection />
+      <NextVisitSection summary={visits} />
       <AccountProfileCard
         name={accountName.name}
         phone={user.phone}
+        visitCount={visits.state === 'ready' ? visits.pastCount : null}
         saving={accountName.saving}
         canSave={!accountName.saving && accountName.name.trim() !== (user?.name ?? '')}
         error={accountName.error}
@@ -106,7 +115,7 @@ export default function AccountPage() {
       <AccountBirthdayCard initial={user.birthday ?? null} token={token} onSaved={refreshUser} />
       <AccountPreferencesCard
         preferences={preferences}
-        savedPreferences={user.preferences}
+        savedPreferences={savedPreferences}
         saving={savingPrefs}
         saveStatus={prefSaveStatus}
         onChange={setPreferences}

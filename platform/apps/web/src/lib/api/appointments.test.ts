@@ -66,6 +66,7 @@ describe('список візитів', () => {
         referenceId: null,
         referenceComment: '',
         canEditReference: true,
+        canBookAgain: true,
         deposit: null,
       },
     ]);

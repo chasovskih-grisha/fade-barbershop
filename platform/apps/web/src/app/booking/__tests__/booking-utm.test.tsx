@@ -45,8 +45,7 @@ describe('Booking page — UTM атрибуція (регресія збою о�
   beforeEach(() => {
     localStorage.clear();
     window.dataLayer = [];
-    // @ts-expect-error - mocking global fetch
-    global.fetch = jest.fn(() => resp([]));
+    global.fetch = jest.fn(() => resp([])) as unknown as typeof fetch;
   });
 
   afterEach(() => {
