@@ -46,6 +46,19 @@ describe('loadList', () => {
     expect(result.state).toBe('error');
     expect(result.state === 'error' && result.message).toContain('з’єднання');
   });
+
+  it('SSR йде на WEB_API_URL (у docker — http://api:13000), не на localhost', async () => {
+    const previous = process.env.WEB_API_URL;
+    process.env.WEB_API_URL = 'http://api:13000';
+    try {
+      fetchMock.mockResolvedValue(jsonResponse([{ id: '1' }]));
+      await loadList('/services');
+      expect(fetchMock.mock.calls[0][0]).toBe('http://api:13000/services');
+    } finally {
+      if (previous === undefined) delete process.env.WEB_API_URL;
+      else process.env.WEB_API_URL = previous;
+    }
+  });
 });
 
 describe('loadItem', () => {

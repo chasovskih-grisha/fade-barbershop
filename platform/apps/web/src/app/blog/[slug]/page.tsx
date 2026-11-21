@@ -17,10 +17,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const result = await getPublishedArticle(slug);
   if (result.state !== 'ok') {
+    // 404 — справді немає статті; помилка API — тимчасовий стан сторінки,
+    // яку лишаємо індексувати під звичною назвою розділу (не «не знайдено»).
     return pageMetadata({
-      title: 'Статтю не знайдено',
+      title: result.state === 'notFound' ? 'Статтю не знайдено' : 'Блог',
       path: `/blog/${slug}`,
-      noIndex: true,
+      ...(result.state === 'notFound' ? { noIndex: true } : {}),
     });
   }
   const article = result.data;
