@@ -20,6 +20,7 @@ export const styles = StyleSheet.create({
   cardLabel: { color: COLOR.text.muted.value, fontSize: SIZE.caption.value },
   cardTitle: { color: COLOR.text.primary.value, fontSize: SIZE.bodyLg.value, fontWeight: '600' },
   cardMuted: { color: COLOR.text.muted.value, fontSize: SIZE.body.value },
+  blogCover: { width: '100%', aspectRatio: 16 / 9, borderRadius: RADIUS.card.value },
   cta: {
     backgroundColor: COLOR.accent.solid.value,
     borderRadius: RADIUS.input.value,

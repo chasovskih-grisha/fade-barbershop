@@ -32,7 +32,9 @@ describe('IdempotencyGuard', () => {
   it('uses the first value when the header repeats', () => {
     const valid = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
     const ctx = {
-      switchToHttp: () => ({ getRequest: () => ({ headers: { 'idempotency-key': [valid, 'x'] } }) }),
+      switchToHttp: () => ({
+        getRequest: () => ({ headers: { 'idempotency-key': [valid, 'x'] } }),
+      }),
     } as unknown as ExecutionContext;
     expect(guard.canActivate(ctx)).toBe(true);
   });

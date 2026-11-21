@@ -13,11 +13,7 @@ interface BookingRow {
 
 @Injectable()
 export class PrismaSlowHoursSource implements SlowHoursSource {
-  async load(input: {
-    from: Date;
-    to: Date;
-    locationId?: string;
-  }): Promise<OccupancyFact[]> {
+  async load(input: { from: Date; to: Date; locationId?: string }): Promise<OccupancyFact[]> {
     const rows = (await prisma.booking.findMany({
       where: {
         start: { lt: input.to },

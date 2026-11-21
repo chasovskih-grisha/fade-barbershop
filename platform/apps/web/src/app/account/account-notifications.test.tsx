@@ -40,7 +40,7 @@ describe('AccountPage Notifications & Profile', () => {
 
   it('renders profile and notification preferences correctly', async () => {
     render(<AccountPage />);
-    
+
     expect(screen.getByDisplayValue('Олександр')).toBeInTheDocument();
     expect(screen.getByDisplayValue('+380991234567')).toBeInTheDocument();
     expect(screen.getByText('Сповіщення')).toBeInTheDocument();

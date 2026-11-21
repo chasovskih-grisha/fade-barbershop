@@ -30,3 +30,15 @@ export interface SlotRecoveryEvent {
   serviceId: string;
   barberId?: string;
 }
+
+export interface ProcessWaitlistCascadeInput {
+  entries: WaitlistEntry[];
+  recoveryEvent: SlotRecoveryEvent;
+  config: SoftHoldConfig;
+  now: Date;
+}
+
+export interface WaitlistCascadeResult {
+  updatedEntries: WaitlistEntry[];
+  offeredEntry?: WaitlistEntry;
+}

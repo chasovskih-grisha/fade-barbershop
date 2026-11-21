@@ -25,11 +25,15 @@ export default function EmbeddableWidgetPage() {
   };
 
   return (
-    <div className={`min-h-screen p-4 flex flex-col justify-between ${theme === 'dark' ? 'bg-surface-base text-white' : 'bg-white text-fg'}`}>
+    <div
+      className={`min-h-screen p-4 flex flex-col justify-between ${theme === 'dark' ? 'bg-surface-base text-white' : 'bg-white text-fg'}`}
+    >
       <div>
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-h4 font-bold">FADE Quick Booking</h1>
-          <span className="text-xs px-2 py-1 rounded bg-interactive dark:bg-surface-raised">Widget v1</span>
+          <span className="text-xs px-2 py-1 rounded bg-interactive dark:bg-surface-raised">
+            Widget v1
+          </span>
         </div>
         <p className="text-sm mb-4 text-fg-secondary dark:text-fg-muted">
           Book your premium haircut instantly via FADE widget.

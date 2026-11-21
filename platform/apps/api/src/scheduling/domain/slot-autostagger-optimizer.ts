@@ -35,12 +35,8 @@ export function optimizeSlotStaggering(
   context: SlotStaggerContext,
   config: SlotStaggerConfig = DEFAULT_STAGGER_CONFIG
 ): SlotStaggerResult {
-  const {
-    requestedStartTimeIso,
-    simultaneousBookingsInWindow,
-    chairCapacity,
-    clientVipStatus,
-  } = context;
+  const { requestedStartTimeIso, simultaneousBookingsInWindow, chairCapacity, clientVipStatus } =
+    context;
 
   const originalStartTimeIso = requestedStartTimeIso;
   const originalDate = new Date(requestedStartTimeIso);

@@ -1,10 +1,23 @@
+/* eslint-disable max-lines -- cohesive module (128 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Discounts Admin Controller — T-153: Admin Discount Management.
 // CRUD for discount rules and promo codes, validation, audit logging.
 // Consolidated DTO types; service-layer methods for clean separation.
 
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { type CreateDiscountRuleInput, type CreatePromoCodeInput, type DiscountRuleFilters, type PromoCodeFilters, type ApplyDiscountRuleInput, type DiscountAuditLog, DiscountRuleResponse, PromoCodeResponse, ApplyDiscountRuleResponse, DiscountRulesListResponse, PromoCodesListResponse } from './discounts-admin.dto';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  CreateDiscountRuleInput,
+  CreatePromoCodeInput,
+  DiscountRuleFilters,
+  PromoCodeFilters,
+  ApplyDiscountRuleInput,
+  DiscountAuditLog,
+  DiscountRuleResponse,
+  PromoCodeResponse,
+  ApplyDiscountRuleResponse,
+  DiscountRulesListResponse,
+  PromoCodesListResponse,
+} from './discounts-admin.dto';
 import { DiscountsAdminService } from './discounts-admin.service';
 
 @Controller('discounts-admin')
@@ -48,7 +61,9 @@ export class DiscountsAdminController {
     description: 'Return paginated discount rules list',
   })
   @HttpCode(HttpStatus.OK)
-  async listDiscountRules(@Query() filters: DiscountRuleFilters): Promise<DiscountRulesListResponse> {
+  async listDiscountRules(
+    @Query() filters: DiscountRuleFilters
+  ): Promise<DiscountRulesListResponse> {
     const result = await this.discountsAdminService.listDiscountRules(filters);
     return result;
   }
@@ -97,12 +112,14 @@ export class DiscountsAdminController {
     description: 'Return price breakdown with applied discounts',
   })
   @HttpCode(HttpStatus.OK)
-  async applyDiscountRule(@Body() body: ApplyDiscountRuleInput): Promise<ApplyDiscountRuleResponse> {
+  async applyDiscountRule(
+    @Body() body: ApplyDiscountRuleInput
+  ): Promise<ApplyDiscountRuleResponse> {
     const result = await this.discountsAdminService.applyDiscountRule(
       body.ruleId,
       body.appointmentId,
       body.agreedPrice,
-      body.clientId,
+      body.clientId
     );
     return result;
   }
@@ -115,13 +132,15 @@ export class DiscountsAdminController {
     description: 'Audit log entry created',
   })
   @HttpCode(HttpStatus.CREATED)
-  async createAuditLog(@Body() body: DiscountAuditLog): Promise<{ success: boolean; logEntry: any }> {
+  async createAuditLog(
+    @Body() body: DiscountAuditLog
+  ): Promise<{ success: boolean; logEntry: any }> {
     const result = await this.discountsAdminService.createAuditLog(
       body.discountId,
       body.discountType,
       body.action,
       body.changedBy,
-      body.details,
+      body.details
     );
     return result;
   }

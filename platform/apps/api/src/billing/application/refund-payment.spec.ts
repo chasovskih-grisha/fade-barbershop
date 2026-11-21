@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (106 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import { Payment } from '../domain/payment.entity';
 import { PaymentStatus, PaymentForm } from '../domain/payment-status.enum';
 import { RefundPaymentHandler } from './refund-payment.use-case';
@@ -42,7 +43,10 @@ class MockAcquiringGateway implements AcquiringGateway {
     return { refundId: 're_test_999' };
   }
 
-  async verifyPaymentStatus(): Promise<{ status: 'succeeded' | 'pending' | 'failed'; amountReceived?: number }> {
+  async verifyPaymentStatus(): Promise<{
+    status: 'succeeded' | 'pending' | 'failed';
+    amountReceived?: number;
+  }> {
     return { status: 'succeeded' };
   }
 }
@@ -89,7 +93,7 @@ describe('RefundPaymentHandler', () => {
     expect(result.refundId).toBe('re_test_999');
     expect(payment.status).toBe(PaymentStatus.REFUNDED);
     expect(outbox.events.length).toBe(1);
-    expect(outbox.events[0]!.type).toBe('billing.payment.refunded');
+    expect(outbox?.events?.[0]?.type).toBe('billing.payment.refunded');
   });
 
   it('handles partial refund successfully', async () => {

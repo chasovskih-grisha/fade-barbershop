@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-params -- cohesive module (205 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 signature whose 4-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 /**
  * T-4456: погашення сертифіката з барберського додатка.
  *
@@ -22,10 +23,7 @@ import {
   type CertificateRedemptionRecord,
   type CertificateReceipt,
 } from '../domain/certificate-redemption';
-import type {
-  GiftCertificateOutbox,
-  GiftCertificateRepository,
-} from './ports';
+import type { GiftCertificateOutbox, GiftCertificateRepository } from './ports';
 import { GiftCertificate } from '../domain/gift-certificate.entity';
 
 export const CERTIFICATE_REDEMPTION_LEDGER = 'CERTIFICATE_REDEMPTION_LEDGER';
@@ -49,19 +47,14 @@ export class InMemoryCertificateRedemptionLedger implements CertificateRedemptio
   }
 
   async append(record: CertificateRedemptionRecord): Promise<void> {
-    this.byKey.set(
-      certificateRedemptionKey(record.certificateCode, record.idempotencyKey),
-      record
-    );
+    this.byKey.set(certificateRedemptionKey(record.certificateCode, record.idempotencyKey), record);
   }
 
   async list(filter: { certificateId?: string; code?: string } = {}) {
     const code = filter.code ? normalizeCertificateCode(filter.code) : undefined;
     return [...this.byKey.values()]
       .filter((record) => !filter.certificateId || record.certificateId === filter.certificateId)
-      .filter(
-        (record) => !code || normalizeCertificateCode(record.certificateCode) === code
-      )
+      .filter((record) => !code || normalizeCertificateCode(record.certificateCode) === code)
       .sort((a, b) => b.at.getTime() - a.at.getTime());
   }
 }

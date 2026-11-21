@@ -19,7 +19,10 @@ export class AmplitudeHttpTransport implements AmplitudeTransport {
   private readonly endpoint: string;
   private readonly timeoutMs: number;
 
-  constructor(private readonly apiKey: string, options: AmplitudeTransportOptions = {}) {
+  constructor(
+    private readonly apiKey: string,
+    options: AmplitudeTransportOptions = {}
+  ) {
     if (!apiKey) throw new RangeError('AmplitudeHttpTransport needs an API key');
     this.fetchImpl = options.fetchImpl ?? fetch;
     this.endpoint = options.endpoint ?? AMPLITUDE_BATCH_ENDPOINT;

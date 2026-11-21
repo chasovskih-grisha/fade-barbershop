@@ -33,8 +33,8 @@ describe('RescheduleAppointment (e2e, Postgres)', () => {
     const res = await moveOk(appointmentId, { ...admin, date: NEW_DATE, start: '12:00', end: '12:30' });
     expect(res.body).toMatchObject({ status: 'ok' });
     const row = await rowOf(appointmentId);
-    expect(row?.start.toISOString()).toBe(`${NEW_DATE}T12:00:00.000Z`);
-    expect(row?.end.toISOString()).toBe(`${NEW_DATE}T12:30:00.000Z`);
+    expect(row?.start?.toISOString()).toBe(`${NEW_DATE}T12:00:00.000Z`);
+    expect(row?.end?.toISOString()).toBe(`${NEW_DATE}T12:30:00.000Z`);
     expect(row?.appointmentId).toBe(appointmentId);
     expect(row?.status).toBe('booked');
     const event = await ctx.prisma.outboxMessage.findFirst({
@@ -56,7 +56,7 @@ describe('RescheduleAppointment (e2e, Postgres)', () => {
     const res = await moveOk(appointmentId, { actorId: 'client-1', actorRole: 'client', date: NEW_DATE, start: '13:00', end: '13:30' });
     expect(res.body).toMatchObject({ status: 'ok' });
     const row = await rowOf(appointmentId);
-    expect(row?.start.toISOString()).toBe(`${NEW_DATE}T13:00:00.000Z`);
+    expect(row?.start?.toISOString()).toBe(`${NEW_DATE}T13:00:00.000Z`);
   });
 
   test('конфлікт із іншим записом барбера → 409, старий час НЕ змінено', async () => {
@@ -68,8 +68,8 @@ describe('RescheduleAppointment (e2e, Postgres)', () => {
       HttpStatus.CONFLICT
     );
     const after = await rowOf(appointmentId);
-    expect(after?.start.toISOString()).toBe(before?.start.toISOString());
-    expect(after?.end.toISOString()).toBe(before?.end.toISOString());
+    expect(after?.start?.toISOString()).toBe(before?.start?.toISOString());
+    expect(after?.end?.toISOString()).toBe(before?.end?.toISOString());
   });
 
   test('адмін-маршрут: барберу 400, без дати 400, неіснуючий 404', async () => {
@@ -90,6 +90,6 @@ describe('RescheduleAppointment (e2e, Postgres)', () => {
     await move(appointmentId, { ...admin, date: NEW_DATE, start: '16:00', end: '16:30' }).expect(HttpStatus.CONFLICT);
     const after = await rowOf(appointmentId);
     expect(after?.status).toBe(before?.status);
-    expect(after?.start.toISOString()).toBe(before?.start.toISOString());
+    expect(after?.start?.toISOString()).toBe(before?.start?.toISOString());
   });
 });

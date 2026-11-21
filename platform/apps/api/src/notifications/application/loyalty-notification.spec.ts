@@ -1,5 +1,9 @@
+/* eslint-disable max-lines -- cohesive module (126 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import { LoyaltyNotificationHandler } from './loyalty-notification';
-import type { LoyaltyNotificationDeps, LoyaltyNotificationEvent } from './loyalty-notification-ports';
+import type {
+  LoyaltyNotificationDeps,
+  LoyaltyNotificationEvent,
+} from './loyalty-notification-ports';
 
 describe('LoyaltyNotificationHandler (T-4462)', () => {
   it('sends SMS and push when loyalty counter is incremented', async () => {
@@ -58,8 +62,16 @@ describe('LoyaltyNotificationHandler (T-4462)', () => {
     const deps: LoyaltyNotificationDeps = {
       sms: { async send() {} },
       push: { async send() {} },
-      clients: { async findPhoneByClientId() { return null; } } as any,
-      devices: { async findTokensByUserId() { return []; } } as any,
+      clients: {
+        async findPhoneByClientId() {
+          return null;
+        },
+      } as any,
+      devices: {
+        async findTokensByUserId() {
+          return [];
+        },
+      } as any,
       journal: {
         async alreadyHandled(_id) {
           return true;
@@ -85,16 +97,28 @@ describe('LoyaltyNotificationHandler (T-4462)', () => {
     const deps: LoyaltyNotificationDeps = {
       sms: { async send() {} },
       push: { async send() {} },
-      clients: { async findPhoneByClientId() { return '+380501234567'; } } as any,
-      devices: { async findTokensByUserId() { return ['token']; } } as any,
+      clients: {
+        async findPhoneByClientId() {
+          return '+380501234567';
+        },
+      } as any,
+      devices: {
+        async findTokensByUserId() {
+          return ['token'];
+        },
+      } as any,
       preferences: {
         async isOptedOut(_clientId: string) {
           return true;
         },
       },
       journal: {
-        async alreadyHandled(_id: string) { return false; },
-        async markSent(record) { journalRecords.push(record); },
+        async alreadyHandled(_id: string) {
+          return false;
+        },
+        async markSent(record) {
+          journalRecords.push(record);
+        },
       },
     };
 

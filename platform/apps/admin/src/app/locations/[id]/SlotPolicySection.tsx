@@ -3,10 +3,18 @@
 // Розділ «Політика слотів» на сторінці локації (T-4522): number-поля форм,
 // валідація діапазонів, confirm-banner «лише до нових записів» перед збереженням.
 import { AlertBanner, Button, TextField } from '@fade/ui';
+import type { DayHours } from '../HoursEditor';
 import { POLICY_FIELDS } from './slot-policy-fields';
+import { capacityEstimateLabel } from './slot-policy-capacity';
 import { useSlotPolicy } from './use-slot-policy';
 
-export default function SlotPolicySection({ locationId }: { locationId: string }) {
+export default function SlotPolicySection({
+  locationId,
+  hours,
+}: {
+  locationId: string;
+  hours?: DayHours[];
+}) {
   const policy = useSlotPolicy(locationId);
   return (
     <section
@@ -44,6 +52,9 @@ export default function SlotPolicySection({ locationId }: { locationId: string }
           />
         ))}
       </div>
+      <p role="status" className="text-body-s text-fg-muted">
+        {capacityEstimateLabel(policy.values, hours)}
+      </p>
       {policy.confirming && (
         <AlertBanner
           tone="info"

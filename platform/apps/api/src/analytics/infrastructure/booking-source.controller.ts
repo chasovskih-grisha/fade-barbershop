@@ -28,7 +28,8 @@ export class BookingSourceController {
     try {
       return await this.breakdown.handle(parseDate(from, since), parseDate(to, now));
     } catch (error) {
-      if (error instanceof RangeError) throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      if (error instanceof RangeError)
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       throw error;
     }
   }

@@ -4,56 +4,53 @@ All notable changes to this project will be documented in this file.
 
 ## Recent Commits
 
-- feat(reputation): implement AI customer churn risk prediction and automated retention action engine for FADE specialist suite
-- feat(analytics): implement conversion funnel intelligence tracker and drop-off analytics engine with unit tests
-
-- d472644 feat(retention): add FADE Win-Back Reactivation Dashboard page for customer retention & acquisition
-- 8e4cfe1 fix(api): resolve TypeScript isolatedModules and emitDecoratorMetadata errors for DTOs and pipes
-- 35f5533 chore(backlog): archive done tasks 2026-11
-- 0c42d01 test(scheduling): cover barber schedule overlaps for any-barber slots (T-040a, T-040b)
-- 0c5640e test(profile): assert the app profile has no empty program cards
-- 399c8ee feat(cabinet): replace the website profile placeholder cards
-- 100b846 docs(cabinet): specify which profile sections stay hidden
-- 9d1fe8c feat(cabinet): refresh the session after the name saves
-- 0c598b5 docs(cabinet): specify the shared account name rule
-- 4c60e9a feat(cabinet): keep the cabinet path when sign-in is required
-- 57c7668 docs(cabinet): specify the cabinet return path for sign-in
-- 4ba454e docs(retention): add Customer Acquisition & Retention Specialist report and operational flow architecture
-- 00172aa feat(api): harden booking slots endpoint with Zod validation pipe
-- dda525a style(web): refine homepage visual typography rhythm, spacing and card hover gradients
-- 7291170 docs: add Reputation and Competitive Intelligence Specialist report
-- 9b58c52 fix(platform): performance audit, React hooks rules fix in mobile reschedule modal, and security headers hardening
-- d30e585 feat(marketing): introduce interactive style concierge quiz widget on homepage
-- 4adc63c feat(diagnostics): add unit test coverage for error tracking and diagnostics controller snapshot integration
-- 5c025e4 feat(notifications): modernize email layout and typography design system
-- f5afd8e chore(backlog): sync milestone 10 backlog tasks and index
-- ae617e5 fix(domain-shared): fix exactOptionalPropertyTypes compilation for winback campaign freeServiceAddon
-- c6b0d2d chore(db): optimize schema indices - add serviceId active index on BarberServiceAssignment and remove redundant userId index on ClientProfile
-- 83e964a Merge branch 'feature/customer-acquisition-retention-specialist-suite' into stage
-- 2539787 feat(acquisition): enhance customer acquisition and retention specialist suite with personalized winback campaigns
-- d6978c8 fix(quality): resolve TypeScript typecheck errors in web and api test suites
-- ecdc127 test(scheduling): add comprehensive unit test suite for smart buffer pacing optimizer
-- d06d2e2 fix(analytics): handle potentially undefined step metrics safely in conversion intelligence engine
-- 07f6d1d feat(analytics): implement conversion intelligence engine with drop-off risk prediction and advanced funnel health analytics
-- 78b68ff polish(web): enhance visual banner interactive lighting, border highlights, and micro-hover transitions
-- 869bc4f Translate 10 random backlog tasks from Ukrainian to English
-- c565bc4 feat(revenue): implement smart cart add-on attach rate incentive and progressive discounting optimizer
-- 4e26464 fix(platform): resolve mobile react hooks ordering, max-lines lint rules, and verify builds
-- cff253a feat(billing): enhance stripe webhook handling with dispute lifecycle events (charge.dispute.created, charge.dispute.closed) & domain states
-- 9c29745 feat(notifications): implement staff booking notification email template and unit tests
-- bd3b8dc Merge branch 'feature/no-show-cancellation-protection-specialist-suite' into stage
-- f8c37bf feat(cancellation): enhance cancellation fee and no-show penalty calculation with deposit crediting
-- 1e7c8f7 feat(loyalty): add membership perks evaluation and loyalty tier points booster use case with tests
-- 19042d2 feat(telemetry): add GlobalExceptionFilter and error tracking integration
-- f2e29bb feat(seed): add robust promo codes fixture and seeder for discounts and promos
-- ba78672 feat(mobile): implement visit reschedule and cancel actions (T-4740)
-- b8d6285 feat(notifications): add promotional-discount and referral-reward email templates with enhanced visual design
-- 9e2f89c docs(cabinet): specify the next-visit card on the profile (T-4716a)
-- 0066efb feat(db): add performance index on Service active status for query optimization
-- 930d08a feat(support): enhance booking error boundary with interactive SOS ticket dispatcher & concierge touchpoints
-- 20ef37c fix(api): resolve TypeScript build error in barber workload optimizer and synchronize prisma schema
-- 2547ad9 feat(scheduling): implement dynamic surge pricing and peak-load time slot pacing engine (T-5004)
-- ceccdd7 feat(scheduling): implement barber workload balance and fatigue optimization engine (T-6002)
-- 454eb95 fix(booking): resolve accessibility test assertion for step announcement live region
-- 381c9c2 feat(web): polish HomeHero typography contrast, atmospheric lighting and visual depth
-- 6573999 feat(blog): enhance blog page with immersive brand header, category pills and conversion CTA
+- a4bdd2c4 T-5008: Implement Gamified Tiered Membership & Subscription Pass System
+- 68430b75 T-4450: Implement Loyalty Program Configuration
+- e3ad2229 T-4449: Web Push для кабінету — Push subscription and module integration
+- 63c037bd T-4448: Data Export (CLT-01) & Pre-launch Backup Verification — CSV export and scheduling module integration
+- e55a1f6f T-4447: Barber leave — integrate day-off infrastructure
+- f08e8d17 T-4446: Add calendar export ICS endpoint for bookings
+- 78de33e6 T-4445: Add recommended services admin settings
+- 3073530b T-4444: Add deposit policy version acceptance tracking to booking data
+- 94b750e6 waitlist: strip foreign eslint-disable headers from service/controller/dto/domain (parallel refactor cleanup)
+- 4735c2cc refactor(scheduling): remove redundant code and tighten error handling (T-4619a, T-4560, T-095)
+- ab6bd5f4 feat(web): share a barber profile by copy or share sheet (T-4862a)
+- 07f6d08c feat(scheduling): create, capture and sweep deposit holds (T-4619a)
+- ec0be096 feat(scheduling): hold the chair for 15 minutes while a deposit is unpaid (T-4619a)
+- 1007c4e5 feat(scheduling): persist the cancellation reason journal in the database (T-4560)
+- 0c3041cc fix(billing): make the fiscal and payment adapters compile under exact optional types
+- 2f74603e feat(scheduling): add cancellation and no-show reasons with reporting (T-4560)
+- 8885222a fix(scheduling): escalate no-shows with an explicit retain or refund resolution (T-095)
+- 955bb203 feat(scheduling): refund the deposit when an admin removes a no-show (T-160)
+- db96ec30 fix(payment): repair the waitlist deposit flow (T-197)
+- 2cfc9a51 feat(payment): implement the T-094 refund mechanics
+- 19cf16d2 feat(payment): implement the T-093 on-site payment
+- 3bb08601 feat(payment): close the T-092 Checkbox receipt chain
+- a058ec13 feat(payment): rebuild the T-091 deposit flow on the booking snapshot
+- 6a04ac04 fix(feedback-surfaces): persist review processing and repair the review adapters
+- a114c2d4 feat(portfolio): implement the gallery consent and moderation cycle
+- 534102c6 docs(profile): specify the unsaved-edit prompt on both profiles (T-4733a)
+- ca1e95be chore(api): add pdfkit for the waitlist analytics PDF export
+- 342513c4 feat(scheduling): implement the waitlist client, admin and no-show slices
+- c6f35a51 feat(scheduling): add the waitlist queue port with an in-memory adapter
+- da68b10d fix(notifications): make the waitlist offer channels optional and typed
+- c5942e80 fix(payment): report one payment lifecycle and skip deposits on free visits
+- b3976470 fix(scheduling): raise the module with a calendar and a real reference-photo token
+- 83a71c35 fix(scheduling): persist staged no-show records and broaden the status label
+- 2e95c8ce fix(scheduling): wire attendance types and the no-show escalation ports
+- 10f5b302 feat(scheduling): apply discounts and the configured deposit policy on booking
+- b89ae783 feat(notifications,discounts): waitlist SMS sender, journal adapter and risk types
+- 36dc201d feat(scheduling): implement the waitlist-admin domain and complete domain contracts
+- 1cf93f07 fix(prisma): restore the truncated schema and regenerate the client
+- 4fcce6d0 docs(memory): record T-2300f mobile blog run notes
+- ee6767b9 feat(content): add blog feed and article screens to mobile app
+- 919ffa38 docs(memory): record T-2300e web-slice run notes
+- 9a23828f feat(content): add blog search field and tag archive pages
+- 8c3c7a3d fix(api): repair duplicated import specifiers and broken module paths
+- 56848f27 fix(api): restore newlines corrupted to literal \n in source files
+- d827080e docs(memory): record T-2300e API-slice run notes
+- 13c10234 feat(content): search, tag filter and cursor for the public blog feed
+- 5c623f9b docs(memory): record T-4732a run notes
+- 6c273b15 docs(profile): specify the profile doors on web and app
+- a7e9a834 docs(memory): record backlog archiving run 2026-11-21
+- a40713b9 chore(backlog): archive done tasks 2026-11

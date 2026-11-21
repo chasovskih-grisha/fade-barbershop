@@ -9,7 +9,10 @@ export async function GET(request: NextRequest) {
     const cookieHeader = request.headers.get('Cookie');
 
     if (!cookieHeader) {
-      return NextResponse.json({ user: null }, { status: 200, headers: { 'X-Correlation-ID': correlationId } });
+      return NextResponse.json(
+        { user: null },
+        { status: 200, headers: { 'X-Correlation-ID': correlationId } }
+      );
     }
 
     const res = await fetch(`${API_BASE}/identity/profile`, {
@@ -22,15 +25,24 @@ export async function GET(request: NextRequest) {
 
     if (!res.ok) {
       if (res.status === 401) {
-        return NextResponse.json({ user: null }, { status: 200, headers: { 'X-Correlation-ID': correlationId } });
+        return NextResponse.json(
+          { user: null },
+          { status: 200, headers: { 'X-Correlation-ID': correlationId } }
+        );
       }
       const err = await res.json().catch(() => ({ message: 'Failed to get profile' }));
-      return NextResponse.json({ error: err.message }, { status: res.status, headers: { 'X-Correlation-ID': correlationId } });
+      return NextResponse.json(
+        { error: err.message },
+        { status: res.status, headers: { 'X-Correlation-ID': correlationId } }
+      );
     }
 
     const data = await res.json();
     return NextResponse.json({ user: data }, { headers: { 'X-Correlation-ID': correlationId } });
   } catch {
-    return NextResponse.json({ user: null }, { status: 200, headers: { 'X-Correlation-ID': correlationId } });
+    return NextResponse.json(
+      { user: null },
+      { status: 200, headers: { 'X-Correlation-ID': correlationId } }
+    );
   }
 }

@@ -7,7 +7,7 @@
 // Увімкнення: NOTIFICATIONS_OUTBOX_POLL_MS (дефолт 15 000; 0 — вимкнути).
 // У jest (NODE_ENV=test) автостарт не спрацьовує — тести керують вручну.
 
-import { Injectable, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnApplicationBootstrap, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { pollOutboxOnce } from './outbox-poll';
 import type { OutboxConsumers } from './outbox-routing';
@@ -43,10 +43,9 @@ export class OutboxNotificationsDispatcher implements OnApplicationBootstrap, On
     if (this.timer || !Number.isFinite(intervalMs) || intervalMs <= 0) return;
     this.timer = setTimeout(() => {
       void this.pollOnce().catch((error: unknown) => {
-        // eslint-disable-next-line no-console
-        console.error(
-          '[notifications] outbox poll failed:',
-          error instanceof Error ? error.message : error
+        Logger.error(
+          `[notifications] outbox poll failed: ${String(error)}`,
+          'OutboxNotificationsDispatcher'
         );
       });
       this.timer = undefined;

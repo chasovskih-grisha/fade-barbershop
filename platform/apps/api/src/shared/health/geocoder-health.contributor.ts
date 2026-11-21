@@ -4,7 +4,10 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { GeocoderMetrics } from '../../locations/infrastructure/geocoder-metrics';
-import { GeocoderStoresFactory, type GeocoderStoreSetDescription } from '../../locations/infrastructure/geocoder-stores.factory';
+import {
+  GeocoderStoresFactory,
+  type GeocoderStoreSetDescription,
+} from '../../locations/infrastructure/geocoder-stores.factory';
 
 /** Геокодер-секція відповіді /health: лічильники + режими сховищ. */
 export interface GeocoderHealthSection {

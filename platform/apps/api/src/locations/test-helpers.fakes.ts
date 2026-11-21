@@ -2,7 +2,13 @@
 // домену. Підпадає під *.fakes.ts — поза coverage (jest.config.js).
 
 import { CreateLocationHandler } from './application/create-location';
-import { FakeClock, FakeLocationRepository, FakeOutbox, SeqIds, passthroughUow } from './application/ports.fakes';
+import {
+  FakeClock,
+  FakeLocationRepository,
+  FakeOutbox,
+  SeqIds,
+  passthroughUow,
+} from './application/ports.fakes';
 import { Coordinates } from './domain/coordinates';
 import { Location } from './domain/location';
 import { OpeningHours } from './domain/opening-hours';

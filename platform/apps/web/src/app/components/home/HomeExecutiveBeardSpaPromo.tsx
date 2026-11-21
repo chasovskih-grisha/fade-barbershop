@@ -17,7 +17,8 @@ export function HomeExecutiveBeardSpaPromo() {
             Відновлюючий спа-догляд за бородою та шкірою обличчя
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Глибоке очищення, зволоження холодним пресованим маслом жожоба, карбоновий пілінг та професійний уклад для бездоганного ділового стилю й максимального комфорту.
+            Глибоке очищення, зволоження холодним пресованим маслом жожоба, карбоновий пілінг та
+            професійний уклад для бездоганного ділового стилю й максимального комфорту.
           </p>
         </div>
 
@@ -27,7 +28,9 @@ export function HomeExecutiveBeardSpaPromo() {
             className="inline-flex h-13 w-full sm:w-auto items-center justify-center rounded-input bg-accent px-8 text-body font-semibold text-accent-fg hover:opacity-95 transition-all duration-300 shadow-xl hover:scale-[1.02] active:scale-[0.98]"
           >
             <span>Замовити спа-догляд</span>
-            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+              &rarr;
+            </span>
           </Link>
           <Link
             href="/services"

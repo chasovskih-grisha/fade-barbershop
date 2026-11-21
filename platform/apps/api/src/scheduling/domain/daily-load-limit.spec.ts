@@ -1,4 +1,10 @@
-import { NO_DAILY_LOAD_LIMIT, bookingsOnDay, dayKey, exceedsDailyLoad, type DatedBooking } from './daily-load-limit';
+import {
+  NO_DAILY_LOAD_LIMIT,
+  bookingsOnDay,
+  dayKey,
+  exceedsDailyLoad,
+  type DatedBooking,
+} from './daily-load-limit';
 
 const barberA = '0190f1c2-0000-7000-8000-0000000000a1';
 const barberB = '0190f1c2-0000-7000-8000-0000000000b2';

@@ -5,20 +5,35 @@ import { Payment } from '../domain/payment.entity';
 
 class InMemoryPaymentRepository implements PaymentRepository {
   private map = new Map<string, Payment>();
-  async findById(id: string): Promise<Payment | null> { return this.map.get(id) || null; }
-  async findByProviderSessionId(): Promise<Payment | null> { return null; }
-  async save(p: Payment): Promise<void> { this.map.set(p.id, p); }
+  async findById(id: string): Promise<Payment | null> {
+    return this.map.get(id) || null;
+  }
+  async findByProviderSessionId(): Promise<Payment | null> {
+    return null;
+  }
+  async save(p: Payment): Promise<void> {
+    this.map.set(p.id, p);
+  }
 }
 
 class InMemoryOutbox implements OutboxPublisher {
   events: any[] = [];
-  async append(events: any[]): Promise<void> { this.events.push(...events); }
+  async append(events: any[]): Promise<void> {
+    this.events.push(...events);
+  }
 }
 
 class MockFiscalGateway implements FiscalGateway {
-  async checkShiftOpen() { return { isOpen: true, openedAt: new Date() }; }
+  async checkShiftOpen() {
+    return { isOpen: true, openedAt: new Date() };
+  }
   async createReceipt(p: any) {
-    return { receiptId: `rcpt_${p.paymentId}`, fiscalCode: 'fc_123', status: 'DONE' as const, total: p.amount };
+    return {
+      receiptId: `rcpt_${p.paymentId}`,
+      fiscalCode: 'fc_123',
+      status: 'DONE' as const,
+      total: p.amount,
+    };
   }
   async getReceiptStatus(p: any) {
     return { receiptId: p.receiptId, fiscalCode: 'fc_123', status: 'DONE' as const, total: 300 };
@@ -68,7 +83,7 @@ describe('IssueFiscalReceiptHandler', () => {
         type: 'prepayment',
         items: [{ name: 'Zero', price: 0, quantity: 1 }],
         traceId: 'tr_2',
-      }),
+      })
     ).rejects.toThrow('ComplimentaryVisit or zero amount');
   });
 });

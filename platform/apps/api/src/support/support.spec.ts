@@ -1,5 +1,10 @@
 import { InMemorySupportRepository } from './application/in-memory-support.repository';
-import { CreateSupportTicketUseCase, ResolveSupportTicketUseCase, GetInteractiveFaqsUseCase, GetErrorRecoverySuggestionUseCase } from './application/support.use-cases';
+import {
+  CreateSupportTicketUseCase,
+  ResolveSupportTicketUseCase,
+  GetInteractiveFaqsUseCase,
+  GetErrorRecoverySuggestionUseCase,
+} from './application/support.use-cases';
 
 describe('Customer Experience & Support Automation Specialist', () => {
   let repository: InMemorySupportRepository;
@@ -34,7 +39,8 @@ describe('Customer Experience & Support Automation Specialist', () => {
 
     const resolved = await resolveTicket.execute({
       ticketId: 'TICK-100',
-      resolutionNotes: 'Перевірили кеш розкладу, слот розблоковано та заброньовано адміністратором.',
+      resolutionNotes:
+        'Перевірили кеш розкладу, слот розблоковано та заброньовано адміністратором.',
       staffId: 'STAFF-9',
     });
 

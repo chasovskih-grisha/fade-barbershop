@@ -1,122 +1,65 @@
-// Порт черги очікування (T-170…T-182): use cases бачать лише ці операції,
-// зберігання живе в інфраструктурі. Тут навмисно вузький контракт — рівно те,
-// що споживають сценарії waitlist, без Prisma й без HTTP.
-import type { SlotHold, WaitlistEntry } from '../../waitlist/waitlist.domain';
+/* eslint-disable max-lines -- cohesive module (420 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
+// Черга листа очікування (T-170a): вибір наступного за FIFO-конфігурацією,
+// soft-hold 15 хв і анти-спам (ADR 0012 §2–§5, WTL-002/003/005). Порядок — за
+// часом очікування цієї самої конфігурації, а не за пріоритетом клієнта:
+// конфігурація = локація + послуга + барбер/«Будь-який» + вікно дат + точність.
+// Чистий домен: без Nest, Prisma і HTTP.
 
-export type { SlotHold, WaitlistEntry };
-
-/** Що шукає клієнт: послуги, розмір групи, бажана дата. */
-export interface SlotSearchCriteria {
-  serviceIds: string[];
-  groupSize?: number;
-  preferredDate?: string;
-  locationId?: string;
-}
-
-/** Слот, придатний для бронювання (T-174 batch selection). */
-export interface AvailableSlot {
-  id: string;
-  barberId: string;
-  serviceId?: string;
-  startTime: string;
-}
-
-/** Деталі слоту для підтвердження/прийняття (T-176). */
-export interface SlotDetails extends AvailableSlot {
-  locationId?: string;
-  durationMinutes?: number;
-}
-
-/** Місце клієнта в черзі (T-178). */
-export interface WaitlistPosition {
-  position: number;
-  totalInQueue?: number;
-  estimatedWaitMinutes?: number;
-}
-
-/** Запис, який ставить клієнта в чергу. */
-export interface WaitlistEntryInput {
-  id: string;
-  clientId: string;
-  serviceId?: string;
-  locationId?: string;
-  barberId?: string;
-  addedAt?: Date;
-  waitingSince?: Date;
-  status?: string;
-  configuration?: unknown;
-  consecutiveMisses?: number;
-}
-
-export interface WaitlistQueue {
-  getAvailableSlots(criteria: SlotSearchCriteria): Promise<AvailableSlot[]>;
-  getSlotDetails(slotId: string): Promise<SlotDetails | null>;
-  addEntry(entry: WaitlistEntryInput): Promise<WaitlistEntry>;
-  registerMiss(entry: WaitlistEntryInput): Promise<WaitlistEntry & { consecutiveMisses?: number }>;
-  removeEntry(entryId: string): Promise<void>;
-  moveToFront(entryId: string): Promise<void>;
-  getActiveEntry(clientId: string): Promise<WaitlistEntry | null>;
-  getActiveEntryCount(): Promise<number>;
-  getAllEntriesWithPriority(): Promise<WaitlistEntry[]>;
-  getPosition(clientId: string): Promise<WaitlistPosition | null>;
-  getHoldHistory(hours: number): Promise<SlotHold[]>;
-  getRecentEntries(limit: number): Promise<WaitlistEntry[]>;
-  markSlotAsBooked(slotId: string): Promise<void>;
-  continueCascade(slotId: string, reason: string): Promise<void>;
-  triggerManualCascade(slotId: string, reason?: string): Promise<unknown>;
-}
-
-// ─── Чиста черга й пріоритети (T-170a, T-4453) ───────────────────────────────
-//
-// Модуль лишається вільним від Prisma/HTTP: вибір кандидата, soft-hold і
-// анти-спам — це рішення домену. Інфраструктура лише зберігає результат.
-//
-// T-4453: FIFO — базовий порядок, але не єдиний. Пріоритет рахується
-// конструктивно з даних заявки (лояльність клієнта, точність вікна, кількість
-// невдалих пропозицій) і може бути піднятий оператором вручну з причиною.
-
-/** Конфігурація, яку клієнт шукає (ADR 0012). */
-export interface WaitlistConfiguration {
-  locationId: string;
-  serviceId: string;
-  /** `null` — «будь-який барбер» (WTL-001). */
-  barberId?: string | null;
-  /** Скільки місць шукає група; без значення — 1. */
-  groupSize?: number;
-  /** Вікно дат, ISO `YYYY-MM-DD`, включно. */
-  windowFrom: string;
-  windowTo: string;
-  /** `exact` — конкретна дата, `range` — діапазон (впливає на пріоритет). */
-  precision: 'exact' | 'range';
-}
-
-/** Звільнений слот, який можна запропонувати (не бронювання, ADR 0012). */
-export interface FreedSlot {
-  locationId: string;
-  serviceId: string;
-  barberId?: string;
-  /** ISO `YYYY-MM-DD` (у поясі локації). */
-  date: string;
-  /** `HH:MM` локальний час початку. */
-  start: string;
-  /** Скільки місць у слоті; без значення — 1. */
-  groupSize?: number;
+/** Копія заявки без soft-hold: прийняття пропозиції закриває hold. */
+function withoutHold(entry: WaitlistEntryData): WaitlistEntryData {
+  const rest = { ...entry };
+  delete rest.holdExpiresAt;
+  return rest;
 }
 
 export type WaitlistEntryStatus =
-  | 'waiting'
-  | 'offered'
-  | 'expired'
-  | 'paused'
-  | 'fulfilled'
-  /** T-4559: клієнт сам відмовився від черги. */
-  | 'cancelled';
+  'waiting' | 'offered' | 'booked' | 'fulfilled' | 'expired' | 'cancelled' | 'paused';
 
-/** Ручне втручання оператора (T-4453): підняти заявку з причиною і логом. */
+/**
+ * Точність запиту (WTL-001): `exact` — конкретний час (±30 хв), `range` —
+ * будь-який слот у вікні дат, `flexible` — вікно + будь-який барбер.
+ */
+export type WaitlistPrecision = 'exact' | 'range' | 'flexible';
+
+export interface WaitlistConfiguration {
+  locationId: string;
+  serviceId: string;
+  /** `null` — «Будь-який барбер» (WTL-001). */
+  barberId: string | null;
+  /** Вікно дат `YYYY-MM-DD`, включно з обома кінцями. */
+  windowFrom: string;
+  windowTo: string;
+  precision: WaitlistPrecision;
+  /** Скільки місць шукає клієнт; відсутнє — одне (WTL-006). */
+  groupSize?: number;
+}
+
+/** Ручне рішення оператора з обов'язковою причиною (T-4453). */
 export interface OperatorOverride {
   by: string;
   reason: string;
+  at?: Date;
+}
+
+/** Дії, які лишають слід у журналі заявки. */
+export type WaitlistHistoryAction =
+  | 'joined'
+  | 'offered'
+  | 'expired'
+  | 'accepted'
+  | 'cancelled'
+  | 'promote'
+  | 'demote'
+  | 'pause'
+  | 'resume'
+  | 'transfer';
+
+export interface WaitlistEntryHistoryEntry {
+  action: WaitlistHistoryAction;
   at: Date;
+  by?: string;
+  reason?: string;
+  detail?: string;
 }
 
 export interface WaitlistEntryData {
@@ -125,130 +68,96 @@ export interface WaitlistEntryData {
   configuration: WaitlistConfiguration;
   status: WaitlistEntryStatus;
   waitingSince: Date;
+  /** Скільки пропозицій поспіль прострочено чи пропущено (WTL-005). */
   consecutiveMisses: number;
-  /** Коли спливає soft-hold, якщо заявку вже запропоновано (WTL-003/005). */
   holdExpiresAt?: Date;
-  /** Дані лояльності з crm (T-061) — без дублювання сховища. */
-  completedVisits?: number;
-  /** Піднятий оператором вручну; причина обовʼязкова для аудиту. */
-  override?: OperatorOverride;
-  /** T-4559: рівень лояльності (BRONZE…PLATINUM) з crm — вага пріоритету. */
+  /** Рівень лояльності клієнта: BRONZE/SILVER/GOLD/PLATINUM (WTL-001). */
   vipTier?: string;
-  /** T-4559: ручне зміщення оператором (+/-); причина — в history. */
+  /** Ручне зміщення пріоритету оператором (T-4453); -100 — вниз черги. */
   manualBias?: number;
-  /** T-4559: журнал дій (каскад, відмова, дії адміна). */
+  /** Завершені візити клієнта — вага сталості (T-4453). */
+  completedVisits?: number;
+  /** Хто й чому підняв заявку вручну (T-4453). */
+  override?: OperatorOverride;
+  /** Журнал заявки для аудиту. */
   history?: WaitlistEntryHistoryEntry[];
 }
 
-/** Запис журналу заявки: хто/коли/чому (T-4559, audit). */
-export interface WaitlistEntryHistoryEntry {
-  at: Date;
-  action: string;
-  by: string;
-  reason: string;
+/** Звільнений слот, для якого шукаємо чергу (події Cancelled/NoShowed). */
+export interface FreedSlot {
+  locationId: string;
+  serviceId: string;
+  barberId: string;
+  /** `YYYY-MM-DD` у зоні локації. */
+  date: string;
+  start: string; // 'HH:MM'
 }
 
-/** Soft-hold на пропозицію: 15 хвилин (WTL-003/005). */
 export const OFFER_WINDOW_MINUTES = 15;
-
-/** Третє поспіль неспрацювання ставить чергу на паузу (WTL-005). */
 export const MAX_CONSECUTIVE_MISSES = 3;
 
-/** Ваги пріоритету: однакові для всіх локацій, доки нема налаштувань. */
-export const PRIORITY_WEIGHTS = {
-  /** +5 за кожен завершений візит, не більше +20. */
-  loyaltyPerVisit: 5,
-  loyaltyCap: 20,
-  /** Точна дата або вузьке вікно (≤ 3 днів) — клієнту важливіше. */
-  exactDateBonus: 4,
-  narrowWindowBonus: 2,
-  narrowWindowDays: 3,
-  /** Кожне неспрацювання опускає заявку нижче (WTL-005). */
-  missPenalty: 5,
-  /** Ручне підняття оператором переважає будь-яку конструктивну вагу. */
-  operatorBoost: 100,
-} as const;
-
-/** T-4559: вага рівня лояльності; PLATINUM обходить звичайну чергу. */
-export const VIP_TIER_BONUS: Record<string, number> = {
-  BRONZE: 0,
-  SILVER: 2,
-  GOLD: 5,
-  PLATINUM: 8,
-};
-
-function vipBonus(tier: string | undefined): number {
-  if (!tier) return 0;
-  return VIP_TIER_BONUS[tier.toUpperCase()] ?? 0;
-}
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-function dayCount(from: string, to: string): number {
-  const start = Date.parse(`${from}T00:00:00Z`);
-  const end = Date.parse(`${to}T00:00:00Z`);
-  if (Number.isNaN(start) || Number.isNaN(end)) return Number.POSITIVE_INFINITY;
-  return Math.round((end - start) / DAY_MS);
-}
-
-/** Чи підходить слот під конфігурацію заявки (WTL-001/002). */
+/** Слот відповідає конфігурації: локація, послуга, барбер/«Будь-який», вікно дат. */
 export function matchesConfiguration(
   configuration: WaitlistConfiguration,
   slot: FreedSlot
 ): boolean {
   if (configuration.locationId !== slot.locationId) return false;
   if (configuration.serviceId !== slot.serviceId) return false;
+  if (configuration.barberId !== null && configuration.barberId !== slot.barberId) return false;
+  // Один звільнений слот — одне крісло: групі з 2+ місць не пропонуємо (WTL-006).
+  if ((configuration.groupSize ?? 1) > 1) return false;
+  return configuration.windowFrom <= slot.date && slot.date <= configuration.windowTo;
+}
 
-  if (configuration.barberId != null && configuration.barberId !== slot.barberId) {
-    return false;
-  }
+/** Вага рівня лояльності (WTL-001); невідомий рівень — без бонусу. */
+const VIP_BONUS: Record<string, number> = {
+  BRONZE: 0,
+  SILVER: 2,
+  GOLD: 5,
+  PLATINUM: 8,
+};
 
-  if (slot.date < configuration.windowFrom || slot.date > configuration.windowTo) return false;
+/** Базова вага заявки: будь-який запит починає з неї. */
+export const BASE_PRIORITY = 2;
 
-  const wanted = configuration.groupSize ?? 1;
-  const available = slot.groupSize ?? 1;
-  return wanted <= available;
+/**
+ * Пріоритет заявки (T-4453): VIP-рівень, сталість клієнта, пропущені
+ * пропозиції, точність запиту й ручне зміщення. FIFO лишається лише
+ * тай-брейком у `rankEntries`, а не самостійним правилом.
+ */
+export function priorityScore(entry: WaitlistEntryData): number {
+  const tier = (entry.vipTier ?? '').toUpperCase();
+  const vipBonus = VIP_BONUS[tier] ?? 0;
+  const visitsBonus = Math.min(15, Math.max(0, entry.completedVisits ?? 0) * 3);
+  const missPenalty = Math.max(0, entry.consecutiveMisses) * 5;
+  const precisionBonus = entry.configuration.precision === 'exact' ? 5 : 0;
+  const overrideBonus = entry.override === undefined ? 0 : 100;
+  return (
+    BASE_PRIORITY +
+    vipBonus +
+    visitsBonus -
+    missPenalty +
+    precisionBonus +
+    overrideBonus +
+    (entry.manualBias ?? 0)
+  );
 }
 
 /**
- * Пріоритет заявки (T-4453): вищий — раніше. FIFO лишається тай-брейкером,
- * тож рівні за вагою заявки обслуговуються за часом очікування.
+ * Черга кандидатів на слот: спершу пріоритет, далі час очікування (FIFO).
+ * Заявки, що не підходять під конфігурацію, не потрапляють у результат.
  */
-export function priorityScore(entry: WaitlistEntryData): number {
-  let score = 0;
-
-  const visits = Math.max(0, entry.completedVisits ?? 0);
-  score += Math.min(PRIORITY_WEIGHTS.loyaltyCap, visits * PRIORITY_WEIGHTS.loyaltyPerVisit);
-
-  const span = dayCount(entry.configuration.windowFrom, entry.configuration.windowTo);
-  if (entry.configuration.precision === 'exact' || span === 0) {
-    score += PRIORITY_WEIGHTS.exactDateBonus;
-  } else if (span <= PRIORITY_WEIGHTS.narrowWindowDays) {
-    score += PRIORITY_WEIGHTS.narrowWindowBonus;
-  }
-
-  score -= Math.max(0, entry.consecutiveMisses) * PRIORITY_WEIGHTS.missPenalty;
-
-  score += vipBonus(entry.vipTier);
-  score += entry.manualBias ?? 0;
-
-  if (entry.override) score += PRIORITY_WEIGHTS.operatorBoost;
-
-  return score;
-}
-
-/** Кандидати, відсортовані за пріоритетом і часом очікування. */
 export function rankEntries(entries: WaitlistEntryData[], slot: FreedSlot): WaitlistEntryData[] {
   return entries
-    .filter((entry) => entry.status === 'waiting' && matchesConfiguration(entry.configuration, slot))
-    .sort((a, b) => {
-      const byScore = priorityScore(b) - priorityScore(a);
-      if (byScore !== 0) return byScore;
-      return a.waitingSince.getTime() - b.waitingSince.getTime();
-    });
+    .filter((entry) => entry.status === 'waiting')
+    .filter((entry) => matchesConfiguration(entry.configuration, slot))
+    .sort(
+      (a, b) =>
+        priorityScore(b) - priorityScore(a) || a.waitingSince.getTime() - b.waitingSince.getTime()
+    );
 }
 
-/** Наступний кандидат на слот; `null` — черга не має підходящих заявок. */
+/** Наступний кандидат на слот: найвищий пріоритет, FIFO як тай-брейк (WTL-002). */
 export function selectNextEntry(
   entries: WaitlistEntryData[],
   slot: FreedSlot
@@ -256,69 +165,383 @@ export function selectNextEntry(
   return rankEntries(entries, slot)[0] ?? null;
 }
 
-/** Пропозиція ставить soft-hold на 15 хвилин (WTL-003/005). */
-export function offerSlot(
+/** Журнал: додати запис, не втрачаючи попередніх. */
+export function appendHistory(
   entry: WaitlistEntryData,
-  now: Date,
-  windowMinutes: number = OFFER_WINDOW_MINUTES
-): WaitlistEntryData {
-  return {
-    ...entry,
-    status: 'offered',
-    holdExpiresAt: new Date(now.getTime() + windowMinutes * 60_000),
-  };
-}
-
-/** Прострочені пропозиції закриваються, активні лишаються (WTL-004). */
-export function expireOffers(entries: WaitlistEntryData[], now: Date): WaitlistEntryData[] {
-  return entries.map((entry) => {
-    if (entry.status !== 'offered' || !entry.holdExpiresAt) return entry;
-    if (entry.holdExpiresAt.getTime() > now.getTime()) return entry;
-    const expired: WaitlistEntryData = { ...entry, status: 'expired' };
-    delete expired.holdExpiresAt;
-    return expired;
-  });
-}
-
-/** Неспрацювання: лічильник росте, на третьому — пауза (WTL-005). */
-export function registerMiss(entry: WaitlistEntryData): WaitlistEntryData {
-  const consecutiveMisses = entry.consecutiveMisses + 1;
-  return {
-    ...entry,
-    consecutiveMisses,
-    status: consecutiveMisses >= MAX_CONSECUTIVE_MISSES ? 'paused' : entry.status,
-  };
+  item: WaitlistEntryHistoryEntry
+): WaitlistEntryHistoryEntry[] {
+  return [...(entry.history ?? []), item];
 }
 
 /**
- * Ручне втручання оператора (T-4453): заявка піднімається, причина
- * фіксується для аудиту. Порожня причина — помилка, а не «тихе» підняття.
+ * Оператор піднімає заявку вручну (T-4453): причина обов'язкова, рішення
+ * фіксується в журналі, а пріоритет отримує фіксований бонус.
  */
 export function applyOperatorOverride(
   entry: WaitlistEntryData,
   override: OperatorOverride
 ): { entry: WaitlistEntryData; log: string } {
-  if (!override.reason.trim()) throw new Error('Operator override requires a reason');
-  if (!override.by.trim()) throw new Error('Operator override requires an operator id');
+  const reason = override.reason.trim();
+  if (reason === '') throw new Error('Operator override requires a reason');
+  const by = override.by.trim();
+  if (by === '') throw new Error('Operator override requires an operator id');
 
-  const updated: WaitlistEntryData = { ...entry, override };
-  const log = `${override.at.toISOString()} waitlist.override entry=${entry.id} by=${override.by} reason=${override.reason}`;
-  return { entry: updated, log };
+  const at = override.at ?? new Date();
+  const updated: WaitlistEntryData = {
+    ...entry,
+    override: { by, reason, at },
+    history: appendHistory(entry, { action: 'promote', at, by, reason }),
+  };
+  return { entry: updated, log: `waitlist.override by=${by} reason=${reason}` };
+}
+
+/** Акцепт пропозиції: лише в межах hold, далі заявка закрита як виконана. */
+export function acceptOffer(entry: WaitlistEntryData, now: Date): WaitlistEntryData {
+  if (entry.holdExpiresAt === undefined || entry.holdExpiresAt.getTime() <= now.getTime()) {
+    throw new Error(`Offer for waitlist entry ${entry.id} has expired`);
+  }
+  const rest = withoutHold(entry);
+  return {
+    ...rest,
+    status: 'fulfilled',
+    history: appendHistory(rest, { action: 'accepted', at: now }),
+  };
+}
+
+/** Пропозиція зі soft-hold 15 хв: слот не показується вільним іншим (WTL-003). */
+export function offerSlot(entry: WaitlistEntryData, now: Date): WaitlistEntryData {
+  return {
+    ...entry,
+    status: 'offered',
+    holdExpiresAt: new Date(now.getTime() + OFFER_WINDOW_MINUTES * 60_000),
+  };
+}
+
+/** Прострочені пропозиції закриваються, hold знімається (WTL-004). */
+export function expireOffers(entries: WaitlistEntryData[], now: Date): WaitlistEntryData[] {
+  return entries.map((entry) =>
+    entry.status === 'offered' &&
+    entry.holdExpiresAt !== undefined &&
+    entry.holdExpiresAt.getTime() <= now.getTime()
+      ? { ...entry, status: 'expired' as const }
+      : entry
+  );
+}
+
+/** Неспрацювання (прострочив чи пропустив): 3 поспіль → черга на паузі (WTL-005). */
+export function registerMiss(entry: WaitlistEntryData): WaitlistEntryData {
+  const misses = entry.consecutiveMisses + 1;
+  return {
+    ...entry,
+    consecutiveMisses: misses,
+    status: misses >= MAX_CONSECUTIVE_MISSES ? 'paused' : 'waiting',
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Порт черги для сценаріїв T-174…T-182: пошук слотів, позиція клієнта,
+// історія утримань і каскад. Домен вище описує заявку й правила пріоритету;
+// цей порт — те, що потрібно мобільному клієнту та адмінці.
+// ---------------------------------------------------------------------------
+
+/** Заявка в черзі у вигляді, потрібному сценаріям T-174…T-182. */
+export interface WaitlistEntry {
+  id: string;
+  clientId: string;
+  serviceId: string;
+  addedAt: Date;
+  status: string;
+  clientName?: string;
+  barberId?: string;
+  barberName?: string;
+  servicesRequested?: string[];
+  priorityScore?: number;
+  tier?: string;
+  position?: number;
+  waitTimeMinutes?: number;
+}
+
+/** Вхідні дані нової заявки. */
+export interface WaitlistEntryInput {
+  id: string;
+  clientId: string;
+  serviceId: string;
+  addedAt: Date;
+  status: string;
+}
+
+/** Вільний слот, який можна запропонувати з черги. */
+export interface AvailableSlot {
+  id: string;
+  barberId: string;
+  barberName?: string;
+  serviceId: string;
+  /** ISO-час початку слота. */
+  startTime: string;
+  priceCents?: number;
+}
+
+/** Критерії пошуку слотів для клієнта або групи. */
+export interface SlotSearchCriteria {
+  serviceIds?: string[];
+  groupSize?: number;
+  preferredDate?: string | null;
+  barberId?: string | null;
+  locationId?: string | null;
+}
+
+/** Слот із деталями, потрібними для підтвердження візиту. */
+export interface SlotDetails {
+  id: string;
+  barberId: string;
+  barberName: string;
+  serviceId: string;
+  startTime: string;
+}
+
+/** Позиція клієнта в черзі та оцінка очікування. */
+export interface WaitlistPositionInfo {
+  position: number | null;
+  estimatedWaitTime: number | null;
+  queueUpdatedAt?: string;
+  queueAddedAt?: string;
+  /** Обчислений прiоритет заявки (T-180); без нього — 0. */
+  priorityScore?: number;
+}
+
+/** Запис про утримання слота (каскад, підтвердження, прострочення). */
+export interface SlotHoldRecord {
+  slotId: string;
+  clientId: string;
+  heldAt: string;
+  status: string;
+  triggerType?: string;
+  cascadeDepth?: number;
+  estimatedWaitTime?: number;
+  cancellationReason?: string | null;
+  fifoCompliant?: boolean;
+  releasedAt?: string | null;
+  /** ISO-час, коли клiєнт став у чергу за цим слотом (T-181). */
+  waitingSince?: string;
+}
+
+/** Рядок черги з обчисленим пріоритетом — для дашбордів і експорту. */
+export interface PriorityEntry {
+  entryId: string;
+  clientId: string;
+  clientName: string;
+  position: number;
+  priorityScore: number;
+  waitTimeMinutes: number;
+  rankSince: string;
+  servicesRequested: string[];
+  tier: string;
+  addedAt: string;
+}
+
+/** Пропущена пропозиція слота (клієнт не відповів або відмовився). */
+export interface WaitlistMissInput {
+  id?: string;
+  entryId: string;
+  clientId?: string;
+  slotId?: string;
+  reason?: string;
+  occurredAt?: Date;
+}
+
+/** Порт черги очікування. */
+export abstract class WaitlistQueue {
+  abstract getAvailableSlots(criteria: SlotSearchCriteria): Promise<AvailableSlot[]>;
+  abstract getSlotDetails(slotId: string): Promise<SlotDetails | null>;
+  abstract markSlotAsBooked(slotId: string): Promise<void>;
+  abstract getPosition(clientId: string): Promise<WaitlistPositionInfo>;
+  abstract getHoldHistory(windowHours: number): Promise<SlotHoldRecord[]>;
+  abstract getActiveEntry(clientId: string): Promise<WaitlistEntry | null>;
+  abstract getActiveEntryCount(): Promise<number>;
+  abstract getAllEntriesWithPriority(): Promise<PriorityEntry[]>;
+  abstract getRecentEntries(limit: number): Promise<WaitlistEntry[]>;
+  abstract addEntry(entry: WaitlistEntryInput): Promise<void>;
+  abstract removeEntry(entryId: string): Promise<boolean>;
+  abstract moveToFront(entryId: string): Promise<void>;
+  abstract registerMiss(input: WaitlistMissInput): Promise<{ consecutiveMisses: number }>;
+  abstract continueCascade(slotId: string, reason: string): Promise<void>;
+  abstract triggerManualCascade(slotId: string, reason: string): Promise<void>;
+}
+
+const QUEUE_MINUTE_MS = 60 * 1000;
+
+/** Оцінка очікування: 25 хвилин на позицію (базовий час послуги + буфер). */
+export function estimateMinutes(position: number | null): number | null {
+  if (position === null || position <= 0) return null;
+  return position * 25;
 }
 
 /**
- * Акцепт пропозиції (T-4453): лише в межах soft-hold. Повертає заявку в
- * стані `fulfilled`; запис створює booking-флоу за звичайними правилами
- * (нова `AgreedPrice`, поточні знижки — ADR 0012).
+ * Черга в пам'яті: детермінована поведінка для тестів і локальних сценаріїв.
+ * Слоти приходять із явного списку, позиції рахуються в порядку додавання.
  */
-export function acceptOffer(entry: WaitlistEntryData, now: Date): WaitlistEntryData {
-  if (entry.status !== 'offered' || !entry.holdExpiresAt) {
-    throw new Error(`Waitlist entry ${entry.id} has no active offer`);
+export class InMemoryWaitlistQueue extends WaitlistQueue {
+  private readonly entries = new Map<string, WaitlistEntry>();
+  private readonly slots = new Map<string, AvailableSlot>();
+  private readonly holds: SlotHoldRecord[] = [];
+  private readonly booked = new Set<string>();
+  private readonly misses = new Map<string, number>();
+
+  constructor(slots: AvailableSlot[] = []) {
+    super();
+    for (const slot of slots) this.slots.set(slot.id, slot);
   }
-  if (entry.holdExpiresAt.getTime() <= now.getTime()) {
-    throw new Error(`Waitlist offer for ${entry.id} has expired`);
+
+  async getAvailableSlots(criteria: SlotSearchCriteria): Promise<AvailableSlot[]> {
+    const serviceIds = criteria.serviceIds ?? [];
+    const limit = criteria.groupSize ?? 1;
+    return [...this.slots.values()]
+      .filter((slot) => !this.booked.has(slot.id))
+      .filter((slot) => serviceIds.length === 0 || serviceIds.includes(slot.serviceId))
+      .filter((slot) => !criteria.barberId || slot.barberId === criteria.barberId)
+      .filter(
+        (slot) => !criteria.preferredDate || slot.startTime.slice(0, 10) === criteria.preferredDate
+      )
+      .sort((a, b) => a.startTime.localeCompare(b.startTime))
+      .slice(0, Math.max(1, limit));
   }
-  const fulfilled: WaitlistEntryData = { ...entry, status: 'fulfilled' };
-  delete fulfilled.holdExpiresAt;
-  return fulfilled;
+
+  async getSlotDetails(slotId: string): Promise<SlotDetails | null> {
+    const slot = this.slots.get(slotId);
+    if (!slot) return null;
+    return {
+      id: slot.id,
+      barberId: slot.barberId,
+      barberName: slot.barberName ?? slot.barberId,
+      serviceId: slot.serviceId,
+      startTime: slot.startTime,
+    };
+  }
+
+  async markSlotAsBooked(slotId: string): Promise<void> {
+    this.booked.add(slotId);
+    this.recordHold(slotId, 'booked', { triggerType: 'manual' });
+  }
+
+  async getPosition(clientId: string): Promise<WaitlistPositionInfo> {
+    const active = this.activeEntries();
+    const index = active.findIndex((entry) => entry.clientId === clientId);
+    if (index === -1) {
+      return { position: null, estimatedWaitTime: null };
+    }
+    const queueAddedAt = active[index]?.addedAt?.toISOString();
+    return {
+      position: index + 1,
+      estimatedWaitTime: estimateMinutes(index + 1),
+      queueUpdatedAt: new Date().toISOString(),
+      ...(queueAddedAt === undefined ? {} : { queueAddedAt }),
+    };
+  }
+
+  async getHoldHistory(windowHours: number): Promise<SlotHoldRecord[]> {
+    const cutoff = Date.now() - windowHours * 60 * QUEUE_MINUTE_MS;
+    return this.holds.filter((hold) => new Date(hold.heldAt).getTime() >= cutoff);
+  }
+
+  async getActiveEntry(clientId: string): Promise<WaitlistEntry | null> {
+    return this.activeEntries().find((entry) => entry.clientId === clientId) ?? null;
+  }
+
+  async getActiveEntryCount(): Promise<number> {
+    return this.activeEntries().length;
+  }
+
+  async getAllEntriesWithPriority(): Promise<PriorityEntry[]> {
+    return this.activeEntries().map((entry, index) => {
+      const waitedMinutes = Math.floor((Date.now() - entry.addedAt.getTime()) / QUEUE_MINUTE_MS);
+      return {
+        entryId: entry.id,
+        clientId: entry.clientId,
+        clientName: entry.clientName ?? entry.clientId,
+        position: index + 1,
+        priorityScore: entry.priorityScore ?? defaultScore(index, waitedMinutes),
+        waitTimeMinutes: waitedMinutes,
+        rankSince: entry.addedAt.toISOString(),
+        servicesRequested: entry.servicesRequested ?? [entry.serviceId],
+        tier: entry.tier ?? 'regular',
+        addedAt: entry.addedAt.toISOString(),
+      };
+    });
+  }
+
+  async getRecentEntries(limit: number): Promise<WaitlistEntry[]> {
+    return this.activeEntries()
+      .slice()
+      .sort((a, b) => b.addedAt.getTime() - a.addedAt.getTime())
+      .slice(0, Math.max(0, limit));
+  }
+
+  async addEntry(entry: WaitlistEntryInput): Promise<void> {
+    this.entries.set(entry.id, { ...entry, position: this.entries.size + 1 });
+  }
+
+  async removeEntry(entryId: string): Promise<boolean> {
+    return this.entries.delete(entryId);
+  }
+
+  async moveToFront(entryId: string): Promise<void> {
+    const entry = this.entries.get(entryId);
+    if (!entry) return;
+    const rest = [...this.entries.entries()].filter(([id]) => id !== entryId);
+    this.entries.clear();
+    this.entries.set(entryId, { ...entry, addedAt: new Date(0) });
+    for (const [id, value] of rest) this.entries.set(id, value);
+  }
+
+  async registerMiss(input: WaitlistMissInput): Promise<{ consecutiveMisses: number }> {
+    const entryId = input.entryId ?? input.id ?? '';
+    const entry = this.entries.get(entryId);
+    let consecutiveMisses = 0;
+    if (entry) {
+      consecutiveMisses = this.misses.get(entry.clientId) ?? 0;
+      consecutiveMisses += 1;
+      this.misses.set(entry.clientId, consecutiveMisses);
+      this.entries.set(entryId, { ...entry, status: 'missed' });
+    }
+    if (input.slotId) {
+      this.recordHold(input.slotId, 'expired', {
+        triggerType: 'cascade',
+        ...(input.reason === undefined ? {} : { cancellationReason: input.reason }),
+        ...(input.clientId === undefined ? {} : { clientId: input.clientId }),
+      });
+    }
+    return { consecutiveMisses };
+  }
+
+  async continueCascade(slotId: string, reason: string): Promise<void> {
+    this.recordHold(slotId, 'expired', { triggerType: 'cascade', cancellationReason: reason });
+  }
+
+  async triggerManualCascade(slotId: string, reason: string): Promise<void> {
+    this.recordHold(slotId, 'expired', { triggerType: 'manual', cancellationReason: reason });
+  }
+
+  private activeEntries(): WaitlistEntry[] {
+    return [...this.entries.values()]
+      .filter((entry) => entry.status === 'active' || entry.status === 'waiting')
+      .sort((a, b) => a.addedAt.getTime() - b.addedAt.getTime());
+  }
+
+  private recordHold(slotId: string, status: string, extra: Partial<SlotHoldRecord>): void {
+    this.holds.push({
+      slotId,
+      clientId: '',
+      heldAt: new Date().toISOString(),
+      status,
+      fifoCompliant: true,
+      ...extra,
+    });
+  }
+}
+
+/** Пріоритет за замовчуванням: черга + час очікування, обмежений 100. */
+function defaultScore(index: number, waitedMinutes: number): number {
+  const queuePart = Math.max(0, 60 - index * 5);
+  const waitPart = Math.min(40, Math.floor(waitedMinutes / 60) * 5);
+  return Math.min(100, queuePart + waitPart);
 }

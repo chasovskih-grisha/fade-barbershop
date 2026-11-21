@@ -346,6 +346,21 @@ model AvailabilityWindow {
   @@index([locationId])
 }
 
+// Факти записів (T-061 / T-111 / T-4464): occupancy facts per hour for slow-hours analysis.
+model OccupancyFact {
+  id          String    @id @db.Uuid
+  locationId  String    @db.Uuid
+  date        DateTime  @db.Date
+  hour        Int       // 0..23
+  start       DateTime  @db.Timestamptz
+  end         DateTime  @db.Timestamptz
+  duration    Int       // minutes
+  createdAt   DateTime  @default(now()) @db.Timestamptz
+
+  @@index([locationId, date, hour])
+  @@index([date, hour])
+}
+
 model StaffAssignment {
   id         String   @id @db.Uuid
   barberId   String   @db.Uuid
@@ -427,7 +442,7 @@ model Service {
   packageItems     String[]       @default([])
   cleanupMinutes   Int            @default(0)
   resourceIds      String[]       @default([])
-  commissionPercent Int?          @default(null)
+  commissionPercent Int?
   consumableItems  String[]       @default([])
 
   @@unique([name, duration, isAddon])
@@ -792,4 +807,156 @@ model StockItem {
   @@unique([variantId, locationId])
   @@index([locationId])
   @@index([variantId])
+}
+
+// SavedClientFilter (T-4461) — збережений CRM-фільтр клієнта.
+// Сторінка не зберігається: фільтр завжди відкривається з першої сторінки.
+model SavedClientFilter {
+  id            String   @id @db.Uuid
+  ownerId       String   @db.Uuid
+  name          String
+  query         Json     @default("[]")
+  createdAt     DateTime @default(now()) @db.Timestamptz
+  updatedAt     DateTime @updatedAt @db.Timestamptz
+
+  @@index([ownerId])
+  @@index([updatedAt])
+}
+
+// FeedbackWindow (T-4451/T-4463) — вікно Period feedback-submission.
+model FeedbackWindow {
+  id               String   @id @db.Uuid
+  appointmentId    String   @db.Uuid
+  clientId         String   @db.Uuid
+  barberId         String?  @db.Uuid
+  locationId       String?  @db.Uuid
+  rating           Int      @default(5)
+  text             String?
+  isPublic         Boolean  @default(false)
+  consentGiven     Boolean  @default(false)
+  photos           Json     @default("[]")
+  createdAt        DateTime @default(now()) @db.Timestamptz
+  updatedAt        DateTime @updatedAt @db.Timestamptz
+
+  submissions FeedbackSubmission[]
+
+  @@index([appointmentId])
+  @@index([clientId])
+  @@index([createdAt])
+}
+
+// FeedbackSubmission (T-4451/T-4463) — адміністративне опрацювання.
+model FeedbackSubmission {
+  id               String   @id @db.Uuid
+  feedbackId       String   @db.Uuid
+  feedback         FeedbackWindow @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  adminId          String   @db.Uuid
+  status           String    @default("new")
+  replyText        String?
+  processedAt      DateTime? @db.Timestamptz
+  processedBy      String?
+  showcaseModerated Boolean   @default(false)
+  moderatedBy      String?
+  moderatedAt      DateTime? @db.Timestamptz
+  moderationNote   String?
+  repliedAt        DateTime? @db.Timestamptz
+  createdAt        DateTime @default(now()) @db.Timestamptz
+  updatedAt        DateTime @updatedAt @db.Timestamptz
+
+  @@index([feedbackId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// NoShowStaged (T-4452) — етапи no-show: detected → notified → rebook_offered → deposit_settled.
+model NoShowStaged {
+  id               String   @id @db.Uuid
+  clientId         String   @db.Uuid
+  appointmentId    String   @db.Uuid
+  stage            String   @default("detected")
+  depositAmount    Int
+  depositDecision  String?
+  journal          Json     @default("[]")
+  detectedAt       DateTime @default(now()) @db.Timestamptz
+  createdAt        DateTime @default(now()) @db.Timestamptz
+  updatedAt        DateTime @updatedAt @db.Timestamptz
+
+  @@index([clientId])
+  @@index([appointmentId])
+  @@index([stage])
+  @@index([createdAt])
+}
+
+// ReferralCode (T-46xx) — одноразовий код запрошення клієнта.
+model ReferralCode {
+  id         String   @id @db.Uuid
+  referrerId String   @db.Uuid
+  code       String   @unique
+  status     String   @default("active")
+  uses       Int      @default(0)
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  @@index([referrerId])
+}
+
+// CampaignSent (T-45xx) — журнал анти-спаму: яка кампанія кому й коли пішла.
+model CampaignSent {
+  id          String   @id @db.Uuid
+  eventId     String?  @unique
+  type        String   @default("campaign")
+  segmentType String?
+  campaignId  String?
+  clientId    String   @db.Uuid
+  sentAt      DateTime @default(now()) @db.Timestamptz
+
+  @@index([clientId, campaignId])
+  @@index([sentAt])
+}
+
+// CancellationReasonJournal (T-4560) — append-only журнал причин скасувань і
+// no-show. Рядки не перезаписуються: admin-«excused» додає нову фіксацію, тож
+// аудит зберігається, а статистика бере останню фіксацію на візит.
+model CancellationReasonJournal {
+  id           String   @id @db.Uuid
+  appointmentId String  @db.Uuid
+  clientId     String   @db.Uuid
+  barberId     String   @db.Uuid
+  serviceId    String?  @db.Uuid
+  locationId   String   @db.Uuid
+  channel      String
+  kind         String
+  reason       String?
+  customReason String?
+  noShowReason String?
+  excused      Boolean  @default(false)
+  cancelledBy  String
+  startedAt    DateTime @db.Timestamptz
+  recordedAt   DateTime @db.Timestamptz
+  createdAt    DateTime @default(now()) @db.Timestamptz
+
+  @@index([appointmentId, kind])
+  @@index([barberId, recordedAt])
+  @@index([locationId, recordedAt])
+  @@index([kind, recordedAt])
+}
+
+// DepositHold (T-4619a) — 15-хвилинне утримання крісла під незаплачений
+// депозит. Прострочене утримання звільняє крісло; оплата в межах вікна
+// переводить його в `captured`.
+model DepositHold {
+  id            String   @id @db.Uuid
+  appointmentId String   @db.Uuid
+  barberId      String   @db.Uuid
+  locationId    String   @db.Uuid
+  startAt       DateTime @db.Timestamptz
+  endAt         DateTime @db.Timestamptz
+  expiresAt     DateTime @db.Timestamptz
+  depositAmount Int
+  status        String   @default("active")
+  createdAt     DateTime @default(now()) @db.Timestamptz
+  updatedAt     DateTime @updatedAt @db.Timestamptz
+
+  @@unique([appointmentId])
+  @@index([status, expiresAt])
+  @@index([barberId, startAt])
 }

@@ -1,4 +1,7 @@
-import { ProcessReviewEscalationUseCase, AdminNotifier } from './process-review-escalation.use-case';
+import {
+  ProcessReviewEscalationUseCase,
+  AdminNotifier,
+} from './process-review-escalation.use-case';
 import { ReviewItem } from '../domain/reputation.entity';
 
 describe('ProcessReviewEscalationUseCase', () => {

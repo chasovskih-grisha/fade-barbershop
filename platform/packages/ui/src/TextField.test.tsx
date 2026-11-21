@@ -23,13 +23,7 @@ describe('TextField Component', () => {
   });
 
   it('renders error state and error message', () => {
-    render(
-      <TextField
-        label="Email"
-        error="Invalid email address"
-        defaultValue="bad-email"
-      />
-    );
+    render(<TextField label="Email" error="Invalid email address" defaultValue="bad-email" />);
 
     const input = screen.getByDisplayValue('bad-email');
     expect(input).toHaveAttribute('aria-invalid', 'true');

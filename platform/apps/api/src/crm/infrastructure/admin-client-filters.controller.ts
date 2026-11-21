@@ -65,10 +65,7 @@ export class AdminClientFiltersController {
 
   /** Перейменування. */
   @Patch(':id')
-  async rename(
-    @Param('id') id: string,
-    @Body() body: { ownerId: string; name: string }
-  ) {
+  async rename(@Param('id') id: string, @Body() body: { ownerId: string; name: string }) {
     return toDto(await this.filters.rename(id, body.ownerId, body.name));
   }
 
@@ -94,5 +91,14 @@ export class AdminClientFiltersController {
     @Body() body: { ownerId: string; page?: number }
   ): Promise<SavedFilterRunResult> {
     return this.filters.run(id, body.ownerId, body.page === undefined ? {} : { page: body.page });
+  }
+
+  /** Dry-run preview: повертає label, count та першу сторінку для перевірки до збереження. */
+  @Post(':id/preview')
+  async preview(
+    @Param('id') id: string,
+    @Body() body: { ownerId: string; name: string; query: Record<string, string | undefined> }
+  ) {
+    return this.filters.preview(body.ownerId, body.name, body.query ?? {});
   }
 }

@@ -1,5 +1,14 @@
 // Адмін-перенесення запису (T-4533): POST /admin/appointments/:id/reschedule.
-import { Body, Controller, HttpCode, HttpException, HttpStatus, Param, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+  Req,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { RescheduleAppointment } from '../application/reschedule-appointment.use-case';

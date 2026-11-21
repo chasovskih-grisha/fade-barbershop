@@ -17,7 +17,11 @@ export class GdprComplianceService {
     this.records.set(record.clientId, record);
   }
 
-  public generateDsarExport(clientId: string): { encryptedArchive: string; expiresAt: string; data: ClientDataRecord } {
+  public generateDsarExport(clientId: string): {
+    encryptedArchive: string;
+    expiresAt: string;
+    data: ClientDataRecord;
+  } {
     const record = this.records.get(clientId);
     if (!record) {
       throw new Error(`Client ${clientId} not found for DSAR export`);
@@ -41,7 +45,7 @@ export class GdprComplianceService {
       name: 'DELETED_USER',
       email: `deleted_${record.clientId}@anonymized.local`,
       phone: '+00000000000',
-      appointments: record.appointments.map(app => ({
+      appointments: record.appointments.map((app) => ({
         ...app,
         // preserve amountPaid for accounting integrity
       })),

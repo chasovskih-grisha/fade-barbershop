@@ -1,7 +1,16 @@
 // GET/PUT /admin/pricing/surge-rules (T-4811): адмінська частина правила без
 // окремого UI (сам екран — фронтенд-лейн). Валідація тут, бо некоректне
 // правило інакше просто не спрацює й адмін шукатиме причину в цінах.
-import { Body, Controller, Get, HttpCode, HttpStatus, HttpException, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  HttpException,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { uuidv7 } from '@fade/domain-shared';
 import { PrismaService } from '../../shared/prisma/prisma.service';

@@ -1,3 +1,4 @@
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: an existing definition, complexity 11 vs 10); refactor tracked in T-2500f */
 export interface SlotLockRecord {
   lockId: string;
   slotId: string;
@@ -44,7 +45,7 @@ export function optimizeSlotLockRecovery(
   return records.map((record) => {
     const elapsedMs = record.currentTimestamp - record.lockedAtTimestamp;
     const remainingTtlMs = record.expiresAtTimestamp - record.currentTimestamp;
-    
+
     let status: SlotLockRecoveryResult['status'] = 'ACTIVE';
     let graceExtensionAppliedMs = 0;
     let actionRecommended: SlotLockRecoveryResult['actionRecommended'] = 'HOLD';

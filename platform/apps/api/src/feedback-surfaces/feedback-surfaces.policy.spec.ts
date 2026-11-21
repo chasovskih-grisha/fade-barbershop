@@ -59,8 +59,10 @@ describe('feedback window policy', () => {
 
   it('stops edits after the window closes', () => {
     expect(
-      evaluateSubmission({ status: 'submitted', windowEndsAt: inDays(-1), hasSubmission: true }, NOW)
-        .canEdit
+      evaluateSubmission(
+        { status: 'submitted', windowEndsAt: inDays(-1), hasSubmission: true },
+        NOW
+      ).canEdit
     ).toBe(false);
     expect(
       evaluateSubmission({ status: 'closed', windowEndsAt: inDays(10), hasSubmission: false }, NOW)

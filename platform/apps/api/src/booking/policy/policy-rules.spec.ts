@@ -1,6 +1,15 @@
 // T-4542: правила онлайн-букінгу — межі, дедлайни, ліміти й тексти для фронту.
 import { DEFAULT_ONLINE_BOOKING_POLICY, isValidPolicy, mergePolicy } from './online-booking-policy';
-import { checkActiveBookings, checkCancellationDeadline, checkDuplicate, checkGuestBooking, checkHorizon, checkLeadTime, checkNoShowBlock, checkRescheduleDeadline } from './policy-rules';
+import {
+  checkActiveBookings,
+  checkCancellationDeadline,
+  checkDuplicate,
+  checkGuestBooking,
+  checkHorizon,
+  checkLeadTime,
+  checkNoShowBlock,
+  checkRescheduleDeadline,
+} from './policy-rules';
 
 const NOW = new Date('2026-11-17T10:00:00Z');
 const policy = DEFAULT_ONLINE_BOOKING_POLICY;
@@ -50,7 +59,9 @@ describe('online booking policy (T-4542)', () => {
   it('no-show блокує від 3 випадків; 0 вимикає правило', () => {
     expect(checkNoShowBlock(policy, 3)?.code).toBe('no_show_block');
     expect(checkNoShowBlock(policy, 2)).toBeNull();
-    expect(checkNoShowBlock({ ...policy, noShowBlock: { count: 0, windowDays: 180 } }, 9)).toBeNull();
+    expect(
+      checkNoShowBlock({ ...policy, noShowBlock: { count: 0, windowDays: 180 } }, 9)
+    ).toBeNull();
   });
 
   it('guest booking залежить від перемикача й наявності акаунта', () => {

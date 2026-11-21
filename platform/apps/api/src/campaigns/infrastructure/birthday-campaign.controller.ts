@@ -74,7 +74,8 @@ export class AdminBirthdayCampaignController {
   @ApiOperation({ summary: 'Підтвердити або виправити дату народження (з аудитом)' })
   async setDate(
     @Param('clientId') clientId: string,
-    @Body() body: { day: number; month: number; by: string; at?: string; source?: 'client' | 'admin' }
+    @Body()
+    body: { day: number; month: number; by: string; at?: string; source?: 'client' | 'admin' }
   ): Promise<{ audit: BirthdayAuditEntry; clientId: string; birthday: BirthdayDate }> {
     try {
       const result = await this.birthday.verifyDate({

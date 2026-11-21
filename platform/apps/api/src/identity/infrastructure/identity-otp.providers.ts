@@ -3,8 +3,14 @@
 import type { Provider } from '@nestjs/common';
 import { RequestOtpHandler } from '../application/request-otp';
 import { VerifyOtpHandler } from '../application/verify-otp';
-import { AdminRequestClientOtpHandler, AdminVerifyClientOtpHandler } from '../application/admin-client-otp';
-import { AdminOnboardClientHandler, type ClientProfilesPort } from '../application/admin-onboard-client';
+import {
+  AdminRequestClientOtpHandler,
+  AdminVerifyClientOtpHandler,
+} from '../application/admin-client-otp';
+import {
+  AdminOnboardClientHandler,
+  type ClientProfilesPort,
+} from '../application/admin-onboard-client';
 import { AdminRegisterClientHandler } from '../application/admin-register-client';
 import { SystemClock } from './system-clock';
 import { UuidIdGenerator } from './uuid-id-generator';

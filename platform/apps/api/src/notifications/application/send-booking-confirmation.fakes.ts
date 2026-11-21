@@ -1,5 +1,12 @@
 import { SendBookingConfirmation } from './send-booking-confirmation';
-import { BOOKED_EVENT_TYPE, type NotificationJournal, type LocationContacts, type ClientContacts, type NotificationEvent, type BookingConfirmationDeps } from './booking-confirmation-ports';
+import {
+  BOOKED_EVENT_TYPE,
+  type NotificationJournal,
+  type LocationContacts,
+  type ClientContacts,
+  type NotificationEvent,
+  type BookingConfirmationDeps,
+} from './booking-confirmation-ports';
 import type { EmailSender } from '../../shared/email/ports';
 import type { SmsSender } from './booking-confirmation-sms';
 import type { BookingConfirmationSettingsPort } from '../domain/booking-confirmation-settings';

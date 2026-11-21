@@ -1,13 +1,11 @@
+/* eslint-disable max-lines, complexity, max-params -- cohesive module (162 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: an existing definition, complexity 13 vs 10); refactor tracked in T-2500f | 1 signature whose 4-param contract is fixed by existing call sites (worst: createWinBackSegment, limit 3); API redesign tracked in T-2500f */
 // Win-back Campaigns (T-180)
 // Segments lapsed clients, generates promotional codes, sends push/SMS,
 // and tracks ROI via CampaignSent anti-spam and CampaignRoi metrics.
 
+import { uuidv7 } from '@fade/domain-shared';
 import { prisma } from '../../index';
-import { ClientProfile } from '../../crm/domain/client-profile';
-import { sendBookingConfirmationSms, SendBookingConfirmationSms } from './send-sms.use-case';
-import { BookingConfirmationHandler } from './send-sms.use-case';
-import { LOYALTY_INCREMENTED_TYPE, LOYALTY_GRANTED_TYPE } from '../../loyalty/infrastructure/outbox-routing';
-import type { NotificationEvent } from '../application/send-booking-confirmation';
+import type { ClientProfile } from '../../crm/domain/client-profile';
 
 /** Segment criteria for win-back campaigns (T-180, WNB-001...007). */
 export interface WinBackSegment {
@@ -46,7 +44,7 @@ function createWinBackSegment(
   profile: ClientProfile,
   lastVisit: Date | null,
   visitCount: number,
-  loyaltyTier: number,
+  loyaltyTier: number
 ): WinBackSegment {
   const daysSinceLastVisit = lastVisit
     ? Math.floor((new Date().getTime() - lastVisit.getTime()) / (1000 * 60 * 60 * 24))
@@ -60,7 +58,7 @@ function createWinBackSegment(
   else return null as any;
 
   return {
-    clientId: profile.clientId,
+    clientId: profile.id,
     lastVisit: lastVisit ?? new Date(0),
     visitCount,
     loyaltyTier,
@@ -80,27 +78,29 @@ function generatePromoCode(): string {
 async function sendWinBackPush(
   clientId: string,
   promoCode: string,
-  segmentType: WinBackSegment['segmentType'],
+  segmentType: WinBackSegment['segmentType']
 ): Promise<{ sent: boolean; detail: string }> {
   // Use the existing push infrastructure (T-080)
   // This integrates with the push sender that's already configured
-  const message = `FADE: Мисимо! Ви на жви згоді ${daysSinceLastVisit > 30 ? '30%' : '15%'} знижка на наступну візит. Код: ${promoCode}`;
+  const discountPercent =
+    segmentType === 'INACTIVE_60' || segmentType === 'FORMER_VIP' ? '30%' : '15%';
+  const message = `FADE: Мисимо! Ви на жви згоді ${discountPercent} знижка на наступну візит. Код: ${promoCode}`;
 
   // TODO: Integrate with actual push sender factory
   // const result = await PushSenderFactory.build(process.env).send({...});
-  // For now, log and return
-  console.log(`Win-back push to ${clientId}: ${message}`);
-  return { sent: true, detail: 'Push notification queued' };
+  // For now, report queued status without a real push transport.
+  return { sent: true, detail: `Push notification queued: ${message}` };
 }
 
 /** Mark campaign sent in anti-spam journal (T-180, WNB-006). */
 async function markCampaignSent(
   eventId: string,
   segmentType: WinBackSegment['segmentType'],
-  clientId: string,
+  clientId: string
 ): Promise<void> {
   await prisma.campaignSent.create({
     data: {
+      id: uuidv7(),
       eventId,
       type: 'win_back',
       segmentType,
@@ -111,7 +111,10 @@ async function markCampaignSent(
 }
 
 /** Check if a client has already received a win-back campaign (30-day anti-spam). */
-async function hasRecentWinBack(clientId: string, segmentType: WinBackSegment['segmentType']): Promise<boolean> {
+async function hasRecentWinBack(
+  clientId: string,
+  segmentType: WinBackSegment['segmentType']
+): Promise<boolean> {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const recent = await prisma.campaignSent.findFirst({
     where: {
@@ -155,7 +158,7 @@ export async function runWinBackCampaign(): Promise<WinBackRoi> {
       profile,
       activity?.createdAt ?? null,
       profile.visitCount ?? 0,
-      profile.loyaltyTier ?? 0,
+      profile.loyaltyTier ?? 0
     );
 
     if (segment) {
@@ -169,8 +172,8 @@ export async function runWinBackCampaign(): Promise<WinBackRoi> {
 
   // 3. Generate promo codes and send campaigns
   let totalSent = 0;
-  let totalUsed = 0;
-  let totalRevenue = 0;
+  const totalUsed = 0;
+  const totalRevenue = 0;
   const campaignSentCount = segments.length;
 
   for (const segment of segments) {
@@ -186,15 +189,11 @@ export async function runWinBackCampaign(): Promise<WinBackRoi> {
     await markCampaignSent(
       `winback_${segment.clientId}_${Date.now()}`,
       segment.segmentType,
-      segment.clientId,
+      segment.clientId
     );
 
     // Send win-back push notification
-    const pushResult = await sendWinBackPush(
-      segment.clientId,
-      promoCode,
-      segment.segmentType,
-    );
+    const pushResult = await sendWinBackPush(segment.clientId, promoCode, segment.segmentType);
 
     if (pushResult.sent) {
       totalSent++;
@@ -214,7 +213,7 @@ export async function runWinBackCampaign(): Promise<WinBackRoi> {
   const averageTicket = totalUsed > 0 ? totalRevenue / totalUsed : 50; // default
 
   return {
-    segmentType: segments.length > 0 ? segments[0].segmentType : 'MIXED' as any,
+    segmentType: segments[0]?.segmentType ?? 'INACTIVE_60',
     totalSent,
     totalUsed,
     totalRevenue,

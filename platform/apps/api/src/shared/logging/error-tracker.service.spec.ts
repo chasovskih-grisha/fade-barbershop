@@ -13,10 +13,10 @@ describe('ErrorTrackerService', () => {
 
     const snapshot = tracker.snapshot();
     expect(snapshot.totalRecorded).toBe(2);
-    expect(snapshot.recentErrors[0]!.context).toBe('BookingModule');
-    expect(snapshot.recentErrors[0]!.statusCode).toBe(409);
-    expect(snapshot.recentErrors[1]!.context).toBe('AuthModule');
-    expect(snapshot.recentErrors[1]!.statusCode).toBe(401);
+    expect(snapshot?.recentErrors?.[0]?.context).toBe('BookingModule');
+    expect(snapshot?.recentErrors?.[0]?.statusCode).toBe(409);
+    expect(snapshot?.recentErrors?.[1]?.context).toBe('AuthModule');
+    expect(snapshot?.recentErrors?.[1]?.statusCode).toBe(401);
   });
 
   it('respects maximum capacity of 100 errors', () => {
@@ -26,6 +26,6 @@ describe('ErrorTrackerService', () => {
 
     const snapshot = tracker.snapshot();
     expect(snapshot.totalRecorded).toBe(100);
-    expect(snapshot.recentErrors[0]!.message).toBe('Error 109');
+    expect(snapshot?.recentErrors?.[0]?.message).toBe('Error 109');
   });
 });

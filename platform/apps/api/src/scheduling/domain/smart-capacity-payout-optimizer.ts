@@ -4,7 +4,13 @@ export interface SmartCapacityPayoutInput {
   barberId: string;
   operatingStart: Date;
   operatingEnd: Date;
-  existingAppointments: Array<{ start: Date; end: Date; revenue: number; isFirstVisit?: boolean; hairDensity?: 'fine' | 'normal' | 'thick' | 'coarse' }>;
+  existingAppointments: Array<{
+    start: Date;
+    end: Date;
+    revenue: number;
+    isFirstVisit?: boolean;
+    hairDensity?: 'fine' | 'normal' | 'thick' | 'coarse';
+  }>;
   chairs?: number;
   baseCommissionRate?: number; // e.g. 0.50 (50%)
 }
@@ -27,14 +33,16 @@ export interface SmartCapacityPayoutResult {
  * Combines chair utilization density, barber pacing, and dynamic commission scaling
  * to reward peak chair turnover and high-occupancy performance.
  */
-export function calculateSmartCapacityPayout(input: SmartCapacityPayoutInput): SmartCapacityPayoutResult {
+export function calculateSmartCapacityPayout(
+  input: SmartCapacityPayoutInput
+): SmartCapacityPayoutResult {
   const chairs = input.chairs ?? 1;
-  const baseRate = input.baseCommissionRate ?? 0.50;
+  const baseRate = input.baseCommissionRate ?? 0.5;
 
   const metrics = calculateChairUtilizationMetrics({
     operatingStart: input.operatingStart,
     operatingEnd: input.operatingEnd,
-    existing: input.existingAppointments.map(a => ({ start: a.start, end: a.end })),
+    existing: input.existingAppointments.map((a) => ({ start: a.start, end: a.end })),
     chairs,
   });
 
@@ -47,32 +55,36 @@ export function calculateSmartCapacityPayout(input: SmartCapacityPayoutInput): S
   if (metrics.occupancyRate >= 0.85) {
     tierBonusMultiplier = 1.25;
     efficiencyGrade = 'A+';
-  } else if (metrics.occupancyRate >= 0.70) {
+  } else if (metrics.occupancyRate >= 0.7) {
     tierBonusMultiplier = 1.15;
     efficiencyGrade = 'A';
   } else if (metrics.occupancyRate >= 0.55) {
     tierBonusMultiplier = 1.08;
     efficiencyGrade = 'B';
-  } else if (metrics.occupancyRate >= 0.40) {
+  } else if (metrics.occupancyRate >= 0.4) {
     tierBonusMultiplier = 1.02;
     efficiencyGrade = 'C';
   } else {
-    tierBonusMultiplier = 1.00;
+    tierBonusMultiplier = 1.0;
     efficiencyGrade = 'D';
   }
 
   const smartCommissionRate = baseRate * tierBonusMultiplier;
-  const finalPayoutAmount = Math.round((totalRevenue * smartCommissionRate) * 100) / 100;
+  const finalPayoutAmount = Math.round(totalRevenue * smartCommissionRate * 100) / 100;
 
-  const totalOperatingHours = Math.round((input.operatingEnd.getTime() - input.operatingStart.getTime()) / 3600000 * 10) / 10;
+  const totalOperatingHours =
+    Math.round(((input.operatingEnd.getTime() - input.operatingStart.getTime()) / 3600000) * 10) /
+    10;
 
   let payoutRecommendation = 'Standard payout schedule applied.';
   if (efficiencyGrade === 'A+') {
-    payoutRecommendation = 'Exceptional chair occupancy (>85%): Applied 25% commission bonus multiplier for elite productivity.';
+    payoutRecommendation =
+      'Exceptional chair occupancy (>85%): Applied 25% commission bonus multiplier for elite productivity.';
   } else if (efficiencyGrade === 'A') {
     payoutRecommendation = 'High chair occupancy (>70%): Applied 15% commission bonus multiplier.';
   } else if (efficiencyGrade === 'D') {
-    payoutRecommendation = 'Low chair occupancy (<40%): Recommend slot consolidation and cross-promotion to increase turnover.';
+    payoutRecommendation =
+      'Low chair occupancy (<40%): Recommend slot consolidation and cross-promotion to increase turnover.';
   }
 
   return {

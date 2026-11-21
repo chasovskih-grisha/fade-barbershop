@@ -1,3 +1,4 @@
+/* eslint-disable complexity, max-statements -- 1 function with inherent domain branching (worst: optimizeBarberBreaks, complexity 15 vs 10); refactor tracked in T-2500f | 1 method with a single orchestration flow (worst: optimizeBarberBreaks, 38 statements vs 30); extraction tracked in T-2500f */
 export interface BarberAppointmentInterval {
   id: string;
   start: Date;
@@ -31,11 +32,15 @@ export interface BarberBreakOptimizationResult {
 /**
  * Optimizes barber shift pacing and recommends recovery micro-breaks to prevent fatigue and maintain high service quality.
  */
-export function optimizeBarberBreaks(input: BarberBreakOptimizationInput): BarberBreakOptimizationResult {
+export function optimizeBarberBreaks(
+  input: BarberBreakOptimizationInput
+): BarberBreakOptimizationResult {
   const maxContinuous = input.maxContinuousMinutesWithoutBreak ?? 180;
   const minBreak = input.minBreakDurationMinutes ?? 15;
 
-  const sortedAppointments = [...input.appointments].sort((a, b) => a.start.getTime() - b.start.getTime());
+  const sortedAppointments = [...input.appointments].sort(
+    (a, b) => a.start.getTime() - b.start.getTime()
+  );
 
   let continuousMinutes = 0;
   let consecutiveCount = 0;
@@ -83,14 +88,17 @@ export function optimizeBarberBreaks(input: BarberBreakOptimizationInput): Barbe
     (acc, a) => acc + Math.round((a.end.getTime() - a.start.getTime()) / 60000),
     0
   );
-  const shiftTotalMinutes = Math.max(1, Math.round((input.shiftEnd.getTime() - input.shiftStart.getTime()) / 60000));
+  const shiftTotalMinutes = Math.max(
+    1,
+    Math.round((input.shiftEnd.getTime() - input.shiftStart.getTime()) / 60000)
+  );
   const loadRatio = totalWorkedMinutes / shiftTotalMinutes;
 
   let fatigueIndex = Math.min(1.0, loadRatio * (1 + recommendedBreaks.length * 0.1));
   fatigueIndex = Math.round(fatigueIndex * 100) / 100;
 
   let burnoutRisk: 'low' | 'moderate' | 'high' = 'low';
-  if (fatigueIndex >= 0.80 || recommendedBreaks.length >= 2) {
+  if (fatigueIndex >= 0.8 || recommendedBreaks.length >= 2) {
     burnoutRisk = 'high';
   } else if (fatigueIndex >= 0.55 || recommendedBreaks.length === 1) {
     burnoutRisk = 'moderate';

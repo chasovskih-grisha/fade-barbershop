@@ -3,11 +3,8 @@
 import { Module } from '@nestjs/common';
 import { FeedbackSurfacesController } from './feedback-surfaces.controller';
 import { FeedbackSurfacesService } from './feedback-surfaces.service';
-import {
-  InMemoryReviewProcessingRepository,
-  REVIEW_PROCESSING_REPOSITORY,
-  ReviewProcessingService,
-} from './review-processing.service';
+import { REVIEW_PROCESSING_REPOSITORY, ReviewProcessingService } from './review-processing.service';
+import { PrismaReviewProcessingRepository } from './infrastructure/prisma-review-processing.repository';
 import {
   InMemoryReviewRevaluationRepository,
   REVIEW_REVALUATION_REPOSITORY,
@@ -22,9 +19,11 @@ import {
     ReviewRevaluationService,
     {
       provide: REVIEW_PROCESSING_REPOSITORY,
-      useClass: InMemoryReviewProcessingRepository,
+      useClass: PrismaReviewProcessingRepository,
     },
     {
+      // T-4463: повна історія оцінок і запитів повторної оцінки ще не має
+      // колонок у схемі — стан циклу живе в пам'яті процесу.
       provide: REVIEW_REVALUATION_REPOSITORY,
       useClass: InMemoryReviewRevaluationRepository,
     },

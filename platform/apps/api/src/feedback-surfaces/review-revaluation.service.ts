@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (122 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // T-4463: сервіс закритого циклу відгуку. Правила — у review-revaluation.policy,
 // тут лише порт сховища й послідовність кроків.
 //
@@ -136,9 +137,11 @@ export class ReviewRevaluationService {
       }));
   }
 
-  async summary(reviewId: string): Promise<ReturnType<typeof revaluationSummary> & {
-    showcaseState: ShowcaseState;
-  }> {
+  async summary(reviewId: string): Promise<
+    ReturnType<typeof revaluationSummary> & {
+      showcaseState: ShowcaseState;
+    }
+  > {
     const state = await this.requireState(reviewId);
     return { ...revaluationSummary(state), showcaseState: state.showcase };
   }

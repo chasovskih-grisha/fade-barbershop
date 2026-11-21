@@ -5,6 +5,7 @@ import { Card, Field, Button } from '@fade/ui';
 export function AccountProfileCard({
   name,
   phone,
+  visitCount,
   saving,
   canSave,
   error,
@@ -15,6 +16,8 @@ export function AccountProfileCard({
 }: {
   name: string;
   phone: string;
+  /** Минулі візити з того самого списку, що вантажить кабінет; null — запит упав (T-4734b). */
+  visitCount: number | null;
   saving: boolean;
   canSave: boolean;
   error?: string | null;
@@ -42,6 +45,9 @@ export function AccountProfileCard({
             </p>
           )}
           {saved && <p className="mt-1 text-body-s text-success">Збережено</p>}
+          {visitCount !== null && (
+            <p className="mt-1 text-body-s text-fg-secondary">Візитів: {visitCount}</p>
+          )}
         </Field>
         <Field id="phone" label="Номер телефону">
           <input

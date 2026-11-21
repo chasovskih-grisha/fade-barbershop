@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-params -- cohesive module (192 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 signature whose 4-param contract is fixed by existing call sites (worst: policy, limit 3); API redesign tracked in T-2500f */
 // Специфікація T-160: утримання депозита при no-show і повернення при
 // своєчасному скасуванні — від умов снепшота візиту (PAY-ADM-09).
 import { Payment } from '../../billing/domain/payment.entity';
@@ -20,7 +21,12 @@ const TERMS: DepositTerms = {
 const START = new Date('2026-11-20T15:00:00Z'); // дедлайн 11:00 UTC
 const inHours = (hours: number) => new Date(START.getTime() + hours * 3_600_000);
 
-function policy(outcome: AppointmentOutcome, occurredAt: Date, captured = true, terms: DepositTerms | null = TERMS) {
+function policy(
+  outcome: AppointmentOutcome,
+  occurredAt: Date,
+  captured = true,
+  terms: DepositTerms | null = TERMS
+) {
   return settleDeposit({ terms, outcome, appointmentStart: START, occurredAt, captured });
 }
 
@@ -39,7 +45,12 @@ describe('settleDeposit (T-160, PAY-WEB-07)', () => {
     const atDeadline = policy('cancelled', inHours(-4));
     const early = policy('cancelled', inHours(-30));
 
-    expect(atDeadline).toMatchObject({ action: 'release', reason: 'timely_cancellation', refundAmount: 12000, timely: true });
+    expect(atDeadline).toMatchObject({
+      action: 'release',
+      reason: 'timely_cancellation',
+      refundAmount: 12000,
+      timely: true,
+    });
     expect(early).toMatchObject({ action: 'release', refundAmount: 12000, timely: true });
     expect(atDeadline.freeCancelDeadline?.toISOString()).toBe('2026-11-20T11:00:00.000Z');
   });
@@ -59,7 +70,12 @@ describe('settleDeposit (T-160, PAY-WEB-07)', () => {
   it('credits the deposit to the bill when the visit happened', () => {
     const settlement = policy('completed', inHours(0.5));
 
-    expect(settlement).toMatchObject({ action: 'release', reason: 'visit_completed', refundAmount: 0, retainedAmount: 0 });
+    expect(settlement).toMatchObject({
+      action: 'release',
+      reason: 'visit_completed',
+      refundAmount: 0,
+      retainedAmount: 0,
+    });
   });
 
   it('carries the deposit over on a reschedule', () => {
@@ -121,7 +137,7 @@ function harness(options: { status?: PaymentStatus; withFiscal?: boolean } = {})
     service: new DepositSettlementService(deps),
     refund,
     issueRefundReceipt,
-    payment: () => payments.get('pay-1')!,
+    payment: () => payments.get('pay-1'),
   };
 }
 
@@ -139,7 +155,7 @@ describe('DepositSettlementService (T-160)', () => {
 
     expect(result.refunded).toBe(false);
     expect(result.retainedAmount).toBe(12000);
-    expect(payment().status).toBe(PaymentStatus.DEPOSIT_PAID);
+    expect(payment()?.status).toBe(PaymentStatus.DEPOSIT_PAID);
     expect(refund).not.toHaveBeenCalled();
     expect(issueRefundReceipt).not.toHaveBeenCalled(); // PAY-010: без реверсу
   });
@@ -158,7 +174,7 @@ describe('DepositSettlementService (T-160)', () => {
     expect(result.refunded).toBe(true);
     expect(result.refundAmount).toBe(12000);
     expect(refund).toHaveBeenCalledWith(expect.objectContaining({ id: 'pay-1' }), 12000);
-    expect(payment().status).toBe(PaymentStatus.REFUNDED);
+    expect(payment()?.status).toBe(PaymentStatus.REFUNDED);
     expect(issueRefundReceipt).toHaveBeenCalledTimes(1);
     expect(result.refundReceiptId).toBe('check-refund-1');
   });
@@ -177,7 +193,7 @@ describe('DepositSettlementService (T-160)', () => {
     expect(result.action).toBe('forfeit');
     expect(result.refunded).toBe(false);
     expect(refund).not.toHaveBeenCalled();
-    expect(payment().status).toBe(PaymentStatus.DEPOSIT_PAID);
+    expect(payment()?.status).toBe(PaymentStatus.DEPOSIT_PAID);
   });
 
   it('credits the deposit to the bill when the visit completes', async () => {
@@ -192,7 +208,7 @@ describe('DepositSettlementService (T-160)', () => {
     });
 
     expect(result.reason).toBe('visit_completed');
-    expect(payment().status).toBe(PaymentStatus.AWAITING_BALANCE);
+    expect(payment()?.status).toBe(PaymentStatus.AWAITING_BALANCE);
   });
 
   it('refuses to settle an unknown payment', async () => {

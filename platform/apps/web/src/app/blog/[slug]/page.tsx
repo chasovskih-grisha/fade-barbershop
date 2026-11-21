@@ -5,6 +5,9 @@ import { getPublishedArticle } from '@/lib/api/articles';
 import { pageMetadata } from '@/lib/metadata';
 import { ErrorState } from '@/app/components/states/ErrorState';
 import { ArticleBody } from './ArticleBody';
+import { ArticleBookCta } from './ArticleBookCta';
+import { ArticleViewTracker } from './ArticleViewTracker';
+import { buildArticleJsonLd } from './articleJsonLd';
 
 // Сторінка статті — /blog/{slug} (web-screens §3, SEO: стаття має бути в
 // пошуку). Чернетка для гостя = 404 (API такий slug не віддає), помилка API —
@@ -45,59 +48,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   }
 
   const article = result.data;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://fade.com.ua';
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'BlogPosting',
-        headline: article.title,
-        description: article.excerpt || article.title,
-        ...(article.coverUrl ? { image: article.coverUrl } : {}),
-        datePublished: article.publishedAt,
-        author: {
-          '@type': 'Person',
-          name: article.authorName || 'Fade Team',
-        },
-        publisher: {
-          '@type': 'Organization',
-          name: 'FADE Barbershop',
-          url: siteUrl,
-        },
-        mainEntityOfPage: {
-          '@type': 'WebPage',
-          '@id': `${siteUrl}/blog/${slug}`,
-        },
-      },
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          {
-            '@type': 'ListItem',
-            position: 1,
-            name: 'Головна',
-            item: siteUrl,
-          },
-          {
-            '@type': 'ListItem',
-            position: 2,
-            name: 'Блог',
-            item: `${siteUrl}/blog`,
-          },
-          {
-            '@type': 'ListItem',
-            position: 3,
-            name: article.title,
-            item: `${siteUrl}/blog/${slug}`,
-          },
-        ],
-      },
-    ],
-  };
+  const jsonLd = buildArticleJsonLd(article, slug);
 
   return (
     <article className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-10">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <ArticleViewTracker slug={article.slug} tag={article.tags[0]} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <header className="flex flex-col gap-2">
         <h1 className="font-display text-h1">{article.title}</h1>
         <p className="text-body-s text-fg-secondary">
@@ -133,6 +92,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         <Link href="/blog" className="text-body text-accent-blue hover:underline">
           ← Усі статті
         </Link>
+        <ArticleBookCta />
       </footer>
     </article>
   );

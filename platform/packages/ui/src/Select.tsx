@@ -108,7 +108,14 @@ export function Select({
   };
 
   return (
-    <Field id={selectId} label={label} help={help} error={error} required={required} className={className}>
+    <Field
+      id={selectId}
+      label={label}
+      help={help}
+      error={error}
+      required={required}
+      className={className}
+    >
       <div ref={containerRef} className="relative">
         <button
           id={selectId}
@@ -116,7 +123,9 @@ export function Select({
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           aria-controls={isOpen ? listboxId : undefined}
-          aria-activedescendant={isOpen && activeIndex >= 0 ? `${selectId}-option-${activeIndex}` : undefined}
+          aria-activedescendant={
+            isOpen && activeIndex >= 0 ? `${selectId}-option-${activeIndex}` : undefined
+          }
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           disabled={disabled || loading}

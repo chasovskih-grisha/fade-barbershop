@@ -41,8 +41,9 @@ export function RescheduleForm({
   return (
     <div className="flex flex-col gap-4">
       <p className="text-body text-fg-secondary">
-        Оберіть новий час для послуги <strong className="text-fg">{visit.serviceName}</strong> у майстра{' '}
-        <strong className="text-fg">{visit.barberName}</strong>. Тривалість візиту зберігається автоматично.
+        Оберіть новий час для послуги <strong className="text-fg">{visit.serviceName}</strong> у
+        майстра <strong className="text-fg">{visit.barberName}</strong>. Тривалість візиту
+        зберігається автоматично.
       </p>
       <div className="flex flex-col gap-3">
         <Field id="reschedule-date" label="Дата">

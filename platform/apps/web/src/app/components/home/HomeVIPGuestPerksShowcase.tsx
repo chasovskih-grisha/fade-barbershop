@@ -17,7 +17,8 @@ export function HomeVIPGuestPerksShowcase() {
             Привілеї високого рівня для кожного гостя
           </h3>
           <p className="text-bodyLg text-fg-secondary">
-            Ми створили атмосферу абсолютного комфорту, де кожна деталь працює на ваш бездоганний імідж, розслаблення та економію часу.
+            Ми створили атмосферу абсолютного комфорту, де кожна деталь працює на ваш бездоганний
+            імідж, розслаблення та економію часу.
           </p>
         </div>
         <Link
@@ -35,7 +36,8 @@ export function HomeVIPGuestPerksShowcase() {
           </div>
           <h4 className="font-display text-h4 font-bold text-fg">Персональний ритуал</h4>
           <p className="text-body text-fg-secondary leading-relaxed">
-            Індивідуальний підбір косметики, консультація стиліста та фірмовий гарячий рушник з ароматерапією у кожному візиті.
+            Індивідуальний підбір косметики, консультація стиліста та фірмовий гарячий рушник з
+            ароматерапією у кожному візиті.
           </p>
         </div>
 
@@ -45,7 +47,8 @@ export function HomeVIPGuestPerksShowcase() {
           </div>
           <h4 className="font-display text-h4 font-bold text-fg">Накопичувальний кешбек</h4>
           <p className="text-body text-fg-secondary leading-relaxed">
-            Повертайте до 10% від вартості кожної послуги на свій баланс у додатку Fade для оплати майбутніх візитів та доглядової косметики.
+            Повертайте до 10% від вартості кожної послуги на свій баланс у додатку Fade для оплати
+            майбутніх візитів та доглядової косметики.
           </p>
         </div>
 
@@ -55,7 +58,8 @@ export function HomeVIPGuestPerksShowcase() {
           </div>
           <h4 className="font-display text-h4 font-bold text-fg">Гарантія якості Fade</h4>
           <p className="text-body text-fg-secondary leading-relaxed">
-            Якщо зачіска потребує легкого корегування протягом тижня, ми проведемо його абсолютно безкоштовно у будь-якій студії мережі.
+            Якщо зачіска потребує легкого корегування протягом тижня, ми проведемо його абсолютно
+            безкоштовно у будь-якій студії мережі.
           </p>
         </div>
       </div>

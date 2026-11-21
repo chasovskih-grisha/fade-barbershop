@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Card, Button, Skeleton, Avatar } from '@fade/ui';
-import { BarberDto } from '../types';
+import { Button, Skeleton } from '@fade/ui';
+import type { BarberDto } from '../types';
+import { BarberCard } from './BarberCard';
 
 interface Props {
   barbers: BarberDto[];
@@ -11,9 +12,15 @@ interface Props {
   retryBarbers?: () => void;
 }
 
-/** Екран 2 (booking-flow.md:114): «Будь-який барбер» перша опція (id '' = any);
- * фото (опційно), ім'я, чип локації; фолбек на Avatar з ініціалами. */
-export default function BarberStep({ barbers, loading = false, error, onBack, onSelect, retryBarbers }: Props) {
+/** Екран 2 (booking-flow.md:114): «Будь-який барбер» перша опція (id '' = any). */
+export default function BarberStep({
+  barbers,
+  loading = false,
+  error,
+  onBack,
+  onSelect,
+  retryBarbers,
+}: Props) {
   // null = нічого не обрано; '' = «Будь-який барбер» (валідний вибір).
   const [selected, setSelected] = useState<string | null>(null);
   if (loading) {
@@ -48,46 +55,12 @@ export default function BarberStep({ barbers, loading = false, error, onBack, on
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {barbers.map((b) => (
-          <Card
+          <BarberCard
             key={b.id || 'any'}
-            interactive={true}
-            role="button"
-            tabIndex={0}
-            aria-pressed={selected === b.id}
-            className={`p-4 flex items-center gap-4 ${selected === b.id ? 'ring-2 ring-fg' : ''}`}
-            onClick={() => setSelected(b.id)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setSelected(b.id);
-              }
-            }}
-          >
-            {b.any ? (
-              <div className="w-12 h-12 rounded-full bg-surface-raised flex items-center justify-center font-semibold text-h4" aria-hidden="true">
-                ★
-              </div>
-            ) : b.photo ? (
-              <img
-                src={b.photo.url}
-                alt={b.photo.alt}
-                width={b.photo.width ?? 48}
-                height={b.photo.height ?? 48}
-                loading="lazy"
-                className="w-12 h-12 rounded-full object-cover"
-              />
-            ) : (
-              <Avatar name={b.name} size="lg" />
-            )}
-            <div className="flex flex-col">
-              <h3 className="font-text text-h4 font-semibold">
-                {b.any ? 'Будь‑який барбер' : b.name}
-              </h3>
-              {b.locationName && !b.any && (
-                <span className="text-xs text-fg-secondary mt-0.5">{b.locationName}</span>
-              )}
-            </div>
-          </Card>
+            barber={b}
+            selected={selected === b.id}
+            onChoose={setSelected}
+          />
         ))}
       </div>
       <Button disabled={selected === null} onClick={() => onSelect(selected ?? '')}>

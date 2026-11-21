@@ -8,7 +8,7 @@ import { ContentExceptionFilter } from './content.exception-filter';
 export class SeoBlockController {
   constructor(
     private readonly getSeoBlock: GetSeoBlockUseCase,
-    private readonly updateSeoBlock: UpdateSeoBlockUseCase,
+    private readonly updateSeoBlock: UpdateSeoBlockUseCase
   ) {}
 
   @Get('content/seo/:entityType/:entityId')
@@ -25,7 +25,7 @@ export class SeoBlockController {
   async updateAdmin(
     @Param('entityType') entityType: string,
     @Param('entityId') entityId: string,
-    @Body() dto: Omit<UpdateSeoBlockDto, 'entityType' | 'entityId'>,
+    @Body() dto: Omit<UpdateSeoBlockDto, 'entityType' | 'entityId'>
   ) {
     return this.updateSeoBlock.execute({ ...dto, entityType, entityId });
   }

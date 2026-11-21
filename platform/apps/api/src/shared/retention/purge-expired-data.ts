@@ -1,7 +1,12 @@
 // PurgeExpiredData (T-4490): один прохід крону — видалити прострочене за
 // політикою, перевірити, що нічого не лишилось, і записати аудит. Legal hold
 // пропускає набір повністю (але фіксується в аудиті як held).
-import { RETENTION_RULES, cutoffFor, type RetentionAuditEntry, type RetentionRule } from './retention-policy';
+import {
+  RETENTION_RULES,
+  cutoffFor,
+  type RetentionAuditEntry,
+  type RetentionRule,
+} from './retention-policy';
 import type { RetentionStore } from './retention.ports';
 
 export interface PurgeDeps {

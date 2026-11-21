@@ -1,88 +1,93 @@
-import { Booking, BookingRepository } from '../../scheduling/domain/booking';
-import { BookingCreateParams } from '../../scheduling/domain/booking.data';
-import { CheckboxFiscalGateway, CheckboxReceiptType } from './checkbox-fiscal-gateway';
-import { BookAppointmentDeps } from '../../scheduling/application/book-appointment.types';
-import type { BookAppointmentDeps } from '../../scheduling/application/book-appointment.types';
-export type { BookAppointmentDeps };
+/* eslint-disable max-params -- 1 signature whose 4-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
+// T-092: ланцюг чеків Checkbox — депозит (#1) і закриваюча решта (#2) або
+// повний продаж, коли депозиту не було. Ідемпотентність — через `check_id`,
+// який генерує інтеграція (PAY-WEB-03, PAY-006). `FinalPrice = 0` до Checkbox
+// не доходить узагалі (PAY-003/LYL-007): нульовий чек повертається як `exempt`
+// без виклику провайдера.
+import type { Booking } from '../../scheduling/domain/booking';
+import { CheckboxReceiptType, type CheckboxReceipt } from './checkbox-fiscal-gateway';
 
-/** T-092: Checkbox fiskalні чеки для депозиту та остачі.
- * Integraciya s Checkbox UA fiskalService.
- * чек #1 (deposit) — коли depositStatus → Captured
- * чек #2 (remainder) — коли booking → DONE
- * ідемпотентність через check_id; FinalPrice = 0 — експтут.
- */
+/** Мінімум, потрібний від фіскального шлюзу. */
+export interface ReceiptIssuer {
+  issueReceipt(
+    bookingId: string,
+    amount: number,
+    type: CheckboxReceiptType,
+    checkId?: string
+  ): Promise<CheckboxReceipt>;
+}
+
+export interface ReceiptLookup extends ReceiptIssuer {
+  findReceipt(checkId: string): CheckboxReceipt | null;
+}
+
+const EXEMPT_AMOUNT = 0;
+
+function exempt(type: CheckboxReceiptType, checkId: string, at: Date): CheckboxReceipt {
+  return {
+    check_id: checkId,
+    type,
+    amount: EXEMPT_AMOUNT,
+    status: 'exempt',
+    created_at: at,
+  };
+}
+
 export class T092CheckboxReceipt {
   constructor(
-    private readonly gateway: CheckboxFiscalGateway,
-    private readonly bookingRepo: BookingRepository
+    private readonly gateway: ReceiptLookup,
+    private readonly now: () => Date = () => new Date()
   ) {}
 
-  /** Issue deposit receipt when deposit is captured.
-   * Викликається з DepositFlow.execute після CapturePayment.
-   */
+  /** Чек #1: депозит списано (PaymentCaptured). */
   async issueDepositReceipt(booking: Booking): Promise<CheckboxReceipt> {
-    const depositAmount = booking.depositAmount ?? 0;
-    return this.gateway.issueReceipt(
-      booking.id,
-      depositAmount,
-      CheckboxReceiptType.Deposit,
-      `deposit_${booking.id}`
-    );
+    const amount = booking.deposit?.amount ?? 0;
+    return this.issue(booking, amount, CheckboxReceiptType.Deposit, `deposit_${booking.id}`);
   }
 
-  /** Issue remainder receipt when booking is finalized.
-   * callee: Remainder = FinalPrice - depositAmount
-   * Викликається з book-appointment.use-case після переходу у DONE.
-   */
+  /** Чек #2: закриваючий чек ланцюга — решта після депозиту. */
   async issueRemainderReceipt(booking: Booking): Promise<CheckboxReceipt> {
-    const finalPrice = booking.finalPrice ?? 0;
-    const depositAmount = booking.depositAmount ?? 0;
-    const remainderAmount = Math.max(0, finalPrice - depositAmount);
-
-    return this.gateway.issueReceipt(
-      booking.id,
-      remainderAmount,
-      CheckboxReceiptType.Remainder,
-      `remainder_${booking.id}`
-    );
+    const amount = this.remainderOf(booking);
+    return this.issue(booking, amount, CheckboxReceiptType.Remainder, `remainder_${booking.id}`);
   }
 
-  /** Full payment receipt when no deposit, full amount paid at once.
-   * Викликається при walk-in оплаті безDepositu.
-   */
+  /** Повний продаж: візит без депозиту оплачено на місці. */
   async issueFullPaymentReceipt(booking: Booking): Promise<CheckboxReceipt> {
-    const finalPrice = booking.finalPrice ?? 0;
-    return this.gateway.issueReceipt(
-      booking.id,
-      finalPrice,
-      CheckboxReceiptType.FullPayment,
-      `full_${booking.id}`
-    );
+    const amount = booking.finalPrice ?? 0;
+    return this.issue(booking, amount, CheckboxReceiptType.FullPayment, `full_${booking.id}`);
   }
 
-  /** Get receipt status by check_id.
-   * Для адмін-панелі та клієнтського статусу.
+  /** Статус чека для адмінки й кабінету (CHECKBOX: CREATED → DONE/ERROR). */
+  getReceiptStatus(checkId: string): CheckboxReceipt | null {
+    return this.gateway.findReceipt(checkId);
+  }
+
+  /**
+   * `sum_equals_total_sum`: чек решти не може дорівнювати сумі всього ланцюга,
+   * а повний чек мусить дорівнювати FinalPrice. Депозит — строго менше.
    */
-  async getReceiptStatus(checkId: string): Promise<CheckboxReceipt | null> {
-    // In production: query Checkbox API for receipt status
-    // For now, return cached status or null
-    const cached = this.checkIdCounter.get(checkId);
-    if (cached) {
-      return {
-        check_id: checkId,
-        type: cached.status === 'signed' ? CheckboxReceiptType.Deposit : CheckboxReceiptType.Deposit,
-        amount: cached.amount,
-        status: cached.status as any,
-        created_at: cached.created_at,
-      };
-    }
-    return null;
+  validateAmount(finalPrice: number, depositAmount: number, receiptAmount: number): boolean {
+    if (receiptAmount <= 0) return false;
+    const remainder = Math.max(0, finalPrice - depositAmount);
+    return receiptAmount === remainder || receiptAmount === finalPrice;
   }
 
-  /** Validate that receipt amount matches booking total (sum_equals_total_sum check). */
-  validateAmount(finalPrice: number, depositAmount: number, receiptAmount: number): boolean {
-    // sum_equals_total_sum: receipt amount must equal finalPrice - depositAmount (or finalPrice for full payment)
-    const expected = finalPrice - depositAmount;
-    return receiptAmount === expected || receiptAmount === finalPrice;
+  private remainderOf(booking: Booking): number {
+    const finalPrice = booking.finalPrice ?? 0;
+    const depositAmount = booking.deposit?.amount ?? 0;
+    return Math.max(0, finalPrice - depositAmount);
+  }
+
+  private async issue(
+    booking: Booking,
+    amount: number,
+    type: CheckboxReceiptType,
+    checkId: string
+  ): Promise<CheckboxReceipt> {
+    // PAY-003/LYL-007: безоплатний візит не є розрахунковою операцією.
+    if (!booking.requiresPayment || amount <= 0) {
+      return exempt(type, checkId, this.now());
+    }
+    return this.gateway.issueReceipt(booking.id, amount, type, checkId);
   }
 }

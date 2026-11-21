@@ -38,8 +38,33 @@ export interface ExtendedAppointment {
   referenceComment: string;
   /** Право редагування вирішує сервер: лише до підтвердження барбером. */
   canEditReference: boolean;
+  /**
+   * Чи можна почати повторний запис (T-4617). Сервер ставить `false` для
+   * візиту в партії: флоу ще не вміє передзаповнення пакета.
+   */
+  canBookAgain: boolean;
   /** Немає поля або null — депозиту немає, наслідок скасування не називається. */
   deposit?: DepositTerms | null;
+}
+
+/**
+ * Посилання у намірі повторного запису (T-4617a). `stale` — об'єкт більше
+ * не дійсний для нового запису: поле треба обрати заново.
+ */
+export interface BookAgainRef {
+  id: string;
+  name: string;
+  stale: boolean;
+}
+
+/** Відповідь GET /appointments/:id/book-again: локація, послуга, барбер і
+ * поточна ціна локації. Нічого не створює і не тримає слот (T-4617a). */
+export interface BookAgainIntent {
+  location: BookAgainRef;
+  service: BookAgainRef | null;
+  barber: BookAgainRef;
+  /** Поточна ціна локації; null — ціни немає (поле порожнє, не вигадане число). */
+  price: number | null;
 }
 
 /** Відповідь API. `null`/`undefined` нормалізуються в клієнті перед використанням. */
@@ -56,6 +81,8 @@ export interface AppointmentResponse {
   referenceId?: string | null;
   referenceComment?: string;
   canEditReference?: boolean;
+  /** Правило партії (T-4617); відсутність — старий API, дію не ховаємо. */
+  canBookAgain?: boolean;
   /** Снепшот умов депозиту візиту; відсутність — візит без депозиту. */
   deposit?: Partial<DepositTerms> | null;
 }

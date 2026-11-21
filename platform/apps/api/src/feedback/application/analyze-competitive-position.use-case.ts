@@ -28,7 +28,7 @@ export interface CompetitivePositionResult {
 export class AnalyzeCompetitivePositionUseCase {
   constructor(
     @Inject('CompetitorBenchmarkRepository')
-    private readonly competitorRepo: CompetitorBenchmarkRepository,
+    private readonly competitorRepo: CompetitorBenchmarkRepository
   ) {}
 
   async execute(query: AnalyzeCompetitivePositionQuery): Promise<CompetitivePositionResult> {

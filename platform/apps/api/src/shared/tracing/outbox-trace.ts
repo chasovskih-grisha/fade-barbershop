@@ -6,7 +6,14 @@
 // W3C traceparent будуємо напряму зі SpanContext (формат 00-{traceId}-{spanId}-{flags})
 // — без зайвої залежності на пакет пропагаторів; семантика та сама, що й у
 // глобального W3C-пропагатора SDK (T-4204f).
-import { context, trace, Context, isSpanContextValid, ROOT_CONTEXT, SpanContext } from '@opentelemetry/api';
+import {
+  context,
+  trace,
+  Context,
+  isSpanContextValid,
+  ROOT_CONTEXT,
+  SpanContext,
+} from '@opentelemetry/api';
 
 /** Ключ W3C-карірування всередині payload події (wire-домен не рухається). */
 const TRACE_CARRIER_KEY = 'traceparent';

@@ -11,11 +11,13 @@ import { AppModule } from './app.module';
 import { DailyFileLogger } from './shared/logging/daily-file.logger';
 import { SESSION_COOKIE_NAME } from './identity/infrastructure/session-cookie';
 import { setupOpenApi } from './shared/openapi/openapi';
+import { securityHeaders } from './shared/security/security-headers';
 
 const logger = new DailyFileLogger(join(process.cwd(), 'var', 'logs'));
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { logger });
+  app.use(securityHeaders);
   app.use(cookieParser());
   const corsOrigin = process.env.CORS_ORIGIN ?? 'http://localhost:13001';
   app.use(

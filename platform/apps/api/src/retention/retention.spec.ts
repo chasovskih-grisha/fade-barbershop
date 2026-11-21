@@ -1,5 +1,10 @@
 import { InMemoryRetentionRepository } from './application/in-memory-retention.repository';
-import { TriggerReactivationFlowUseCase, EnrollClientOnboardingUseCase, GrantRetentionIncentiveUseCase, ProcessClientVisitMilestoneUseCase } from './application/retention.use-cases';
+import {
+  TriggerReactivationFlowUseCase,
+  EnrollClientOnboardingUseCase,
+  GrantRetentionIncentiveUseCase,
+  ProcessClientVisitMilestoneUseCase,
+} from './application/retention.use-cases';
 
 describe('Customer Acquisition & Retention Specialist - Retention & Reactivation Flows', () => {
   let repository: InMemoryRetentionRepository;
@@ -98,4 +103,3 @@ describe('Customer Acquisition & Retention Specialist - Retention & Reactivation
     expect(updatedIncentive?.unlockedPerks).toContain('Free Hot Towel Shave');
   });
 });
-

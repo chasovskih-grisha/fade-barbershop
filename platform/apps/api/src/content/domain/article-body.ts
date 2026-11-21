@@ -3,7 +3,17 @@
 // вузький — абзац, h2/h3, список, цитата, зображення з обов'язковим alt; сирий
 // HTML, h1 і небезпечні посилання — помилка публікації, а не «тихо почистити».
 
-import { at, assertInline, isBlockStart, LIST_ITEM, parseHeading, parseImage, QUOTE, RAW_HTML, InvalidArticleBodyError } from './article-inline';
+import {
+  at,
+  assertInline,
+  isBlockStart,
+  LIST_ITEM,
+  parseHeading,
+  parseImage,
+  QUOTE,
+  RAW_HTML,
+  InvalidArticleBodyError,
+} from './article-inline';
 
 export { InvalidArticleBodyError } from './article-inline';
 

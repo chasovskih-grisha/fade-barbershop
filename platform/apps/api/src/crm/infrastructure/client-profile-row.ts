@@ -90,8 +90,6 @@ export function toPrismaProfile(
     phone: props.phone,
     birthDay: props.birthday?.day ?? null,
     birthMonth: props.birthday?.month ?? null,
-    inviteCode: props.inviteCode,
-    referredBy: props.referredBy,
     preferences: props.preferences as unknown as Prisma.InputJsonValue[],
     notes: props.notes as unknown as Prisma.InputJsonValue[],
     vipDiscountPercent: props.vipDiscountPercent,

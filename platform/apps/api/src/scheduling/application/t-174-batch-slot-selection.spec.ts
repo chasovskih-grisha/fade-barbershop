@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (129 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-174: пакетний підбір слотів для групи та групове бронювання.
 // Use case перевіряється з in-memory портами — без Prisma і без HTTP, рівно те,
 // що обіцяє задача: підбір до groupSize слотів і створення рівно groupSize записів.
@@ -7,9 +8,9 @@ import type { AvailableSlot, SlotSearchCriteria, WaitlistQueue } from '../domain
 import { T174BatchSlotSelectionUseCase } from './t-174-batch-slot-selection.use-case';
 
 const SLOTS: AvailableSlot[] = [
-  { id: 'slot-1', barberId: 'barber-1', startTime: '2026-11-20T10:00:00.000Z' },
-  { id: 'slot-2', barberId: 'barber-1', startTime: '2026-11-20T10:30:00.000Z' },
-  { id: 'slot-3', barberId: 'barber-1', startTime: '2026-11-20T11:00:00.000Z' },
+  { id: 'slot-1', barberId: 'barber-1', serviceId: 'svc-1', startTime: '2026-11-20T10:00:00.000Z' },
+  { id: 'slot-2', barberId: 'barber-1', serviceId: 'svc-1', startTime: '2026-11-20T10:30:00.000Z' },
+  { id: 'slot-3', barberId: 'barber-1', serviceId: 'svc-1', startTime: '2026-11-20T11:00:00.000Z' },
 ];
 
 function harness(options: { slots?: AvailableSlot[]; knownClient?: boolean } = {}) {
@@ -62,7 +63,10 @@ describe('T174BatchSlotSelectionUseCase', () => {
     expect(result.success).toBe(true);
     expect(result.selectedSlots).toHaveLength(2);
     expect(result.selectedSlots.map((slot) => slot.slotId)).toEqual(['slot-1', 'slot-2']);
-    expect(result.selectedSlots[0]).toMatchObject({ barberId: 'barber-1', serviceId: 'service-cut' });
+    expect(result.selectedSlots[0]).toMatchObject({
+      barberId: 'barber-1',
+      serviceId: 'service-cut',
+    });
     expect(result.totalEstimatedPrice).toBe(200);
     expect(result.rejectedReasons).toBeUndefined();
     expect(calls[0]).toEqual({

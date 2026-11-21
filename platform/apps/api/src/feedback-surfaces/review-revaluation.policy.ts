@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (205 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 /**
  * T-4463: закритий цикл відгуку — чиста політика (без Nest, без Prisma).
  *
@@ -139,8 +140,7 @@ export function applyClientRating(
   if (!gate.allowed) throw new Error(gate.reason);
 
   const at = input.at ?? new Date();
-  const showcase: ShowcaseState =
-    input.rating >= SHOWCASE_MIN_RATING ? 'pending' : 'not_requested';
+  const showcase: ShowcaseState = input.rating >= SHOWCASE_MIN_RATING ? 'pending' : 'not_requested';
 
   const updated: ReviewRevaluation = {
     ...state,
@@ -162,9 +162,7 @@ export function applyClientRating(
  * запит уже надіслали й клієнт її не покращив — мовчимо. Новий запит
  * з’являється лише після відповіді адміна й лише для низької оцінки.
  */
-export function shouldAskForRevaluation(
-  state: ReviewRevaluation
-): RevaluationPromptDecision {
+export function shouldAskForRevaluation(state: ReviewRevaluation): RevaluationPromptDecision {
   if (state.closedAt) return { ask: false, reason: 'Review loop is closed' };
   if (!isLowRating(state.currentRating)) {
     return { ask: false, reason: 'Rating is already high; no re-rating needed' };
@@ -179,7 +177,8 @@ export function shouldAskForRevaluation(
   }
 
   const improvedSincePrompt = state.history.some(
-    (entry) => entry.at.getTime() > promptForRating.at.getTime() && entry.rating > promptForRating.rating
+    (entry) =>
+      entry.at.getTime() > promptForRating.at.getTime() && entry.rating > promptForRating.rating
   );
   if (improvedSincePrompt) {
     return { ask: true, reason: 'Client improved the rating: ask once more for a final score' };
@@ -246,9 +245,10 @@ export function moderateShowcase(
 }
 
 /** Чи показувати відгук на вітрині зараз (публічна проєкція T-240). */
-export function publicShowcaseEligibility(
-  state: ReviewRevaluation
-): { eligible: boolean; reason: string } {
+export function publicShowcaseEligibility(state: ReviewRevaluation): {
+  eligible: boolean;
+  reason: string;
+} {
   if (state.currentRating < SHOWCASE_MIN_RATING) {
     return { eligible: false, reason: 'Rating is below the public threshold' };
   }

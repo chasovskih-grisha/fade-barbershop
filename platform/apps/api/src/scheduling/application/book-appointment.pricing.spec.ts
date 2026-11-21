@@ -39,7 +39,7 @@ describe('priceSnapshot with surge (T-4811)', () => {
       quote: async () => ({ price: 25_000, multiplierBp: 12_500, ruleId: 'surge-1' }),
     };
     // prettier-ignore
-    const snapshot = await priceSnapshot(deps({ surge, discounts: { discounts: [{ type: 'promo_code', sourceId: 'PROMO10', amount: 2_500 }] } as unknown as BookAppointmentDeps['discounts'] }), START, 'loc-1');
+    const snapshot = await priceSnapshot(deps({ surge, discounts: { promoCode: { type: 'promo_code', sourceId: 'PROMO10', amount: 2_500 } } }), START, 'loc-1');
     expect(snapshot.agreedPrice).toBe(25_000);
     expect(snapshot.finalPrice).toBe(22_500);
   });

@@ -15,27 +15,33 @@ export function FadeVisualComposition() {
 
           <h2 className="font-display text-[2.5rem] md:text-h1 font-bold text-fg leading-[1.05]">
             Форма контролю. <br />
-            <span className="fade-gradient-text drop-shadow-md">
-              Мистецтво чистих ліній.
-            </span>
+            <span className="fade-gradient-text drop-shadow-md">Мистецтво чистих ліній.</span>
           </h2>
 
           <p className="text-bodyLg text-fg-secondary max-w-xl">
-            Кожна стрижка у FADE — це архітектурний витвір. Жодних компромісів із випадковими трендами. Лише ідеальна пропорція під ваш череп, вивірений кут бритви та бездоганний спокій.
+            Кожна стрижка у FADE — це архітектурний витвір. Жодних компромісів із випадковими
+            трендами. Лише ідеальна пропорція під ваш череп, вивірений кут бритви та бездоганний
+            спокій.
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-line/90">
             <div className="p-5 rounded-[var(--radius-card)] bg-surface-sunken/90 border border-line backdrop-blur-md shadow-md">
               <div className="font-display text-h3 font-bold text-fg">01</div>
-              <div className="text-caption text-fg-muted uppercase font-semibold mt-1">Анатомічний розрахунок</div>
+              <div className="text-caption text-fg-muted uppercase font-semibold mt-1">
+                Анатомічний розрахунок
+              </div>
             </div>
             <div className="p-5 rounded-[var(--radius-card)] bg-surface-sunken/90 border border-line backdrop-blur-md shadow-md">
               <div className="font-display text-h3 font-bold text-fg">02</div>
-              <div className="text-caption text-fg-muted uppercase font-semibold mt-1">Гарячий компрес</div>
+              <div className="text-caption text-fg-muted uppercase font-semibold mt-1">
+                Гарячий компрес
+              </div>
             </div>
             <div className="p-5 rounded-[var(--radius-card)] bg-surface-sunken/90 border border-line backdrop-blur-md shadow-md col-span-2 sm:col-span-1">
               <div className="font-display text-h3 font-bold text-fg">03</div>
-              <div className="text-caption text-fg-muted uppercase font-semibold mt-1">Преміум стайлінг</div>
+              <div className="text-caption text-fg-muted uppercase font-semibold mt-1">
+                Преміум стайлінг
+              </div>
             </div>
           </div>
         </div>
@@ -43,7 +49,7 @@ export function FadeVisualComposition() {
         <div className="lg:col-span-5 relative flex items-center justify-center">
           <div className="w-full max-w-md aspect-square rounded-[var(--radius-card)] bg-surface-sunken border border-line-strong p-8 md:p-10 shadow-2xl flex flex-col items-center justify-between relative overflow-hidden group-hover:border-accent transition-all duration-500">
             <div className="absolute -right-20 -top-20 w-56 h-56 bg-accent-blue/20 rounded-full blur-3xl pointer-events-none" />
-            
+
             <div className="w-full flex items-center justify-between text-caption text-fg-muted uppercase font-bold">
               <span>EST. 2026</span>
               <span>ATELIER CLT-01</span>
@@ -66,4 +72,3 @@ export function FadeVisualComposition() {
     </div>
   );
 }
-

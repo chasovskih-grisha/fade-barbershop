@@ -10,6 +10,7 @@ import { checkDocsRefs } from './validate-docs/check-docs-refs.mjs';
 import { checkTraceability } from './validate-docs/check-traceability.mjs';
 import { checkDodRoadmap } from './validate-docs/check-dod.mjs';
 import { checkBacklog } from './validate-docs/check-backlog.mjs';
+import { checkRenameMap } from './validate-docs/check-rename-map.mjs';
 import { errors } from './validate-docs/context.mjs';
 
 const mdFiles = collectMdFiles();
@@ -17,6 +18,7 @@ checkAdrCitations(mdFiles);
 checkDocsRefs(mdFiles);
 const acGroups = checkTraceability();
 const dodSections = checkDodRoadmap();
+checkRenameMap();
 const { count: tasks, totalSp } = checkBacklog();
 
 // ── Report ──

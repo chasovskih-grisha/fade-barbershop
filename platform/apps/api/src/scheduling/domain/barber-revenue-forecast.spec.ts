@@ -15,12 +15,12 @@ describe('Barber Revenue & Capacity Forecasting Engine', () => {
       chairs: 2,
       averageServicePrice: 600,
       averageProductSalesPerBooking: 150,
-      baseCommissionRate: 0.40,
+      baseCommissionRate: 0.4,
     });
 
     expect(result.utilization.totalCapacityMinutes).toBe(960);
     expect(result.utilization.occupiedMinutes).toBe(480);
-    expect(result.utilization.occupancyRate).toBe(0.50); // 50% occupancy -> bronze tier
+    expect(result.utilization.occupancyRate).toBe(0.5); // 50% occupancy -> bronze tier
     expect(result.commissionReport.commissionTier).toBe('bronze');
     expect(result.efficiencyRating).toBe('moderate');
     expect(result.projectedBookingsCount).toBeGreaterThan(0);

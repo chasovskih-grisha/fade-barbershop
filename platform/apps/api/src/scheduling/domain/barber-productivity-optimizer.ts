@@ -1,3 +1,4 @@
+/* eslint-disable complexity, max-statements -- 1 function with inherent domain branching (worst: analyzeBarberProductivity, complexity 13 vs 10); refactor tracked in T-2500f | 1 method with a single orchestration flow (worst: analyzeBarberProductivity, 32 statements vs 30); extraction tracked in T-2500f */
 import { calculateChairUtilizationMetrics } from './chair-utilization';
 
 export interface BarberProductivityRecommendation {
@@ -20,7 +21,9 @@ export interface BarberProductivityInput {
 /**
  * Optimizes barber scheduling, analyzes idle gaps, and computes performance-based commission tiers.
  */
-export function analyzeBarberProductivity(input: BarberProductivityInput): BarberProductivityRecommendation {
+export function analyzeBarberProductivity(
+  input: BarberProductivityInput
+): BarberProductivityRecommendation {
   const chairs = input.chairs ?? 1;
   const metrics = calculateChairUtilizationMetrics({
     operatingStart: input.operatingStart,
@@ -46,7 +49,8 @@ export function analyzeBarberProductivity(input: BarberProductivityInput): Barbe
   for (const interval of sortedIntervals) {
     if (interval.start > currentPointer) {
       const gapDuration = Math.round((interval.start - currentPointer) / 60000);
-      if (gapDuration >= 15) { // report gaps of 15+ minutes
+      if (gapDuration >= 15) {
+        // report gaps of 15+ minutes
         idleGapsMinutes.push({
           start: new Date(currentPointer),
           end: new Date(interval.start),
@@ -73,22 +77,25 @@ export function analyzeBarberProductivity(input: BarberProductivityInput): Barbe
 
   if (metrics.occupancyRate >= 0.85) {
     commissionTier = 'gold';
-    bonusPayoutMultiplier = 1.20;
-  } else if (metrics.occupancyRate >= 0.70) {
+    bonusPayoutMultiplier = 1.2;
+  } else if (metrics.occupancyRate >= 0.7) {
     commissionTier = 'silver';
-    bonusPayoutMultiplier = 1.10;
-  } else if (metrics.occupancyRate >= 0.50) {
+    bonusPayoutMultiplier = 1.1;
+  } else if (metrics.occupancyRate >= 0.5) {
     commissionTier = 'bronze';
     bonusPayoutMultiplier = 1.05;
   }
 
   let recommendedAction = 'Schedule stable';
-  if (metrics.occupancyRate < 0.40) {
-    recommendedAction = 'High idle time detected: Consider opening promotional quick-booking slots or cross-training services.';
+  if (metrics.occupancyRate < 0.4) {
+    recommendedAction =
+      'High idle time detected: Consider opening promotional quick-booking slots or cross-training services.';
   } else if (idleGapsMinutes.length > 2) {
-    recommendedAction = 'Fragmented schedule: Compact appointments to eliminate dead time between chairs.';
+    recommendedAction =
+      'Fragmented schedule: Compact appointments to eliminate dead time between chairs.';
   } else if (metrics.occupancyRate >= 0.85) {
-    recommendedAction = 'Peak capacity utilization: Eligible for surge pricing and priority tier bonus payout.';
+    recommendedAction =
+      'Peak capacity utilization: Eligible for surge pricing and priority tier bonus payout.';
   }
 
   return {

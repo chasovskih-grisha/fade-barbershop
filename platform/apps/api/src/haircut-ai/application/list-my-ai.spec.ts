@@ -29,7 +29,7 @@ describe('ListMyAi (REF-WEB-03)', () => {
     expect(result.photos).toHaveLength(1);
     expect(result.photos[0]?.url).toContain('ttl=900');
     expect(result.generations).toHaveLength(1);
-    expect(result.generations[0]?.variants.length).toBe(2);
+    expect(result.generations[0]?.variants?.length).toBe(2);
   });
 
   it('лічильник дня враховує витрачені генерації (3 − 1 = 2)', async () => {

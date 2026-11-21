@@ -27,8 +27,8 @@ Add the four switches to `docs/web-cabinet-screens.md` §2 and point `docs/clien
 
 ## Done
 
-- [ ] Both docs name the four switches, the defaults, and the two separations
-- [ ] `pnpm docs:validate` reports no new error from these files
+- [x] Both docs name the four switches, the defaults, and the two separations
+- [x] `pnpm docs:validate` reports no new error from these files
 
 ## Risks
 

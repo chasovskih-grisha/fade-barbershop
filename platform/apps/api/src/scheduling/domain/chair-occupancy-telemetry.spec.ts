@@ -1,4 +1,10 @@
-import { buildOccupancySnapshot, overrunRate, resolveChairState, type ChairOccupancySnapshot, type ChairSlot } from './chair-occupancy-telemetry';
+import {
+  buildOccupancySnapshot,
+  overrunRate,
+  resolveChairState,
+  type ChairOccupancySnapshot,
+  type ChairSlot,
+} from './chair-occupancy-telemetry';
 
 const NOW = new Date('2026-11-16T12:00:00.000Z').getTime();
 const minutesAgo = (m: number): number => NOW - m * 60000;

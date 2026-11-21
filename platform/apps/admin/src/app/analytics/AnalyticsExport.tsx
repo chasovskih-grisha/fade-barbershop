@@ -24,7 +24,12 @@ export function AnalyticsExport({
       ['Completion Rate (%)', metrics.completionRate],
       [],
       ['Barber ID', 'Barber Name', 'Visits Count', 'Revenue (UAH)'],
-      ...metrics.barberPerformance.map((bp) => [bp.barberId, bp.barberName, bp.visitsCount, bp.revenue]),
+      ...metrics.barberPerformance.map((bp) => [
+        bp.barberId,
+        bp.barberName,
+        bp.visitsCount,
+        bp.revenue,
+      ]),
     ];
 
     const csvContent = rows.map((e) => e.join(',')).join('\n');
@@ -32,7 +37,10 @@ export function AnalyticsExport({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `fade_analytics_report_${filters.period}_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute(
+      'download',
+      `fade_analytics_report_${filters.period}_${new Date().toISOString().slice(0, 10)}.csv`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -44,11 +52,16 @@ export function AnalyticsExport({
       filters,
       metrics,
     };
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json;charset=utf-8;' });
+    const blob = new Blob([JSON.stringify(report, null, 2)], {
+      type: 'application/json;charset=utf-8;',
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `fade_analytics_report_${filters.period}_${new Date().toISOString().slice(0, 10)}.json`);
+    link.setAttribute(
+      'download',
+      `fade_analytics_report_${filters.period}_${new Date().toISOString().slice(0, 10)}.json`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -59,7 +72,8 @@ export function AnalyticsExport({
       <div className="flex flex-col gap-1">
         <h4 className="font-display text-h5 font-bold text-fg">Експорт звітності</h4>
         <p className="font-text text-caption text-fg-muted">
-          Завантажте повний звіт операційних метрик та продуктивності майстрів у форматі CSV або JSON.
+          Завантажте повний звіт операційних метрик та продуктивності майстрів у форматі CSV або
+          JSON.
         </p>
       </div>
       <div className="flex items-center gap-3">

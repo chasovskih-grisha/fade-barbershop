@@ -23,7 +23,7 @@ export interface ChannelData {
 
 export const CHANNEL_LIMIT = 10;
 
-const PHONE_RE = /^\+?[0-9\s()-]{7,20}$/;
+const PHONE_RE = /^\+?.[0-9\s()-]{7,20}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const HANDLE_RE = /^[A-Za-z0-9_.]{3,32}$/;
 const SITE_RE = /^https?:\/\/\S{1,500}$/;

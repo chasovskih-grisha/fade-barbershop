@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (223 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-4452: етапи no-show (фіксація → сповіщення → пропозиція →
 // депозит), повний журнал і заборона повторного запису в лімітні дні.
 import {
@@ -79,9 +80,9 @@ describe('no-show stage policy (T-4452)', () => {
 
     const notified = advanceStage(opened, 'notified', { actorId: 'system', at: at(0, 1) });
     expect(canAdvance(notified, 'detected').allowed).toBe(false);
-    expect(() =>
-      advanceStage(notified, 'detected', { actorId: 'admin-1', at: at(0, 2) })
-    ).toThrow('backwards');
+    expect(() => advanceStage(notified, 'detected', { actorId: 'admin-1', at: at(0, 2) })).toThrow(
+      'backwards'
+    );
   });
 
   it('settles the deposit once, with the amount and actor in the journal', () => {
@@ -103,9 +104,9 @@ describe('no-show stage policy (T-4452)', () => {
       amount: 200,
     });
 
-    expect(
-      settleDeposit(settled, { actorId: 'admin-2', decision: 'refunded', at: at(2) })
-    ).toBe(settled);
+    expect(settleDeposit(settled, { actorId: 'admin-2', decision: 'refunded', at: at(2) })).toBe(
+      settled
+    );
     expect(settled.journal).toHaveLength(4);
   });
 

@@ -9,13 +9,24 @@ export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
   indeterminate?: boolean;
 }
 
-export function Checkbox({ id, label, description, error, indeterminate, className, ...input }: CheckboxProps) {
+export function Checkbox({
+  id,
+  label,
+  description,
+  error,
+  indeterminate,
+  className,
+  ...input
+}: CheckboxProps) {
   const autoId = useId();
   const inputId = id ?? autoId;
   const errorId = error ? `${inputId}-error` : undefined;
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      <label htmlFor={inputId} className="flex items-start gap-3 text-body text-fg cursor-pointer select-none">
+      <label
+        htmlFor={inputId}
+        className="flex items-start gap-3 text-body text-fg cursor-pointer select-none"
+      >
         <input
           id={inputId}
           type="checkbox"

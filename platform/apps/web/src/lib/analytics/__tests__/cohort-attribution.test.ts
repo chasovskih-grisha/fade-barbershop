@@ -6,7 +6,10 @@ describe('Conversion Attribution & Cohort Allocation', () => {
   });
 
   it('records touchpoints and generates attribution report with cohort info', () => {
-    const tp1 = recordTouchpoint('/landing', 'utm_source=google&utm_medium=cpc&utm_campaign=fade_launch');
+    const tp1 = recordTouchpoint(
+      '/landing',
+      'utm_source=google&utm_medium=cpc&utm_campaign=fade_launch'
+    );
     expect(tp1.source).toBe('google');
     expect(tp1.medium).toBe('cpc');
 

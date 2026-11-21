@@ -16,21 +16,28 @@ export function HomeMasterBarberSpotlight() {
             Персональний підхід від провідних барберів Києва
           </h2>
           <p className="text-body text-fg-secondary">
-            Кожна стрижка та гоління у Fade — це ретельна робота з формою черепа, структурою волосся та вашим щоденним стилем. Наші майстри мають понад 7 років досвіду в преміальних студіях та проходять регулярну міжнародну сертифікацію.
+            Кожна стрижка та гоління у Fade — це ретельна робота з формою черепа, структурою волосся
+            та вашим щоденним стилем. Наші майстри мають понад 7 років досвіду в преміальних студіях
+            та проходять регулярну міжнародну сертифікацію.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div className="flex items-start gap-3 p-3.5 rounded-input bg-surface-sunken/60 border border-line/60">
               <div className="w-2 h-2 rounded-full bg-accent mt-2 shrink-0" />
               <div>
                 <h4 className="text-body font-semibold text-fg">Денис • Старший майстер</h4>
-                <p className="text-caption text-fg-secondary">Експерт з класичних форм, текстурних стрижок та безпечного гоління небезпечною бритвою.</p>
+                <p className="text-caption text-fg-secondary">
+                  Експерт з класичних форм, текстурних стрижок та безпечного гоління небезпечною
+                  бритвою.
+                </p>
               </div>
             </div>
             <div className="flex items-start gap-3 p-3.5 rounded-input bg-surface-sunken/60 border border-line/60">
               <div className="w-2 h-2 rounded-full bg-accent mt-2 shrink-0" />
               <div>
                 <h4 className="text-body font-semibold text-fg">Артем • Топ-стиліст</h4>
-                <p className="text-caption text-fg-secondary">Спеціаліст з кроп-стрижок, fades, бороди та складних переходів.</p>
+                <p className="text-caption text-fg-secondary">
+                  Спеціаліст з кроп-стрижок, fades, бороди та складних переходів.
+                </p>
               </div>
             </div>
           </div>

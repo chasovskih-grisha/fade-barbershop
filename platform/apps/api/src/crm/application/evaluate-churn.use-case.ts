@@ -4,7 +4,7 @@ import { ChurnPredictorPort, WinBackCampaignPort } from '../domain/churn.ports';
 export class EvaluateChurnAndTriggerWinBackUseCase {
   constructor(
     private readonly churnPredictor: ChurnPredictorPort,
-    private readonly winBackCampaign: WinBackCampaignPort,
+    private readonly winBackCampaign: WinBackCampaignPort
   ) {}
 
   public async executeForClient(clientId: string): Promise<{
@@ -13,7 +13,7 @@ export class EvaluateChurnAndTriggerWinBackUseCase {
     campaign?: { campaignId: string; discountPercent: number; channelsTriggered: string[] };
   }> {
     const propensity = await this.churnPredictor.computePropensity(clientId);
-    
+
     if (propensity.isAtRisk()) {
       const campaign = await this.winBackCampaign.triggerWinBackCampaign(clientId, propensity);
       return { propensity, triggered: true, campaign };

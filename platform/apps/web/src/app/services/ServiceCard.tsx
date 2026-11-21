@@ -28,7 +28,9 @@ export function ServiceCard({ service }: { service: Service }) {
         )}
 
         <div className="rounded-[var(--radius-card)] bg-surface-sunken/80 border border-line p-4 text-caption text-fg-secondary space-y-2 backdrop-blur-sm">
-          <div className="font-semibold text-fg uppercase tracking-wider text-[11px]">У вартість сеансу входять:</div>
+          <div className="font-semibold text-fg uppercase tracking-wider text-[11px]">
+            У вартість сеансу входять:
+          </div>
           <div className="grid grid-cols-2 gap-1.5 text-fg-muted font-medium">
             <span>• Консультація стиліста</span>
             <span>• Миття та масаж голови</span>
@@ -42,7 +44,9 @@ export function ServiceCard({ service }: { service: Service }) {
             <span className="font-display text-[2rem] font-bold text-fg leading-none">
               {service.price} ₴
             </span>
-            <span className="text-caption text-fg-muted uppercase font-semibold">фіксована ціна</span>
+            <span className="text-caption text-fg-muted uppercase font-semibold">
+              фіксована ціна
+            </span>
           </div>
           <span className="text-caption font-semibold text-accent-blue bg-accent-blue/15 px-3.5 py-1 rounded-pill border border-accent-blue/30 shadow-sm">
             Запис за 60с

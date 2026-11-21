@@ -1,9 +1,17 @@
 import { uuidv7 } from '@fade/domain-shared';
-import { buildBarberPhoto, InvalidBarberPhotoError, type BarberPhoto } from '../domain/barber-photo';
+import {
+  buildBarberPhoto,
+  InvalidBarberPhotoError,
+  type BarberPhoto,
+} from '../domain/barber-photo';
 import type { BarberPhotoRepository } from '../domain/ports.barber-photo';
 import type { Clock, UserRepository } from '../domain/ports';
 import { BarberNotFoundError, InvalidBarberInputError } from './barber-errors';
-import { MediaProcessingError, PUBLIC_MEDIA_INPUT_TYPES, type PublicMediaStorage } from '../../shared/media/public-media-storage';
+import {
+  MediaProcessingError,
+  PUBLIC_MEDIA_INPUT_TYPES,
+  type PublicMediaStorage,
+} from '../../shared/media/public-media-storage';
 
 export interface BarberPhotoFile {
   bytes: Uint8Array;

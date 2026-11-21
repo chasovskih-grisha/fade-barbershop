@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (236 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-152: промокод, автоматичні правила й VIP через один калькулятор.
 // Порти — фейки в памʼяті: перевіряємо правила DSC, а не Prisma.
 import { normalizePromoCode, uahToCents, type PromoCode } from '../domain/promo-code';
@@ -44,8 +45,8 @@ function harness(
   } = {}
 ) {
   const codes = options.codes ?? [promo()];
-  const findPromoCode = jest.fn(async (code: string) =>
-    codes.find((candidate) => candidate.code === code) ?? null
+  const findPromoCode = jest.fn(
+    async (code: string) => codes.find((candidate) => candidate.code === code) ?? null
   );
   const hasCompletedVisit = jest.fn(async () => options.hasCompletedVisit ?? false);
 

@@ -17,7 +17,8 @@ export function HomeVisualBanner() {
             Форма, яка говорить за вас.
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed font-normal">
-            Бездоганні переходи, ювелірна робота бритви та спокійна атмосфера на два крісла. Ми створюємо догляд, у якому немає нічого зайвого — лише ви та ваш найкращий стиль.
+            Бездоганні переходи, ювелірна робота бритви та спокійна атмосфера на два крісла. Ми
+            створюємо догляд, у якому немає нічого зайвого — лише ви та ваш найкращий стиль.
           </p>
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <Link
@@ -37,14 +38,22 @@ export function HomeVisualBanner() {
 
         <div className="lg:col-span-5 grid grid-cols-2 gap-5">
           <div className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-surface-sunken/95 p-6 border border-line-strong shadow-lg transition-all duration-300 hover:border-accent-blue/60 hover:scale-[1.03] group/card backdrop-blur-md">
-            <div className="text-h3 font-display font-extrabold text-accent-blue group-hover/card:scale-110 transition-transform duration-300">01</div>
+            <div className="text-h3 font-display font-extrabold text-accent-blue group-hover/card:scale-110 transition-transform duration-300">
+              01
+            </div>
             <div className="text-body font-bold text-fg">Чиста геометрія</div>
-            <p className="text-caption text-fg-secondary leading-relaxed">Кожна лінія вивірена до міліметра під овал вашого обличчя.</p>
+            <p className="text-caption text-fg-secondary leading-relaxed">
+              Кожна лінія вивірена до міліметра під овал вашого обличчя.
+            </p>
           </div>
           <div className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-surface-sunken/95 p-6 border border-line-strong shadow-lg mt-6 transition-all duration-300 hover:border-accent-blue/60 hover:scale-[1.03] group/card backdrop-blur-md">
-            <div className="text-h3 font-display font-extrabold text-accent-blue group-hover/card:scale-110 transition-transform duration-300">02</div>
+            <div className="text-h3 font-display font-extrabold text-accent-blue group-hover/card:scale-110 transition-transform duration-300">
+              02
+            </div>
             <div className="text-body font-bold text-fg">Тиха година</div>
-            <p className="text-caption text-fg-secondary leading-relaxed">Приватна студія на 2 крісла замість галасливих салонів.</p>
+            <p className="text-caption text-fg-secondary leading-relaxed">
+              Приватна студія на 2 крісла замість галасливих салонів.
+            </p>
           </div>
         </div>
       </div>

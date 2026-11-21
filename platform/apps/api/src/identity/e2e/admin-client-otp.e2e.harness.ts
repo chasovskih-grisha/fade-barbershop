@@ -5,7 +5,10 @@ import cookieParser from 'cookie-parser';
 import { IdentityModule } from '../infrastructure/identity.module';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { MemProfiles } from '../../crm/e2e/admin-clients.fakes';
-import { PrismaOtpChallengeRepository, PrismaUserRepository } from '../infrastructure/prisma-adapters';
+import {
+  PrismaOtpChallengeRepository,
+  PrismaUserRepository,
+} from '../infrastructure/prisma-adapters';
 import { PrismaClientProfileRepository } from '../../crm/infrastructure/prisma-client-profile.repository';
 import { PrismaSessionRepository } from '../infrastructure/prisma-session-repository';
 import { PrismaOutboxPublisher } from '../infrastructure/prisma-outbox-publisher';

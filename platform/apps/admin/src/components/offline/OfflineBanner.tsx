@@ -60,22 +60,31 @@ export function OfflineBanner() {
   if (isOnline && queueCount === 0) return null;
 
   return (
-    <div style={{
-      backgroundColor: 'var(--color-surface-raised)',
-      color: 'var(--color-text-primary)',
-      padding: '8px 16px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      fontSize: '14px',
-      borderBottom: `1px solid ${isOnline ? 'var(--color-semantic-success)' : 'var(--color-semantic-danger)'}`
-    }}>
+    <div
+      style={{
+        backgroundColor: 'var(--color-surface-raised)',
+        color: 'var(--color-text-primary)',
+        padding: '8px 16px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        fontSize: '14px',
+        borderBottom: `1px solid ${isOnline ? 'var(--color-semantic-success)' : 'var(--color-semantic-danger)'}`,
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ color: isOnline ? 'var(--color-semantic-success)' : 'var(--color-semantic-danger)', fontWeight: 'bold' }}>
+        <span
+          style={{
+            color: isOnline ? 'var(--color-semantic-success)' : 'var(--color-semantic-danger)',
+            fontWeight: 'bold',
+          }}
+        >
           {isOnline ? '⚡' : '📡'}
         </span>
         <span>
-          {!isOnline ? 'You are currently offline. Changes are saved locally.' : `Online. Syncing queued mutations (${queueCount} pending)...`}
+          {!isOnline
+            ? 'You are currently offline. Changes are saved locally.'
+            : `Online. Syncing queued mutations (${queueCount} pending)...`}
         </span>
       </div>
       {queueCount > 0 && isOnline && (
@@ -89,7 +98,7 @@ export function OfflineBanner() {
             padding: '4px 12px',
             borderRadius: '4px',
             cursor: 'pointer',
-            fontSize: '13px'
+            fontSize: '13px',
           }}
         >
           {syncing ? 'Syncing...' : 'Sync Now'}

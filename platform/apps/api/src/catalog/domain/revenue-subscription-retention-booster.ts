@@ -11,11 +11,28 @@ export interface MemberRetentionTier {
 }
 
 export class RevenueSubscriptionRetentionBooster {
-  constructor(private readonly tiers: MemberRetentionTier[] = [
-    { tierName: 'Silver Member', monthsSubscribed: 3, retentionDiscountPercentage: 5, priorityBookingWindowHours: 24 },
-    { tierName: 'Gold Member', monthsSubscribed: 6, retentionDiscountPercentage: 10, priorityBookingWindowHours: 48 },
-    { tierName: 'Black Diamond Member', monthsSubscribed: 12, retentionDiscountPercentage: 15, priorityBookingWindowHours: 72 },
-  ]) {}
+  constructor(
+    private readonly tiers: MemberRetentionTier[] = [
+      {
+        tierName: 'Silver Member',
+        monthsSubscribed: 3,
+        retentionDiscountPercentage: 5,
+        priorityBookingWindowHours: 24,
+      },
+      {
+        tierName: 'Gold Member',
+        monthsSubscribed: 6,
+        retentionDiscountPercentage: 10,
+        priorityBookingWindowHours: 48,
+      },
+      {
+        tierName: 'Black Diamond Member',
+        monthsSubscribed: 12,
+        retentionDiscountPercentage: 15,
+        priorityBookingWindowHours: 72,
+      },
+    ]
+  ) {}
 
   evaluateRetentionTier(monthsSubscribed: number): MemberRetentionTier | null {
     const sorted = [...this.tiers].sort((a, b) => b.monthsSubscribed - a.monthsSubscribed);
@@ -44,7 +61,13 @@ export class RevenueSubscriptionRetentionBooster {
     const priorityBookingWindowHours = tier ? tier.priorityBookingWindowHours : 0;
 
     // Projected LTV calculation with reduced churn for higher loyalty tiers
-    const churnReduction = tier ? (tier.monthsSubscribed >= 12 ? 0.04 : tier.monthsSubscribed >= 6 ? 0.025 : 0.01) : 0;
+    const churnReduction = tier
+      ? tier.monthsSubscribed >= 12
+        ? 0.04
+        : tier.monthsSubscribed >= 6
+          ? 0.025
+          : 0.01
+      : 0;
     const adjustedChurn = Math.max(0.01, baselineChurnRate - churnReduction);
     const projectedLifetimeMonths = 1 / adjustedChurn;
     const projectedLTVUplift = Math.round(adjustedMonthlyFee * projectedLifetimeMonths);

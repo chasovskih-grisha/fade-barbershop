@@ -35,7 +35,7 @@ describe('CheckboxFiscalGateway', () => {
         type: 'prepayment',
         items: [{ name: 'Zero', price: 0, quantity: 1 }],
         traceId: 'tr_2',
-      }),
+      })
     ).rejects.toThrow('zero_payment_after_rounding');
   });
 
@@ -49,7 +49,7 @@ describe('CheckboxFiscalGateway', () => {
         type: 'prepayment',
         items: [{ name: 'Deposit', price: 300, quantity: 1 }],
         traceId: 'tr_3',
-      }),
+      })
     ).rejects.toThrow('shift.not_opened');
   });
 
@@ -63,7 +63,7 @@ describe('CheckboxFiscalGateway', () => {
         type: 'prepayment',
         items: [{ name: 'Deposit', price: 300, quantity: 1 }],
         traceId: 'tr_4',
-      }),
+      })
     ).rejects.toThrow('shift.opened_too_long');
   });
 });

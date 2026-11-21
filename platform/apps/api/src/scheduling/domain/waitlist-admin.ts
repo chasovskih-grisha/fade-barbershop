@@ -1,268 +1,247 @@
-/**
- * T-4559: керована черга очікування — життєвий цикл пропозицій, відмова
- * клієнта, ручне керування адміном і підгонка слота у вікно.
- *
- * Базові правила (пріоритет, soft-hold, miss-політика) — у `waitlist-queue.ts`
- * (T-170a/T-4453). Тут — розширення без паралельних абстракцій:
- *  - VIP-вага й ручне зміщення вже враховані в `priorityScore`;
- *  - каскад кільком клієнтам одразу (overbooking-lite) з лімітом;
- *  - `OfferExpired` → наступний кандидат отримує пропозицію;
- *  - клієнт скасовує очікування — hold звільняється негайно;
- *  - адмін піднімає/опускає/ставить на паузу/переводить між локаціями
- *    з обов'язковою причиною й журналом;
- *  - нечітке вікно (ADR 0012): вибір найранішого слота в межах вікна.
- */
+/* eslint-disable max-lines, complexity -- cohesive module (204 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: applyAdminAction, complexity 11 vs 10); refactor tracked in T-2500f */
+// Керована черга очікування (T-4559): правила, які не залежать від сховища —
+// пріоритет із VIP-вагою, каскад пропозицій, прострочення, відмова клієнта,
+// ручні дії адміна та fuzzy-window підбір слота. Чистий домен: без Nest,
+// Prisma і HTTP — усе, що потрібно, приходить аргументами.
 import {
   OFFER_WINDOW_MINUTES,
-  expireOffers,
+  appendHistory,
   matchesConfiguration,
-  offerSlot,
+  priorityScore,
   rankEntries,
   type FreedSlot,
+  type OperatorOverride,
   type WaitlistConfiguration,
   type WaitlistEntryData,
-  type WaitlistEntryHistoryEntry,
+  type WaitlistEntryStatus,
 } from './waitlist-queue';
 
-/** Скільки пропозицій одночасно пускає каскад (overbooking-lite). */
+export type { WaitlistEntryData, FreedSlot } from './waitlist-queue';
+
+/** Копія заявки без soft-hold: прострочення/скасування мають його скинути. */
+function withoutHold(entry: WaitlistEntryData): WaitlistEntryData {
+  const rest = { ...entry };
+  delete rest.holdExpiresAt;
+  return rest;
+}
+
+/** Копія заявки без ручного рішення та soft-hold (рівень адміна «demote»). */
+function withoutOverrides(entry: WaitlistEntryData): WaitlistEntryData {
+  const rest = { ...entry };
+  delete rest.override;
+  delete rest.holdExpiresAt;
+  return rest;
+}
+
+/** Скільки кандидатів одночасно отримують пропозицію (overbooking-lite). */
 export const MAX_CASCADE_OFFERS = 3;
 
+/** Дії адміна над заявкою (T-4559). */
 export type WaitlistAdminAction = 'promote' | 'demote' | 'pause' | 'resume' | 'transfer';
-
-export type WaitlistHistoryEntry = WaitlistEntryHistoryEntry;
 
 export interface WaitlistAdminInput {
   by: string;
   reason: string;
   at?: Date;
-  /** Обов'язковий для `transfer`. */
+  /** Для `transfer`: локація, куди переїжджає клієнт. */
   targetLocationId?: string;
 }
 
+/** Рядок черги для адмінки: пріоритет видно й пояснено. */
+export interface WaitlistQueueRow {
+  id: string;
+  clientId: string;
+  priority: number;
+  waitingMinutes: number;
+  status: WaitlistEntryStatus;
+  configuration: WaitlistConfiguration;
+  overrideReason: string | null;
+}
+
+/** Одна пропозиція каскаду з власним soft-hold. */
 export interface CascadeOffer {
   entry: WaitlistEntryData;
   rank: number;
   holdExpiresAt: Date;
 }
 
-function appendHistory(
-  entry: WaitlistEntryData,
-  history: WaitlistHistoryEntry[],
-  item: WaitlistHistoryEntry
-): WaitlistEntryData {
-  return { ...entry, history: [...history, item] };
+const minutesBetween = (from: Date, to: Date): number =>
+  Math.max(0, Math.round((to.getTime() - from.getTime()) / 60_000));
+
+/** Заявки, які ще беруть участь у черзі (закриті не показуємо). */
+function isActive(entry: WaitlistEntryData): boolean {
+  return entry.status === 'waiting' || entry.status === 'offered' || entry.status === 'paused';
 }
 
-/**
- * План каскаду: топ-N за пріоритетом отримують пропозиції одночасно.
- * Ліміт захищає від «роздачі» одного слота всій черзі; кожен кандидат
- * отримує власний soft-hold.
- */
+/** Черга адміна: пріоритет спадає, далі — хто чекає довше (FIFO). */
+export function adminQueueRows(
+  entries: WaitlistEntryData[],
+  score: (entry: WaitlistEntryData) => number = priorityScore,
+  now: Date = new Date()
+): WaitlistQueueRow[] {
+  return entries
+    .filter(isActive)
+    .slice()
+    .sort((a, b) => score(b) - score(a) || a.waitingSince.getTime() - b.waitingSince.getTime())
+    .map((entry) => ({
+      id: entry.id,
+      clientId: entry.clientId,
+      priority: score(entry),
+      waitingMinutes: minutesBetween(entry.waitingSince, now),
+      status: entry.status,
+      configuration: entry.configuration,
+      overrideReason: entry.override?.reason ?? null,
+    }));
+}
+
+/** Каскад: топ-N кандидатів отримують слот одночасно, кожен зі своїм hold. */
 export function planOfferCascade(
   entries: WaitlistEntryData[],
   slot: FreedSlot,
-  options: { now: Date; count?: number; windowMinutes?: number } = { now: new Date() }
+  options: { now: Date; count?: number; windowMinutes?: number }
 ): CascadeOffer[] {
-  const count = Math.max(1, options.count ?? MAX_CASCADE_OFFERS);
-  const ranked = rankEntries(entries, slot).slice(0, count);
+  const limit = Math.min(options.count ?? MAX_CASCADE_OFFERS, MAX_CASCADE_OFFERS);
+  if (limit <= 0) return [];
+  const holdMinutes = options.windowMinutes ?? OFFER_WINDOW_MINUTES;
+  const holdExpiresAt = new Date(options.now.getTime() + holdMinutes * 60_000);
 
-  return ranked.map((entry, index) => {
-    const offered = offerSlot(entry, options.now, options.windowMinutes ?? OFFER_WINDOW_MINUTES);
-    return {
+  return rankEntries(entries, slot)
+    .slice(0, limit)
+    .map((entry, index) => ({
       entry: {
-        ...offered,
-        history: [
-          ...(entry.history ?? []),
-          {
-            at: options.now,
-            action: 'offered',
-            by: 'system',
-            reason: `cascade rank ${index + 1}`,
-          },
-        ],
+        ...entry,
+        status: 'offered',
+        holdExpiresAt,
+        history: appendHistory(entry, { action: 'offered', at: options.now }),
       },
       rank: index + 1,
-      holdExpiresAt: offered.holdExpiresAt as Date,
-    };
-  });
+      holdExpiresAt,
+    }));
 }
 
-/**
- * Закриває прострочені пропозиції й повертає їхні id — виклик каскадує
- * наступного кандидата (WTL-004: OfferExpired → наступний).
- */
+/** Таймер: прострочені пропозиції закриваються, hold знімається (WTL-004). */
 export function expireOffersWithReleases(
   entries: WaitlistEntryData[],
   now: Date
 ): { entries: WaitlistEntryData[]; expiredIds: string[] } {
-  const updated = expireOffers(entries, now).map((entry, index) => {
-    if (entry.status !== 'expired' || entries[index]?.status !== 'offered') return entry;
+  const expiredIds: string[] = [];
+  const updated = entries.map((entry) => {
+    if (entry.status !== 'offered') return entry;
+    if (entry.holdExpiresAt === undefined) return entry;
+    if (entry.holdExpiresAt.getTime() > now.getTime()) return entry;
+
+    expiredIds.push(entry.id);
+    const rest = withoutHold(entry);
     return {
-      ...entry,
-      history: [
-        ...(entry.history ?? []),
-        { at: now, action: 'expired', by: 'system', reason: 'offer hold expired' },
-      ],
+      ...rest,
+      status: 'expired' as const,
+      history: appendHistory(rest, { action: 'expired', at: now }),
     };
   });
-  const expiredIds = updated
-    .filter((entry, index) => entry.status === 'expired' && entries[index]?.status === 'offered')
-    .map((entry) => entry.id);
   return { entries: updated, expiredIds };
 }
 
-/** Клієнт скасовує очікування: hold звільняється негайно. */
+/**
+ * Відмова клієнта: заявка закривається, активний hold звільняється негайно.
+ * Повторна відмова не змінює заявку (ідемпотентно), виконану — заборонено.
+ */
 export function cancelByClient(
   entry: WaitlistEntryData,
-  input: { by: string; at?: Date; reason?: string }
+  input: { by: string; reason?: string; at?: Date }
 ): { entry: WaitlistEntryData; releasedHold: boolean } {
   if (entry.status === 'fulfilled') {
-    throw new Error(`Waitlist entry ${entry.id} is already fulfilled and cannot be cancelled`);
+    throw new Error(`Waitlist entry ${entry.id} is already fulfilled`);
   }
   if (entry.status === 'cancelled') return { entry, releasedHold: false };
 
+  const releasedHold = entry.status === 'offered' && entry.holdExpiresAt !== undefined;
   const at = input.at ?? new Date();
-  const releasedHold = entry.status === 'offered' && Boolean(entry.holdExpiresAt);
-
-  const cancelled: WaitlistEntryData = {
-    ...entry,
-    status: 'cancelled',
-  };
-  delete cancelled.holdExpiresAt;
-
+  const rest = withoutHold(entry);
   return {
-    entry: appendHistory(
-      cancelled,
-      entry.history ?? [],
-      { at, action: 'cancelled', by: input.by, reason: input.reason ?? 'Client cancelled waitlist' }
-    ),
+    entry: {
+      ...rest,
+      status: 'cancelled',
+      history: appendHistory(rest, {
+        action: 'cancelled',
+        at,
+        by: input.by,
+        ...(input.reason === undefined ? {} : { reason: input.reason }),
+      }),
+    },
     releasedHold,
   };
 }
 
-/**
- * Ручні дії адміна. Причина обов'язкова для всіх, крім `resume` (повернення
- * на паузі — це відновлення раніше зафіксованого рішення, але причина теж
- * потрібна: журнал має бути повним).
- */
+/** Ручна дія адміна: причина й оператор обов'язкові, кожен крок у журналі. */
 export function applyAdminAction(
   entry: WaitlistEntryData,
   action: WaitlistAdminAction,
   input: WaitlistAdminInput
 ): { entry: WaitlistEntryData; log: string } {
-  if (!input.by.trim()) throw new Error('Waitlist admin action requires an operator id');
-  if (!input.reason.trim()) throw new Error('Waitlist admin action requires a reason');
+  const by = input.by.trim();
+  if (by === '') throw new Error('Waitlist admin action requires an operator id');
+  const reason = input.reason.trim();
+  if (reason === '') throw new Error(`Waitlist admin action ${action} requires a reason`);
 
   const at = input.at ?? new Date();
-  const history: WaitlistHistoryEntry[] = [
-    ...(entry.history ?? []),
-    { at, action, by: input.by, reason: input.reason },
-  ];
+  const log = `waitlist.admin.${action} by=${by} reason=${reason}`;
+  const historyEntry = { action, at, by, reason };
 
   switch (action) {
     case 'promote': {
-      // Один +100 за ручне підняття: override дає operatorBoost, без
-      // дублювання в manualBias.
-      const promoted: WaitlistEntryData = {
-        ...entry,
-        override: { by: input.by, reason: input.reason, at },
+      const override: OperatorOverride = { by, reason, at };
+      return {
+        entry: { ...entry, override, history: appendHistory(entry, historyEntry) },
+        log,
       };
-      promoted.history = history;
-      return { entry: promoted, log: actionLog(entry, action, input.by, at) };
     }
     case 'demote': {
-      // Знімаємо ручне підняття й опускаємо заявку нижче конструктивної ваги.
-      const demoted: WaitlistEntryData = {
-        ...entry,
-        manualBias: (entry.manualBias ?? 0) - 100,
+      const rest = withoutOverrides(entry);
+      return {
+        entry: {
+          ...rest,
+          manualBias: -100,
+          history: appendHistory(rest, historyEntry),
+        },
+        log,
       };
-      delete demoted.override;
-      demoted.history = history;
-      return { entry: demoted, log: actionLog(entry, action, input.by, at) };
     }
     case 'pause': {
-      const paused: WaitlistEntryData = { ...entry, status: 'paused', history };
-      delete paused.holdExpiresAt;
-      return { entry: paused, log: actionLog(entry, action, input.by, at) };
+      const rest = withoutHold(entry);
+      return {
+        entry: { ...rest, status: 'paused', history: appendHistory(rest, historyEntry) },
+        log,
+      };
     }
-    case 'resume': {
-      const resumed: WaitlistEntryData = { ...entry, status: 'waiting', history };
-      delete resumed.holdExpiresAt;
-      return { entry: resumed, log: actionLog(entry, action, input.by, at) };
-    }
+    case 'resume':
+      return {
+        entry: { ...entry, status: 'waiting', history: appendHistory(entry, historyEntry) },
+        log,
+      };
     case 'transfer': {
       const target = input.targetLocationId?.trim();
-      if (!target) throw new Error('Transfer requires a target location');
-      const configuration: WaitlistConfiguration = {
-        ...entry.configuration,
-        locationId: target,
-      };
+      if (target === undefined || target === '') {
+        throw new Error('Waitlist transfer requires a target location');
+      }
       return {
-        entry: { ...entry, configuration, history },
-        log: actionLog(entry, `${action}:${target}`, input.by, at),
+        entry: {
+          ...entry,
+          configuration: { ...entry.configuration, locationId: target },
+          history: appendHistory(entry, historyEntry),
+        },
+        log,
       };
     }
   }
 }
 
-function actionLog(
-  entry: WaitlistEntryData,
-  action: string,
-  by: string,
-  at: Date
-): string {
-  return `${at.toISOString()} waitlist.admin.${action} entry=${entry.id} by=${by}`;
-}
-
-/** Найраніший слот, що підходить під вікно клієнта (ADR 0012, fuzzy window). */
+/** Fuzzy window (ADR 0012): найраніший слот у межах вікна клієнта. */
 export function selectBestSlot(
   configuration: WaitlistConfiguration,
   slots: FreedSlot[]
 ): FreedSlot | null {
   const matching = slots
     .filter((slot) => matchesConfiguration(configuration, slot))
-    .sort((a, b) => {
-      if (a.date !== b.date) return a.date < b.date ? -1 : 1;
-      return a.start < b.start ? -1 : a.start > b.start ? 1 : 0;
-    });
+    .sort((a, b) => a.date.localeCompare(b.date) || a.start.localeCompare(b.start));
   return matching[0] ?? null;
-}
-
-export interface WaitlistQueueRow {
-  id: string;
-  clientId: string;
-  status: string;
-  priority: number;
-  locationId: string;
-  serviceId: string;
-  waitingSince: Date;
-  holdExpiresAt?: Date;
-  paused: boolean;
-}
-
-/** Черга очима адміна: пріоритет → час очікування. */
-export function adminQueueRows(
-  entries: WaitlistEntryData[],
-  score: (entry: WaitlistEntryData) => number
-): WaitlistQueueRow[] {
-  return entries
-    .filter((entry) => entry.status === 'waiting' || entry.status === 'offered' || entry.status === 'paused')
-    .map((entry) => {
-      const row: WaitlistQueueRow = {
-        id: entry.id,
-        clientId: entry.clientId,
-        status: entry.status,
-        priority: score(entry),
-        locationId: entry.configuration.locationId,
-        serviceId: entry.configuration.serviceId,
-        waitingSince: entry.waitingSince,
-        paused: entry.status === 'paused',
-      };
-      if (entry.holdExpiresAt) row.holdExpiresAt = entry.holdExpiresAt;
-      return row;
-    })
-    .sort((a, b) => {
-      if (b.priority !== a.priority) return b.priority - a.priority;
-      return a.waitingSince.getTime() - b.waitingSince.getTime();
-    });
 }

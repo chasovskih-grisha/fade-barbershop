@@ -5,11 +5,7 @@ export class MembershipPausedEvent extends DomainEvent {
   readonly type = 'membership.paused';
   readonly payload: Record<string, unknown>;
 
-  constructor(params: {
-    aggregateId: string;
-    clientId: string;
-    occurredAt: Date;
-  }) {
+  constructor(params: { aggregateId: string; clientId: string; occurredAt: Date }) {
     super({ occurredAt: params.occurredAt, aggregateId: params.aggregateId });
     this.payload = {
       membershipId: params.aggregateId,
@@ -43,10 +39,14 @@ export class PauseMembershipUseCase {
   constructor(
     private readonly instancesRepo: MembershipInstanceRepository,
     private readonly outbox: OutboxPublisher,
-    private readonly clock: Clock,
+    private readonly clock: Clock
   ) {}
 
-  async handle(input: { membershipId: string; clientId: string; occurredAt?: Date }): Promise<void> {
+  async handle(input: {
+    membershipId: string;
+    clientId: string;
+    occurredAt?: Date;
+  }): Promise<void> {
     const now = input.occurredAt ?? this.clock.now();
     const instance = await this.instancesRepo.findById(input.membershipId);
     if (!instance) {
@@ -73,10 +73,14 @@ export class ResumeMembershipUseCase {
   constructor(
     private readonly instancesRepo: MembershipInstanceRepository,
     private readonly outbox: OutboxPublisher,
-    private readonly clock: Clock,
+    private readonly clock: Clock
   ) {}
 
-  async handle(input: { membershipId: string; clientId: string; occurredAt?: Date }): Promise<void> {
+  async handle(input: {
+    membershipId: string;
+    clientId: string;
+    occurredAt?: Date;
+  }): Promise<void> {
     const now = input.occurredAt ?? this.clock.now();
     const instance = await this.instancesRepo.findById(input.membershipId);
     if (!instance) {

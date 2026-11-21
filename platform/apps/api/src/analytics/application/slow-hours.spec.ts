@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-params -- cohesive module (203 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 signature whose 4-param contract is fixed by existing call sites (worst: fact, limit 3); API redesign tracked in T-2500f */
 // Специфікація T-4464: заповненість по днях/годинах, слабкі вікна й підказка
 // дії. Час фіксований (Europe/Kyiv), джерело фактів — фейк, тож звіт
 // детермінований.
@@ -8,7 +9,6 @@ import {
   occupancyCells,
   slowHourAlerts,
   slowHoursReport,
-  suggestAction,
   utcFromLocal,
   validateSlowHoursParams,
   weakWindows,
@@ -34,7 +34,12 @@ function config(overrides: Partial<SlowHoursConfig> = {}): SlowHoursConfig {
   return { ...SLOW_HOURS_DEFAULTS, windowDays: 2, ...overrides };
 }
 
-function fact(date: string, hour: number, minutes: number, timeZone = 'Europe/Kyiv'): OccupancyFact {
+function fact(
+  date: string,
+  hour: number,
+  minutes: number,
+  timeZone = 'Europe/Kyiv'
+): OccupancyFact {
   const start = utcFromLocal(date, hour, timeZone, NOW);
   return { start, end: new Date(start.getTime() + minutes * 60 * 1000) };
 }
@@ -75,11 +80,13 @@ describe('slow hours domain (T-4464)', () => {
   });
 
   it('caps occupancy at 100% when overlapping facts overfill the hour', () => {
-    const cells = occupancyCells(
-      [fact('2026-11-19', 10, 40), fact('2026-11-19', 10, 50)],
-      NOW,
-      { ...config(), windowDays: 1, openHour: 10, closeHour: 11, chairs: 1 }
-    );
+    const cells = occupancyCells([fact('2026-11-19', 10, 40), fact('2026-11-19', 10, 50)], NOW, {
+      ...config(),
+      windowDays: 1,
+      openHour: 10,
+      closeHour: 11,
+      chairs: 1,
+    });
 
     expect(cells[0]).toMatchObject({ bookedMinutes: 60, occupancyPercent: 100 });
   });
@@ -98,11 +105,9 @@ describe('slow hours domain (T-4464)', () => {
       '2026-11-19 10',
       '2026-11-19 11',
     ]);
-    expect(weak[0]?.action.type).toBe('schedule_shift');
-    expect(weak[0]?.action.preview).toContain('0 записів');
-
+    expect(weak[0]?.action?.type).toBe('schedule_shift');
+    expect(weak[0]?.action?.preview).toContain('0 записів');
   });
-
 
   it('does not advise on the current or future hour and respects the limit', () => {
     const cfg = { ...config(), windowDays: 1, openHour: 13, closeHour: 15, chairs: 1 };
@@ -185,7 +190,9 @@ describe('GetSlowHours (T-4464)', () => {
     expect(locationId).toBe('loc-1');
 
     expect(() => parseSlowHoursQuery({ days: 'abc' })).toThrow(InvalidSlowHoursQueryError);
-    expect(() => parseSlowHoursQuery({ thresholdPercent: '0' })).toThrow(InvalidSlowHoursQueryError);
+    expect(() => parseSlowHoursQuery({ thresholdPercent: '0' })).toThrow(
+      InvalidSlowHoursQueryError
+    );
   });
 
   it('loads the window from the source and returns a stamped report', async () => {

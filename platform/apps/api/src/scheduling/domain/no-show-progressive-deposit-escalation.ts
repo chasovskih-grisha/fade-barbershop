@@ -34,7 +34,8 @@ export interface EscalationAssessmentResult {
   requiredDepositPercent: number;
   isSuspended: boolean;
   policyReason: string;
-  recommendedAction: 'NONE' | 'SOFT_WARNING' | 'MANDATORY_DEPOSIT' | 'FULL_PREPAYMENT' | 'ACCOUNT_SUSPENDED';
+  recommendedAction:
+    'NONE' | 'SOFT_WARNING' | 'MANDATORY_DEPOSIT' | 'FULL_PREPAYMENT' | 'ACCOUNT_SUSPENDED';
 }
 
 export class NoShowProgressiveDepositEscalationEngine {
@@ -45,8 +46,10 @@ export class NoShowProgressiveDepositEscalationEngine {
     servicePrice: number,
     now: Date = new Date()
   ): EscalationAssessmentResult {
-    const windowStart = new Date(now.getTime() - this.config.rollingWindowDays * 24 * 60 * 60 * 1000);
-    
+    const windowStart = new Date(
+      now.getTime() - this.config.rollingWindowDays * 24 * 60 * 60 * 1000
+    );
+
     const activeNoShows = record.noShowEvents.filter(
       (ev) => ev.timestamp.getTime() >= windowStart.getTime() && !ev.wasExcused
     );

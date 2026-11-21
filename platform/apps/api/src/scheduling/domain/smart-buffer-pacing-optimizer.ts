@@ -28,7 +28,9 @@ export interface SmartBufferPacingResult {
  * Optimizes turnaround buffers and time pacing between appointments based on service complexity,
  * client reliability (no-show rate), VIP status, and peak hour congestion.
  */
-export function optimizeSmartBufferPacing(request: SmartBufferPacingRequest): SmartBufferPacingResult {
+export function optimizeSmartBufferPacing(
+  request: SmartBufferPacingRequest
+): SmartBufferPacingResult {
   const recommendedBufferMinutes: Record<string, number> = {};
   let totalRisk = 0;
 
@@ -37,7 +39,7 @@ export function optimizeSmartBufferPacing(request: SmartBufferPacingRequest): Sm
 
     // Check if appointment start falls into peak hours
     const startHour = parseInt(apt.startTime.split(':')[0] || '12', 10);
-    const isPeak = request.peakHours.some(p => startHour >= p.startHour && startHour < p.endHour);
+    const isPeak = request.peakHours.some((p) => startHour >= p.startHour && startHour < p.endHour);
 
     if (isPeak) {
       buffer += 3; // add 3 mins during peak hours to absorb downstream delays
@@ -60,13 +62,16 @@ export function optimizeSmartBufferPacing(request: SmartBufferPacingRequest): Sm
     totalRisk += risk;
   }
 
-  const pacingRiskScore = request.appointments.length > 0 
-    ? Math.min(100, Math.round(totalRisk / request.appointments.length)) 
-    : 0;
+  const pacingRiskScore =
+    request.appointments.length > 0
+      ? Math.min(100, Math.round(totalRisk / request.appointments.length))
+      : 0;
 
   const recommendations: string[] = [];
   if (pacingRiskScore > 50) {
-    recommendations.push('High schedule congestion detected. Increased turnaround buffers applied to prevent cascading delays.');
+    recommendations.push(
+      'High schedule congestion detected. Increased turnaround buffers applied to prevent cascading delays.'
+    );
   } else {
     recommendations.push('Schedule pacing is optimal with standard turnaround buffers.');
   }

@@ -1,8 +1,10 @@
 import {
+  EMPTY_SAVED_NOTE_MESSAGE,
   MAX_PREFERENCE_LINES,
   MAX_PREFERENCE_LINE_LENGTH,
   PREFERENCE_LIMIT_MESSAGE,
   isWithinPreferenceLimit,
+  savedNoteQuote,
   splitPreferenceLines,
 } from './preferences';
 
@@ -44,5 +46,16 @@ describe('isWithinPreferenceLimit (T-4721b)', () => {
 
   it('відмова — українське речення', () => {
     expect(PREFERENCE_LIMIT_MESSAGE).toBe('Не більше 20 рядків, до 100 символів у рядку');
+  });
+});
+
+describe('savedNoteQuote (T-4731b)', () => {
+  it('збережені рядки — цитата так, як їх написав клієнт', () => {
+    expect(savedNoteQuote(['алергія на ефірні олії', 'тиша'])).toBe('алергія на ефірні олії\nтиша');
+  });
+
+  it('порожня збережена нотатка — порожнє речення', () => {
+    expect(savedNoteQuote([])).toBe(EMPTY_SAVED_NOTE_MESSAGE);
+    expect(EMPTY_SAVED_NOTE_MESSAGE).toBe('Майстер ще нічого не побачить');
   });
 });

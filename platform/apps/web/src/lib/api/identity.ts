@@ -1,4 +1,5 @@
-import { apiBase } from './api-base';
+import { fetchJson } from './identity-fetch';
+import { updateProfileField } from './identity-profile-update';
 
 export interface User {
   id: string;
@@ -8,25 +9,6 @@ export interface User {
   preferences: string[];
   /** День і місяць народження без року (T-4730); порожнє — дефолт. */
   birthday?: { day: number; month: number } | null;
-}
-
-async function fetchJson<T>(path: string, options: RequestInit = {}): Promise<T | null> {
-  try {
-    const res = await fetch(`${apiBase()}${path}`, {
-      ...options,
-      headers: { 'content-type': 'application/json', ...options.headers },
-      credentials: 'include',
-    });
-    if (res.status === 404) return null;
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: 'API error' }));
-      throw new Error(err.message || `API ${res.status}`);
-    }
-    return (await res.json()) as T;
-  } catch (error) {
-    if (error instanceof Error) throw error;
-    throw new Error('Network error');
-  }
 }
 
 export async function requestOtp(phone: string): Promise<{ success: boolean }> {
@@ -82,35 +64,32 @@ export async function getProfile(token: string): Promise<User> {
   };
 }
 
-export async function updateBirthday(
+export function updateBirthday(
   token: string,
   birthday: { day: number; month: number } | null
 ): Promise<User> {
-  const result = await fetchJson<User>('/identity/profile/birthday', {
-    method: 'PATCH',
-    headers: { Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ birthday }),
+  return updateProfileField({
+    token,
+    path: '/identity/profile/birthday',
+    body: { birthday },
+    errorMessage: 'Failed to update birthday',
   });
-  if (!result) throw new Error('Failed to update birthday');
-  return result;
 }
 
-export async function updateName(token: string, name: string): Promise<User> {
-  const result = await fetchJson<User>('/identity/profile/name', {
-    method: 'PATCH',
-    headers: { Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ name }),
+export function updateName(token: string, name: string): Promise<User> {
+  return updateProfileField({
+    token,
+    path: '/identity/profile/name',
+    body: { name },
+    errorMessage: 'Failed to update name',
   });
-  if (!result) throw new Error('Failed to update name');
-  return result;
 }
 
-export async function updatePreferences(token: string, preferences: string[]): Promise<User> {
-  const result = await fetchJson<User>('/identity/profile/preferences', {
-    method: 'PATCH',
-    headers: { Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ preferences }),
+export function updatePreferences(token: string, preferences: string[]): Promise<User> {
+  return updateProfileField({
+    token,
+    path: '/identity/profile/preferences',
+    body: { preferences },
+    errorMessage: 'Failed to update preferences',
   });
-  if (!result) throw new Error('Failed to update preferences');
-  return result;
 }

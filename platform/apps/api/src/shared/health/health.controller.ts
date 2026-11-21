@@ -33,7 +33,8 @@ export class HealthController {
     database: DatabaseHealthSection;
     errors: ReturnType<ErrorTrackerService['snapshot']> | null;
   }> {
-    const { metrics, stores, geocoderHealth, outboxHealth, memoryHealth, databaseHealth } = this.deps;
+    const { metrics, stores, geocoderHealth, outboxHealth, memoryHealth, databaseHealth } =
+      this.deps;
     // strict: false — шукаємо по всьому графу застосунку (проба живе в
     // SchedulingModule); у мінімальній збірці get() кидає → секція null.
     let probe: OutboxLagProbe | null = null;

@@ -4,7 +4,11 @@ import { ScheduleNotAllowedError } from '../domain/barber-self-service';
 import { EditOwnScheduleHandler } from './edit-own-schedule';
 import { FakeOutbox, passthroughUow } from '../../locations/application/ports.fakes';
 import { createLocation } from '../../locations/test-helpers.fakes';
-import { FakeAvailabilityRepository, FakeScheduleChangeLogRepository, FakeSchedulePolicyRepository } from './set-availability.fakes';
+import {
+  FakeAvailabilityRepository,
+  FakeScheduleChangeLogRepository,
+  FakeSchedulePolicyRepository,
+} from './set-availability.fakes';
 
 const window: AvailabilityWindowData = { dayOfWeek: 0, start: '10:00', end: '12:00' };
 const barber = {

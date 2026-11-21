@@ -29,7 +29,10 @@ export function groupByCanonical(rows: readonly BookingSourceCount[]): BookingSo
 export class GetBookingSourceBreakdown {
   constructor(private readonly stats: BookingSourceStats) {}
 
-  async handle(from: Date, to: Date): Promise<{ from: string; to: string; sources: BookingSourceCount[] }> {
+  async handle(
+    from: Date,
+    to: Date
+  ): Promise<{ from: string; to: string; sources: BookingSourceCount[] }> {
     if (!Number.isFinite(from.getTime()) || !Number.isFinite(to.getTime()) || from >= to) {
       throw new RangeError('from must be before to');
     }

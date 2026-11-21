@@ -19,9 +19,9 @@ Add a short list under `docs/client-screens.md` §5 for the app profile: «Мо�
 
 ## Done
 
-- [ ] §5 lists the two app rows and excludes referrals
-- [ ] §2 says the aside is the only menu
-- [ ] `pnpm docs:validate` reports no new error from these files
+- [x] §5 lists the two app rows and excludes referrals
+- [x] §2 says the aside is the only menu
+- [x] `pnpm docs:validate` reports no new error from these files (7 pre-existing errors unchanged: 6× status «qa», 1× unescaped `|` in m5)
 
 ## Risks
 

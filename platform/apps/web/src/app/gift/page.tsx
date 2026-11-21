@@ -1,1 +1,3 @@
-export default function GiftPage() { return <div>Gift</div> }
+export default function GiftPage() {
+  return <div>Gift</div>;
+}

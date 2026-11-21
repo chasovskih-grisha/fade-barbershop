@@ -73,6 +73,8 @@ describe('EvaluateMembershipPerksHandler', () => {
     expect(result.tier).toBe('BRONZE');
     expect(result.pointsMultiplier).toBe(2.0); // 1.0 (BRONZE) * 2.0 (birthday)
     expect(result.finalPointsEarnable).toBe(100);
-    expect(result.appliedPerks).toContain('Birthday/Anniversary Bonus: 2x Points Multiplier Active');
+    expect(result.appliedPerks).toContain(
+      'Birthday/Anniversary Bonus: 2x Points Multiplier Active'
+    );
   });
 });

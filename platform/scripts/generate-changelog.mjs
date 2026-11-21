@@ -4,7 +4,8 @@ import fs from 'node:fs';
 export function generateChangelogContent() {
   try {
     const logs = execSync('git log --oneline -n 50', { encoding: 'utf8' });
-    let changelog = '# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n## Recent Commits\n\n';
+    let changelog =
+      '# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n## Recent Commits\n\n';
     for (const line of logs.trim().split('\n')) {
       if (line) {
         changelog += `- ${line}\n`;

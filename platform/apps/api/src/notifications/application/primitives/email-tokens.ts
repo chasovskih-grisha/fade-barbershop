@@ -21,10 +21,22 @@ interface EmailTokenSource {
   fontSize: { body: Leaf; caption: Leaf; title: Leaf; figure: Leaf };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const designTokens = require('@fade/design-tokens') as {
+// WIP спробував CJS-експорт (`tokens.cjs`), але згенерований артефакт може
+// бути старшим за tokens.json (наприклад, без title/figure). Джерело правди —
+// tokens.json, тож fallback гарантує актуальні значення й у Jest, і в runtime.
+import { createRequire } from 'node:module';
+
+const requireCjs = createRequire(__filename);
+const cjsTokens = requireCjs('@fade/design-tokens/tokens.cjs') as {
   tokens: { email: EmailTokenSource };
 };
+const isComplete = (source: { email: EmailTokenSource }): boolean =>
+  Boolean(source.email?.fontSize?.title && source.email?.fontSize?.figure);
+const designTokens: { tokens: { email: EmailTokenSource } } = isComplete(cjsTokens.tokens)
+  ? cjsTokens
+  : {
+      tokens: requireCjs('@fade/design-tokens/tokens.json') as { email: EmailTokenSource },
+    };
 
 export interface EmailTokens {
   bg: string;

@@ -7,7 +7,11 @@ import { useCallback } from 'react';
 // prettier-ignore
 import { cancelAppointment, rescheduleAppointment, setAppointmentReference, type ExtendedAppointment } from '@/lib/api/appointments';
 import type { ReferenceEdit } from './useReferenceEditor';
-import { trackAppointmentRescheduled, trackAppointmentCancelled, trackReferenceUpdated } from './visit-actions';
+import {
+  trackAppointmentRescheduled,
+  trackAppointmentCancelled,
+  trackReferenceUpdated,
+} from './visit-actions';
 
 /** Спільний раннер сторінки: показує помилку або перезавантажує список. */
 export type VisitAction = (key: string, action: () => Promise<void>) => Promise<void>;

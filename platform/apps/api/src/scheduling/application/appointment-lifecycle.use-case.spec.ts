@@ -15,7 +15,7 @@ describe('AppointmentLifecycle', () => {
     await lifecycle.confirm(cmd);
     await lifecycle.start(cmd);
     await lifecycle.complete(cmd);
-    expect(repo.saved.at(-1)?.data.status).toBe('completed');
+    expect(repo.saved.at(-1)?.data?.status).toBe('completed');
     expect(
       repo.saved
         .at(-1)
@@ -33,21 +33,21 @@ describe('AppointmentLifecycle', () => {
       start: '11:00',
       end: '11:30',
     });
-    expect(repo.saved[0]?.data.start).toBe('11:00');
+    expect(repo.saved[0]?.data?.start).toBe('11:00');
     await lifecycle.cancel({
       ...cmd,
       actorId: 'client-1',
       actorRole: 'client',
       reason: 'не зможу',
     });
-    expect(repo.saved.at(-1)?.data.status).toBe('cancelled');
+    expect(repo.saved.at(-1)?.data?.status).toBe('cancelled');
   });
 
   it('cancel без причини зберігається з порожнім cancelReason', async () => {
     const { lifecycle, repo } = setupLifecycle(booked());
     await lifecycle.cancel({ ...cmd, actorRole: 'client', actorId: 'client-1' });
-    expect(repo.saved.at(-1)?.data.status).toBe('cancelled');
-    expect(repo.saved.at(-1)?.data.cancelReason).toBe('');
+    expect(repo.saved.at(-1)?.data?.status).toBe('cancelled');
+    expect(repo.saved.at(-1)?.data?.cancelReason).toBe('');
   });
 
   it('барбер не може cancel і reschedule (README: клієнт або адмін)', async () => {
@@ -77,6 +77,6 @@ describe('AppointmentLifecycle', () => {
   it('markNoShow барбером — дозволено (дія на кріслі)', async () => {
     const { lifecycle, repo } = setupLifecycle(booked());
     await lifecycle.markNoShow({ ...cmd, actorRole: 'barber', actorId: 'barber-1' });
-    expect(repo.saved.at(-1)?.data.status).toBe('no_show');
+    expect(repo.saved.at(-1)?.data?.status).toBe('no_show');
   });
 });

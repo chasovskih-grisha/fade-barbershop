@@ -1,5 +1,9 @@
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: execute, complexity 12 vs 10); refactor tracked in T-2500f */
 import { Injectable } from '@nestjs/common';
-import { ReviewResponseTemplate, ReviewSentimentType } from '../domain/review-response.value-object';
+import {
+  ReviewResponseTemplate,
+  ReviewSentimentType,
+} from '../domain/review-response.value-object';
 
 export interface GenerateResponseInput {
   readonly reviewId?: string;
@@ -30,7 +34,8 @@ export class GenerateReviewResponseUseCase {
     }
 
     const baseTemplate = ReviewResponseTemplate.getTemplate(sentiment, input.customerName);
-    const tone = input.tone || (sentiment === 'NEGATIVE' ? 'APOLOGETIC' : input.isVip ? 'VIP' : 'WARM');
+    const tone =
+      input.tone || (sentiment === 'NEGATIVE' ? 'APOLOGETIC' : input.isVip ? 'VIP' : 'WARM');
 
     let suggestedResponse = baseTemplate;
     if (tone === 'VIP') {
@@ -41,7 +46,10 @@ export class GenerateReviewResponseUseCase {
       suggestedResponse = `Dear ${input.customerName}, we sincerely apologize that your experience at FADE did not meet our high standards. Our manager has been alerted and would love to speak with you directly to resolve this and offer a complimentary service on us.`;
     }
 
-    const needsEscalation = ReviewResponseTemplate.shouldEscalateToAdmin(input.rating, sentiment === 'NEGATIVE' ? -0.8 : 0.0);
+    const needsEscalation = ReviewResponseTemplate.shouldEscalateToAdmin(
+      input.rating,
+      sentiment === 'NEGATIVE' ? -0.8 : 0.0
+    );
 
     return {
       reviewId: input.reviewId ?? '',

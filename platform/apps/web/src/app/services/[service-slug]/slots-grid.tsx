@@ -33,9 +33,7 @@ export function SlotsGrid({
                 : 'border-line/40 bg-surface-sunken opacity-50 cursor-not-allowed'
             }`}
           >
-            <span className="font-display text-bodyLg font-semibold text-fg">
-              {slot.start}
-            </span>
+            <span className="font-display text-bodyLg font-semibold text-fg">{slot.start}</span>
             <span className="text-caption text-fg-secondary">
               {isAvailable ? `${slot.barbers.length} майстер(-ів)` : 'Зайнято'}
             </span>

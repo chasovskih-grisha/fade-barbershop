@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (104 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import { ClientLoyaltyState } from '../domain/client-loyalty-state';
 import { EarnCashbackHandler } from './earn-cashback.use-case';
 import { RedeemCashbackHandler } from './redeem-cashback.use-case';

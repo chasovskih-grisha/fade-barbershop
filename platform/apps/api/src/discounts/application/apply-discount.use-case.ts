@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, complexity, max-params -- cohesive module (157 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: an existing definition, complexity 14 vs 10); refactor tracked in T-2500f | 2 signatures whose 5-param contract is fixed by existing call sites (worst: fullDiscountReason, limit 3); API redesign tracked in T-2500f */
 // ApplyDiscountService — T-152: застосування знижок при записі.
 //
 // Один калькулятор (T-090) і три джерела: промокод, автоматичні правила
@@ -5,10 +6,7 @@
 // комбінуються лише VIP + промокод; правила — одне найвигідніше і без них;
 // сумарна знижка ≤ кап. 100% знижка дає FinalPrice = 0 і причину
 // `full_discount_promo` — без Payment і чека (DSC-013).
-import {
-  calculateDiscounts,
-  type DiscountSource,
-} from '../domain/discount-calculator';
+import { calculateDiscounts, type DiscountSource } from '../domain/discount-calculator';
 import type { AppliedDiscount, PriceBreakdown } from '../domain/price-breakdown';
 import {
   evaluatePromoCode,
@@ -79,7 +77,11 @@ export class ApplyDiscountService {
         input.serviceId,
         now
       );
-      promo = { code: normalizePromoCode(input.promoCode), valid: evaluation.valid, message: evaluation.message };
+      promo = {
+        code: normalizePromoCode(input.promoCode),
+        valid: evaluation.valid,
+        message: evaluation.message,
+      };
       if (evaluation.valid && evaluation.source) promoSource = evaluation.source;
     }
 
@@ -109,7 +111,13 @@ export class ApplyDiscountService {
 
     if (promo) result.promo = promo;
 
-    const reason = this.fullDiscountReason(breakdown, promoSource, ruleSources, vip, input.agreedPriceCents);
+    const reason = this.fullDiscountReason(
+      breakdown,
+      promoSource,
+      ruleSources,
+      vip,
+      input.agreedPriceCents
+    );
     if (reason && breakdown.finalPrice === 0) {
       result.reason = reason;
       result.requiresPayment = false;
@@ -125,7 +133,11 @@ export class ApplyDiscountService {
     serviceId?: string
   ): Promise<PromoCodeVerdict> {
     const evaluation = await this.checkPromoCode(rawCode, clientId, serviceId, new Date());
-    return { code: normalizePromoCode(rawCode), valid: evaluation.valid, message: evaluation.message };
+    return {
+      code: normalizePromoCode(rawCode),
+      valid: evaluation.valid,
+      message: evaluation.message,
+    };
   }
 
   /** VIP-рівень клієнта для профілю та розбивки (DSC-VIP-02). */

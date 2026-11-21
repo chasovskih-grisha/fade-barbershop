@@ -7,7 +7,7 @@ export { Booking } from '../scheduling/domain/booking';
 export { Appointment } from '../scheduling/domain/appointment.aggregate';
 export { ClientProfile } from '../crm/domain/client-profile';
 export { AppointmentParty } from '../appointment-party/domain/appointment-party.entity';
-export { OnlineBookingPolicy } from '../booking/policy/online-booking-policy';
+export type { OnlineBookingPolicy } from '../booking/policy/online-booking-policy';
 
 /** Ціна послуги в локації (T-4401): amount у мінімальних одиницях валюти. */
 export interface ServicePrice {

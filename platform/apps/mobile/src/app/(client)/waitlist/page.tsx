@@ -1,4 +1,7 @@
-import React from 'react';
-import { WaitlistClientScreen } from './WaitlistClientScreen';
+import { useRouter } from 'expo-router';
+import WaitlistClientScreen from './WaitlistClientScreen';
 
-export const page = WaitlistClientScreen;
+export default function WaitlistPage() {
+  const router = useRouter();
+  return <WaitlistClientScreen visible onClose={() => router.back()} />;
+}

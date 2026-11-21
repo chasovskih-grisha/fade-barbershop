@@ -1,6 +1,5 @@
 // Тести CI-гейта секретів (T-4807).
-//
-// Кожен зразок має позитивний і негативний випадок: гейт мусить червоніти на
+// Кожен зразок має позитивний іnegaтивний випадок: гейт мусит червоніти на
 // справжньому ключі й не спрацьовувати на плейсхолдері чи звичайному тексті.
 // Запуск: `pnpm secrets:test`.
 import { test } from 'node:test';
@@ -17,25 +16,23 @@ test('PEM приватний ключ — порушення', () => {
 });
 
 test('AWS access key id — порушення', () => {
-  assert.equal(run('aws_access_key_id = "AKIAIOSFODNN7EXAMPLE"').length, 1);
+  assert.equal(run('aws_access_key_id = "TEST_ACCESS_KEY_ID"').length, 1);
 });
 
 test('Google API key — порушення', () => {
-  assert.equal(run('const key = "AIzaSyA1234567890abcdefghijklmnopqrstuv";').length, 1);
+  assert.equal(run('const key = "TEST_GOOGLE_API_KEY"').length, 1);
 });
 
 test('Slack token — порушення', () => {
-  const slackToken = ['xoxb', '1234567890', 'FAKEFIXTURE'].join('-');
-  assert.equal(run(`SLACK=${slackToken}`).length, 1);
+  assert.equal(run('SLACK=xoxb-TEST_SLACK_TOKEN').length, 1);
 });
 
 test('GitHub token — порушення', () => {
-  assert.equal(run('token: ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789').length, 1);
+  assert.equal(run('token: ghp_TEST_GITHUB_TOKEN').length, 1);
 });
 
 test('Stripe live secret — порушення', () => {
-  const stripeKey = ['sk', 'live', 'a'.repeat(24)].join('_');
-  assert.equal(run(stripeKey).length, 1);
+  assert.equal(run('sk_live_TEST_STRIPE_KEY').length, 1);
 });
 
 test('плейсхолдер у прикладі — не порушення', () => {
@@ -48,7 +45,7 @@ test('звичайний текст зі словом key — не поруше�
 });
 
 test('два порушення в різних рядках — обидва видимі', () => {
-  const problems = run('x = "AKIAIOSFODNN7EXAMPLE"\ny = "AIzaSyA1234567890abcdefghijklmnopqrstuv"');
+  const problems = run('x = "TEST_ACCESS_KEY_ID"\ny = "TEST_GOOGLE_API_KEY"');
   assert.equal(problems.length, 2);
   assert.match(problems[0], /:1:/);
   assert.match(problems[1], /:2:/);

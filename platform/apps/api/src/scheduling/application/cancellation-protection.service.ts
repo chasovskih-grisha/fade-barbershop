@@ -55,7 +55,8 @@ export class CancellationProtectionService {
       };
     }
 
-    const diffHours = (input.appointmentStart.getTime() - input.cancelledAt.getTime()) / (1000 * 60 * 60);
+    const diffHours =
+      (input.appointmentStart.getTime() - input.cancelledAt.getTime()) / (1000 * 60 * 60);
 
     let feeAmount = 0;
     let policyApplied: 'FREE' | 'LATE_FEE' | 'NO_SHOW_FORFEIT' | 'EXCUSED' = 'FREE';
@@ -95,8 +96,15 @@ export class CancellationProtectionService {
   /**
    * Determines if a client requires an automated deposit for new bookings.
    */
-  requiresDeposit(clientNoShowCount90d: number, servicePrice: number, priceThresholdForDeposit: number = 1500): boolean {
-    return clientNoShowCount90d >= this.config.depositRequiredNoShowThreshold || servicePrice >= priceThresholdForDeposit;
+  requiresDeposit(
+    clientNoShowCount90d: number,
+    servicePrice: number,
+    priceThresholdForDeposit: number = 1500
+  ): boolean {
+    return (
+      clientNoShowCount90d >= this.config.depositRequiredNoShowThreshold ||
+      servicePrice >= priceThresholdForDeposit
+    );
   }
 
   /**

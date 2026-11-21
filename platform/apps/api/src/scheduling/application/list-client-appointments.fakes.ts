@@ -15,6 +15,7 @@ export function bookingRow(overrides: Record<string, unknown> = {}) {
     serviceId: 'svc-1',
     agreedPrice: 700,
     status: 'booked',
+    partyId: null,
     haircutReferenceId: 'photo-1',
     appointmentComment: 'коротше',
     start: START,

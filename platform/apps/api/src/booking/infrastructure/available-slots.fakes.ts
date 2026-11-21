@@ -18,6 +18,8 @@ export interface SlotsFakes {
   policy?: Partial<Omit<SlotPolicyRow, 'id' | 'locationId'>> | null;
   matrix?: Map<string, Map<string, Set<string>>>;
   now?: string;
+  /** T-4619a: візити, чиї депозитні утримання вже не діють. */
+  released?: string[];
 }
 
 export function makeSlots(options: SlotsFakes = {}): AvailableSlots {
@@ -59,6 +61,7 @@ export function makeSlots(options: SlotsFakes = {}): AvailableSlots {
     assignmentRepo: { snapshotForLocation: async () => ({ matrix }) } as never,
     slotPolicyRepo: { forLocation: async () => policy, save: async () => undefined } as never,
     clock: { now: () => now },
+    depositHolds: { releasedAppointmentIds: async () => new Set(options.released ?? []) },
   };
   return new AvailableSlots(deps);
 }

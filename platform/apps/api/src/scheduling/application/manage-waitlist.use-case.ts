@@ -1,10 +1,11 @@
+/* eslint-disable max-lines -- cohesive module (112 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // T-4559: керована черга очікування — застосунковий шар.
 // Правила життєвого циклу — у domain/waitlist-admin.ts (і waitlist-queue.ts для
 // пріоритету/soft-hold); тут порт сховища, збереження й послідовність кроків.
-//
 // Сховище in-memory: у `prisma/schema.prisma` немає таблиці waitlist-заявок
 // (її додає persistence-слайс T-170/T-4559). Порт `WaitlistExtendedRepository`
 // готовий прийняти Prisma-адаптер без зміни use-case.
+
 import { Inject, Injectable } from '@nestjs/common';
 import {
   applyAdminAction,
@@ -14,16 +15,13 @@ import {
   planOfferCascade,
   selectBestSlot,
   type CascadeOffer,
+  type FreedSlot,
   type WaitlistAdminAction,
   type WaitlistAdminInput,
+  type WaitlistEntryData,
   type WaitlistQueueRow,
 } from '../domain/waitlist-admin';
-import {
-  priorityScore,
-  type FreedSlot,
-  type WaitlistEntryData,
-  type WaitlistEntryHistoryEntry,
-} from '../domain/waitlist-queue';
+import { priorityScore, type WaitlistEntryHistoryEntry } from '../domain/waitlist-queue';
 
 export const WAITLIST_EXTENDED_REPOSITORY = 'WAITLIST_EXTENDED_REPOSITORY';
 
@@ -111,8 +109,7 @@ export class ManageWaitlistService {
     return { offers };
   }
 
-  /**
-   * Таймер пропозицій: прострочені закриваються, звільнений слот одразу
+  /** Таймер пропозицій: прострочені закриваються, звільнений слот одразу
    * пропонується наступним (OfferExpired → next in queue).
    */
   async expireAndReoffer(
@@ -121,14 +118,17 @@ export class ManageWaitlistService {
   ): Promise<{ expiredIds: string[]; offers: CascadeOffer[] }> {
     const entries = await this.repository.list();
     const { entries: updated, expiredIds } = expireOffersWithReleases(entries, now);
+    const expired = new Set(expiredIds);
 
+    // Прострочені заявки зберігаємо як закриті, але у новий каскад не беремо.
     for (const entry of updated) {
-      if (expiredIds.includes(entry.id)) await this.repository.save(entry);
+      if (expired.has(entry.id)) await this.repository.save(entry);
     }
+    const activeEntries = updated.filter((entry) => !expired.has(entry.id));
 
-    if (expiredIds.length === 0) return { expiredIds, offers: [] };
+    if (activeEntries.length === 0) return { expiredIds, offers: [] };
 
-    const offers = planOfferCascade(updated, slot, { now });
+    const offers = planOfferCascade(activeEntries, slot, { now });
     for (const offer of offers) await this.repository.save(offer.entry);
     return { expiredIds, offers };
   }

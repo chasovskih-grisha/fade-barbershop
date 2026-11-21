@@ -6,7 +6,7 @@ describe('BookingErrorBoundary', () => {
   it('renders error message, support touchpoints and handles reset', () => {
     const resetMock = jest.fn();
     const testError = new Error('Test booking error');
-    
+
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     render(<BookingErrorBoundary error={testError} reset={resetMock} />);

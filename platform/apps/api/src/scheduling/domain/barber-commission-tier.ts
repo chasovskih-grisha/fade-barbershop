@@ -1,4 +1,3 @@
-
 export interface CommissionCalculationInput {
   barberId: string;
   baseServiceRevenue: number;
@@ -25,8 +24,10 @@ export interface CommissionCalculationResult {
 /**
  * Calculates tiered commission, product sales share, tips, and occupancy-based bonuses for FADE barbers.
  */
-export function calculateBarberCommissionAndPayout(input: CommissionCalculationInput): CommissionCalculationResult {
-  const baseRate = input.customBaseCommissionRate ?? 0.40;
+export function calculateBarberCommissionAndPayout(
+  input: CommissionCalculationInput
+): CommissionCalculationResult {
+  const baseRate = input.customBaseCommissionRate ?? 0.4;
   const productRevenue = input.productSalesRevenue ?? 0;
   const tips = input.tipsAmount ?? 0;
   const occupancy = Math.max(0, Math.min(1.0, input.occupancyRate));
@@ -37,21 +38,23 @@ export function calculateBarberCommissionAndPayout(input: CommissionCalculationI
 
   if (occupancy >= 0.85) {
     commissionTier = 'gold';
-    tierRateBonus = 0.10; // +10% absolute commission rate boost (e.g. 40% -> 50%)
-    bonusMultiplier = 1.20;
-  } else if (occupancy >= 0.70) {
+    tierRateBonus = 0.1; // +10% absolute commission rate boost (e.g. 40% -> 50%)
+    bonusMultiplier = 1.2;
+  } else if (occupancy >= 0.7) {
     commissionTier = 'silver';
     tierRateBonus = 0.05; // +5% (40% -> 45%)
-    bonusMultiplier = 1.10;
-  } else if (occupancy >= 0.50) {
+    bonusMultiplier = 1.1;
+  } else if (occupancy >= 0.5) {
     commissionTier = 'bronze';
     tierRateBonus = 0.025; // +2.5% (40% -> 42.5%)
     bonusMultiplier = 1.05;
   }
 
   const appliedCommissionRate = Number((baseRate + tierRateBonus).toFixed(4));
-  const serviceCommissionAmount = Number((input.baseServiceRevenue * appliedCommissionRate).toFixed(2));
-  
+  const serviceCommissionAmount = Number(
+    (input.baseServiceRevenue * appliedCommissionRate).toFixed(2)
+  );
+
   // Product sales commission fixed at 15%
   const productCommissionRate = 0.15;
   const productCommissionAmount = Number((productRevenue * productCommissionRate).toFixed(2));

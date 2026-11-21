@@ -3,7 +3,13 @@
 // = новий рядок, AI-ADM-04). Варіанти живуть у НАШОМУ бакеті (ADR 0008).
 
 import type { GeneratedVariant, GenerationFailureReason, Clock, IdGenerator } from './ports';
-import { freshSuggestionState, VARIANT_COUNT_MAX, VARIANT_COUNT_MIN, type HaircutSuggestionProps, type SuggestionStatus } from './haircut-suggestion-props';
+import {
+  freshSuggestionState,
+  VARIANT_COUNT_MAX,
+  VARIANT_COUNT_MIN,
+  type HaircutSuggestionProps,
+  type SuggestionStatus,
+} from './haircut-suggestion-props';
 import { completeSuggestion, failSuggestion } from './haircut-suggestion-transitions';
 import type { SuggestionFailed, SuggestionGenerated } from './events';
 

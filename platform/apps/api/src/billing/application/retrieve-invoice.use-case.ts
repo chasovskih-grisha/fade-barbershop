@@ -14,7 +14,9 @@ export interface RetrieveInvoiceResult {
 }
 
 export class RetrieveInvoiceHandler {
-  constructor(private readonly ctx: PaymentCommandContext & { acquiringGateway: AcquiringGateway }) {}
+  constructor(
+    private readonly ctx: PaymentCommandContext & { acquiringGateway: AcquiringGateway }
+  ) {}
 
   async handle(input: RetrieveInvoiceInput): Promise<RetrieveInvoiceResult> {
     const payment = await this.ctx.payments.findById(input.paymentId);
@@ -30,9 +32,9 @@ export class RetrieveInvoiceHandler {
 
     const invoice: InvoiceDetails = verification.invoice || {
       invoiceId: `inv_${payment.id}_fallback`,
-      taxRate: 0.20,
-      taxAmount: Math.round(payment.amount * 0.20 * 100) / 100,
-      subtotal: Math.round(payment.amount * 0.80 * 100) / 100,
+      taxRate: 0.2,
+      taxAmount: Math.round(payment.amount * 0.2 * 100) / 100,
+      subtotal: Math.round(payment.amount * 0.8 * 100) / 100,
       total: payment.amount,
       issuedAt: this.ctx.clock.now(),
     };

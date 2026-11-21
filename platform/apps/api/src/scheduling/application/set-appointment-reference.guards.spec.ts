@@ -4,7 +4,12 @@
 import { CommentTooLongError, ReferenceLockedError } from './set-appointment-reference.use-case';
 import { AppointmentNotFoundError } from './appointment-lifecycle.use-case';
 import { InvalidTransitionError } from '../domain/appointment.aggregate';
-import { setupReference, referenceCmd, confirmedAppointment, cancelledAppointment } from './set-appointment-reference.fakes';
+import {
+  setupReference,
+  referenceCmd,
+  confirmedAppointment,
+  cancelledAppointment,
+} from './set-appointment-reference.fakes';
 import { expectRejected, expectRejectsWith } from '@fade/test-utils';
 
 const cmd = referenceCmd;

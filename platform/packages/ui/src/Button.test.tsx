@@ -49,4 +49,11 @@ describe('Button', () => {
     render(<Button className="w-full">x</Button>);
     expect(screen.getByRole('button').className).toContain('w-full');
   });
+
+  it('має стилі focus-visible для доступності фокусу', () => {
+    render(<Button>Фокус</Button>);
+    const className = screen.getByRole('button').className;
+    expect(className).toContain('focus-visible:ring-2');
+    expect(className).toContain('focus-visible:ring-accent-blue');
+  });
 });

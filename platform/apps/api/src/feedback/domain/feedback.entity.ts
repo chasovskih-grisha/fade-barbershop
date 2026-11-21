@@ -1,3 +1,4 @@
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: an existing definition, complexity 11 vs 10); refactor tracked in T-2500f */
 import { Sentiment, SentimentType } from './sentiment.value-object';
 import { FeedbackWindow } from './feedback-window.value-object';
 

@@ -3,8 +3,24 @@
 import { PhoneNumber } from '../domain/phone-number';
 import { User } from '../domain/user';
 import { expectRejected } from '@fade/test-utils';
-import { OtpExpiredError, OtpPurposeMismatchError, PhoneTakenError, UserNotFoundError } from './identity-errors';
-import { CODE, NEW_PHONE, OLD_PHONE, SESSION_1, SESSION_2, T0, USER_1, USER_2, seedPhoneChangeCode, setupChangePhone } from './change-phone.fakes';
+import {
+  OtpExpiredError,
+  OtpPurposeMismatchError,
+  PhoneTakenError,
+  UserNotFoundError,
+} from './identity-errors';
+import {
+  CODE,
+  NEW_PHONE,
+  OLD_PHONE,
+  SESSION_1,
+  SESSION_2,
+  T0,
+  USER_1,
+  USER_2,
+  seedPhoneChangeCode,
+  setupChangePhone,
+} from './change-phone.fakes';
 
 const VERIFY = { userId: USER_1, currentSessionId: SESSION_1, phone: NEW_PHONE, code: CODE };
 
@@ -16,7 +32,7 @@ describe('ChangePhoneVerify (T-4620a): перенос номера на той �
     const result = await t.verify.handle(VERIFY);
 
     expect(result).toEqual({ ok: true, phone: NEW_PHONE });
-    expect((await t.users.findById(USER_1))?.phone.value).toBe(NEW_PHONE);
+    expect((await t.users.findById(USER_1))?.phone?.value).toBe(NEW_PHONE);
     expect(t.users.all).toHaveLength(1);
   });
 
@@ -51,7 +67,7 @@ describe('ChangePhoneVerify (T-4620a): перенос номера на той �
       OtpPurposeMismatchError,
       'purpose перевіряємо, а не лише цифри — логін-код не міняє номер'
     );
-    expect((await t.users.findById(USER_1))?.phone.value).toBe(OLD_PHONE);
+    expect((await t.users.findById(USER_1))?.phone?.value).toBe(OLD_PHONE);
   });
 
   it('номер уже належить іншому акаунту → PhoneTakenError, обидва без змін', async () => {
@@ -71,8 +87,8 @@ describe('ChangePhoneVerify (T-4620a): перенос номера на той �
       PhoneTakenError,
       'без авто-merge (T-4423): зайнятий номер не переносимо'
     );
-    expect((await t.users.findById(USER_1))?.phone.value).toBe(OLD_PHONE);
-    expect((await t.users.findById(USER_2))?.phone.value).toBe(NEW_PHONE);
+    expect((await t.users.findById(USER_1))?.phone?.value).toBe(OLD_PHONE);
+    expect((await t.users.findById(USER_2))?.phone?.value).toBe(NEW_PHONE);
     expect(t.outbox.events).toHaveLength(0);
   });
 

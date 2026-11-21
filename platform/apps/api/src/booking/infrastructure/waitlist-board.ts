@@ -4,11 +4,10 @@ import type { WaitlistEntryDto } from '../dto/waitlist-entry.dto';
 
 const entries = new Map<string, WaitlistEntryDto>();
 
-export function joinWaitlist(input: {
-  locationId: string;
-  serviceId: string;
-  barberId?: string;
-}): { entryId: string; queuePosition: number } {
+export function joinWaitlist(input: { locationId: string; serviceId: string; barberId?: string }): {
+  entryId: string;
+  queuePosition: number;
+} {
   const entry: WaitlistEntryDto = {
     id: `wl-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     clientId: 'guest',

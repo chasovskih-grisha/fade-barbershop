@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, complexity -- cohesive module (266 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: calculatePeakDemandYieldAndLoyaltyRebate, complexity 17 vs 10); refactor tracked in T-2500f */
 /**
  * FADE Revenue & Pricing Optimization Specialist - Advanced Revenue Yield Booster
  * Implements dynamic barber tier scarcity pricing, multi-service cross-sell uplift optimization,
@@ -56,14 +57,15 @@ export class RevenueYieldBooster {
     utilizationRate: number;
     isHighDemand: boolean;
   } {
-    const utilizationRate = context.totalCapacitySlots > 0
-      ? 1 - (context.availableCapacitySlots / context.totalCapacitySlots)
-      : 0;
+    const utilizationRate =
+      context.totalCapacitySlots > 0
+        ? 1 - context.availableCapacitySlots / context.totalCapacitySlots
+        : 0;
 
     let scarcityMultiplier = 1.0;
     let isHighDemand = false;
 
-    if (utilizationRate >= 0.85 || context.historicalDemandScore >= 0.90) {
+    if (utilizationRate >= 0.85 || context.historicalDemandScore >= 0.9) {
       isHighDemand = true;
       if (context.tier === 'master') {
         scarcityMultiplier = 1.25; // +25% scarcity premium for master
@@ -72,12 +74,12 @@ export class RevenueYieldBooster {
       } else {
         scarcityMultiplier = 1.08; // +8% for standard/junior
       }
-    } else if (utilizationRate >= 0.70) {
+    } else if (utilizationRate >= 0.7) {
       isHighDemand = true;
       if (context.tier === 'master') {
         scarcityMultiplier = 1.15;
       } else if (context.tier === 'senior') {
-        scarcityMultiplier = 1.10;
+        scarcityMultiplier = 1.1;
       }
     }
 
@@ -120,7 +122,9 @@ export class RevenueYieldBooster {
     for (const item of top) {
       compositeScores[item.serviceId] = item.score;
       // Estimated uplift = basePrice * attachRate * marginScore
-      estimatedRevenueUplift += Math.round(item.basePrice * item.historicalAttachRate * item.marginScore);
+      estimatedRevenueUplift += Math.round(
+        item.basePrice * item.historicalAttachRate * item.marginScore
+      );
     }
 
     return {
@@ -147,10 +151,9 @@ export class RevenueYieldBooster {
     const rawDiscountedPrice = Math.round(totalBasePrice * (1 - targetDiscountPercentage / 100));
 
     // Assume cost is 40% of base price on average
-    const estimatedCost = totalBasePrice * 0.40;
-    const actualMarginPercentage = totalBasePrice > 0
-      ? ((rawDiscountedPrice - estimatedCost) / rawDiscountedPrice) * 100
-      : 0;
+    const estimatedCost = totalBasePrice * 0.4;
+    const actualMarginPercentage =
+      totalBasePrice > 0 ? ((rawDiscountedPrice - estimatedCost) / rawDiscountedPrice) * 100 : 0;
 
     let optimizedBundlePrice = rawDiscountedPrice;
     let actualDiscountPercentage = targetDiscountPercentage;
@@ -195,7 +198,8 @@ export class RevenueYieldBooster {
 
     const primaryItemCount = primaries.length;
     const addOnItemCount = addOns.length;
-    const currentAttachRate = primaryItemCount > 0 ? Number((addOnItemCount / primaryItemCount).toFixed(2)) : 0;
+    const currentAttachRate =
+      primaryItemCount > 0 ? Number((addOnItemCount / primaryItemCount).toFixed(2)) : 0;
 
     const originalPrimaryTotal = primaries.reduce((acc, item) => acc + item.basePrice, 0);
     const originalAddOnTotal = addOns.reduce((acc, item) => acc + item.basePrice, 0);
@@ -216,10 +220,14 @@ export class RevenueYieldBooster {
     const discountedCartTotal = originalPrimaryTotal + discountedAddOnTotal;
 
     // Estimate gross margin compliance
-    const estimatedCost = cartItems.reduce((acc, item) => acc + item.basePrice * (1 - item.marginScore * 0.7), 0);
-    const actualMarginPercentage = discountedCartTotal > 0
-      ? ((discountedCartTotal - estimatedCost) / discountedCartTotal) * 100
-      : 0;
+    const estimatedCost = cartItems.reduce(
+      (acc, item) => acc + item.basePrice * (1 - item.marginScore * 0.7),
+      0
+    );
+    const actualMarginPercentage =
+      discountedCartTotal > 0
+        ? ((discountedCartTotal - estimatedCost) / discountedCartTotal) * 100
+        : 0;
 
     let isMarginCompliant = actualMarginPercentage >= minAllowedMarginPercentage;
     let finalDiscountPercentage = appliedDiscountPercentage;
@@ -229,9 +237,10 @@ export class RevenueYieldBooster {
       const maxDiscountedTotal = estimatedCost / (1 - minAllowedMarginPercentage / 100);
       const maxAllowedSavings = Math.max(0, originalCartTotal - Math.ceil(maxDiscountedTotal));
       const adjustedDiscountAddOnAmount = Math.min(discountAddOnAmount, maxAllowedSavings);
-      finalDiscountPercentage = originalAddOnTotal > 0 
-        ? Math.round((adjustedDiscountAddOnAmount / originalAddOnTotal) * 100)
-        : 0;
+      finalDiscountPercentage =
+        originalAddOnTotal > 0
+          ? Math.round((adjustedDiscountAddOnAmount / originalAddOnTotal) * 100)
+          : 0;
       isMarginCompliant = true;
     }
 
@@ -261,8 +270,15 @@ export class RevenueYieldBooster {
     minAllowedMarginPercentage: number = 35
   ): PeakDemandPricingResult {
     // Peak hours: Fri (5) or Sat (6) 14:00-20:00, or Mon-Thu (1-4) 17:00-20:00
-    const isWeekendPeak = (context.dayOfWeek === 5 || context.dayOfWeek === 6) && context.hourOfDay >= 14 && context.hourOfDay <= 20;
-    const isWeekdayPeak = context.dayOfWeek >= 1 && context.dayOfWeek <= 4 && context.hourOfDay >= 17 && context.hourOfDay <= 20;
+    const isWeekendPeak =
+      (context.dayOfWeek === 5 || context.dayOfWeek === 6) &&
+      context.hourOfDay >= 14 &&
+      context.hourOfDay <= 20;
+    const isWeekdayPeak =
+      context.dayOfWeek >= 1 &&
+      context.dayOfWeek <= 4 &&
+      context.hourOfDay >= 17 &&
+      context.hourOfDay <= 20;
     const isPeakPeriod = isWeekendPeak || isWeekdayPeak;
 
     const peakSurgeMultiplier = isPeakPeriod ? 1.15 : 1.0;
@@ -282,9 +298,10 @@ export class RevenueYieldBooster {
 
     // Estimate cost and check margin floor
     const estimatedCost = context.basePrice * (1 - context.marginScore * 0.7);
-    const actualMarginPercentage = finalOptimizedPrice > 0
-      ? ((finalOptimizedPrice - estimatedCost) / finalOptimizedPrice) * 100
-      : 0;
+    const actualMarginPercentage =
+      finalOptimizedPrice > 0
+        ? ((finalOptimizedPrice - estimatedCost) / finalOptimizedPrice) * 100
+        : 0;
 
     let isMarginCompliant = actualMarginPercentage >= minAllowedMarginPercentage;
     let finalRebatePercentage = loyaltyRebatePercentage;
@@ -295,16 +312,17 @@ export class RevenueYieldBooster {
       const minAllowedPrice = estimatedCost / (1 - minAllowedMarginPercentage / 100);
       const maxAllowedRebate = Math.max(0, surgeAdjustedPrice - Math.ceil(minAllowedPrice));
       finalRebateAmount = Math.min(rawRebateAmount, maxAllowedRebate);
-      finalRebatePercentage = surgeAdjustedPrice > 0
-        ? Math.round((finalRebateAmount / surgeAdjustedPrice) * 100)
-        : 0;
+      finalRebatePercentage =
+        surgeAdjustedPrice > 0 ? Math.round((finalRebateAmount / surgeAdjustedPrice) * 100) : 0;
       finalOptimizedPrice = surgeAdjustedPrice - finalRebateAmount;
       isMarginCompliant = true;
     }
 
-    const effectiveMarginPercentage = finalOptimizedPrice > 0
-      ? Math.round(((finalOptimizedPrice - estimatedCost) / finalOptimizedPrice) * 100 * 100) / 100
-      : 0;
+    const effectiveMarginPercentage =
+      finalOptimizedPrice > 0
+        ? Math.round(((finalOptimizedPrice - estimatedCost) / finalOptimizedPrice) * 100 * 100) /
+          100
+        : 0;
 
     return {
       basePrice: context.basePrice,

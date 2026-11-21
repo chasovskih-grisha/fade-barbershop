@@ -41,7 +41,11 @@ describe('Campaign ROI & Attribution Analytics', () => {
     const spy = jest.fn();
     (window as any).dataLayer = { push: spy };
 
-    const weights = campaignRoiAnalytics.calculateAttributionWeights(['google_search', 'instagram_ad', 'direct']);
+    const weights = campaignRoiAnalytics.calculateAttributionWeights([
+      'google_search',
+      'instagram_ad',
+      'direct',
+    ]);
     expect(weights['google_search']).toBeCloseTo(0.3333);
     expect(weights['instagram_ad']).toBeCloseTo(0.3333);
     expect(weights['direct']).toBeCloseTo(0.3333);

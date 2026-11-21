@@ -3,11 +3,24 @@
 // контролері. Помилки — через ContentExceptionFilter (404 для невідомого slug).
 
 import { Controller, Get, Param, Query, UseFilters } from '@nestjs/common';
-import { ListPublishedArticlesHandler, GetPublishedArticleHandler } from '../application/article-queries';
+import {
+  ListPublishedArticlesHandler,
+  GetPublishedArticleHandler,
+} from '../application/article-queries';
 import { ContentExceptionFilter } from './content.exception-filter';
-import { toArticleDto, toArticleSummary, type ArticleDto, type ArticleSummaryDto } from './content.dto';
+import {
+  toArticleDto,
+  toArticleSummary,
+  type ArticleDto,
+  type ArticleSummaryDto,
+} from './content.dto';
 
-const MAX_LIMIT = 50;
+interface FeedParams {
+  tag?: string;
+  q?: string;
+  cursor?: string;
+  limit?: string;
+}
 
 @Controller('content/articles')
 @UseFilters(ContentExceptionFilter)
@@ -17,12 +30,16 @@ export class PublicContentController {
     private readonly get: GetPublishedArticleHandler
   ) {}
 
-  /** GET /content/articles?limit=20 — стрічка блогу. */
+  /** GET /content/articles?tag=&q=&cursor=&limit= — стрічка блогу. */
   @Get()
-  async listPublished(@Query('limit') limit?: string): Promise<ArticleSummaryDto[]> {
-    const parsed = Number.parseInt(limit ?? '', 10);
-    const safe = Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, MAX_LIMIT) : 20;
-    const articles = await this.list.handle(safe);
+  async listPublished(@Query() params: FeedParams): Promise<ArticleSummaryDto[]> {
+    const parsed = Number.parseInt(params.limit ?? '', 10);
+    const articles = await this.list.handle({
+      tag: params.tag,
+      q: params.q,
+      cursor: params.cursor,
+      limit: Number.isFinite(parsed) ? parsed : undefined,
+    });
     return articles.map(toArticleSummary);
   }
 

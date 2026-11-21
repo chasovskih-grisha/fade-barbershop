@@ -9,7 +9,9 @@ jest.mock('@/lib/api/appointments', () => ({
   ...jest.requireActual('@/lib/api/appointments'),
   getAppointments: jest.fn(),
 }));
-jest.mock('../../../booking/referencePhotoApi', () => ({ getReferencePhotoUrl: jest.fn().mockResolvedValue(null) }));
+jest.mock('../../../booking/referencePhotoApi', () => ({
+  getReferencePhotoUrl: jest.fn().mockResolvedValue(null),
+}));
 jest.mock('../../../components/auth/AuthProvider', () => ({ useAuth: jest.fn() }));
 jest.mock('next/link', () => ({
   __esModule: true,

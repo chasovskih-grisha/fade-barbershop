@@ -4,7 +4,7 @@
  * and cohort analytics routing for FADE booking and membership funnels.
  */
 
-import { getStoredUtmParams, getUtmParamsFromUrl, UtmParams } from '../analytics';
+import { isConsecutiveDuplicate, toTouchpoint } from './cohort-touchpoint';
 
 export interface AttributionTouchpoint {
   timestamp: number;
@@ -28,33 +28,13 @@ export interface AttributionReport {
 const ATTRIBUTION_STORAGE_KEY = 'fade_attribution_touchpoints';
 
 export function recordTouchpoint(landingPage: string, queryParams?: string): AttributionTouchpoint {
-  const utm: UtmParams = queryParams ? getUtmParamsFromUrl(queryParams) : getStoredUtmParams();
-  const touchpoint: AttributionTouchpoint = {
-    timestamp: Date.now(),
-    source: (utm.utm_source as string) || 'direct',
-    medium: (utm.utm_medium as string) || 'none',
-    campaign: (utm.utm_campaign as string) || undefined,
-    content: (utm.utm_content as string) || undefined,
-    term: (utm.utm_term as string) || undefined,
-    landingPage,
-  };
-
-  if (typeof window === 'undefined') {
-    return touchpoint;
-  }
+  const touchpoint = toTouchpoint(landingPage, queryParams);
+  if (typeof window === 'undefined') return touchpoint;
 
   try {
     const existingRaw = localStorage.getItem(ATTRIBUTION_STORAGE_KEY);
     const touchpoints: AttributionTouchpoint[] = existingRaw ? JSON.parse(existingRaw) : [];
-    
-    // Avoid duplicate consecutive identical source/medium within 30 minutes
-    const last = touchpoints[touchpoints.length - 1];
-    const isDuplicate = last && 
-      last.source === touchpoint.source && 
-      last.medium === touchpoint.medium && 
-      (touchpoint.timestamp - last.timestamp < 30 * 60 * 1000);
-
-    if (!isDuplicate) {
+    if (!isConsecutiveDuplicate(touchpoints, touchpoint)) {
       touchpoints.push(touchpoint);
       if (touchpoints.length > 20) touchpoints.shift();
       localStorage.setItem(ATTRIBUTION_STORAGE_KEY, JSON.stringify(touchpoints));
@@ -78,7 +58,9 @@ export function getAttributionReport(): AttributionReport {
   }
 
   if (touchpoints.length === 0) {
-    const fallback = recordTouchpoint(typeof window !== 'undefined' ? window.location.pathname : '/');
+    const fallback = recordTouchpoint(
+      typeof window !== 'undefined' ? window.location.pathname : '/'
+    );
     touchpoints = [fallback];
   }
 
@@ -86,7 +68,7 @@ export function getAttributionReport(): AttributionReport {
     timestamp: Date.now(),
     source: 'direct',
     medium: 'none',
-    landingPage: '/'
+    landingPage: '/',
   };
   const lastTouch = touchpoints[touchpoints.length - 1] ?? firstTouch;
 
@@ -99,12 +81,12 @@ export function getAttributionReport(): AttributionReport {
 
   const dateObj = new Date(firstTouch.timestamp);
   const cohortMonth = dateObj.toISOString().substring(0, 7);
-  
+
   const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   const cohortWeek = `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
 
   return {

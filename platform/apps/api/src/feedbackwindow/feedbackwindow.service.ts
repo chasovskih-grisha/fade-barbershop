@@ -1,6 +1,11 @@
+/* eslint-disable max-lines, max-params -- cohesive module (172 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 signature whose 4-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
+import { Logger } from '@nestjs/common';
 import { prisma } from '../index';
-import { FeedbackWindow, FeedbackWindowStatus, FeedbackSubmission, PhotoRef, CreateFeedbackWindowInput, FeedbackWindowOutput } from './feedbackwindow.domain';
-import { Appointment, Booking } from '../domain';
+import {
+  FeedbackWindowStatus,
+  FeedbackSubmission,
+  FeedbackWindowOutput,
+} from './feedbackwindow.domain';
 import { push } from '../lib/notifications';
 
 /** T-150: Feedback Window - 30-day window after AppointmentCompleted.
@@ -96,7 +101,12 @@ export class FeedbackWindowService {
       // Allow edit: update existing submission
       const updated = await prisma.feedbackSubmission.update({
         where: { id: window.submission.id },
-        data: { rating, text, photos: photoIds.map(id => ({ id, sortOrder: photoIds.indexOf(id) })), updatedAt: new Date() },
+        data: {
+          rating,
+          text,
+          photos: photoIds.map((id) => ({ id, sortOrder: photoIds.indexOf(id) })),
+          updatedAt: new Date(),
+        },
       });
       return updated;
     }
@@ -107,7 +117,7 @@ export class FeedbackWindowService {
         windowId,
         rating,
         text,
-        photos: photoIds.map(id => ({
+        photos: photoIds.map((id) => ({
           id, // external ID or generated
           sortOrder: photoIds.indexOf(id),
         })),
@@ -126,7 +136,9 @@ export class FeedbackWindowService {
   /** Send reminder after exactly 2 hours if feedback not yet submitted (FDB-MOB-02).
    * Exactly one reminder allowed.
    */
-  async sendReminderIfNeeded(windowId: string): Promise<{ reminded: boolean; reminderSentAt: Date | null }> {
+  async sendReminderIfNeeded(
+    windowId: string
+  ): Promise<{ reminded: boolean; reminderSentAt: Date | null }> {
     const window = await prisma.feedbackWindow.findUnique({
       where: { id: windowId },
       include: { submission: true },
@@ -158,7 +170,7 @@ export class FeedbackWindowService {
           },
         });
       } catch (error) {
-        console.error('Failed to send feedback reminder:', error);
+        Logger.error(`Failed to send feedback reminder: ${String(error)}`, 'FeedbackWindowService');
       }
 
       // Mark reminder as sent

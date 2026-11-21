@@ -5,13 +5,15 @@
 
 export type Classification = 'public' | 'internal' | 'confidential' | 'personal';
 
-export type RetentionDataset = 'otp_challenges' | 'sessions' | 'notification_records' | 'waitlist_entries';
+export type RetentionDataset = 'otp_challenges' | 'sessions' | 'notification_records';
 
 export interface RetentionRule {
   dataset: RetentionDataset;
   classification: Classification;
-  /** Скільки днів тримаємо після «початку відліку» набору (див. table). */  ttlDays: number;
-  /** Що саме видаляється — для аудиту й ревʼю. */  note: string;
+  /** Скільки днів тримаємо після «початку відліку» набору (див. table). */
+  ttlDays: number;
+  /** Що саме видаляється — для аудиту й ревʼю. */
+  note: string;
 }
 
 export const RETENTION_RULES: readonly RetentionRule[] = [
@@ -33,23 +35,35 @@ export const RETENTION_RULES: readonly RetentionRule[] = [
     ttlDays: 90,
     note: 'Журнал доставки (одержувач = PII) — 90 днів',
   },
-  {
-    dataset: 'waitlist_entries',
-    classification: 'personal',
-    ttlDays: 180,
-    note: 'Записи у чергу — 180 днів після скасування/завершення',  }
 ];
 
 export function ruleFor(dataset: RetentionDataset): RetentionRule | undefined {
   return RETENTION_RULES.find((rule) => rule.dataset === dataset);
 }
 
-/** Cutoff = «усе, що старше за цю межу, видаляємо». */  export function cutoffFor(rule: RetentionRule, now: Date): Date {
+/** Cutoff = «усе, що старше за цю межу, видаляємо». */
+export function cutoffFor(rule: RetentionRule, now: Date): Date {
   return new Date(now.getTime() - rule.ttlDays * 24 * 60 * 60 * 1000);
 }
 
-/**\n * Legal hold: явний список наборів, які не можна чіпати (судова справа,\n * розслідування). Конфіг: `RETENTION_LEGAL_HOLD=sessions,notification_records`.\n */  export function legalHolds(env: NodeJS.ProcessEnv = process.env): Set<string> {
-  const raw = env.RETENTION_LEGAL_HOLD ?? '';\n  return new Set(\n    raw\n      .split(',')\n      .map((item) => item.trim())\n      .filter(Boolean)\n  );
+/**
+ * Legal hold: явний список наборів, які не можна чіпати (судова справа,
+ * розслідування). Конфіг: `RETENTION_LEGAL_HOLD=sessions,notification_records`.
+ */
+export function legalHolds(env: NodeJS.ProcessEnv = process.env): Set<string> {
+  const raw = env.RETENTION_LEGAL_HOLD ?? '';
+  return new Set(
+    raw
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  );
 }
 
-/**\n * Audit entry for purge operation. */  export interface RetentionAuditEntry {\n  dataset: string;\n  cutoff: string;\n  purged: number;\n  remainingExpired: number;\n  held: boolean;\n}\n"}
+export interface RetentionAuditEntry {
+  dataset: string;
+  cutoff: string;
+  purged: number;
+  remainingExpired: number;
+  held: boolean;
+}

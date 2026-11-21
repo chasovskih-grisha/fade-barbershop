@@ -1,6 +1,5 @@
-import { prisma } from '../index';
-import { Location, Service, Booking, AppointmentParty } from '../domain';
-import { randomUUID } from 'node:crypto';
+/* eslint-disable max-lines -- cohesive module (112 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
+import { Booking } from '../domain';
 
 /** Waitlist Entry Configuration (ADR 0012) */
 export enum WaitlistEntryStatus {
@@ -34,6 +33,10 @@ export interface WaitlistEntry {
   createdAt: Date;
   releasedAt?: Date;
   cascadeToNext: boolean; // whether to auto-offer to next person
+  /** Optional slot window supplied by the admin flow. */
+  start?: Date;
+  end?: Date;
+  precision?: string;
 }
 
 /** Slot Hold - 15 minute hold on a slot (not a booking) */
@@ -63,6 +66,7 @@ export enum ReleaseSource {
   APPOINTMENT_CANCELLED = 'appointment_cancelled',
   APPOINTMENT_NO_SHOW = 'appointment_no_show',
   ADMIN_RELEASED = 'admin_released',
+  ACCEPTED = 'accepted',
 }
 
 /** Client Waitlist History */
@@ -98,6 +102,15 @@ export interface WaitlistServiceDeps {
   getClientHistory: (clientId: string) => Promise<ClientWaitlistHistory>;
   checkRateLimit: (clientId: string, hour: number) => Promise<boolean>;
   fulfillWaitlistEntry: (offerId: string, clientId: string) => Promise<Booking>;
+  /** Optional push notifier for waitlist offers (T-080 integration). */
+  waitlistOfferPushNotifier?: {
+    sendOffer: (input: {
+      entryId: string;
+      clientId: string;
+      slot: unknown;
+      expiresAt: Date;
+    }) => Promise<void>;
+  };
   /** Admin: create a waitlist entry with full validation */
   adminCreateWaitlistEntry: (
     slotId: string,

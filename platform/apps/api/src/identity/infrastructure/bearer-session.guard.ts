@@ -2,7 +2,12 @@
 // Access живе хвилини (accessExpiresAt, серверний Clock) — прострочений → 401;
 // refresh НЕ приймається як access. Web/admin ходять через cookie-гварди.
 
-import { CanActivate, Injectable, UnauthorizedException, type ExecutionContext } from '@nestjs/common';
+import {
+  CanActivate,
+  Injectable,
+  UnauthorizedException,
+  type ExecutionContext,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { hashToken } from '../domain/otp-code';
 import type { Clock, SessionRepository } from '../domain/ports';

@@ -1,6 +1,12 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { MobileButton, MobileSkeleton, MobilePhoneInput, MobileSlotPicker, MobilePriceBreakdown } from './kit';
+import {
+  MobileButton,
+  MobileSkeleton,
+  MobilePhoneInput,
+  MobileSlotPicker,
+  MobilePriceBreakdown,
+} from './kit';
 
 describe('Mobile UI Kit T-4509', () => {
   it('renders button and shows spinner and disabled state when loading', () => {

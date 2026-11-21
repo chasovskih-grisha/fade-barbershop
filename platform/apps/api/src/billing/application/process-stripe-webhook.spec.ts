@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (175 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import { Payment } from '../domain/payment.entity';
 import { PaymentStatus, PaymentForm } from '../domain/payment-status.enum';
 import { ProcessStripeWebhookHandler } from './process-stripe-webhook.use-case';
@@ -78,7 +79,7 @@ describe('ProcessStripeWebhookHandler', () => {
     expect(result.paymentId).toBe('pay-webhook-1');
     expect(payment.status).toBe(PaymentStatus.PAID);
     expect(outbox.events.length).toBe(1);
-    expect(outbox.events[0]!.type).toBe('billing.payment.captured');
+    expect(outbox?.events?.[0]?.type).toBe('billing.payment.captured');
   });
 
   it('rejects duplicate webhook delivery by eventId idempotency check', async () => {
@@ -137,7 +138,7 @@ describe('ProcessStripeWebhookHandler', () => {
     expect(result.processed).toBe(false);
     expect(result.deadLettered).toBe(true);
     expect(outbox.events.length).toBe(1);
-    expect(outbox.events[0]!.type).toBe('billing.webhook.dead_letter');
+    expect(outbox?.events?.[0]?.type).toBe('billing.webhook.dead_letter');
   });
 
   it('processes payment_intent.payment_failed webhook and records failure event', async () => {
@@ -166,7 +167,7 @@ describe('ProcessStripeWebhookHandler', () => {
 
     expect(result.processed).toBe(true);
     expect(outbox.events.length).toBe(1);
-    expect(outbox.events[0]!.type).toBe('billing.payment.failed');
+    expect(outbox?.events?.[0]?.type).toBe('billing.payment.failed');
   });
 
   it('handles duplicate webhook delivery idempotently when payment is already paid', async () => {

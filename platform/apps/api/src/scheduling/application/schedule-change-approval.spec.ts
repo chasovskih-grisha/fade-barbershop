@@ -1,9 +1,7 @@
+/* eslint-disable max-lines -- cohesive module (325 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-4458: заявка на зміну часу → рішення оператора → згода
 // клієнта з ідемпотентною подією; конфлікти слота й вікна запису.
-import {
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import {
   PROPOSAL_WINDOW_MINUTES,
   ScheduleChangeConflictError,
@@ -259,8 +257,8 @@ describe('ScheduleChangeApprovalService (T-4458)', () => {
     expect((await service.list({}, NOW)).map((view) => view.status)).toEqual(['requested']);
 
     await service.approve('req-1', { by: 'admin-1', at: NOW });
-    expect((await service.list({ status: 'requested' }, NOW))).toEqual([]);
-    expect((await service.list({ status: 'approved' }, NOW))).toHaveLength(1);
+    expect(await service.list({ status: 'requested' }, NOW)).toEqual([]);
+    expect(await service.list({ status: 'approved' }, NOW)).toHaveLength(1);
   });
 
   it('does not approve onto an occupied slot and leaves the request requested', async () => {

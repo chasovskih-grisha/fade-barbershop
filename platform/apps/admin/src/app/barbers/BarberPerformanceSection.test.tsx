@@ -15,9 +15,7 @@ describe('BarberPerformanceSection', () => {
           commissionTier: 'bronze',
           bonusMultiplier: 1.05,
           recommendedAction: 'Стабільний графік',
-          idleGapsMinutes: [
-            { start: '14:00', end: '14:30', durationMinutes: 30 },
-          ],
+          idleGapsMinutes: [{ start: '14:00', end: '14:30', durationMinutes: 30 }],
           vacationRequests: [],
         }),
       })
@@ -34,7 +32,15 @@ describe('BarberPerformanceSection', () => {
           bonusMultiplier: 1.05,
           recommendedAction: 'Стабільний графік',
           idleGapsMinutes: [],
-          vacationRequests: [{ id: 'v-2', startDate: '2026-12-10', endDate: '2026-12-15', reason: 'Відпустка', status: 'pending' }],
+          vacationRequests: [
+            {
+              id: 'v-2',
+              startDate: '2026-12-10',
+              endDate: '2026-12-15',
+              reason: 'Відпустка',
+              status: 'pending',
+            },
+          ],
         }),
       });
 

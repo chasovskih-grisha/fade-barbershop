@@ -71,6 +71,7 @@ export const styles = StyleSheet.create({
     fontSize: 16,
   },
   errorText: { color: COLOR.text.dangerText.value, fontSize: 13 },
+  visitCount: { color: COLOR.text.secondary.value, fontSize: 14 },
   successText: { color: COLOR.semantic.success.value, fontSize: 13 },
   buttonDisabled: { opacity: 0.5 },
 });

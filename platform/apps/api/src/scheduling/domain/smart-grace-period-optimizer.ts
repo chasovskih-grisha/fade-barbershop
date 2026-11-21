@@ -37,7 +37,7 @@ export function optimizeSmartGracePeriod(request: SmartGracePeriodRequest): Smar
   if (request.clientNoShowRate <= 0.05) {
     graceMinutes += 3;
     reasoning.push('High historical reliability bonus applied (+3 min).');
-  } else if (request.clientNoShowRate > 0.20) {
+  } else if (request.clientNoShowRate > 0.2) {
     graceMinutes -= 5;
     reasoning.push('Elevated historical no-show rate penalty applied (-5 min).');
   }
@@ -48,12 +48,18 @@ export function optimizeSmartGracePeriod(request: SmartGracePeriodRequest): Smar
     if (!request.clientVipStatus) {
       graceMinutes -= 4;
       autoExtensionAllowed = false;
-      reasoning.push('High studio congestion (>85%) restricted grace period and disabled auto-extension for non-VIP.');
+      reasoning.push(
+        'High studio congestion (>85%) restricted grace period and disabled auto-extension for non-VIP.'
+      );
     } else {
-      reasoning.push('High studio congestion (>85%), but VIP status preserved auto-extension capability.');
+      reasoning.push(
+        'High studio congestion (>85%), but VIP status preserved auto-extension capability.'
+      );
     }
   } else {
-    reasoning.push('Studio queue load is within normal operating parameters; auto-extension enabled.');
+    reasoning.push(
+      'Studio queue load is within normal operating parameters; auto-extension enabled.'
+    );
   }
 
   // Clamp grace period between 5 and 25 minutes

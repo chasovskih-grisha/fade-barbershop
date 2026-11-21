@@ -1,3 +1,4 @@
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: ruleMatches, complexity 12 vs 10); refactor tracked in T-2500f */
 // Правила surge-ціноутворення (T-4811): множник заidone/днем тижня й
 // рівнем барбера. Домен чистий: жодних БД і годинників — правило матчиться
 // проти контексту запису, тому «чому ця ціна» перевіряється тестом.
@@ -55,16 +56,15 @@ export function ruleSpecificity(rule: SurgeRule): number {
  * Найрелевантніще правило для контексту: спершу специфічніше, далі вищий
  * множник. null — surge не застосовується.
  */
-export function matchSurgeRule(
-  rules: readonly SurgeRule[],
-  ctx: SurgeContext
-): SurgeRule | null {
+export function matchSurgeRule(rules: readonly SurgeRule[], ctx: SurgeContext): SurgeRule | null {
   const minute = minuteOfDayUtc(ctx.start);
   const candidates = rules.filter((rule) => ruleMatches(rule, minute, ctx));
   if (candidates.length === 0) return null;
-  return candidates.sort(
-    (a, b) => ruleSpecificity(b) - ruleSpecificity(a) || b.multiplierBp - a.multiplierBp
-  )[0];
+  return (
+    candidates.sort(
+      (a, b) => ruleSpecificity(b) - ruleSpecificity(a) || b.multiplierBp - a.multiplierBp
+    )[0] ?? null
+  );
 }
 
 /** Перевірка, чи підходіть правила для контексту (у рамках одного виклику). */
@@ -80,7 +80,12 @@ function ruleMatches(rule: SurgeRule, minute: number, ctx: SurgeContext): boolea
   else return false;
   if (rule.seniorityTier == null || rule.seniorityTier === ctx.seniorityTier) matches++;
   else return false;
-  if (rule.fromMinute == null || rule.toMinute == null || !(minute < rule.fromMinute || minute >= rule.toMinute)) matches++;
+  if (
+    rule.fromMinute == null ||
+    rule.toMinute == null ||
+    !(minute < rule.fromMinute || minute >= rule.toMinute)
+  )
+    matches++;
   else return false;
   return matches === total;
 }

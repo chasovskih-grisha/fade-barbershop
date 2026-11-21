@@ -8,18 +8,29 @@ import { WEEK_MON_SAT_OPEN } from './data-locations';
 type ServiceSeed = (typeof import('./data-catalog'))['SERVICES'][number];
 type LocationSeed = (typeof import('./data-locations'))['LOCATIONS'][number];
 
-/** Послуга після upsert: довідник + id рядка в БД (для цін і підсумку). */
-type SeededService = ServiceSeed & { service: { id: string } };
+/** Послуга сіда: довідник + необовʼязковий флаг аддона (isAddon) для унікального ключа. */
+type SeedService = ServiceSeed & { isAddon?: boolean };
 
-/** Послуги: idConflict-гейт + upsert за [name, duration], sortOrder = порядок. */
-export async function seedServices(services: ServiceSeed[]) {
+/** Послуга після upsert: довідник + id рядка в БД (для цін і підсумку). */
+type SeededService = SeedService & { service: { id: string } };
+
+/** Послуги: idConflict-гейт + upsert за [name, duration, isAddon], sortOrder = порядок. */
+export async function seedServices(services: SeedService[]) {
   // Анотація розриває цикл виведення: evolves-масив залежить від `service`,
   // а `service` — від seeded.length у create (TS7022 «в самій ініціалізації»).
   const seeded: SeededService[] = [];
   for (const s of services) {
-    await idConflict('service', { name_duration: { name: s.name, duration: s.duration } }, s.id);
+    await idConflict(
+      'service',
+      {
+        name_duration_isAddon: { name: s.name, duration: s.duration, isAddon: s.isAddon ?? false },
+      },
+      s.id
+    );
     const service = await prisma.service.upsert({
-      where: { name_duration: { name: s.name, duration: s.duration } },
+      where: {
+        name_duration_isAddon: { name: s.name, duration: s.duration, isAddon: s.isAddon ?? false },
+      },
       create: {
         // FIXED_IDS-режим — детермінований id, поза ним — свіжий UUID v7.
         id: s.id ?? uuidv7(),
@@ -29,6 +40,7 @@ export async function seedServices(services: ServiceSeed[]) {
         description: s.description,
         category: s.category,
         sortOrder: seeded.length,
+        isAddon: s.isAddon ?? false,
       },
       update: {
         parallelDuration: s.parallelDuration,

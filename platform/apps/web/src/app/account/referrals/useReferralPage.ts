@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { REFERRAL_MOCK_DATA } from './referral-mock-data';
 
 export interface ReferralItem {
   id: string;
@@ -31,29 +32,7 @@ export function useReferralPage() {
     setError(null);
     try {
       await new Promise((r) => setTimeout(r, 200));
-      setData({
-        code: 'FADE-VIP-7749',
-        shareUrl: 'https://fade.barbershop/book?ref=FADE-VIP-7749',
-        earnedPoints: 300,
-        monthlyLimit: 5,
-        monthlyUsed: 2,
-        referrals: [
-          {
-            id: 'ref-1',
-            maskedName: 'Друг #1',
-            status: 'rewarded',
-            createdAt: '2026-11-01T10:00:00Z',
-            rewardEarned: 150,
-          },
-          {
-            id: 'ref-2',
-            maskedName: 'Друг #2',
-            status: 'pending',
-            createdAt: '2026-11-08T14:30:00Z',
-            rewardEarned: 150,
-          },
-        ],
-      });
+      setData(REFERRAL_MOCK_DATA);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не вдалося завантажити реферальні дані');
     } finally {

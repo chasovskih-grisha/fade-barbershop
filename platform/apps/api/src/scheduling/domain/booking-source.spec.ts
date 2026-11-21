@@ -1,5 +1,10 @@
 // T-4536: канонічний набір каналів запису, аліаси й фільтр адмін-списку.
-import { BOOKING_SOURCES, bookingSourceFilter, isKnownBookingSource, normalizeBookingSource } from './booking-source';
+import {
+  BOOKING_SOURCES,
+  bookingSourceFilter,
+  isKnownBookingSource,
+  normalizeBookingSource,
+} from './booking-source';
 
 describe('booking sources (T-4536)', () => {
   it('містить усі канали зі специфікації', () => {

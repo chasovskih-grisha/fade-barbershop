@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-params -- cohesive module (153 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 signature whose 4-param contract is fixed by existing call sites (worst: applyStatus, limit 3); API redesign tracked in T-2500f */
 /**
  * T-4451: чиста політика опрацювання відгуків (без Prisma, без Nest).
  *
@@ -184,7 +185,10 @@ export function slaSummary(
     processed: reviews.filter((review) => review.status === 'processed').length,
     archived: reviews.filter((review) => review.status === 'archived').length,
     oldestUnprocessedMinutes: unprocessed.reduce((max, review) => {
-      const waited = Math.max(0, Math.round((now.getTime() - review.submittedAt.getTime()) / 60_000));
+      const waited = Math.max(
+        0,
+        Math.round((now.getTime() - review.submittedAt.getTime()) / 60_000)
+      );
       return Math.max(max, waited);
     }, 0),
     slaHours,

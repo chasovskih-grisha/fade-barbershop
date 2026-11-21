@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-params -- cohesive module (131 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 3 signatures whose 4-param contract is fixed by existing call sites (worst: recordWaitlistOfferSent, limit 3); API redesign tracked in T-2500f */
 /** Waitlist efficiency tracker (T-170/WTL-ADM-04).
  * Tracks queue sizes, offer conversion (accepted/declined/expired),
  * average time in waitlist, and cascade success rates.
@@ -5,8 +6,6 @@
  * WaitlistOfferSent, WaitlistOfferAccepted, WaitlistOfferExpired,
  * WaitlistCascadeCompleted).
  */
-
-import type { WaitlistEntryStatus, HoldStatus } from '../waitlist/waitlist.domain';
 
 /** Waitlist efficiency metrics per configuration. */
 export interface WaitlistEfficiencyMetrics {
@@ -38,11 +37,7 @@ export interface WaitlistEfficiencyMetrics {
 
 /** Waitless drop-off reason. */
 export type WaitlistDropOffReason =
-  | 'client_declined'
-  | 'offer_expired'
-  | 'slot_unavailable'
-  | 'client_paused'
-  | 'rate_limited';
+  'client_declined' | 'offer_expired' | 'slot_unavailable' | 'client_paused' | 'rate_limited';
 
 /** Single waitlist drop-off event record. */
 export interface WaitlistDropOffEvent {
@@ -95,10 +90,8 @@ export function recordWaitlistOfferSent(
   entryId: string,
   clientId: string,
   timestamp: Date,
-  offerExpiresAt: Date
+  _offerExpiresAt: Date
 ): WaitlistDropOffEvent {
-  const timeToOffer = timestamp.getTime() / 1000; // placeholder - actual from entry creation
-
   return {
     entryId,
     clientId,
@@ -155,21 +148,23 @@ export function recordWaitlistCascadeCompleted(
     avgTimeToResolutionMinutes: number;
   }
 ): WaitlistEfficiencyMetrics {
-  const totalEntries = stats.successfulBookings + stats.cascadeAttempts - stats.successfulBookings; // placeholder
-
   return {
     config,
     activeQueueSize: 0, // will be computed from snapshot
     totalEntries: stats.cascadeAttempts,
     offersSentRatePercent: 0, // computed from snapshot
-    acceptanceRatePercent: stats.successfulBookings > 0 ? Number(((stats.successfulBookings / stats.cascadeAttempts) * 100).toFixed(2)) : 0,
+    acceptanceRatePercent:
+      stats.successfulBookings > 0
+        ? Number(((stats.successfulBookings / stats.cascadeAttempts) * 100).toFixed(2))
+        : 0,
     declinedRatePercent: 0, // computed from snapshot
     expiredRatePercent: 0, // computed from snapshot
     avgTimeToOfferMinutes: stats.avgTimeToOfferMinutes,
     avgTimeToResolutionMinutes: stats.avgTimeToResolutionMinutes,
-    cascadeSuccessRatePercent: stats.cascadeAttempts > 0
-      ? Number(((stats.successfulBookings / stats.cascadeAttempts) * 100).toFixed(2))
-      : 0,
+    cascadeSuccessRatePercent:
+      stats.cascadeAttempts > 0
+        ? Number(((stats.successfulBookings / stats.cascadeAttempts) * 100).toFixed(2))
+        : 0,
     totalCascades: stats.cascadeAttempts,
     successfulBookingsFromCascade: stats.successfulBookings,
   };

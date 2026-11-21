@@ -14,10 +14,12 @@ export function HomeFlashSaleFlashbackPromo() {
             <span>⚡ Ексклюзивний Flash Sale • Обмежена пропозиція</span>
           </div>
           <h2 className="text-h3 md:text-h2 font-display font-bold text-fg leading-tight">
-            «Midnight Flash Sale»: знижка -30% на ранковий та пізній вечірній прем'єрний догляд
+            «Midnight Flash Sale»: знижка -30% на ранковий та пізній вечірній прем&apos;єрний догляд
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Забронюйте преміальну стрижку та королівське гоління у години максимальної тиші (з 08:00 по 10:00 або з 20:00 по 22:00) за спеціальною ціною. Повна конфіденційність, розслаблена атмосфера та персональний вибір напоїв у подарунок.
+            Забронюйте преміальну стрижку та королівське гоління у години максимальної тиші (з 08:00
+            по 10:00 або з 20:00 по 22:00) за спеціальною ціною. Повна конфіденційність, розслаблена
+            атмосфера та персональний вибір напоїв у подарунок.
           </p>
           <div className="flex flex-wrap items-center gap-6 pt-2 text-sm text-fg-secondary">
             <span className="flex items-center gap-2 font-medium text-fg">
@@ -38,7 +40,9 @@ export function HomeFlashSaleFlashbackPromo() {
             className="inline-flex h-13 w-full sm:w-auto items-center justify-center rounded-input bg-accent px-8 text-body font-semibold text-accent-fg hover:opacity-95 transition-all duration-300 shadow-xl hover:scale-[1.02] active:scale-[0.98]"
           >
             <span>Забронювати зі знижкою</span>
-            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+              &rarr;
+            </span>
           </Link>
           <Link
             href="/services"

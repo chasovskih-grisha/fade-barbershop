@@ -1,8 +1,14 @@
+/* eslint-disable max-lines -- cohesive module (252 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import { RevenueOptimizationEngine } from './revenue-optimization';
 
 describe('RevenueOptimizationEngine', () => {
   const engine = new RevenueOptimizationEngine(
-    { peakMultiplier: 1.15, offPeakMultiplier: 0.90, demandSurgeThreshold: 0.80, demandSurgeMultiplier: 1.10 },
+    {
+      peakMultiplier: 1.15,
+      offPeakMultiplier: 0.9,
+      demandSurgeThreshold: 0.8,
+      demandSurgeMultiplier: 1.1,
+    },
     [
       {
         bundleName: 'Executive Grooming Combo',
@@ -47,7 +53,7 @@ describe('RevenueOptimizationEngine', () => {
     });
 
     expect(result.pricingTier).toBe('off_peak');
-    expect(result.multiplierApplied).toBe(0.90);
+    expect(result.multiplierApplied).toBe(0.9);
     expect(result.finalPrice).toBe(900);
   });
 
@@ -60,7 +66,7 @@ describe('RevenueOptimizationEngine', () => {
     });
 
     expect(result.pricingTier).toBe('demand_surge');
-    expect(result.multiplierApplied).toBe(1.10);
+    expect(result.multiplierApplied).toBe(1.1);
     expect(result.finalPrice).toBe(1100);
   });
 
@@ -96,7 +102,7 @@ describe('RevenueOptimizationEngine', () => {
     });
 
     expect(result.clientSegment).toBe('vip');
-    expect(result.segmentMultiplierApplied).toBe(0.90);
+    expect(result.segmentMultiplierApplied).toBe(0.9);
     expect(result.finalPrice).toBe(900);
   });
 
@@ -118,7 +124,7 @@ describe('RevenueOptimizationEngine', () => {
       'service-beard-trim': 500,
       'service-hair-styling-product': 200,
     };
-    const optimization = engine.optimizeCartAddOns(['service-haircut'], 0.80, addonPrices);
+    const optimization = engine.optimizeCartAddOns(['service-haircut'], 0.8, addonPrices);
 
     expect(optimization.recommendedAddOns.length).toBeGreaterThan(0);
     expect(optimization.totalPotentialUplift).toBeGreaterThan(0);
@@ -178,9 +184,7 @@ describe('RevenueOptimizationEngine', () => {
       includedVisitsPerMonth: 2,
       discountOnAdditionalServices: 15,
     };
-    const usage = [
-      { serviceId: 'service-haircut', basePrice: 1000, visits: 3 },
-    ];
+    const usage = [{ serviceId: 'service-haircut', basePrice: 1000, visits: 3 }];
     const result = engine.calculateSubscriptionPassValue(passRule, usage);
     expect(result.passName).toBe('Unlimited Fade Pass');
     expect(result.totalUnbundledSpend).toBe(3000);
@@ -195,7 +199,7 @@ describe('RevenueOptimizationEngine', () => {
 
     const masterResult = engine.calculateBarberTierPrice(1000, 'master');
     expect(masterResult.finalPrice).toBe(1400);
-    expect(masterResult.multiplier).toBe(1.40);
+    expect(masterResult.multiplier).toBe(1.4);
   });
 
   test('calculates early-bird happy hour pricing discount correctly', () => {
@@ -217,7 +221,7 @@ describe('RevenueOptimizationEngine', () => {
         ruleName: 'Black Friday Promo',
         fromDate: new Date('2026-11-20T00:00:00'),
         toDate: new Date('2026-11-30T23:59:59'),
-        multiplier: 0.80, // 20% off
+        multiplier: 0.8, // 20% off
         reason: 'Holiday promotional discount',
       },
     ];
@@ -225,7 +229,7 @@ describe('RevenueOptimizationEngine', () => {
     const promoDate = new Date('2026-11-25T14:00:00');
     const result = engine.calculateSeasonalOverridePrice(1000, promoDate, rules);
     expect(result.appliedRuleName).toBe('Black Friday Promo');
-    expect(result.multiplierApplied).toBe(0.80);
+    expect(result.multiplierApplied).toBe(0.8);
     expect(result.finalPrice).toBe(800);
     expect(result.reason).toBe('Holiday promotional discount');
 
@@ -247,7 +251,12 @@ describe('RevenueOptimizationEngine', () => {
 
   test('evaluates multi-bundle combinations combinatorially', () => {
     const multiEngine = new RevenueOptimizationEngine(
-      { peakMultiplier: 1.15, offPeakMultiplier: 0.90, demandSurgeThreshold: 0.80, demandSurgeMultiplier: 1.10 },
+      {
+        peakMultiplier: 1.15,
+        offPeakMultiplier: 0.9,
+        demandSurgeThreshold: 0.8,
+        demandSurgeMultiplier: 1.1,
+      },
       [
         { bundleName: 'Haircut & Beard', serviceIds: ['s1', 's2'], discountPercentage: 10 },
         { bundleName: 'Styling Addon', serviceIds: ['s4'], discountPercentage: 5 },
@@ -267,13 +276,16 @@ describe('RevenueOptimizationEngine', () => {
   });
 
   test('calculates studio RevPACH and optimizes member loyalty rebate and yield', () => {
-    const yieldResult = engine.calculateStudioYieldRebateOptimization({
-      availableChairHours: 40,
-      bookedChairHours: 20, // 50% utilization (< 60%)
-      averageHourlyRate: 1500,
-      memberRetentionRate: 0.70,
-      targetMarginPercentage: 60,
-    }, 1000);
+    const yieldResult = engine.calculateStudioYieldRebateOptimization(
+      {
+        availableChairHours: 40,
+        bookedChairHours: 20, // 50% utilization (< 60%)
+        averageHourlyRate: 1500,
+        memberRetentionRate: 0.7,
+        targetMarginPercentage: 60,
+      },
+      1000
+    );
 
     expect(yieldResult.utilizationRate).toBe(0.5);
     expect(yieldResult.revpach).toBe(750);

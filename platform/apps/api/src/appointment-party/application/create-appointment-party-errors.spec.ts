@@ -1,6 +1,10 @@
 import { AppointmentMode } from '../domain/appointment-party.entity';
 import { CreateAppointmentParty } from './create-appointment-party.use-case';
-import { InMemoryAppointmentPartyRepository, parallelInput, sequentialInput } from './create-appointment-party-test.fakes';
+import {
+  InMemoryAppointmentPartyRepository,
+  parallelInput,
+  sequentialInput,
+} from './create-appointment-party-test.fakes';
 
 describe('CreateAppointmentParty error branches', () => {
   const repo = new InMemoryAppointmentPartyRepository();

@@ -1,6 +1,9 @@
 // Специфікація парсера налаштування каналу (патерн geocoder-settings):
 // невідоме значення/сміття/відсутність — безпечно деградує до дефолту.
-import { DEFAULT_BOOKING_CONFIRMATION, parseBookingConfirmationSettings } from './booking-confirmation-settings';
+import {
+  DEFAULT_BOOKING_CONFIRMATION,
+  parseBookingConfirmationSettings,
+} from './booking-confirmation-settings';
 
 describe('booking-confirmation-settings (канал підтвердження)', () => {
   it('валідні канали проходять як є', () => {

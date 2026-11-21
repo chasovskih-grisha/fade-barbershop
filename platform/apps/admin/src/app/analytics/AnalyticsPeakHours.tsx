@@ -32,10 +32,15 @@ export function AnalyticsPeakHours({ visits }: { visits: CalendarVisitDto[] }) {
       <p className="text-body text-fg-muted">Розподіл записів за часовими інтервалами дня</p>
       <div className="grid gap-4 sm:grid-cols-3">
         {slots.map((slot, idx) => (
-          <div key={idx} className="rounded-input border border-line bg-surface p-4 flex flex-col gap-1">
+          <div
+            key={idx}
+            className="rounded-input border border-line bg-surface p-4 flex flex-col gap-1"
+          >
             <span className="text-caption text-fg-muted">{slot.label}</span>
             <span className="font-display text-h4 font-bold text-fg">{slot.count} записів</span>
-            <span className="text-caption text-accent-blue font-medium">{slot.percentage}% від загалу</span>
+            <span className="text-caption text-accent-blue font-medium">
+              {slot.percentage}% від загалу
+            </span>
           </div>
         ))}
       </div>

@@ -14,7 +14,7 @@ function renderCabinet(
       createdAt: string;
     }[];
     remainingToday: number;
-  } | null,
+  } | null
 ) {
   return render(
     <AICabinetBody
@@ -25,7 +25,7 @@ function renderCabinet(
       onConsent={noop}
       onDelete={noop}
       onSelectVariant={noop}
-    />,
+    />
   );
 }
 

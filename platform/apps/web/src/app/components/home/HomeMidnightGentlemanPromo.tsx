@@ -14,10 +14,13 @@ export function HomeMidnightGentlemanPromo() {
             <span>🌙 Ексклюзивний вечірній пакет • FADE Midnight Gentleman</span>
           </div>
           <h2 className="text-h3 md:text-h2 font-display font-bold text-fg leading-tight">
-            «Midnight Gentleman»: преміальний вечірній догляд для тих, хто цінує абсолютний приватний спокій
+            «Midnight Gentleman»: преміальний вечірній догляд для тих, хто цінує абсолютний
+            приватний спокій
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Індивідуальне бронювання студії після основних годин роботи (після 20:00). Повний спектр послуг: стрижка, моделювання бороди, королівське гоління гарячим рушником, детокс-догляд та персональний віскі-бар.
+            Індивідуальне бронювання студії після основних годин роботи (після 20:00). Повний спектр
+            послуг: стрижка, моделювання бороди, королівське гоління гарячим рушником, детокс-догляд
+            та персональний віскі-бар.
           </p>
           <div className="flex flex-wrap items-center gap-6 pt-2 text-sm text-fg-secondary">
             <span className="flex items-center gap-2 font-medium text-fg">
@@ -38,7 +41,9 @@ export function HomeMidnightGentlemanPromo() {
             className="inline-flex h-13 w-full sm:w-auto items-center justify-center rounded-input bg-accent px-8 text-body font-semibold text-accent-fg hover:opacity-95 transition-all duration-300 shadow-xl hover:scale-[1.02] active:scale-[0.98]"
           >
             <span>Забронювати Midnight</span>
-            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+              &rarr;
+            </span>
           </Link>
           <Link
             href="/services"

@@ -68,7 +68,7 @@ describe('AdminBookingDetail: часткові дані', () => {
           .mockResolvedValue([{ ...outboxRow, payload: {}, type: 'unknown.type' }]),
       },
     });
-    expect((await readModel.handle('bk-1'))?.events[0]).toMatchObject({
+    expect((await readModel.handle('bk-1'))?.events?.[0]).toMatchObject({
       label: 'unknown.type',
       actor: null,
       details: [],

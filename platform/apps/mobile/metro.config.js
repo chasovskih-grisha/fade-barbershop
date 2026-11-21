@@ -20,9 +20,7 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
-config.watchFolders = [
-  ...new Set([...(config.watchFolders ?? []), workspaceRoot]),
-];
+config.watchFolders = [...new Set([...(config.watchFolders ?? []), workspaceRoot])];
 
 // Expo Router loads every file under src/app. Test files call jest.mock
 // at import time, which crashes the browser bundle. Jest itself must still

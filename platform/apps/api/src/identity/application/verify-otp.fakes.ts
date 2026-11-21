@@ -1,7 +1,15 @@
 // Хелпери спек VerifyOtp (T-014) — окремо від спеків (max-lines) і спільні
 // для успішного шляху (verify-otp.spec) та невдалих сценаріїв (errors.spec).
 import { VerifyOtpHandler } from './verify-otp';
-import { FakeClock, FakeOtpChallengeRepository, FakeOutbox, FakeSessionRepository, FakeUserRepository, UuidIds, passthroughUow } from './ports.fakes';
+import {
+  FakeClock,
+  FakeOtpChallengeRepository,
+  FakeOutbox,
+  FakeSessionRepository,
+  FakeUserRepository,
+  UuidIds,
+  passthroughUow,
+} from './ports.fakes';
 import { OtpChallenge } from '../domain/otp-challenge';
 import { hashOtpCode } from '../domain/otp-code';
 import { CHALLENGE_1 } from './test-ids';

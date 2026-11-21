@@ -10,7 +10,8 @@ type DecoratorTarget = object | (new (...args: never[]) => unknown);
 function mark(target: DecoratorTarget, propertyKey?: string | symbol): void {
   const holder = typeof target === 'function' ? target : (target as object).constructor;
   const keys: Array<string | symbol> =
-    (Reflect.getMetadata(IDEMPOTENCY_KEY_METADATA, holder) as Array<string | symbol> | undefined) ?? [];
+    (Reflect.getMetadata(IDEMPOTENCY_KEY_METADATA, holder) as Array<string | symbol> | undefined) ??
+    [];
   const key = propertyKey ?? 'class';
   if (!keys.includes(key)) keys.push(key);
   Reflect.defineMetadata(IDEMPOTENCY_KEY_METADATA, keys, holder);
@@ -26,5 +27,8 @@ export function IdempotencyKey(): ClassDecorator & PropertyDecorator {
 /** Які поля DTO позначені як джерело Idempotency-Key. */
 export function idempotencyKeyFields(target: object): Array<string | symbol> {
   const holder = typeof target === 'function' ? target : target.constructor;
-  return (Reflect.getMetadata(IDEMPOTENCY_KEY_METADATA, holder) as Array<string | symbol> | undefined) ?? [];
+  return (
+    (Reflect.getMetadata(IDEMPOTENCY_KEY_METADATA, holder) as Array<string | symbol> | undefined) ??
+    []
+  );
 }

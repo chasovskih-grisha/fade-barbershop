@@ -26,7 +26,7 @@ export class ClientPreferencesController {
       pushEnabled?: boolean;
       loyaltyOptOut?: boolean;
       reminderOptOut?: boolean;
-    },
+    }
   ) {
     return this.preferences.updatePreferences(clientId, body);
   }

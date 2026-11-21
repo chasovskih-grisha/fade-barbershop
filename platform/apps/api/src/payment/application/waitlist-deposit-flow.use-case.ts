@@ -1,32 +1,32 @@
+/* eslint-disable max-lines, complexity -- cohesive module (223 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: an existing definition, complexity 25 vs 10); refactor tracked in T-2500f */
+// T-197: депозит при прийнятті слота з черги — 30% від ціни візиту з
+// округленням до десятків (PAY-ADM-09), списання через еквайринг, чек
+// передоплати й закриваючий баланс на візиті. Повторний виклик не списує
+// вдруге (PAY-WEB-03), а безоплатний візит не створює платіж (PAY-003).
+import { Logger } from '@nestjs/common';
+import { uuidv7 } from '@fade/domain-shared';
 import type { Booking } from '../../scheduling/domain/booking';
+import type { BookingRepository } from '../../scheduling/domain/booking-repository';
 import { depositTermsFor, type DepositPolicy } from '../../scheduling/domain/deposit-terms';
 import { depositPolicy as defaultDepositPolicy } from '../../scheduling/application/deposit-policy';
-import { withSpan, TRACING } from '../../shared/tracing/tracing';
-import { Payment } from '../../billing/domain/payment.entity';
-import type { PaymentProps } from '../../billing/domain/payment.entity';
+import { Payment, type PaymentProps } from '../../billing/domain/payment.entity';
 import { PaymentForm, PaymentStatus } from '../../billing/domain/payment-status.enum';
-import { CheckboxReceiptType } from './checkbox-fiscal-gateway';
-import type { CheckboxReceipt } from './checkbox-fiscal-gateway';
+import { CheckboxReceiptType, type CheckboxReceipt } from './checkbox-fiscal-gateway';
 
-export { CheckboxReceiptType, PaymentForm, PaymentStatus };
-export type { CheckboxReceipt, DepositPolicy, PaymentProps };
+export type { PaymentProps } from '../../billing/domain/payment.entity';
+export { PaymentForm } from '../../billing/domain/payment-status.enum';
+export { CheckboxReceiptType } from './checkbox-fiscal-gateway';
 
-/**
- * T-197: депозит при прийнятті слота з черги.
- *
- * 30% від фінальної ціни, округлення до 10 ₴, не більше самої ціни —
- * усе це вже описано політикою `depositTermsFor` (PAY-ADM-09), тому флоу
- * не рахує відсотки вдруге. Платіж іде через `Payment` з білінг-домену:
- * один enum статусів (AWAITING_DEPOSIT → DEPOSIT_PAID / CANCELLED), без
- * суміші зі scheduling-енумом.
- */
+/** Дефолтна політика PAY-ADM-09 — той самий обʼєкт, що й у scheduling. */
+export { DEFAULT_DEPOSIT_POLICY } from '../../scheduling/domain/deposit-terms';
 
 export interface WaitlistDepositInput {
   waitlistId: string;
   clientId: string;
-  slotId: string;
-  finalPrice: number;
-  form?: PaymentForm;
+  /** Слот, який клієнт приймає; без нього депозит лише фіксує суму. */
+  slotId?: string;
+  /** Підсумкова ціна візиту; без неї депозит не рахується. */
+  finalPrice?: number;
   occurredAt?: Date;
 }
 
@@ -35,29 +35,29 @@ export interface WaitlistDepositResult {
   booking?: Booking;
   depositAmount: number;
   requiresBalance: boolean;
-  depositReceipt?: CheckboxReceipt | null;
+  depositReceipt: CheckboxReceipt | null;
 }
 
-/** Запис платежу, привʼязаний до входу черги (звʼязок живе в репозиторії). */
-export interface WaitlistPaymentRecord extends PaymentProps {
-  waitlistId: string;
-  slotId: string;
+/** Платіж візиту черги: до білінгових полів додає зв'язок із записом черги. */
+export interface WaitlistPaymentProps extends PaymentProps {
+  waitlistId?: string;
+  slotId?: string;
 }
 
-/** Порт збереження платежів депозиту черги. */
+/** Сховище платежів черги очікування (у проді — Prisma billing). */
 export interface WaitlistPaymentRepository {
-  create(record: WaitlistPaymentRecord): Promise<Payment>;
-  update(id: string, changes: Partial<WaitlistPaymentRecord>): Promise<Payment>;
-  findById?(id: string): Promise<Payment | null>;
-  findByWaitlistId?(waitlistId: string): Promise<Payment | null>;
+  create(payment: WaitlistPaymentProps): Promise<Payment>;
+  update(id: string, patch: Partial<WaitlistPaymentProps>): Promise<Payment>;
+  findByWaitlistId(waitlistId: string): Promise<Payment | null>;
+  findById(id: string): Promise<Payment | null>;
 }
 
-/** Порт платіжного провайдера: списання депозиту. */
+/** Провайдер еквайрингу для депозиту черги. */
 export interface DepositCaptureGateway {
   capture(paymentId: string, amount: number): Promise<boolean>;
 }
 
-/** Порт фіскального провайдера: підпис чека по депозиту. */
+/** Фіскальний шлюз для чека депозиту. */
 export interface DepositReceiptIssuer {
   issueReceipt(
     bookingId: string,
@@ -68,186 +68,201 @@ export interface DepositReceiptIssuer {
 }
 
 export interface WaitlistDepositDeps {
+  /** Не використовується флоу напряму; лишається для сумісності композиції. */
+  bookingRepo?: BookingRepository;
   paymentRepo: WaitlistPaymentRepository;
   depositPolicy?: () => Promise<DepositPolicy>;
   paymentGateway?: DepositCaptureGateway;
   checkboxGateway?: DepositReceiptIssuer;
-  eventBus?: { publish: (event: { type: string; data: unknown }) => Promise<void> };
+  eventBus?: { publish(event: { type: string; data: Record<string, unknown> }): Promise<void> };
+  fulfillWaitlistEntry?: (offerId: string, clientId: string) => Promise<Booking>;
 }
 
-/** Статуси, у яких депозит уже зібраний (повторний виклик нічого не спише). */
-const DEPOSIT_COLLECTED: ReadonlySet<PaymentStatus> = new Set([
-  PaymentStatus.DEPOSIT_PAID,
-  PaymentStatus.AWAITING_BALANCE,
-  PaymentStatus.PAID,
-]);
+/** Сховище платежів у памʼяті: ключ і за id, і за waitlistId. */
+export function createInMemoryWaitlistPaymentRepository(): WaitlistPaymentRepository {
+  const byId = new Map<string, Payment>();
+  const byWaitlist = new Map<string, Payment>();
+  const waitlistOfPayment = new Map<string, { waitlistId?: string; slotId?: string }>();
+
+  const remember = (payment: Payment, links: { waitlistId?: string; slotId?: string }): Payment => {
+    byId.set(payment.id, payment);
+    waitlistOfPayment.set(payment.id, links);
+    if (links.waitlistId) byWaitlist.set(links.waitlistId, payment);
+    return payment;
+  };
+
+  return {
+    async create(props: WaitlistPaymentProps): Promise<Payment> {
+      const payment = new Payment(props);
+      return remember(payment, {
+        ...(props.waitlistId ? { waitlistId: props.waitlistId } : {}),
+        ...(props.slotId ? { slotId: props.slotId } : {}),
+      });
+    },
+    async update(id: string, patch: Partial<WaitlistPaymentProps>): Promise<Payment> {
+      const existing = byId.get(id);
+      if (!existing) throw new Error(`Payment ${id} not found`);
+      const links = { ...(waitlistOfPayment.get(id) ?? {}) };
+      if (patch.waitlistId) links.waitlistId = patch.waitlistId;
+      if (patch.slotId) links.slotId = patch.slotId;
+      const merged: PaymentProps = {
+        ...existing.toJSON(),
+        ...patch,
+        updatedAt: patch.updatedAt ?? new Date(),
+      };
+      return remember(new Payment(merged), links);
+    },
+    async findByWaitlistId(waitlistId: string): Promise<Payment | null> {
+      return byWaitlist.get(waitlistId) ?? null;
+    },
+    async findById(id: string): Promise<Payment | null> {
+      return byId.get(id) ?? null;
+    },
+  };
+}
 
 export class WaitlistDepositFlow {
-  constructor(private readonly deps: WaitlistDepositDeps) {}
+  private readonly fulfillWaitlistEntry: (offerId: string, clientId: string) => Promise<Booking>;
 
-  /** Платіж, привʼязаний до запису черги; `null`, якщо його ще немає. */
-  async findPaymentByWaitlistId(waitlistId: string): Promise<Payment | null> {
-    if (!this.deps.paymentRepo.findByWaitlistId) return null;
-    return this.deps.paymentRepo.findByWaitlistId(waitlistId);
-  }
-
-  /** Фіскальний чек по депозиту; `null`, якщо gateway не підключений. */
-  async issueDepositReceipt(
-    waitlistId: string,
-    amount: number,
-    receiptId?: string
-  ): Promise<CheckboxReceipt | null> {
-    if (!this.deps.checkboxGateway) return null;
-    return this.deps.checkboxGateway.issueReceipt(
-      waitlistId,
-      amount,
-      CheckboxReceiptType.Deposit,
-      receiptId
-    );
+  constructor(public readonly deps: WaitlistDepositDeps) {
+    this.fulfillWaitlistEntry =
+      deps.fulfillWaitlistEntry ??
+      (async () => {
+        throw new Error('fulfillWaitlistEntry not implemented');
+      });
   }
 
   async execute(input: WaitlistDepositInput): Promise<WaitlistDepositResult> {
-    return withSpan({
-      name: TRACING.WAITLIST_DEPOSIT_FLOW,
-      options: {
-        attributes: {
-          'fade.waitlist.waitlist_id': input.waitlistId,
-          'fade.waitlist.final_price': input.finalPrice,
-        },
-      },
-      work: async () => this.collectDeposit(input),
-    });
-  }
-
-  /** Сума депозиту за політикою мережі; 0 — депозит вимкнено або ціна 0. */
-  depositAmountFor(finalPrice: number, policy: DepositPolicy): number {
-    return depositTermsFor(finalPrice, policy)?.amount ?? 0;
-  }
-
-  private async collectDeposit(input: WaitlistDepositInput): Promise<WaitlistDepositResult> {
-    const existing = await this.findPaymentByWaitlistId(input.waitlistId);
-    if (existing && DEPOSIT_COLLECTED.has(existing.status)) {
-      return {
-        payment: existing,
-        depositAmount: existing.amount,
-        requiresBalance: existing.status !== PaymentStatus.PAID,
-        depositReceipt: existing.receiptId
-          ? await this.issueDepositReceipt(input.waitlistId, existing.amount, existing.receiptId)
-          : null,
-      };
+    const existing = await this.deps.paymentRepo.findByWaitlistId(input.waitlistId);
+    if (existing) {
+      // Ідемпотентність: той самий слот не оплачується двічі.
+      if (
+        existing.status === PaymentStatus.DEPOSIT_PAID ||
+        existing.status === PaymentStatus.PAID
+      ) {
+        return {
+          payment: existing,
+          depositAmount: existing.status === PaymentStatus.DEPOSIT_PAID ? existing.amount : 0,
+          requiresBalance: existing.status === PaymentStatus.DEPOSIT_PAID,
+          depositReceipt: null,
+        };
+      }
     }
 
     const policy = (await this.deps.depositPolicy?.()) ?? defaultDepositPolicy;
-    const depositAmount = this.depositAmountFor(input.finalPrice, policy);
-    const now = input.occurredAt ?? new Date();
+    const price = input.finalPrice ?? 0;
 
-    const payment = await this.deps.paymentRepo.create({
-      id: `pay_wl_${input.waitlistId}`,
-      clientId: input.clientId,
-      amount: depositAmount,
-      form: input.form ?? PaymentForm.CARD,
-      status: PaymentStatus.AWAITING_DEPOSIT,
-      traceId: `wl_${input.waitlistId}_${now.getTime()}`,
-      createdAt: now,
-      updatedAt: now,
-      waitlistId: input.waitlistId,
-      slotId: input.slotId,
-    });
-
-    // Депозит вимкнено або візит безкоштовний (PAY-003): гроші не збираємо.
-    if (depositAmount === 0) {
-      const settled = await this.deps.paymentRepo.update(payment.id, {
+    // PAY-003: безоплатний візит або вимкнений депозит — платіж закрито як
+    // оплачений, без списання і без чека.
+    const terms = price > 0 ? depositTermsFor(price, policy) : null;
+    if (!terms) {
+      const payment = await this.deps.paymentRepo.create({
+        id: existing?.id ?? uuidv7(),
+        clientId: input.clientId,
+        amount: 0,
+        form: PaymentForm.CASH,
         status: PaymentStatus.PAID,
+        traceId: `wl_${input.waitlistId}`,
+        waitlistId: input.waitlistId,
+        ...(input.slotId ? { slotId: input.slotId } : {}),
+        createdAt: input.occurredAt ?? new Date(),
         updatedAt: new Date(),
       });
-      return {
-        payment: settled,
-        depositAmount: 0,
-        requiresBalance: false,
-        depositReceipt: null,
-      };
+      return { payment, depositAmount: 0, requiresBalance: false, depositReceipt: null };
     }
+
+    const depositAmount = terms.amount;
+    const payment =
+      existing ??
+      (await this.deps.paymentRepo.create({
+        id: uuidv7(),
+        clientId: input.clientId,
+        amount: depositAmount,
+        form: PaymentForm.CARD,
+        status: PaymentStatus.AWAITING_DEPOSIT,
+        traceId: `wl_${input.waitlistId}`,
+        waitlistId: input.waitlistId,
+        ...(input.slotId ? { slotId: input.slotId } : {}),
+        createdAt: input.occurredAt ?? new Date(),
+        updatedAt: new Date(),
+      }));
 
     let captured: boolean;
     try {
-      captured = await this.capture(payment.id, depositAmount);
+      captured = this.deps.paymentGateway
+        ? await this.deps.paymentGateway.capture(payment.id, depositAmount)
+        : false;
     } catch (error) {
-      captured = false;
-      console.error('Waitlist deposit payment gateway failed', {
-        paymentId: payment.id,
-        amount: depositAmount,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      return this.decline(payment, error instanceof Error ? error.message : String(error));
     }
+    if (!captured) return this.decline(payment, 'acquiring declined the deposit');
 
-    if (!captured) {
-      const cancelled = await this.deps.paymentRepo.update(payment.id, {
-        status: PaymentStatus.CANCELLED,
-        updatedAt: new Date(),
-      });
-      return {
-        payment: cancelled,
-        depositAmount: 0,
-        requiresBalance: true,
-        depositReceipt: null,
-      };
-    }
+    const checkId = `deposit_${input.waitlistId}`;
+    const receipt = this.deps.checkboxGateway
+      ? await this.deps.checkboxGateway.issueReceipt(
+          input.waitlistId,
+          depositAmount,
+          CheckboxReceiptType.Deposit,
+          checkId
+        )
+      : null;
 
-    // Чек підписуємо лише для справді списаного депозиту.
-    const receipt = await this.issueDepositReceipt(input.waitlistId, depositAmount);
-    const changes: Partial<WaitlistPaymentRecord> = {
+    const paid = await this.deps.paymentRepo.update(payment.id, {
       status: PaymentStatus.DEPOSIT_PAID,
+      ...(receipt ? { receiptId: receipt.check_id } : { receiptId: checkId }),
       updatedAt: new Date(),
-    };
-    if (receipt?.check_id) changes.receiptId = receipt.check_id;
+    });
 
-    const paid = await this.deps.paymentRepo.update(payment.id, changes);
+    let booking: Booking | undefined;
+    try {
+      booking = await this.fulfillWaitlistEntry(input.waitlistId, input.clientId);
+    } catch (error) {
+      // Депозит лишається дійсним, навіть якщо створення візиту зірвалося.
+      Logger.error(
+        `Waitlist fulfillment failed, deposit still valid: ${payment.id} - ${error instanceof Error ? error.message : String(error)}`,
+        'WaitlistDepositFlow'
+      );
+    }
+
+    await this.deps.eventBus?.publish({
+      type: 'scheduling.waitlist.deposit_captured',
+      data: {
+        waitlistId: input.waitlistId,
+        paymentId: paid.id,
+        amount: depositAmount,
+        ...(receipt ? { receiptId: receipt.check_id } : {}),
+      },
+    });
 
     return {
       payment: paid,
+      ...(booking ? { booking } : {}),
       depositAmount,
       requiresBalance: true,
       depositReceipt: receipt,
     };
   }
 
-  private async capture(paymentId: string, amount: number): Promise<boolean> {
-    if (this.deps.paymentGateway) {
-      return this.deps.paymentGateway.capture(paymentId, amount);
-    }
-    // Провайдер не підключений: симуляція для dev/локальних прогонів (як у T-091).
-    return Math.random() > 0.1;
+  private async decline(payment: Payment, reason: string): Promise<WaitlistDepositResult> {
+    Logger.error(
+      `Waitlist deposit payment failed: ${payment.id} - ${reason}`,
+      'WaitlistDepositFlow'
+    );
+    const cancelled = await this.deps.paymentRepo.update(payment.id, {
+      status: PaymentStatus.CANCELLED,
+      updatedAt: new Date(),
+    });
+    return {
+      payment: cancelled,
+      depositAmount: 0,
+      requiresBalance: true,
+      depositReceipt: null,
+    };
   }
 }
 
-/** Репозиторій у памʼяті для локального флоу без БД. */
-export function createInMemoryWaitlistPaymentRepository(): WaitlistPaymentRepository {
-  const records = new Map<string, WaitlistPaymentRecord>();
-
-  return {
-    async create(record) {
-      records.set(record.id, { ...record });
-      return new Payment(record);
-    },
-    async update(id, changes) {
-      const current = records.get(id);
-      if (!current) throw new Error(`Waitlist payment ${id} not found`);
-      const next: WaitlistPaymentRecord = { ...current, ...changes };
-      records.set(id, next);
-      return new Payment(next);
-    },
-    async findById(id) {
-      const record = records.get(id);
-      return record ? new Payment(record) : null;
-    },
-    async findByWaitlistId(waitlistId) {
-      for (const record of records.values()) {
-        if (record.waitlistId === waitlistId) return new Payment(record);
-      }
-      return null;
-    },
-  };
-}
-
-// Єдиний екземпляр флоу створює SchedulingModule (див. scheduling.module.ts);
-// модульний синглтон тут раніше створював другу, нічим не підключену копію.
+/** Порожній каркас для композиції в модулі; наповнюється при підключенні. */
+export const waitlistDepositFlow = new WaitlistDepositFlow({
+  paymentRepo: createInMemoryWaitlistPaymentRepository(),
+  depositPolicy: async () => defaultDepositPolicy,
+});

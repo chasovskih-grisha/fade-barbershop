@@ -43,7 +43,7 @@ describe('PeakHourPricingService (Booking Engine Optimization Specialist)', () =
   it('applies HIGH_OCCUPANCY_SURGE when chair utilization is >= 85% regardless of time', () => {
     // Tuesday 09:00 UTC (normally off-peak), but 90% occupancy
     const slotStart = new Date('2026-11-10T09:00:00Z'); // Tuesday
-    const result = service.evaluateSlotPricing({ slotStart, chairOccupancyRate: 0.90 });
+    const result = service.evaluateSlotPricing({ slotStart, chairOccupancyRate: 0.9 });
 
     expect(result.isPeak).toBe(true);
     expect(result.multiplier).toBe(DEFAULT_PEAK_PRICING_CONFIG.highOccupancySurgeMultiplier);

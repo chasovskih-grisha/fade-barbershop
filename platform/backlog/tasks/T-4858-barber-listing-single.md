@@ -28,3 +28,17 @@ A network can open with one person. A card in the corner of a three-column grid 
 ## Out of scope
 
 - The empty team copy (T-4614e)
+
+## Implementation plan
+
+Paths:
+- packages/ui/src/CardGrid.tsx
+- packages/ui/src/CardGrid.test.tsx
+
+Checks:
+- pnpm --filter @fade/ui test packages/ui/src/CardGrid.test.tsx
+
+## Implementation notes
+
+- packages/ui/src/CardGrid.test.tsx
+- packages/ui/src/CardGrid.tsx

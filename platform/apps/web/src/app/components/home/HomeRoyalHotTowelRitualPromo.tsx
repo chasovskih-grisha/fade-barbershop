@@ -18,7 +18,9 @@ export function HomeRoyalHotTowelRitualPromo() {
             The Royal Hot Towel & Eucalyptus Ritual
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Elevate your grooming session with our signature 3-stage hot towel decompression infused with Australian eucalyptus and organic botanical oils. Designed to open pores, soothe razor sensitivity, and deliver absolute mental clarity.
+            Elevate your grooming session with our signature 3-stage hot towel decompression infused
+            with Australian eucalyptus and organic botanical oils. Designed to open pores, soothe
+            razor sensitivity, and deliver absolute mental clarity.
           </p>
           <div className="flex flex-wrap gap-4 pt-2">
             <div className="flex items-center gap-2 rounded-pill bg-surface border border-line px-4 py-2 text-body text-fg-secondary">
@@ -35,8 +37,12 @@ export function HomeRoyalHotTowelRitualPromo() {
 
         <div className="flex flex-col items-center md:items-end gap-4 shrink-0 bg-surface-sunken/80 border border-line p-6 rounded-card backdrop-blur-md shadow-lg w-full md:w-auto">
           <div className="text-center md:text-right">
-            <span className="text-caption uppercase tracking-wider text-fg-secondary">Complimentary Upgrade</span>
-            <div className="font-display text-2xl font-bold text-fg mt-0.5">With Every Signature Cut</div>
+            <span className="text-caption uppercase tracking-wider text-fg-secondary">
+              Complimentary Upgrade
+            </span>
+            <div className="font-display text-2xl font-bold text-fg mt-0.5">
+              With Every Signature Cut
+            </div>
           </div>
           <Link
             href="/booking"

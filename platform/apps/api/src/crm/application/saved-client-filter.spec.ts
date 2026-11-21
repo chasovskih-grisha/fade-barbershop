@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (245 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-4461: збережені CRM-фільтри — канонічний запит, CRUD,
 // квота/дублі, ізоляція власника й повторне виконання через список клієнтів.
 import type { AdminClientList } from './admin-client-list';
@@ -77,8 +78,12 @@ describe('saved client filter policy (T-4461)', () => {
     expect(isCanonicalQuery(query)).toBe(true);
 
     expect(() => normalizeSavedFilterQuery({ page: '2' })).toThrow(InvalidClientListQueryError);
-    expect(() => normalizeSavedFilterQuery({ sort: 'birthday' })).toThrow(InvalidClientListQueryError);
-    expect(() => normalizeSavedFilterQuery({ perPage: '500' })).toThrow(InvalidClientListQueryError);
+    expect(() => normalizeSavedFilterQuery({ sort: 'birthday' })).toThrow(
+      InvalidClientListQueryError
+    );
+    expect(() => normalizeSavedFilterQuery({ perPage: '500' })).toThrow(
+      InvalidClientListQueryError
+    );
   });
 
   it('builds a Ukrainian label and query params for re-running', () => {
@@ -139,9 +144,9 @@ describe('saved client filter policy (T-4461)', () => {
     expect(() =>
       assertFilterCanBeSaved(existing, { ownerId: 'admin-1', name: 'фільтр 0' })
     ).toThrow(SavedFilterConflictError);
-    expect(() =>
-      assertFilterCanBeSaved(existing, { ownerId: 'admin-1', name: 'Новий' })
-    ).toThrow(`limit reached (${MAX_SAVED_FILTERS_PER_OWNER}`);
+    expect(() => assertFilterCanBeSaved(existing, { ownerId: 'admin-1', name: 'Новий' })).toThrow(
+      `limit reached (${MAX_SAVED_FILTERS_PER_OWNER}`
+    );
     expect(() =>
       assertFilterCanBeSaved(existing, { ownerId: 'admin-2', name: 'Новий' })
     ).not.toThrow();
@@ -187,9 +192,9 @@ describe('SavedClientFilterService (T-4461)', () => {
     for (let index = 0; index < MAX_SAVED_FILTERS_PER_OWNER; index += 1) {
       await second.create({ ownerId: 'admin-1', name: `Фільтр ${index}`, query: {} });
     }
-    await expect(
-      second.create({ ownerId: 'admin-1', name: 'Ще один', query: {} })
-    ).rejects.toThrow('limit reached');
+    await expect(second.create({ ownerId: 'admin-1', name: 'Ще один', query: {} })).rejects.toThrow(
+      'limit reached'
+    );
   });
 
   it('renames, updates the query and deletes', async () => {

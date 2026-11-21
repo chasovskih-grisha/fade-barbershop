@@ -34,18 +34,26 @@ export function HomePillars() {
           Чому чоловіки обирають FADE
         </h2>
         <p className="text-bodyLg text-fg-secondary">
-          Ми переосмислили концепцію чоловічого догляду, прибравши зайвий пафос і зосередившись на чистоті форми, особистому часі та бездоганному комфорті.
+          Ми переосмислили концепцію чоловічого догляду, прибравши зайвий пафос і зосередившись на
+          чистоті форми, особистому часі та бездоганному комфорті.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {PILLARS.map((p) => (
-          <Card key={p.num} className="flex flex-col gap-4 p-7 fade-card-gradient transition-all duration-300 hover:border-accent-blue/60 hover:shadow-2xl hover:-translate-y-1.5 group border-line-strong/60">
+          <Card
+            key={p.num}
+            className="flex flex-col gap-4 p-7 fade-card-gradient transition-all duration-300 hover:border-accent-blue/60 hover:shadow-2xl hover:-translate-y-1.5 group border-line-strong/60"
+          >
             <div className="flex items-center justify-between">
-              <span className="text-caption font-bold uppercase text-accent-blue tracking-wider">{p.num}</span>
+              <span className="text-caption font-bold uppercase text-accent-blue tracking-wider">
+                {p.num}
+              </span>
               <span className="h-2 w-2 rounded-full bg-accent-blue opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            <h3 className="text-bodyLg font-bold text-fg group-hover:text-accent-blue transition-colors">{p.title}</h3>
+            <h3 className="text-bodyLg font-bold text-fg group-hover:text-accent-blue transition-colors">
+              {p.title}
+            </h3>
             <p className="text-body text-fg-secondary">{p.desc}</p>
           </Card>
         ))}
@@ -53,5 +61,3 @@ export function HomePillars() {
     </section>
   );
 }
-
-

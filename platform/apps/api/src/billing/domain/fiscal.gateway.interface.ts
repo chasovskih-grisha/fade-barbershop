@@ -7,11 +7,15 @@ export interface FiscalReceiptDetails {
 }
 
 export interface FiscalGateway {
-  checkShiftOpen(params: { cashRegisterId?: string; traceId: string }): Promise<{ isOpen: boolean; openedAt?: Date; isTooLong?: boolean }>;
-  
+  checkShiftOpen(params: {
+    cashRegisterId?: string;
+    traceId: string;
+  }): Promise<{ isOpen: boolean; openedAt?: Date; isTooLong?: boolean }>;
+
   createReceipt(params: {
     paymentId: string;
-    appointmentId: string;
+    /** Візит для чеків салону; для замовлень магазину його немає. */
+    appointmentId?: string;
     amount: number;
     type: 'prepayment' | 'sale' | 'return';
     items: Array<{ name: string; price: number; quantity: number }>;

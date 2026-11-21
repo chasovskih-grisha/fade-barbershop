@@ -18,20 +18,22 @@ class InMemoryReputationRepository implements ReputationRepository {
   }
 
   async listReviewsForLocation(locationId: string): Promise<ReviewItem[]> {
-    return this.reviews.filter(r => r.locationId === locationId);
+    return this.reviews.filter((r) => r.locationId === locationId);
   }
 
   async getCompetitorBenchmarks(locationId: string): Promise<CompetitorBenchmark[]> {
-    return this.benchmarks.get(locationId) || [
-      {
-        competitorName: 'Sharp & Classic Barbers',
-        locationId,
-        averageRating: 4.6,
-        totalReviews: 142,
-        sentimentRatio: 0.85,
-        lastCheckedAt: new Date(),
-      }
-    ];
+    return (
+      this.benchmarks.get(locationId) || [
+        {
+          competitorName: 'Sharp & Classic Barbers',
+          locationId,
+          averageRating: 4.6,
+          totalReviews: 142,
+          sentimentRatio: 0.85,
+          lastCheckedAt: new Date(),
+        },
+      ]
+    );
   }
 
   async saveCompetitorBenchmark(benchmark: CompetitorBenchmark): Promise<void> {

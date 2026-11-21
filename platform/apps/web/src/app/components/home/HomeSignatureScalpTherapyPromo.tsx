@@ -17,7 +17,9 @@ export function HomeSignatureScalpTherapyPromo() {
             Фірмова терапія шкіри голови та стимуляція росту волосся
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Комплексний догляд із пілінгом на основі морських мінералів та м'ятним тоніком. Знімає втому, покращує мікроциркуляцію та дарує неперевершене відчуття свіжості на весь день.
+            Комплексний догляд із пілінгом на основі морських мінералів та м&apos;ятним тоніком.
+            Знімає втому, покращує мікроциркуляцію та дарує неперевершене відчуття свіжості на весь
+            день.
           </p>
         </div>
 
@@ -27,7 +29,9 @@ export function HomeSignatureScalpTherapyPromo() {
             className="inline-flex h-13 w-full sm:w-auto items-center justify-center rounded-input bg-accent px-8 text-body font-semibold text-accent-fg hover:opacity-95 transition-all duration-300 shadow-xl hover:scale-[1.02] active:scale-[0.98]"
           >
             <span>Додати до візиту</span>
-            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+              &rarr;
+            </span>
           </Link>
           <Link
             href="/services"

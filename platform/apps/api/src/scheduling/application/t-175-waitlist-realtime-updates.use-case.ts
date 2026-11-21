@@ -1,14 +1,14 @@
 /**
  * T-175: Enhanced Mobile Waitlist Client Features - Pull-to-refresh and real-time waitlist updates
- * 
+ *
  * Implement pull-to-refresh functionality and real-time waitlist updates
  * for the mobile client, building on the existing waitlist infrastructure
  * from T-170/T-171/T-172/T-173.
  */
 
+import { Inject, Injectable } from '@nestjs/common';
 import { WaitlistQueue } from '../domain/waitlist-queue';
-import { ClientRepository } from '../../clients/domain/repositories';
-import { randomUUID } from 'node:crypto';
+import { CLIENT_REPOSITORY, type ClientRepository } from '../../clients/domain/repositories';
 
 /**
  * Interface for real-time waitlist update input
@@ -42,22 +42,25 @@ export interface RealTimeWaitlistUpdateResult {
 
 /**
  * T-175: Enhanced Mobile Waitlist Client Screen - Real-time waitlist updates
- * 
+ *
  * Provides pull-to-refresh and real-time waitlist status updates for mobile clients,
  * showing current position, estimated wait time, available slots, and new queue entries.
  */
+@Injectable()
 export class T175WaitlistRealTimeUpdatesUseCase {
   constructor(
-    private waitlistQueue: WaitlistQueue,
-    private clientRepo: ClientRepository
+    @Inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
+    @Inject(CLIENT_REPOSITORY) private clientRepo: ClientRepository
   ) {}
 
   /**
    * Get real-time waitlist status for a client.
    * Includes position, estimated wait time, available slots, and recent queue changes.
    */
-  async getRealTimeStatus(input: RealTimeWaitlistUpdateInput): Promise<RealTimeWaitlistUpdateResult> {
-    const { clientId, forceRefresh } = input;
+  async getRealTimeStatus(
+    input: RealTimeWaitlistUpdateInput
+  ): Promise<RealTimeWaitlistUpdateResult> {
+    const { clientId } = input;
 
     // Get current queue position and estimated wait time
     const positionInfo = await this.waitlistQueue.getPosition(clientId);
@@ -66,22 +69,21 @@ export class T175WaitlistRealTimeUpdatesUseCase {
     const availableSlots = await this.waitlistQueue.getAvailableSlots({
       serviceIds: [],
       groupSize: 1,
-      preferredDate: undefined,
     });
 
     // Get recent queue additions (new entries)
     const newEntries = await this.waitlistQueue.getRecentEntries(5);
 
     // Calculate estimated wait time based on position and historical data
-    const estimatedWaitTime = positionInfo.estimatedWaitTime 
-      ? positionInfo.estimatedWaitTime 
+    const estimatedWaitTime = positionInfo.estimatedWaitTime
+      ? positionInfo.estimatedWaitTime
       : this.calculateEstimatedWaitTime(positionInfo.position);
 
     return {
       success: true,
       position: positionInfo.position ?? null,
       estimatedWaitTime: estimatedWaitTime ?? null,
-      availableSlots: availableSlots.slice(0, 3).map(slot => ({
+      availableSlots: availableSlots.slice(0, 3).map((slot) => ({
         slotId: slot.id,
         barberId: slot.barberId,
         serviceId: slot.serviceId || '',
@@ -89,10 +91,10 @@ export class T175WaitlistRealTimeUpdatesUseCase {
         formattedTime: this.formatSlotTime(slot.startTime),
       })),
       queueUpdatedAt: positionInfo.queueUpdatedAt ?? new Date().toISOString(),
-      newEntries: newEntries.map(entry => ({
+      newEntries: newEntries.map((entry) => ({
         clientId: entry.clientId,
-        name: entry.clientName || 'Unknown client',
-        addedAt: entry.addedAt,
+        name: entry.clientName ?? 'Unknown client',
+        addedAt: entry.addedAt.toISOString(),
       })),
     };
   }
@@ -112,4 +114,3 @@ export class T175WaitlistRealTimeUpdatesUseCase {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 }
-

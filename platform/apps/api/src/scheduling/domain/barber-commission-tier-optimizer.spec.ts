@@ -40,7 +40,7 @@ describe('BarberCommissionTierOptimizer', () => {
     });
 
     expect(result.commissionTier).toBe('platinum');
-    expect(result.bonusPayoutMultiplier).toBe(1.30);
-    expect(result.chairTurnoverEfficiency).toBeGreaterThanOrEqual(0.90);
+    expect(result.bonusPayoutMultiplier).toBe(1.3);
+    expect(result.chairTurnoverEfficiency).toBeGreaterThanOrEqual(0.9);
   });
 });

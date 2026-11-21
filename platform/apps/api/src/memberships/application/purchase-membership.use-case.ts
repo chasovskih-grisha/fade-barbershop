@@ -1,5 +1,11 @@
+/* eslint-disable max-params -- 1 signature whose 4-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 import { MembershipInstance } from '../domain/membership-instance.entity';
-import { MembershipPlanRepository, MembershipInstanceRepository, OutboxPublisher, Clock } from '../domain/ports';
+import {
+  MembershipPlanRepository,
+  MembershipInstanceRepository,
+  OutboxPublisher,
+  Clock,
+} from '../domain/ports';
 import { DomainEvent } from '../domain/domain-event';
 
 export class MembershipPurchasedEvent extends DomainEvent {
@@ -39,7 +45,7 @@ export class PurchaseMembershipUseCase {
     private readonly plansRepo: MembershipPlanRepository,
     private readonly instancesRepo: MembershipInstanceRepository,
     private readonly outbox: OutboxPublisher,
-    private readonly clock: Clock,
+    private readonly clock: Clock
   ) {}
 
   async handle(input: PurchaseMembershipInput): Promise<MembershipInstance> {

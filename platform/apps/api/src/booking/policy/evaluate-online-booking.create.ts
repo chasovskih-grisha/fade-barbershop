@@ -1,7 +1,14 @@
 // Причини блокування нового онлайн-запису (T-4542) — окремо від use case,
 // щоб тримати і клас, і функцію під гейтами max-lines/max-params.
 import type { OnlineBookingPolicy } from './online-booking-policy';
-import { checkActiveBookings, checkDuplicate, checkHorizon, checkLeadTime, checkNoShowBlock, type BookingBlock } from './policy-rules';
+import {
+  checkActiveBookings,
+  checkDuplicate,
+  checkHorizon,
+  checkLeadTime,
+  checkNoShowBlock,
+  type BookingBlock,
+} from './policy-rules';
 import type { OnlineBookingStore } from './booking-policy.ports';
 import type { EvaluateInput } from './evaluate-online-booking';
 
@@ -13,7 +20,12 @@ export interface CreateBlocksArgs {
   now: Date;
 }
 
-export async function createBlocks({ store, input, policy, now }: CreateBlocksArgs): Promise<BookingBlock[]> {
+export async function createBlocks({
+  store,
+  input,
+  policy,
+  now,
+}: CreateBlocksArgs): Promise<BookingBlock[]> {
   const blocks: BookingBlock[] = [];
   const push = (block: BookingBlock | null): void => {
     if (block) blocks.push(block);
@@ -32,6 +44,14 @@ export async function createBlocks({ store, input, policy, now }: CreateBlocksAr
     )
   );
   if (!input.barberId) return blocks;
-  push(checkDuplicate(await store.hasDuplicate({ clientId: input.clientId, barberId: input.barberId, start: input.start })));
+  push(
+    checkDuplicate(
+      await store.hasDuplicate({
+        clientId: input.clientId,
+        barberId: input.barberId,
+        start: input.start,
+      })
+    )
+  );
   return blocks;
 }

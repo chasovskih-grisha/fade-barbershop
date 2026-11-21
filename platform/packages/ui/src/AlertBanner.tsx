@@ -56,7 +56,9 @@ export function AlertBanner({
       <Icon name={icon} size={24} className="mt-0.5 text-fg-secondary shrink-0" />
       <div className="flex flex-1 flex-col gap-1 min-w-0">
         <p className="text-body font-medium text-fg leading-relaxed">{title}</p>
-        {description ? <p className="text-caption text-fg-secondary leading-normal">{description}</p> : null}
+        {description ? (
+          <p className="text-caption text-fg-secondary leading-normal">{description}</p>
+        ) : null}
         {children}
         {action ? (
           <div className="mt-2.5">

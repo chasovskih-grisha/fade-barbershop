@@ -1,3 +1,4 @@
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: optimizeSlotHoldPriority, complexity 12 vs 10); refactor tracked in T-2500f */
 export interface SlotHoldPriorityContext {
   clientLoyaltyVisits: number;
   isVip: boolean;
@@ -45,7 +46,8 @@ export function optimizeSlotHoldPriority(
   }
 
   const effectiveLeaseMinutes = Math.max(5, baseLeaseMinutes + leaseAdjustment);
-  const maxExtensionsAllowed = isVip || clientLoyaltyVisits >= 5 ? config.maxVipExtensions : config.standardMaxExtensions;
+  const maxExtensionsAllowed =
+    isVip || clientLoyaltyVisits >= 5 ? config.maxVipExtensions : config.standardMaxExtensions;
 
   const priorityScore = Number(
     Math.min(

@@ -25,8 +25,12 @@ describe('BarberWorkloadBalanceOptimizer', () => {
 
     expect(result.busiestBarberId).toBe('b1');
     expect(result.underutilizedBarberIds).toContain('b2');
-    expect(result.recommendations.find((r) => r.barberId === 'b1')?.fatigueRiskLevel).toBe('critical');
-    expect(result.recommendations.find((r) => r.barberId === 'b1')?.suggestWalkInRedirection).toBe(true);
+    expect(result.recommendations.find((r) => r.barberId === 'b1')?.fatigueRiskLevel).toBe(
+      'critical'
+    );
+    expect(result.recommendations.find((r) => r.barberId === 'b1')?.suggestWalkInRedirection).toBe(
+      true
+    );
     expect(result.recommendations.find((r) => r.barberId === 'b2')?.utilizationRate).toBe(0.38);
   });
 

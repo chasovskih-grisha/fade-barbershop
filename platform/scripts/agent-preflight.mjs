@@ -3,7 +3,13 @@ import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from '
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseFrontmatter } from './validate-agents.mjs';
-import { classifyOpenReviews, loadRows, readyTodos, SEAT_TAG, withdrawTask } from './agent-gate.mjs';
+import {
+  classifyOpenReviews,
+  loadRows,
+  readyTodos,
+  SEAT_TAG,
+  withdrawTask,
+} from './agent-gate.mjs';
 
 export const BUSY_MS = 12 * 60 * 1000;
 
@@ -32,7 +38,8 @@ export function planStart({
     return { action: 'withdraw' };
   }
   if (kind === 'accept' && statusOnlyReviews > 0) return { action: 'withdraw-and-start' };
-  if (kind === 'accept' && realReviews === 0 && qaReady === 0) return { action: 'skip', reason: 'no review row' };
+  if (kind === 'accept' && realReviews === 0 && qaReady === 0)
+    return { action: 'skip', reason: 'no review row' };
   return { action: 'start' };
 }
 
@@ -142,10 +149,14 @@ export function createIo(root, id, prompt) {
       writeFileSync(marker, `${tip.status === 0 ? tip.stdout.trim() : ''}\n`);
     },
     start: () => {
-      const result = spawnSync('agentapi', ['new-conversation', '--model=flash_lite', '--', prompt], {
-        cwd: root,
-        stdio: 'inherit',
-      });
+      const result = spawnSync(
+        'agentapi',
+        ['new-conversation', '--model=flash_lite', '--', prompt],
+        {
+          cwd: root,
+          stdio: 'inherit',
+        }
+      );
       return result.status ?? 1;
     },
     finish: (code, reason) => {

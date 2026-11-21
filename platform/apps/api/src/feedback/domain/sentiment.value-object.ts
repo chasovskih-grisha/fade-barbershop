@@ -3,7 +3,7 @@ export type SentimentType = 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';
 export class Sentiment {
   constructor(
     public readonly rating: number,
-    public readonly text?: string,
+    public readonly text?: string
   ) {
     if (rating < 1 || rating > 5) {
       throw new Error('Rating must be between 1 and 5');

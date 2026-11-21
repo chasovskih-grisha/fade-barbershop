@@ -15,7 +15,8 @@ import { BarbersTable } from './BarbersTable';
 import { useBarbersDirectory } from './use-barbers-directory';
 
 export default function BarbersManager() {
-  const { barbers, locations, error, saving, create, toggle, savePhoto, removePhoto } = useBarbersDirectory();
+  const { barbers, locations, error, saving, create, toggle, savePhoto, removePhoto } =
+    useBarbersDirectory();
   const { push, viewport } = useAdminToasts();
   const [selected, setSelected] = useState('');
   const [name, setName] = useState('');
@@ -67,7 +68,9 @@ export default function BarbersManager() {
             <BarberPhotoSection
               barberId={barber.id}
               initialPhoto={barber.photo}
-              onSave={(file, alt, consent) => savePhoto(barber.id, file, alt, consent)}
+              onSave={(file, alt, consent) =>
+                savePhoto({ barberId: barber.id, file, alt, consent })
+              }
               onRemove={() => removePhoto(barber.id)}
               saving={saving}
             />

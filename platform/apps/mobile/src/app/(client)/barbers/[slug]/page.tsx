@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { fetchLocations } from '../../../../lib/api/locations';
 import { fetchBarberById, BarberDto } from '../../../../lib/api/barbers';
 import { BarberPortrait } from '../../../../components/BarberPortrait';
+import { BarberLoadingState, BarberNotFoundState } from './barber-screen-states';
 import { styles } from '../../../index.styles';
 
 export default function BarberScreen() {
@@ -43,27 +44,11 @@ export default function BarberScreen() {
     };
   }, [slug]);
 
-  if (loading) {
-    return (
-      <View style={[styles.content, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text testID="loading-skeleton" style={styles.cardMuted}>Завантаження...</Text>
-      </View>
-    );
-  }
+  if (loading) return <BarberLoadingState />;
 
   if (error || !barber) {
     return (
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.hero}>Майстра не знайдено</Text>
-        <Text style={styles.cardMuted}>Барбера з ідентифікатором {slug} не знайдено в системі.</Text>
-        <Pressable
-          accessibilityRole="button"
-          style={styles.cta}
-          onPress={() => router.push('/(client)/barbers')}
-        >
-          <Text style={styles.ctaLabel}>До каталогу майстрів</Text>
-        </Pressable>
-      </ScrollView>
+      <BarberNotFoundState slug={slug || ''} onBack={() => router.push('/(client)/barbers')} />
     );
   }
 
@@ -74,21 +59,29 @@ export default function BarberScreen() {
         style={{ marginBottom: 16 }}
         onPress={() => router.push('/(client)/barbers')}
       >
-        <Text style={styles.cardMuted} testID="back-button">← Назад до майстрів</Text>
+        <Text style={styles.cardMuted} testID="back-button">
+          ← Назад до майстрів
+        </Text>
       </Pressable>
 
       <BarberPortrait name={barber.name} photo={barber.photo} variant="screen" />
 
-      <Text style={styles.hero} testID="barber-name">{barber.name}</Text>
+      <Text style={styles.hero} testID="barber-name">
+        {barber.name}
+      </Text>
       {barber.locationName ? (
-        <Text style={styles.heroSub} testID="barber-location">{barber.locationName}</Text>
+        <Text style={styles.heroSub} testID="barber-location">
+          {barber.locationName}
+        </Text>
       ) : null}
 
       <View style={{ marginTop: 24 }}>
         <Pressable
           accessibilityRole="button"
           style={styles.cta}
-          onPress={() => router.push({ pathname: '/(client)/booking', params: { barberId: barber.id } })}
+          onPress={() =>
+            router.push({ pathname: '/(client)/booking', params: { barberId: barber.id } })
+          }
         >
           <Text style={styles.ctaLabel}>Записатися</Text>
         </Pressable>

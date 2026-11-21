@@ -1,6 +1,11 @@
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: an existing definition, complexity 15 vs 10); refactor tracked in T-2500f */
 import { ClientLoyaltyState } from '../domain/client-loyalty-state';
 import type { LoyaltyCommandContext } from '../domain/ports';
-import { determineLoyaltyTier, DEFAULT_LOYALTY_TIERS, LoyaltyTierConfig } from '../domain/loyalty-tier';
+import {
+  determineLoyaltyTier,
+  DEFAULT_LOYALTY_TIERS,
+  LoyaltyTierConfig,
+} from '../domain/loyalty-tier';
 
 export interface EvaluateMembershipTierAutoUpgradeInput {
   clientId: string;
@@ -22,7 +27,9 @@ export interface EvaluateMembershipTierAutoUpgradeResult {
 export class EvaluateMembershipTierAutoUpgradeHandler {
   constructor(private readonly ctx: LoyaltyCommandContext) {}
 
-  async handle(input: EvaluateMembershipTierAutoUpgradeInput): Promise<EvaluateMembershipTierAutoUpgradeResult> {
+  async handle(
+    input: EvaluateMembershipTierAutoUpgradeInput
+  ): Promise<EvaluateMembershipTierAutoUpgradeResult> {
     const now = input.occurredAt ?? this.ctx.clock.now();
     let state = await this.ctx.states.findByClientId(input.clientId);
     if (!state) {
@@ -30,7 +37,7 @@ export class EvaluateMembershipTierAutoUpgradeHandler {
     }
 
     const previousTier = state.tier || 'BRONZE';
-    
+
     // Apply increments if provided
     if (input.completedVisitsToAdd && input.completedVisitsToAdd > 0) {
       for (let i = 0; i < input.completedVisitsToAdd; i++) {
@@ -43,7 +50,7 @@ export class EvaluateMembershipTierAutoUpgradeHandler {
 
     const totalVisits = state.counter + (state.hasFreeVisit ? 7 : 0);
     const tierConfig: LoyaltyTierConfig = determineLoyaltyTier(totalVisits, DEFAULT_LOYALTY_TIERS);
-    
+
     let finalTierLevel = tierConfig.level;
     if (state.pointsBalance >= 2500 && finalTierLevel !== 'PLATINUM' && finalTierLevel !== 'GOLD') {
       finalTierLevel = 'GOLD';
@@ -57,7 +64,8 @@ export class EvaluateMembershipTierAutoUpgradeHandler {
 
     await this.ctx.states.save(state);
 
-    const resolvedConfig = DEFAULT_LOYALTY_TIERS.find((t) => t.level === finalTierLevel) || tierConfig;
+    const resolvedConfig =
+      DEFAULT_LOYALTY_TIERS.find((t) => t.level === finalTierLevel) || tierConfig;
 
     return {
       clientId: input.clientId,

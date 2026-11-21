@@ -13,7 +13,7 @@ export interface SentimentAlertReport {
 export class AnalyzeReviewSentimentAlertUseCase {
   constructor(
     @Inject('ReputationRepository')
-    private readonly reputationRepository: ReputationRepository,
+    private readonly reputationRepository: ReputationRepository
   ) {}
 
   public async execute(locationId: string): Promise<SentimentAlertReport> {
@@ -23,7 +23,8 @@ export class AnalyzeReviewSentimentAlertUseCase {
 
     let recommendedAction = 'No immediate action required. Reputation stability is optimal.';
     if (alertTriggered) {
-      recommendedAction = 'High negative review velocity detected. Dispatch manager outreach to affected clients and review barber execution standards.';
+      recommendedAction =
+        'High negative review velocity detected. Dispatch manager outreach to affected clients and review barber execution standards.';
     }
 
     return {

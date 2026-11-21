@@ -17,7 +17,8 @@ export function ConversionIntelligenceTracker() {
 
     const handleScroll = () => {
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrollHeight =
+        document.documentElement.scrollHeight - document.documentElement.clientHeight;
       if (scrollHeight <= 0) return;
 
       const progress = Math.round((scrollTop / scrollHeight) * 100);
@@ -40,7 +41,10 @@ export function ConversionIntelligenceTracker() {
       const interactiveEl = target?.closest('button, a, [role="button"]');
       if (!interactiveEl) return;
 
-      const elementName = interactiveEl.getAttribute('aria-label') || interactiveEl.textContent?.trim().slice(0, 30) || 'unknown_element';
+      const elementName =
+        interactiveEl.getAttribute('aria-label') ||
+        interactiveEl.textContent?.trim().slice(0, 30) ||
+        'unknown_element';
       const now = Date.now();
 
       // Clean up clicks older than 1000ms

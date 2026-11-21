@@ -23,3 +23,10 @@ export function isWithinPreferenceLimit(lines: string[]): boolean {
     lines.every((line) => line.length <= MAX_PREFERENCE_LINE_LENGTH)
   );
 }
+
+export const EMPTY_SAVED_NOTE_MESSAGE = 'Майстер ще нічого не побачить';
+
+/** Цитата останньої збереженої нотатки — рядки так, як їх написав клієнт. */
+export function savedNoteQuote(savedLines: string[]): string {
+  return savedLines.length ? savedLines.join('\n') : EMPTY_SAVED_NOTE_MESSAGE;
+}

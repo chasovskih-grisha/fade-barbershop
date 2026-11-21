@@ -17,7 +17,9 @@ export interface RefundPaymentResult {
 }
 
 export class RefundPaymentHandler {
-  constructor(private readonly ctx: PaymentCommandContext & { acquiringGateway: AcquiringGateway }) {}
+  constructor(
+    private readonly ctx: PaymentCommandContext & { acquiringGateway: AcquiringGateway }
+  ) {}
 
   async handle(input: RefundPaymentInput): Promise<RefundPaymentResult> {
     const payment = await this.ctx.payments.findById(input.paymentId);
@@ -26,7 +28,7 @@ export class RefundPaymentHandler {
     }
 
     const now = this.ctx.clock.now();
-    const refundAmount = input.amount ?? (payment.amount - payment.refundedAmount);
+    const refundAmount = input.amount ?? payment.amount - payment.refundedAmount;
 
     payment.initiateRefund(input.reason, refundAmount);
     await this.ctx.payments.save(payment);
@@ -45,7 +47,7 @@ export class RefundPaymentHandler {
     await this.ctx.outbox.append([
       new PaymentRefundedEvent({
         paymentId: payment.id,
-        appointmentId: payment.appointmentId,
+        ...(payment.appointmentId ? { appointmentId: payment.appointmentId } : {}),
         amount: refundAmount,
         refundId: refundResult.refundId,
         traceId: input.traceId,

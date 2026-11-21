@@ -1,4 +1,8 @@
-import { CancellationProtectionService, DEFAULT_CANCELLATION_CONFIG } from './cancellation-protection.service';
+/* eslint-disable max-lines -- cohesive module (107 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
+import {
+  CancellationProtectionService,
+  DEFAULT_CANCELLATION_CONFIG,
+} from './cancellation-protection.service';
 
 describe('CancellationProtectionService (No-Show & Cancellation Protection Specialist)', () => {
   let service: CancellationProtectionService;
@@ -74,7 +78,7 @@ describe('CancellationProtectionService (No-Show & Cancellation Protection Speci
 
   it('requires automated deposit for high-value services or repeat no-show clients', () => {
     expect(service.requiresDeposit(1, 2000, 1500)).toBe(true); // High price threshold
-    expect(service.requiresDeposit(2, 800, 1500)).toBe(true);  // Repeat no-show threshold
+    expect(service.requiresDeposit(2, 800, 1500)).toBe(true); // Repeat no-show threshold
     expect(service.requiresDeposit(0, 800, 1500)).toBe(false); // Clean record & normal price
   });
 

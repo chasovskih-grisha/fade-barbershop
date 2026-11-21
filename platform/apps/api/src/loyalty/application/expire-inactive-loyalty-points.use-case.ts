@@ -1,4 +1,3 @@
-import { ClientLoyaltyState } from '../domain/client-loyalty-state';
 import type { LoyaltyCommandContext } from '../domain/ports';
 import { DomainEvent } from '../domain/domain-event';
 
@@ -35,13 +34,15 @@ export interface ExpireInactiveLoyaltyPointsResult {
 export class ExpireInactiveLoyaltyPointsHandler {
   constructor(private readonly ctx: LoyaltyCommandContext) {}
 
-  async handle(input: ExpireInactiveLoyaltyPointsInput = {}): Promise<ExpireInactiveLoyaltyPointsResult> {
+  async handle(
+    input: ExpireInactiveLoyaltyPointsInput = {}
+  ): Promise<ExpireInactiveLoyaltyPointsResult> {
     const now = input.occurredAt ?? this.ctx.clock.now();
     const inactivityDays = input.inactivityDays ?? 365;
     const thresholdDate = new Date(now.getTime() - inactivityDays * 24 * 60 * 60 * 1000);
 
     const allStates = this.ctx.states.findAll ? await this.ctx.states.findAll() : [];
-    
+
     let totalExpiredPoints = 0;
     const expiredClients: Array<{ clientId: string; expiredPoints: number }> = [];
     const eventsToPublish: DomainEvent[] = [];

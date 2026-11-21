@@ -1,7 +1,12 @@
 // Застосування surge до ціни слота (T-4811): читає активні правила локації й
 // рахує ціну. Снепшот множника повертається разом із ціною — він фіксується
 // на Booking, тож «чому клієнт заплатив стільки» видно через рік.
-import { applySurge, matchSurgeRule, type SeniorityTier, type SurgeRule } from '../domain/surge-rule';
+import {
+  applySurge,
+  matchSurgeRule,
+  type SeniorityTier,
+  type SurgeRule,
+} from '../domain/surge-rule';
 
 export const SURGE_RULE_STORE = 'SURGE_RULE_STORE';
 

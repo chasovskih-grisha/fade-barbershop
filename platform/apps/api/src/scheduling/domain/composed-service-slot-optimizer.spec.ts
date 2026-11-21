@@ -1,4 +1,4 @@
-const { ComposedServiceSlotOptimizer } = require('./composed-service-slot-optimizer');
+import { ComposedServiceSlotOptimizer } from './composed-service-slot-optimizer';
 
 describe('ComposedServiceSlotOptimizer', () => {
   it('successfully schedules multi-service appointments consecutively', () => {
@@ -6,8 +6,18 @@ describe('ComposedServiceSlotOptimizer', () => {
       clientId: 'client-1',
       targetDayStartMinute: 600, // 10:00 AM
       services: [
-        { serviceId: 's1', serviceName: 'Classic Fade', durationMinutes: 30, requiredSpecialty: 'fade' },
-        { serviceId: 's2', serviceName: 'Beard Trim', durationMinutes: 20, requiredSpecialty: 'beard' },
+        {
+          serviceId: 's1',
+          serviceName: 'Classic Fade',
+          durationMinutes: 30,
+          requiredSpecialty: 'fade',
+        },
+        {
+          serviceId: 's2',
+          serviceName: 'Beard Trim',
+          durationMinutes: 20,
+          requiredSpecialty: 'beard',
+        },
       ],
       barbers: [
         {
@@ -23,10 +33,10 @@ describe('ComposedServiceSlotOptimizer', () => {
 
     expect(result.success).toBe(true);
     expect(result.allocations).toHaveLength(2);
-    expect(result.allocations[0].startMinute).toBe(600);
-    expect(result.allocations[0].endMinute).toBe(630);
-    expect(result.allocations[1].startMinute).toBe(635); // 630 + 5 min buffer
-    expect(result.allocations[1].endMinute).toBe(655);
+    expect(result.allocations[0]?.startMinute).toBe(600);
+    expect(result.allocations[0]?.endMinute).toBe(630);
+    expect(result.allocations[1]?.startMinute).toBe(635); // 630 + 5 min buffer
+    expect(result.allocations[1]?.endMinute).toBe(655);
     expect(result.feasibilityScore).toBe(1.0);
   });
 
@@ -35,7 +45,12 @@ describe('ComposedServiceSlotOptimizer', () => {
       clientId: 'client-2',
       targetDayStartMinute: 600,
       services: [
-        { serviceId: 's1', serviceName: 'Full Styling', durationMinutes: 60, requiredSpecialty: 'styling' },
+        {
+          serviceId: 's1',
+          serviceName: 'Full Styling',
+          durationMinutes: 60,
+          requiredSpecialty: 'styling',
+        },
       ],
       barbers: [
         {

@@ -3,6 +3,7 @@
 
 import type { DomainEvent } from './article.events';
 import type { Article } from './article';
+import type { ArticleFeedQuery } from '../application/article-feed';
 import type { SeoBlock } from './seo-block';
 
 export interface Clock {
@@ -27,8 +28,8 @@ export interface ArticleRepository {
   save(article: Article): Promise<void>;
   /** Адмінський список: чернетки й опубліковані, нові першими. */
   list(): Promise<Article[]>;
-  /** Публічний стрічка: лише published, нові першими, обмежена довжина. */
-  listPublished(limit?: number): Promise<Article[]>;
+  /** Публічна стрічка: лише published, нові першими, з пошуком, тегом і курсором. */
+  listPublished(query?: ArticleFeedQuery): Promise<Article[]>;
 }
 
 export interface SeoBlockRepository {

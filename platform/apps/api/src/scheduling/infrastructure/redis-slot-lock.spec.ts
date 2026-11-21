@@ -1,4 +1,4 @@
-/* eslint-disable max-params -- фейк повторює сигнатуру ioredis set/eval */
+/* eslint-disable max-params -- 4 signatures whose 5-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 // T-4802: Redlock-адаптер — кворум, звільнення лише свого токена, TTL і
 // поведінка при недоступному інстансі.
 import { RedisSlotLock, type RedisLockClient } from './redis-slot-lock';
@@ -35,7 +35,8 @@ class FakeRedis implements RedisLockClient {
 describe('RedisSlotLock (T-4802)', () => {
   it('бере лок при кворумі 2 з 3 навіть якщо один інстанс недоступний', async () => {
     const clients = [new FakeRedis(), new FakeRedis(), new FakeRedis()];
-    clients[2]!.down = true;
+    const down = clients[2];
+    if (down) down.down = true;
     const lock = new RedisSlotLock(clients);
 
     await expect(lock.acquire('slot', 'token-a', 60_000)).resolves.toBe(true);
@@ -49,10 +50,12 @@ describe('RedisSlotLock (T-4802)', () => {
     const first = await lock.acquire('slot', 'token-a', 60_000);
     expect(first).toBe(true);
     // два інстанси з трьох «впали» — новому володарю кворуму не вистачить
-    clients[1]!.down = true;
-    clients[2]!.down = true;
+    const down1 = clients[1];
+    if (down1) down1.down = true;
+    const down2 = clients[2];
+    if (down2) down2.down = true;
     await expect(lock.acquire('slot', 'token-b', 60_000)).resolves.toBe(false);
-    expect(clients[0]!.data.get('slot')?.token).toBe('token-a');
+    expect(clients?.[0]?.data?.get('slot')?.token).toBe('token-a');
   });
 
   it('звільняє лише свій токен', async () => {

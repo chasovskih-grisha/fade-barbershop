@@ -8,12 +8,7 @@ describe('LocationMapPicker', () => {
 
   it('renders search field, map container and coordinates', () => {
     render(
-      <LocationMapPicker
-        lat={50.45}
-        lng={30.52}
-        onChange={jest.fn()}
-        onAddressParts={jest.fn()}
-      />
+      <LocationMapPicker lat={50.45} lng={30.52} onChange={jest.fn()} onAddressParts={jest.fn()} />
     );
 
     expect(screen.getByLabelText('Пошук адреси')).toBeInTheDocument();
@@ -37,7 +32,12 @@ describe('LocationMapPicker', () => {
     });
 
     render(
-      <LocationMapPicker lat={50.45} lng={30.52} onChange={onChange} onAddressParts={onAddressParts} />
+      <LocationMapPicker
+        lat={50.45}
+        lng={30.52}
+        onChange={onChange}
+        onAddressParts={onAddressParts}
+      />
     );
 
     fireEvent.change(screen.getByLabelText('Пошук адреси'), { target: { value: 'Хрещатик' } });

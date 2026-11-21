@@ -36,7 +36,7 @@ function assertParallelSlots(input: PartySlotInput): Slot[] {
     throw new Error('Parallel mode requires exactly two slots (PARTY-005)');
   }
   const [s1, s2] = input.slots.map((s) => Slot.create(s.start, s.end));
-  if (s1?.start.getTime() !== s2?.start.getTime()) {
+  if (s1?.start?.getTime() !== s2?.start?.getTime()) {
     throw new Error('Parallel slots must share the same start time (PARTY-005)');
   }
   if (s1?.durationMinutes !== 50 || s2?.durationMinutes !== 45) {

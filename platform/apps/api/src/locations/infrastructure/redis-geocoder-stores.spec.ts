@@ -1,7 +1,12 @@
 // Специфікація Redis-сховищ геокодера (ADR 0050) на скриптованому фейку
 // (redis-geocoder.fake): скоуплення ключів, кеш PX-TTL, ковзне вікно, надгробок,
 // fail-open без клієнта (get→null, tryAcquire→true, isTombstoned→false).
-import { RedisGeocoderCacheStore, RedisGeocoderRateLimitStore, RedisGeocoderTombstoneStore, scopedKey } from './redis-geocoder-stores';
+import {
+  RedisGeocoderCacheStore,
+  RedisGeocoderRateLimitStore,
+  RedisGeocoderTombstoneStore,
+  scopedKey,
+} from './redis-geocoder-stores';
 import { FakeRedis } from './redis-geocoder.fake';
 
 const ADAPTER = 'nominatim';

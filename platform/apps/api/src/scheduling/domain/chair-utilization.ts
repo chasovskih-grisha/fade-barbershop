@@ -66,7 +66,8 @@ export function calculateChairUtilizationMetrics({
 
   const occupiedMinutes = Math.round(occupiedMs / 60000);
   const chairHoursOccupied = Number((occupiedMinutes / 60).toFixed(2));
-  const occupancyRate = totalCapacityMinutes > 0 ? Number((occupiedMinutes / totalCapacityMinutes).toFixed(4)) : 0;
+  const occupancyRate =
+    totalCapacityMinutes > 0 ? Number((occupiedMinutes / totalCapacityMinutes).toFixed(4)) : 0;
 
   return {
     totalCapacityMinutes,

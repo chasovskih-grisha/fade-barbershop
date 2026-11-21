@@ -75,9 +75,7 @@ export function RescheduleModal({
           />
         </View>
 
-        {localError || error ? (
-          <Text style={styles.errorText}>{localError ?? error}</Text>
-        ) : null}
+        {localError || error ? <Text style={styles.errorText}>{localError ?? error}</Text> : null}
 
         <View style={styles.actions}>
           <Pressable
@@ -95,9 +93,7 @@ export function RescheduleModal({
             disabled={busy}
             testID="reschedule-confirm-button"
           >
-            <Text style={styles.primaryButtonText}>
-              {busy ? 'Перенесення...' : 'Перенести'}
-            </Text>
+            <Text style={styles.primaryButtonText}>{busy ? 'Перенесення...' : 'Перенести'}</Text>
           </Pressable>
         </View>
       </View>

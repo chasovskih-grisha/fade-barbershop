@@ -27,14 +27,30 @@ export class SeoBlock {
     }
   }
 
-  get id(): string { return this.props.id; }
-  get entityType(): string { return this.props.entityType; }
-  get entityId(): string { return this.props.entityId; }
-  get title(): string | null { return this.props.title; }
-  get metaDescription(): string | null { return this.props.metaDescription; }
-  get h1(): string | null { return this.props.h1; }
-  get faq(): FaqItem[] { return this.props.faq; }
-  get updatedAt(): Date { return this.props.updatedAt; }
+  get id(): string {
+    return this.props.id;
+  }
+  get entityType(): string {
+    return this.props.entityType;
+  }
+  get entityId(): string {
+    return this.props.entityId;
+  }
+  get title(): string | null {
+    return this.props.title;
+  }
+  get metaDescription(): string | null {
+    return this.props.metaDescription;
+  }
+  get h1(): string | null {
+    return this.props.h1;
+  }
+  get faq(): FaqItem[] {
+    return this.props.faq;
+  }
+  get updatedAt(): Date {
+    return this.props.updatedAt;
+  }
 
   toDto() {
     return {

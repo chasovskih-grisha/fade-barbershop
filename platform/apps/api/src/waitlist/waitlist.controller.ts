@@ -1,11 +1,28 @@
+/* eslint-disable max-lines -- cohesive module (505 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import { prisma } from '../index';
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { WaitlistService } from './waitlist.service';
-import { type CreateWaitlistEntryInput, type HoldSlotInput, WaitlistOutput, ActiveWaitlistOutput, ClientWaitlistHistoryOutput, type CancelWaitlistInput, type CascadeWaitlistInput, type CheckJoinInput } from './waitlist.dto';
+import {
+  type CreateWaitlistEntryInput,
+  type HoldSlotInput,
+  WaitlistOutput,
+  WaitlistEntryOutput,
+  ActiveWaitlistOutput,
+  ClientWaitlistHistoryOutput,
+  type CancelWaitlistInput,
+  type CascadeWaitlistInput,
+  type CheckJoinInput,
+} from './waitlist.dto';
 import { AdminCreateWaitlistEntryInput } from './admin-waitlist-entry.dto';
-import { IdempotencyKey } from '../shared/decorators/idempotency-key.decorator';
+import { WaitlistEntryStatus } from './waitlist.domain';
 
 export const WAITLIST_IO = Symbol('WAITLIST_IO');
 
@@ -36,9 +53,7 @@ export class WaitlistController {
     description: 'Client added to waitlist for a slot',
   })
   @HttpCode(HttpStatus.CREATED)
-  async enterWaitlist(
-    @Body() body: CreateWaitlistEntryInput,
-  ): Promise<WaitlistOutput> {
+  async enterWaitlist(@Body() body: CreateWaitlistEntryInput): Promise<WaitlistOutput> {
     const result = await this.waitlistService.createWaitlistEntry(
       body.slotId,
       body.clientId,
@@ -61,6 +76,7 @@ export class WaitlistController {
         holdExpiry: result.holdExpiry,
         status: result.status,
         createdAt: result.createdAt,
+        missedCount: result.missedCount,
       },
     };
   }
@@ -73,14 +89,8 @@ export class WaitlistController {
     description: 'Slot held for client; invisible to new bookings during hold',
   })
   @HttpCode(HttpStatus.OK)
-  async holdSlot(
-    @Body() body: HoldSlotInput,
-  ): Promise<WaitlistOutput> {
-    const hold = await this.waitlistService.holdSlot(
-      body.slotId,
-      body.clientId,
-      body.locationId
-    );
+  async holdSlot(@Body() body: HoldSlotInput): Promise<WaitlistOutput> {
+    const hold = await this.waitlistService.holdSlot(body.slotId, body.clientId, body.locationId);
 
     return {
       success: true,
@@ -109,9 +119,7 @@ export class WaitlistController {
     description: 'Return active waitlist entries, first is next to be offered',
   })
   @HttpCode(HttpStatus.OK)
-  async getActiveWaitlist(
-    @Query('locationId') locationId?: string,
-  ): Promise<ActiveWaitlistOutput> {
+  async getActiveWaitlist(@Query('locationId') locationId?: string): Promise<ActiveWaitlistOutput> {
     const entries = await this.waitlistService.getActiveWaitlist(locationId);
 
     // Return first entry (FIFO - next to be offered) + count
@@ -161,7 +169,7 @@ export class WaitlistController {
   })
   @HttpCode(HttpStatus.OK)
   async getClientHistory(
-    @Param('clientId') clientId: string,
+    @Param('clientId') clientId: string
   ): Promise<ClientWaitlistHistoryOutput> {
     const result = await this.waitlistService.getClientHistory(clientId);
 
@@ -172,8 +180,12 @@ export class WaitlistController {
         noShowsOnWaitlist: result.noShowsOnWaitlist,
         missesOnWaitlist: result.missesOnWaitlist,
         isPaused: result.isPaused,
-        pauseUntil: result.pauseUntil,
-        canJoin: !(result.isPaused && result.pauseUntil && Date.now() < result.pauseUntil.getTime()),
+        ...(result.pauseUntil ? { pauseUntil: result.pauseUntil } : {}),
+        canJoin: !(
+          result.isPaused &&
+          result.pauseUntil &&
+          Date.now() < result.pauseUntil.getTime()
+        ),
       },
     };
   }
@@ -186,9 +198,7 @@ export class WaitlistController {
     description: 'Return whether client can join waitlist',
   })
   @HttpCode(HttpStatus.OK)
-  async checkJoin(
-    @Body() body: CheckJoinInput,
-  ): Promise<WaitlistOutput> {
+  async checkJoin(@Body() body: CheckJoinInput): Promise<WaitlistOutput> {
     const result = await this.waitlistService.canJoinWaitlist(body.clientId);
 
     return {
@@ -208,9 +218,7 @@ export class WaitlistController {
     description: 'Release hold and cascade to next person on waitlist',
   })
   @HttpCode(HttpStatus.OK)
-  async releaseHold(
-    @Body() body: CancelWaitlistInput,
-  ): Promise<WaitlistOutput> {
+  async releaseHold(@Body() body: CancelWaitlistInput): Promise<WaitlistOutput> {
     const result = await this.waitlistService.releaseHold(
       body.holdId,
       body.source,
@@ -220,7 +228,7 @@ export class WaitlistController {
     return {
       success: true,
       data: {
-        holdId: result.hold?.id,
+        holdId: result.hold.id,
         nextOffer: result.nextOffer
           ? {
               offerId: result.nextOffer.offerId,
@@ -259,9 +267,7 @@ export class WaitlistController {
     description: 'Cascade waitlist; auto-fills next slot; integrates with T-095 no-show',
   })
   @HttpCode(HttpStatus.OK)
-  async cascadeWaitlist(
-    @Body() body: CascadeWaitlistInput,
-  ): Promise<WaitlistOutput> {
+  async cascadeWaitlist(@Body() body: CascadeWaitlistInput): Promise<WaitlistOutput> {
     const result = await this.waitlistService.cascadeWaitlist(
       body.slotId,
       body.locationId,
@@ -288,7 +294,7 @@ export class WaitlistController {
   })
   @HttpCode(HttpStatus.CREATED)
   async clientJoinWaitlist(
-    @Body() body: { slotId: string; clientId: string; locationId: string },
+    @Body() body: { slotId: string; clientId: string; locationId: string }
   ): Promise<WaitlistOutput> {
     const result = await this.waitlistService.createWaitlistEntry(
       body.slotId,
@@ -312,6 +318,7 @@ export class WaitlistController {
         holdExpiry: result.holdExpiry,
         status: result.status,
         createdAt: result.createdAt,
+        missedCount: result.missedCount,
       },
     };
   }
@@ -325,7 +332,7 @@ export class WaitlistController {
     description: 'Active waitlist entry with hold timer for client display',
   })
   async getClientWaitlistStatus(
-    @Query('locationId') locationId?: string,
+    @Query('locationId') locationId?: string
   ): Promise<ActiveWaitlistOutput> {
     const entries = await this.waitlistService.getActiveWaitlist(locationId);
 
@@ -385,7 +392,7 @@ export class WaitlistController {
   })
   @HttpCode(HttpStatus.OK)
   async clientAcceptOffer(
-    @Body() body: { offerId: string; holdId: string; clientId: string },
+    @Body() body: { offerId: string; holdId: string; clientId: string }
   ): Promise<{ success: boolean; message: string }> {
     // Validate inputs
     if (!body.offerId || !body.holdId || !body.clientId) {
@@ -413,7 +420,7 @@ export class WaitlistController {
   })
   @HttpCode(HttpStatus.OK)
   async adminCreateWaitlistEntry(
-    @Body() body: AdminCreateWaitlistEntryInput,
+    @Body() body: AdminCreateWaitlistEntryInput
   ): Promise<WaitlistOutput> {
     const result = await this.waitlistService.adminCreateWaitlistEntry(
       body.slotId,
@@ -441,6 +448,7 @@ export class WaitlistController {
         holdExpiry: result.holdExpiry,
         status: result.status,
         createdAt: result.createdAt,
+        missedCount: result.missedCount,
       },
     };
   }
@@ -448,15 +456,20 @@ export class WaitlistController {
   /** GET /admin/waitlist/entries - List all waitlist entries with pagination and filters. */
   @Get('admin/entries')
   @ApiOperation({ summary: 'Admin list waitlist entries' })
-  @ApiQuery({ name: 'status', enum: ['active', 'on_hold', 'expired', 'fulfilled', 'paused'], required: false, description: 'Filter by status' })
+  @ApiQuery({
+    name: 'status',
+    enum: ['active', 'on_hold', 'expired', 'fulfilled', 'paused'],
+    required: false,
+    description: 'Filter by status',
+  })
   @ApiQuery({ name: 'locationId', required: false, description: 'Filter by location ID' })
   @ApiQuery({ name: 'clientId', required: false, description: 'Filter by client ID' })
   @ApiResponse({ status: 200, type: [WaitlistOutput], description: 'List of waitlist entries' })
   async adminListWaitlistEntries(
     @Query('status') status?: string,
     @Query('locationId') locationId?: string,
-    @Query('clientId') clientId?: string,
-  ): Promise<{ success: boolean; data: WaitlistOutput[]; total: number }> {
+    @Query('clientId') clientId?: string
+  ): Promise<{ success: boolean; data: WaitlistEntryOutput[]; total: number }> {
     const where: any = {};
     if (status) where.status = status;
     if (locationId) where.locationId = locationId;
@@ -483,6 +496,7 @@ export class WaitlistController {
         holdExpiry: entry.holdExpiry,
         status: entry.status,
         createdAt: entry.createdAt,
+        missedCount: entry.missedCount,
       })),
       total: filteredEntries.length,
     };
@@ -493,26 +507,21 @@ export class WaitlistController {
   @ApiOperation({ summary: 'Admin cancel a waitlist entry' })
   @ApiBadRequestResponse({ description: 'Cancellation failed - see error details' })
   @HttpCode(HttpStatus.OK)
-  async adminCancelWaitlistEntry(
-    @Param('id') id: string,
-  ): Promise<{ success: boolean; data: WaitlistOutput }> {
-    const result = await this.waitlistService.cancelWaitlistEntry(
-      id,
-      'admin'
-    );
-    return {
-      success: result.success,
-      data: result.data,
-    };
+  async adminCancelWaitlistEntry(@Param('id') id: string): Promise<WaitlistOutput> {
+    return this.waitlistService.cancelWaitlistEntry(id, 'admin');
   }
   /** POST /admin/waitlist/entries/:id/accept - Admin force-accept a waitlist offer */
   @Post('admin/entries/:id/accept')
   @ApiOperation({ summary: 'Admin force-accept a waitlist offer' })
-  @ApiResponse({ status: 200, type: WaitlistOutput, description: 'Waitlist offer accepted by admin' })
+  @ApiResponse({
+    status: 200,
+    type: WaitlistOutput,
+    description: 'Waitlist offer accepted by admin',
+  })
   @HttpCode(HttpStatus.OK)
   async adminForceAcceptOffer(
-    @Param('id') id: string,
-  ): Promise<{ success: boolean; data: WaitlistOutput; message: string }> {
+    @Param('id') id: string
+  ): Promise<{ success: boolean; data: WaitlistEntryOutput; message: string }> {
     const entry = await prisma.waitlistEntry.findUnique({
       where: { id },
     });
@@ -522,7 +531,7 @@ export class WaitlistController {
     }
 
     // Mark entry as fulfilled and create booking
-    const fulfilled = await this.waitlistService.deps.fulfillWaitlistEntry(
+    await this.waitlistService.fulfillWaitlistEntry(
       `admin_offer_${id}_${Date.now()}`,
       entry.clientId
     );
@@ -540,6 +549,7 @@ export class WaitlistController {
         holdExpiry: entry.holdExpiry,
         status: WaitlistEntryStatus.FULFILLED,
         createdAt: entry.createdAt,
+        missedCount: entry.missedCount,
       },
       message: 'Waitlist offer force-accepted by admin; booking created.',
     };

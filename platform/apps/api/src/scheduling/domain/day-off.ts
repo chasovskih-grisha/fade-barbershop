@@ -1,6 +1,6 @@
 // Одноразові вихідні барбера (T-230, SCH-002): конкретна дата або діапазон
 // (відпустка, лікарняний) поверх тижневого шаблону графіка. Вікно тижневого
-// шаблону не застосовується на день, що накритий вихідним. Домен без Nest/Prisma.
+// шаблону не застосовується на день, що накридений вихідним. Домен без Nest/Prisma.
 
 import { dayOfWeekFor } from './day-of-week';
 
@@ -37,7 +37,7 @@ export function createDayOff(data: DayOffData): DayOffData {
   return { ...data };
 }
 
-/** Дата накрита вихідним (включно з межами діапазону). */
+/** Дата накридена вихідним (включно з межами діапазону). */
 export function isDayOff(dayOffs: DayOffData[], date: string): boolean {
   return dayOffs.some((dayOff) => date >= dayOff.from && date <= dayOff.to);
 }
@@ -51,4 +51,9 @@ export function windowsForDate<T extends { dayOfWeek: number }>(
   if (isDayOff(dayOffs, date)) return [];
   const day = dayOfWeekFor(date);
   return windows.filter((window) => window.dayOfWeek === day);
+}
+
+/** Порт читання вихідних барбера (T-4447); адаптер живе в інфраструктурі. */
+export interface DayOffRepository {
+  findByBarberId(barberId: string): Promise<DayOffData[]>;
 }

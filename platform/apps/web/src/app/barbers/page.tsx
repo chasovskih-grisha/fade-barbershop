@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { EmptyState } from '@fade/ui';
 import type { Metadata } from 'next';
 import { getBarbers } from '@/lib/api/staff';
@@ -71,9 +70,7 @@ export default async function BarbersPage() {
         </div>
       )}
 
-      {result.state === 'ok' && (
-        <BarbersClient barbers={result.data} siteUrl={siteUrl} />
-      )}
+      {result.state === 'ok' && <BarbersClient barbers={result.data} />}
     </>
   );
 }

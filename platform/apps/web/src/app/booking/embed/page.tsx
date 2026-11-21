@@ -28,7 +28,9 @@ export default function EmbedBookingPage() {
       <h2 className="text-xl font-bold mb-4 text-fg dark:text-white">Quick Booking Widget</h2>
       {step === 1 && (
         <div className="space-y-4">
-          <p className="text-sm text-fg-secondary dark:text-fg-secondary">Select service and barber to proceed.</p>
+          <p className="text-sm text-fg-secondary dark:text-fg-secondary">
+            Select service and barber to proceed.
+          </p>
           <button
             onClick={() => setStep(2)}
             className="w-full py-2 px-4 bg-black text-white rounded-md font-medium hover:bg-interactive-hover transition"
@@ -39,7 +41,9 @@ export default function EmbedBookingPage() {
       )}
       {step === 2 && (
         <div className="space-y-4">
-          <p className="text-sm text-fg-secondary dark:text-fg-secondary">Confirm slot: Today at 15:00</p>
+          <p className="text-sm text-fg-secondary dark:text-fg-secondary">
+            Confirm slot: Today at 15:00
+          </p>
           <button
             onClick={handleComplete}
             className="w-full py-2 px-4 bg-semantic-success text-white rounded-md font-medium hover:bg-interactive-hover transition"

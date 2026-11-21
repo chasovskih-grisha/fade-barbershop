@@ -1,5 +1,11 @@
 import { CreateLocationHandler } from './create-location';
-import { FakeClock, FakeLocationRepository, FakeOutbox, SeqIds, passthroughUow } from './ports.fakes';
+import {
+  FakeClock,
+  FakeLocationRepository,
+  FakeOutbox,
+  SeqIds,
+  passthroughUow,
+} from './ports.fakes';
 import { LocationCodeTakenError, InvalidLocationInputError } from './locations-errors';
 import { T0, baseInput } from '../test-helpers.fakes';
 

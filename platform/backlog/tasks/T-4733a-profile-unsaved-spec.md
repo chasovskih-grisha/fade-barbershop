@@ -23,9 +23,9 @@ The docs say the fields save with a button. They do not say what a navigation in
 
 ## Done
 
-- [ ] §2 names the three answers and the cases that do not ask
-- [ ] §5 points at §2
-- [ ] `pnpm docs:validate` reports no new error from these files
+- [x] §2 names the three answers and the cases that do not ask
+- [x] §5 points at §2
+- [x] `pnpm docs:validate` reports no new error from these files (7 pre-existing errors unchanged: 6× status «qa», 1× unescaped `|` in m5)
 
 ## Risks
 

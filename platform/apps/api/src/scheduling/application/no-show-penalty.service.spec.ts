@@ -1,4 +1,9 @@
-import { NoShowPenaltyService, AppointmentRecord, ClientNoShowRecord } from './no-show-penalty.service';
+/* eslint-disable max-lines -- cohesive module (150 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
+import {
+  NoShowPenaltyService,
+  AppointmentRecord,
+  ClientNoShowRecord,
+} from './no-show-penalty.service';
 
 describe('NoShowPenaltyService (No-Show Penalty & Staged Response)', () => {
   let service: NoShowPenaltyService;
@@ -55,10 +60,7 @@ describe('NoShowPenaltyService (No-Show Penalty & Staged Response)', () => {
     const history: ClientNoShowRecord[] = [
       {
         clientId: 'c-problem',
-        noShowDates: [
-          new Date('2026-10-01T10:00:00Z'),
-          new Date('2026-10-20T10:00:00Z'),
-        ],
+        noShowDates: [new Date('2026-10-01T10:00:00Z'), new Date('2026-10-20T10:00:00Z')],
       },
       {
         clientId: 'c-good',
@@ -81,16 +83,17 @@ describe('NoShowPenaltyService (No-Show Penalty & Staged Response)', () => {
     const history: ClientNoShowRecord[] = [
       {
         clientId: 'c-problem',
-        noShowDates: [
-          new Date('2026-10-01T10:00:00Z'),
-          new Date('2026-10-20T10:00:00Z'),
-        ],
+        noShowDates: [new Date('2026-10-01T10:00:00Z'), new Date('2026-10-20T10:00:00Z')],
       },
     ];
 
     const rec0 = history[0];
     if (!rec0) throw new Error('Expected record');
-    const cleared = service.adminClearRestriction(rec0, 'admin-1', 'Client explained hospital visit');
+    const cleared = service.adminClearRestriction(
+      rec0,
+      'admin-1',
+      'Client explained hospital visit'
+    );
     expect(cleared.adminWaiverActive).toBe(true);
     expect(cleared.waiverAdminId).toBe('admin-1');
 
@@ -102,10 +105,50 @@ describe('NoShowPenaltyService (No-Show Penalty & Staged Response)', () => {
 
   it('calculates no-show rates sliced by booking channel', () => {
     const appointments: AppointmentRecord[] = [
-      { id: '1', clientId: 'c1', locationId: 'l1', barberId: 'b1', start: new Date(), status: 'completed', channel: 'online_with_deposit', totalAmount: 500, depositAmount: 150 },
-      { id: '2', clientId: 'c2', locationId: 'l1', barberId: 'b1', start: new Date(), status: 'no_show', channel: 'online_with_deposit', totalAmount: 500, depositAmount: 150 },
-      { id: '3', clientId: 'c3', locationId: 'l1', barberId: 'b1', start: new Date(), status: 'no_show', channel: 'online_without_deposit', totalAmount: 500, depositAmount: 0 },
-      { id: '4', clientId: 'c4', locationId: 'l1', barberId: 'b1', start: new Date(), status: 'completed', channel: 'walk_in', totalAmount: 500, depositAmount: 0 },
+      {
+        id: '1',
+        clientId: 'c1',
+        locationId: 'l1',
+        barberId: 'b1',
+        start: new Date(),
+        status: 'completed',
+        channel: 'online_with_deposit',
+        totalAmount: 500,
+        depositAmount: 150,
+      },
+      {
+        id: '2',
+        clientId: 'c2',
+        locationId: 'l1',
+        barberId: 'b1',
+        start: new Date(),
+        status: 'no_show',
+        channel: 'online_with_deposit',
+        totalAmount: 500,
+        depositAmount: 150,
+      },
+      {
+        id: '3',
+        clientId: 'c3',
+        locationId: 'l1',
+        barberId: 'b1',
+        start: new Date(),
+        status: 'no_show',
+        channel: 'online_without_deposit',
+        totalAmount: 500,
+        depositAmount: 0,
+      },
+      {
+        id: '4',
+        clientId: 'c4',
+        locationId: 'l1',
+        barberId: 'b1',
+        start: new Date(),
+        status: 'completed',
+        channel: 'walk_in',
+        totalAmount: 500,
+        depositAmount: 0,
+      },
     ];
 
     const rates = service.calculateChannelNoShowRates(appointments);

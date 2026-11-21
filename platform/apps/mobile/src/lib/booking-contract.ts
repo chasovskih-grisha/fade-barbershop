@@ -46,6 +46,8 @@ export interface ClientAppointmentView {
   referenceId: string | null;
   referenceComment: string;
   canEditReference: boolean;
+  /** Чи можна почати повторний запис (T-4617); `false` — візит у партії. */
+  canBookAgain: boolean;
 }
 
 /** Повний тип візиту для клієнтського кабінету (reuse @fade/web contract). */
@@ -62,4 +64,6 @@ export interface ExtendedAppointment {
   referenceId: string | null;
   referenceComment: string;
   canEditReference: boolean;
+  /** Чи можна почати повторний запис (T-4617); `false` — візит у партії. */
+  canBookAgain: boolean;
 }

@@ -1,7 +1,12 @@
 import { apiBase } from './api-base';
-import type { AppointmentResponse, ExtendedAppointment } from './appointment-types';
+import type {
+  AppointmentResponse,
+  BookAgainIntent,
+  ExtendedAppointment,
+} from './appointment-types';
 
 export type { CabinetStatus, ExtendedAppointment } from './appointment-types';
+export type { BookAgainIntent, BookAgainRef } from './appointment-types';
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(`${apiBase()}${path}`, { credentials: 'include' });
@@ -30,6 +35,8 @@ export async function getAppointments(): Promise<ExtendedAppointment[]> {
     referenceComment: app.referenceComment ?? '',
     // Сервер вирішує право редагування; відсутнє поле трактуємо як «ні».
     canEditReference: app.canEditReference ?? false,
+    // Відсутнє поле — старий API без правила партії: дію не ховаємо.
+    canBookAgain: app.canBookAgain ?? true,
     // Депозит — снепшот умов на візиті; немає його — грошового наслідку
     // скасування немає (T-4737).
     deposit: app.deposit
@@ -73,4 +80,13 @@ export function setAppointmentReference(
   reference: { referenceId?: string; comment?: string }
 ): Promise<void> {
   return postCommand(`/appointments/${appointmentId}/reference`, reference);
+}
+
+/**
+ * Намір повторного запису із завершеного візиту (T-4617a/b): локація, послуга,
+ * барбер і поточна ціна. Нічого не створює — лише підказує, що підставити
+ * у флоу, і яке з полів уже нечинне.
+ */
+export function getBookAgainIntent(appointmentId: string): Promise<BookAgainIntent> {
+  return fetchJson<BookAgainIntent>(`/appointments/${appointmentId}/book-again`);
 }

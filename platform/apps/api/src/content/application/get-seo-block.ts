@@ -5,7 +5,7 @@ import type { SeoBlockRepository, ArticleRepository } from '../domain/ports';
 export class GetSeoBlockUseCase {
   constructor(
     @Inject('SeoBlockRepository') private readonly seoBlockRepo: SeoBlockRepository,
-    @Inject('ArticleRepository') private readonly articleRepo: ArticleRepository,
+    @Inject('ArticleRepository') private readonly articleRepo: ArticleRepository
   ) {}
 
   async execute(entityType: string, entityId: string) {

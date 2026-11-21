@@ -4,6 +4,7 @@ import { Card, Badge, formatMoney } from '@fade/ui';
 import type { ExtendedAppointment } from '@/lib/api/appointments';
 import { AppointmentActions } from './AppointmentActions';
 import { AppointmentReference } from './AppointmentReference';
+import { BookAgainButton } from './BookAgainButton';
 import { depositDeadlineNote } from './deposit-summary';
 
 const statusLabels: Record<
@@ -77,6 +78,9 @@ export function AppointmentCard({
         onReschedule={onReschedule}
         onCancel={onCancel}
       />
+      {app.status === 'completed' && app.canBookAgain ? (
+        <BookAgainButton appointmentId={app.id} />
+      ) : null}
     </Card>
   );
 }

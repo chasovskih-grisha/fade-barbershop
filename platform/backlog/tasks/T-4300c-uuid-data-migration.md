@@ -16,6 +16,14 @@
 - ADR 0021 (UUID Primary Keys, expand/contract)
 - `docs/engineering-principles.md` (безпечні міграції)
 
+## Implementation plan
+
+Paths:
+- docs/uuid-data-migration.md
+
+Checks:
+- pnpm docs:validate
+
 ## Done
 
 - [ ] Рішення зафіксоване: або «нуль даних до прода» (перевірено чеклістом), або виконаний expand/contract

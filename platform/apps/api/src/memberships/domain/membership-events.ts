@@ -12,7 +12,7 @@ export class MembershipPurchasedEvent extends DomainEvent {
       endDate: Date;
       visitLimit: number;
     },
-    occurredAt?: Date,
+    occurredAt?: Date
   ) {
     super({
       occurredAt: occurredAt ?? new Date(),
@@ -30,7 +30,7 @@ export class MembershipVisitUsedEvent extends DomainEvent {
       clientId: string;
       remainingVisits: number;
     },
-    occurredAt?: Date,
+    occurredAt?: Date
   ) {
     super({
       occurredAt: occurredAt ?? new Date(),
@@ -48,7 +48,7 @@ export class MembershipPausedEvent extends DomainEvent {
       clientId: string;
       pausedAt: Date;
     },
-    occurredAt?: Date,
+    occurredAt?: Date
   ) {
     super({
       occurredAt: occurredAt ?? new Date(),
@@ -67,7 +67,7 @@ export class MembershipResumedEvent extends DomainEvent {
       resumedAt: Date;
       newEndDate: Date;
     },
-    occurredAt?: Date,
+    occurredAt?: Date
   ) {
     super({
       occurredAt: occurredAt ?? new Date(),
@@ -87,7 +87,7 @@ export class GiftMembershipRedeemedEvent extends DomainEvent {
       redeemedByClientId: string;
       membershipInstanceId: string;
     },
-    occurredAt?: Date,
+    occurredAt?: Date
   ) {
     super({
       occurredAt: occurredAt ?? new Date(),

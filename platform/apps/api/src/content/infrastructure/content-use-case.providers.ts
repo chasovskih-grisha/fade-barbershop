@@ -5,12 +5,21 @@ import { PrismaContentOutbox } from './prisma-content-outbox';
 import { PrismaUnitOfWork } from '../../shared/prisma/prisma-context';
 import { SystemClock } from '../../locations/infrastructure/system-clock';
 import { UuidIdGenerator } from '../../locations/infrastructure/uuid-id-generator';
-import { AdminContentHandlers, toAdminContentUseCases, type AdminContentUseCaseList } from './admin-content-handlers';
+import {
+  AdminContentHandlers,
+  toAdminContentUseCases,
+  type AdminContentUseCaseList,
+} from './admin-content-handlers';
 import { DraftArticleHandler } from '../application/draft-article';
 import { UpdateArticleHandler } from '../application/update-article';
 import { PublishArticleHandler } from '../application/publish-article';
 import { UnpublishArticleHandler } from '../application/unpublish-article';
-import { ListArticlesHandler, ListPublishedArticlesHandler, GetArticleHandler, GetPublishedArticleHandler } from '../application/article-queries';
+import {
+  ListArticlesHandler,
+  ListPublishedArticlesHandler,
+  GetArticleHandler,
+  GetPublishedArticleHandler,
+} from '../application/article-queries';
 
 export const contentUseCaseProviders = [
   {

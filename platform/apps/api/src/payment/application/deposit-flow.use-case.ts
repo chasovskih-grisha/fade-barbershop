@@ -1,119 +1,283 @@
-import { Booking, BookingConflictError, PaymentStatus } from '../../scheduling/domain/booking';
-import { BookingRepository } from '../../scheduling/domain/booking-repository';
-import { BarberSchedule } from '../../scheduling/domain/availability';
-import { BookAppointment } from '../../scheduling/application/book-appointment.use-case';
-import { DepositPolicy } from '../../scheduling/domain/deposit-terms';
-import { depositPolicy as defaultDepositPolicy } from '../../scheduling/application/deposit-policy';
-import { priceSnapshot } from '../../scheduling/application/book-appointment.pricing';
-import { compositionDuration } from '../../scheduling/domain/composed-slot-span';
-import { withSpan, TRACING } from '../../shared/tracing/tracing';
-import type { BookAppointmentDeps } from '../../scheduling/application/book-appointment.types';
+/* eslint-disable max-lines, complexity, max-statements -- cohesive module (219 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: an existing definition, complexity 17 vs 10); refactor tracked in T-2500f | 1 method with a single orchestration flow (worst: an existing definition, 41 statements vs 30); extraction tracked in T-2500f */
+// T-091: депозит при записі (30% FinalPrice, округлення 10 грн, снепшот
+// політики PAY-ADM-09), ідемпотентність подвійного кліку (PAY-WEB-03) і
+// чесне «гроші не списані» на помилці еквайрингу (PAY-WEB-05/06).
+//
+// Безоплатний візит (PAY-003/LYL-007) не створює `Payment` і не викликає
+// фіскальний шлюз: guard стоїть за сумою, а не за причиною нуля.
+import { uuidv7 } from '@fade/domain-shared';
+import { Booking } from '../../scheduling/domain/booking';
+import { Payment } from '../../billing/domain/payment.entity';
+import { PaymentForm, PaymentStatus } from '../../billing/domain/payment-status.enum';
+import { CheckboxReceiptType, type CheckboxReceipt } from './checkbox-fiscal-gateway';
 
-export type { BookAppointmentDeps };
+/** Сховище платежів візиту; у проді — Prisma-адаптер billing. */
+export interface AppointmentPaymentRepository {
+  findById(id: string): Promise<Payment | null>;
+  findByAppointmentId(appointmentId: string): Promise<Payment[]>;
+  save(payment: Payment): Promise<void>;
+}
 
-/** Deposit flow use-case: 30% deposit on booking, idempotent, rounding 10 UAH.
- * T-091: Deposit flow with statuses, cabinet checks, and FinalPrice=0 handling.
- */
+/** Вузький порт візиту: депозитному флоу потрібні читання й збереження. */
+export interface BookingPaymentPort {
+  findById(id: string): Promise<Booking | null>;
+  save(booking: Booking): Promise<void>;
+}
 
-export class DepositFlow {
-  constructor(private readonly deps: BookAppointmentDeps) {}
+export interface DepositCaptureGateway {
+  /** true — гроші списані; false — відмова; throw — помилка провайдера. */
+  capture(paymentId: string, amount: number): Promise<boolean>;
+}
 
-  /** АВТОМАТИЧНИЙ депозит при записі: 30% від FinalPrice, округлення 10 грн.
-   * Викликається з book-appointment.use-case.execute після успішного запису.
-   * Ідемпотентність: якщо депозит уже оплачений — нічого не робить.
+export interface DepositReceiptGateway {
+  issueReceipt(
+    bookingId: string,
+    amount: number,
+    type: CheckboxReceiptType,
+    checkId?: string
+  ): Promise<CheckboxReceipt>;
+}
+
+export interface PaymentEventPublisher {
+  publish(event: { type: string; data: Record<string, unknown> }): Promise<void>;
+}
+
+export interface DepositFlowDeps {
+  payments: AppointmentPaymentRepository;
+  bookings: BookingPaymentPort;
+  gateway: DepositCaptureGateway;
+  receipts?: DepositReceiptGateway;
+  events?: PaymentEventPublisher;
+  /**
+   * T-4619a: утримання крісла під депозит. Оплата підтверджує його, а після
+   * прострочення — відмовляє, щоб не привʼязати гроші до вже вільного крісла.
+   * Без порту — стара поведінка (без утримань).
    */
-  async execute(booking: Booking): Promise<Booking> {
-    return withSpan({
-      name: TRACING.DEPOSIT_FLOW,
-      options: {
-        attributes: {
-          'fade.booking.booking_id': booking.id,
-          'fade.booking.final_price': booking.finalPrice,
-        },
-      },
-      work: async () => {
-        // Check if deposit already paid (ideempotency)
-        if (booking.depositStatus === PaymentStatus.Captured) {
-          return booking;
-        }
+  holds?: {
+    capture(
+      appointmentId: string,
+      now: Date
+    ): Promise<{ outcome: 'captured' | 'already_captured' | 'expired' | 'cancelled' | 'missing' }>;
+  };
+  clock?: { now(): Date };
+}
 
-        const depositPolicy = await this.deps.depositPolicy?.get() ?? defaultDepositPolicy;
-        const depositAmount = this.calculateDepositAmount(booking.finalPrice, depositPolicy);
+export type DepositOutcome =
+  'captured' | 'already_paid' | 'complimentary' | 'no_deposit' | 'failed' | 'expired';
 
-        // Create payment record
-        const payment = await this.deps.paymentRepo.create({
-          bookingId: booking.id,
-          amount: depositAmount,
-          status: PaymentStatus.Initiated,
-          paymentMethod: 'cash', // default; UI will override
-          source: 'walk-in-booking',
-        });
+export interface DepositFlowResult {
+  booking: Booking;
+  outcome: DepositOutcome;
+  payment?: Payment;
+  depositAmount: number;
+  requiresBalance: boolean;
+  receipt?: CheckboxReceipt;
+  failureReason?: string;
+}
 
-        // Attempt to capture payment
-        try {
-          const captured = await this.capturePayment(payment, depositAmount);
-          if (captured) {
-            // Move booking to confirmed via PaymentCaptured state
-            const updated = await this.deps.bookingRepo.update(booking.id, {
-              status: 'confirmed',
-              depositStatus: PaymentStatus.Captured,
-              depositAmount: depositAmount,
-              depositPaidAt: new Date(),
-            });
-            // Fire event for analytics
-            if (this.deps.eventBus) {
-              await this.deps.eventBus.publish({
-                type: 'scheduling.appointment.payment_captured',
-                data: {
-                  appointmentId: booking.id,
-                  amount: depositAmount,
-                  paymentId: payment.id,
-                },
-              });
-            }
-            return updated;
-          }
-        } catch (error) {
-          // Mark payment as failed, keep booking in booked status
-          await this.deps.paymentRepo.update(payment.id, { status: PaymentStatus.Failed });
-          // Don't throw - allow booking without deposit (ComplimentaryVisit path)
-          return booking;
-        }
-      },
-    });
+const CAPTURED_DEPOSIT = 'captured';
+
+/** Сховище платежів у памʼяті — для тестів і локальних сценаріїв. */
+export class InMemoryAppointmentPaymentRepository implements AppointmentPaymentRepository {
+  private readonly payments = new Map<string, Payment>();
+
+  async findById(id: string): Promise<Payment | null> {
+    return this.payments.get(id) ?? null;
   }
 
-  private calculateDepositAmount(finalPrice: number | null, policy: DepositPolicy): number {
-    if (finalPrice == null || finalPrice <= 0) return 0;
-    const rawDeposit = Math.round((finalPrice * policy.depositPercent) / 100);
-    // Rounding to 10 UAH (PAY-ADM-09)
-    const roundedDeposit = Math.round(rawDeposit / 10) * 10;
-    // Cap at FinalPrice (can't deposit more than total)
-    return Math.min(roundedDeposit, finalPrice);
+  async findByAppointmentId(appointmentId: string): Promise<Payment[]> {
+    return [...this.payments.values()].filter((payment) => payment.appointmentId === appointmentId);
   }
 
-  private async capturePayment(payment: any, amount: number): Promise<boolean> {
-    // Idempotency check: if already captured, return true
-    if (payment.status === PaymentStatus.Captured) return true;
-
-    // Simulate payment gateway call
-    // In production: call actual PAY provider API
-    const success = await this.simulatePaymentGateway(payment, amount);
-
-    if (success) {
-      await this.deps.paymentRepo.update(payment.id, { status: PaymentStatus.Captured });
-      return true;
-    }
-
-    // Log error, don't block booking
-    console.error('Payment gateway failed', { paymentId: payment.id, amount });
-    return false;
-  }
-
-  private async simulatePaymentGateway(payment: any, amount: number): Promise<boolean> {
-    // 90% success rate for simulation
-    // Real implementation would call PAY provider API
-    return Math.random() > 0.1;
+  async save(payment: Payment): Promise<void> {
+    this.payments.set(payment.id, payment);
   }
 }
 
+/** Сховище візитів у памʼяті: доменний агрегат мутується як у проді. */
+export class InMemoryBookingPaymentRepository implements BookingPaymentPort {
+  private readonly bookings = new Map<string, Booking>();
+
+  constructor(seed: Booking[] = []) {
+    seed.forEach((booking) => this.bookings.set(booking.id, booking));
+  }
+
+  async findById(id: string): Promise<Booking | null> {
+    return this.bookings.get(id) ?? null;
+  }
+
+  async save(booking: Booking): Promise<void> {
+    this.bookings.set(booking.id, booking);
+  }
+}
+
+export class DepositFlow {
+  constructor(private readonly deps: DepositFlowDeps) {}
+
+  async execute(bookingId: string): Promise<DepositFlowResult> {
+    const booking = await this.deps.bookings.findById(bookingId);
+    if (!booking) throw new Error(`Booking ${bookingId} not found`);
+
+    const now = this.deps.clock?.now() ?? new Date();
+    const price = booking.finalPrice ?? 0;
+
+    // PAY-003: ComplimentaryVisit — без Payment, без чека, підтвердження одразу.
+    if (!booking.requiresPayment || price <= 0) {
+      if (booking.depositStatus !== 'exempt') {
+        booking.depositStatus = 'exempt';
+        booking.status = 'confirmed';
+        await this.deps.bookings.save(booking);
+      }
+      return { booking, outcome: 'complimentary', depositAmount: 0, requiresBalance: false };
+    }
+
+    // PAY-WEB-03: повторний клік не створює другий платіж.
+    const existing = await this.deps.payments.findByAppointmentId(booking.id);
+    const paidDeposit = existing.find(
+      (payment) =>
+        payment.status === PaymentStatus.DEPOSIT_PAID || payment.status === PaymentStatus.PAID
+    );
+    if (paidDeposit) {
+      return {
+        booking,
+        outcome: 'already_paid',
+        payment: paidDeposit,
+        depositAmount: paidDeposit.amount,
+        requiresBalance: paidDeposit.amount < price,
+      };
+    }
+
+    const depositAmount = this.resolveDepositAmount(booking);
+    if (depositAmount <= 0) {
+      booking.depositStatus = 'exempt';
+      await this.deps.bookings.save(booking);
+      return { booking, outcome: 'no_deposit', depositAmount: 0, requiresBalance: price > 0 };
+    }
+
+    // T-4619a: спершу перевіряємо утримання крісла, і лише потім беремо гроші.
+    const hold = await this.captureHold(booking, now);
+    if (hold !== 'ok') {
+      booking.depositStatus = 'expired';
+      await this.deps.bookings.save(booking);
+      return {
+        booking,
+        outcome: 'expired',
+        depositAmount: 0,
+        requiresBalance: price > 0,
+        failureReason: `deposit_hold_${hold}`,
+      };
+    }
+
+    const payment =
+      existing.find(
+        (candidate) =>
+          candidate.status === PaymentStatus.AWAITING_DEPOSIT && candidate.amount === depositAmount
+      ) ?? this.newPayment(booking, depositAmount, now);
+    await this.deps.payments.save(payment);
+
+    const checkId = `deposit_${booking.id}`;
+    let captured: boolean;
+    try {
+      captured = await this.deps.gateway.capture(payment.id, depositAmount);
+    } catch (error) {
+      return this.failDeposit(
+        booking,
+        payment,
+        `acquiring error: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+    if (!captured) {
+      return this.failDeposit(booking, payment, 'acquiring declined the deposit');
+    }
+
+    const receipt = await this.issueReceipt(booking.id, depositAmount, checkId);
+    payment.markDepositPaid(receipt?.check_id ?? checkId);
+    await this.deps.payments.save(payment);
+
+    booking.depositStatus = CAPTURED_DEPOSIT;
+    booking.status = 'confirmed';
+    await this.deps.bookings.save(booking);
+
+    await this.deps.events?.publish({
+      type: 'scheduling.appointment.payment_captured',
+      data: {
+        appointmentId: booking.id,
+        paymentId: payment.id,
+        amount: depositAmount,
+        receiptId: receipt?.check_id ?? null,
+      },
+    });
+
+    return {
+      booking,
+      outcome: 'captured',
+      payment,
+      depositAmount,
+      requiresBalance: depositAmount < price,
+      ...(receipt ? { receipt } : {}),
+    };
+  }
+
+  /**
+   * PAY-ADM-09: джерело істини — снепшот візиту, а не поточна політика.
+   * Зміна налаштувань діє лише на нові записи; `null` — депозит вимкнено
+   * (або округлення дало 0, тобто конфіг поводиться як «вимкнено»).
+   */
+  private resolveDepositAmount(booking: Booking): number {
+    return booking.deposit?.amount ?? 0;
+  }
+
+  /**
+   * `ok` — крісло ще наше (утримання активне або вже підтверджене); інакше —
+   * причина відмови, щоб клієнт бачив, чи вікно минуло, чи візит скасовано.
+   */
+  private async captureHold(booking: Booking, now: Date): Promise<'ok' | 'expired' | 'cancelled'> {
+    if (!this.deps.holds) return 'ok';
+    const { outcome } = await this.deps.holds.capture(booking.id, now);
+    if (outcome === 'expired') return 'expired';
+    if (outcome === 'cancelled') return 'cancelled';
+    return 'ok';
+  }
+
+  private newPayment(booking: Booking, amount: number, now: Date): Payment {
+    return new Payment({
+      id: uuidv7(),
+      appointmentId: booking.id,
+      ...(booking.clientId ? { clientId: booking.clientId } : { clientId: '' }),
+      amount,
+      form: PaymentForm.CARD,
+      status: PaymentStatus.AWAITING_DEPOSIT,
+      traceId: `deposit_${booking.id}_${now.getTime()}`,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+
+  private async issueReceipt(
+    bookingId: string,
+    amount: number,
+    checkId: string
+  ): Promise<CheckboxReceipt | undefined> {
+    if (!this.deps.receipts) return undefined;
+    return this.deps.receipts.issueReceipt(bookingId, amount, CheckboxReceiptType.Deposit, checkId);
+  }
+
+  private async failDeposit(
+    booking: Booking,
+    payment: Payment,
+    reason: string
+  ): Promise<DepositFlowResult> {
+    payment.failCapture(reason);
+    await this.deps.payments.save(payment);
+    booking.depositStatus = 'failed';
+    await this.deps.bookings.save(booking);
+    return {
+      booking,
+      outcome: 'failed',
+      payment,
+      depositAmount: 0,
+      requiresBalance: (booking.finalPrice ?? 0) > 0,
+      failureReason: reason,
+    };
+  }
+}

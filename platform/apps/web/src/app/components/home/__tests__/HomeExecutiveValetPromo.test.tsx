@@ -8,7 +8,10 @@ describe('HomeExecutiveValetPromo', () => {
 
     expect(screen.getByText(/Executive Valet/i)).toBeInTheDocument();
     expect(screen.getByText(/Преміальний супровід та паркінг біля крісла/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Записатися з комфортом/i })).toHaveAttribute('href', '/booking');
+    expect(screen.getByRole('link', { name: /Записатися з комфортом/i })).toHaveAttribute(
+      'href',
+      '/booking'
+    );
     expect(screen.getByRole('link', { name: /Усі послуги/i })).toHaveAttribute('href', '/services');
   });
 });

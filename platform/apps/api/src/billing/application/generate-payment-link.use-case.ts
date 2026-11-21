@@ -1,3 +1,4 @@
+/* eslint-disable max-params -- 1 signature whose 4-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 import * as crypto from 'crypto';
 
 export interface GeneratePaymentLinkInput {
@@ -54,8 +55,19 @@ export class GeneratePaymentLinkHandler {
     encodedData: string,
     signature: string,
     secretKey: string,
-    currentTime: Date = new Date(),
-  ): { valid: boolean; data?: { paymentId: string; appointmentId: string; amount: number; currency: string; expiresAt: string; traceId: string }; error?: string } {
+    currentTime: Date = new Date()
+  ): {
+    valid: boolean;
+    data?: {
+      paymentId: string;
+      appointmentId: string;
+      amount: number;
+      currency: string;
+      expiresAt: string;
+      traceId: string;
+    };
+    error?: string;
+  } {
     try {
       const payloadJson = Buffer.from(encodedData, 'base64url').toString('utf8');
       const data = JSON.parse(payloadJson);
@@ -65,8 +77,16 @@ export class GeneratePaymentLinkHandler {
         .update(payloadJson, 'utf8')
         .digest('hex');
 
-      if (!crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expectedSignature, 'hex'))) {
-        return { valid: false, error: 'Invalid HMAC signature — link may have been tampered with.' };
+      if (
+        !crypto.timingSafeEqual(
+          Buffer.from(signature, 'hex'),
+          Buffer.from(expectedSignature, 'hex')
+        )
+      ) {
+        return {
+          valid: false,
+          error: 'Invalid HMAC signature — link may have been tampered with.',
+        };
       }
 
       const expiresAtDate = new Date(data.expiresAt);

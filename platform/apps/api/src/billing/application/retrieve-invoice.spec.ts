@@ -29,12 +29,24 @@ class InMemoryOutbox implements OutboxPublisher {
 }
 
 class MockAcquiringGateway implements AcquiringGateway {
-  async createPaymentSession(): Promise<any> { return {}; }
-  async refundPayment(): Promise<any> { return {}; }
-  async verifyPaymentStatus(params: { paymentId: string; providerSessionId: string; traceId: string }): Promise<{ status: 'succeeded' | 'pending' | 'failed'; amountReceived?: number; invoice?: InvoiceDetails }> {
+  async createPaymentSession(): Promise<any> {
+    return {};
+  }
+  async refundPayment(): Promise<any> {
+    return {};
+  }
+  async verifyPaymentStatus(params: {
+    paymentId: string;
+    providerSessionId: string;
+    traceId: string;
+  }): Promise<{
+    status: 'succeeded' | 'pending' | 'failed';
+    amountReceived?: number;
+    invoice?: InvoiceDetails;
+  }> {
     const invoice: InvoiceDetails = {
       invoiceId: `inv_${params.paymentId}_custom`,
-      taxRate: 0.20,
+      taxRate: 0.2,
       taxAmount: 100,
       subtotal: 400,
       total: 500,

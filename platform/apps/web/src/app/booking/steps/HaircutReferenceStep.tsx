@@ -69,7 +69,10 @@ export function HaircutReferenceStep(props: Props) {
           value={comment}
           onChange={(e) => setComment(e.target.value)}
         />
-        <p id="haircut-comment-counter" className="text-sm text-fg-secondary mt-2 text-right">{`${comment.length}/500`}</p>
+        <p
+          id="haircut-comment-counter"
+          className="text-sm text-fg-secondary mt-2 text-right"
+        >{`${comment.length}/500`}</p>
       </Card>
       <Button disabled={loading} onClick={onNext}>
         Далі →

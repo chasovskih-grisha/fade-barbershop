@@ -7,11 +7,21 @@ let resolveLocations: (val: any) => void = () => {};
 let resolveServices: (val: any) => void = () => {};
 
 jest.mock('../lib/api/locations', () => ({
-  fetchLocations: jest.fn(() => new Promise((res) => { resolveLocations = res; })),
+  fetchLocations: jest.fn(
+    () =>
+      new Promise((res) => {
+        resolveLocations = res;
+      })
+  ),
 }));
 
 jest.mock('../lib/api/catalog', () => ({
-  fetchServices: jest.fn(() => new Promise((res) => { resolveServices = res; })),
+  fetchServices: jest.fn(
+    () =>
+      new Promise((res) => {
+        resolveServices = res;
+      })
+  ),
 }));
 
 jest.mock('../lib/api/identity', () => ({
@@ -41,8 +51,12 @@ describe('T-070: Mobile Shell, Login, Push Tokens & API Data', () => {
     expect(screen.getByTestId('loading-skeleton')).toBeTruthy();
 
     await act(async () => {
-      resolveLocations([{ id: 'l1', code: 'center', name: 'Центр', address: 'Тепла, 5', active: true }]);
-      resolveServices([{ id: 's1', name: 'Стрижка', price: 700, durationMinutes: 40, active: true }]);
+      resolveLocations([
+        { id: 'l1', code: 'center', name: 'Центр', address: 'Тепла, 5', active: true },
+      ]);
+      resolveServices([
+        { id: 's1', name: 'Стрижка', price: 700, durationMinutes: 40, active: true },
+      ]);
     });
 
     await waitFor(() => {
@@ -61,7 +75,7 @@ describe('T-070: Mobile Shell, Login, Push Tokens & API Data', () => {
     const phoneInput = screen.getByLabelText('Телефон');
     fireEvent.changeText(phoneInput, '+380501234567');
     const submitBtn = screen.getByRole('button', { name: 'Отримати код' });
-    
+
     fireEvent.press(submitBtn);
 
     expect(submitBtn.props.accessibilityState?.disabled || submitBtn.props.disabled).toBeTruthy();

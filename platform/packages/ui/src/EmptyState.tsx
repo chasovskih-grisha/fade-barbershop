@@ -52,16 +52,39 @@ export function EmptyState({
       {...rest}
     >
       {icon ? (
-        <div className={cn('flex items-center justify-center rounded-full bg-surface text-fg-muted border border-line mb-1 shadow-xs', currentSize.container)} aria-hidden="true">
+        <div
+          className={cn(
+            'flex items-center justify-center rounded-full bg-surface text-fg-muted border border-line mb-1 shadow-xs',
+            currentSize.container
+          )}
+          aria-hidden="true"
+        >
           {icon}
         </div>
       ) : iconName ? (
-        <div className={cn('flex items-center justify-center rounded-full bg-surface text-fg-muted border border-line mb-1 shadow-xs', currentSize.container)} aria-hidden="true">
+        <div
+          className={cn(
+            'flex items-center justify-center rounded-full bg-surface text-fg-muted border border-line mb-1 shadow-xs',
+            currentSize.container
+          )}
+          aria-hidden="true"
+        >
           <Icon name={iconName} size={currentSize.iconSize} />
         </div>
       ) : null}
-      <p className={cn('font-display text-fg', size === 'lg' ? 'text-h3' : size === 'sm' ? 'text-body-lg font-semibold' : 'text-h4')}>{title}</p>
-      {description ? <p className={cn('text-fg-muted max-w-sm', size === 'lg' ? 'text-body-lg' : 'text-body')}>{description}</p> : null}
+      <p
+        className={cn(
+          'font-display text-fg',
+          size === 'lg' ? 'text-h3' : size === 'sm' ? 'text-body-lg font-semibold' : 'text-h4'
+        )}
+      >
+        {title}
+      </p>
+      {description ? (
+        <p className={cn('text-fg-muted max-w-sm', size === 'lg' ? 'text-body-lg' : 'text-body')}>
+          {description}
+        </p>
+      ) : null}
       {action ? <div className={cn(size === 'lg' ? 'mt-4' : 'mt-2')}>{action}</div> : null}
     </div>
   );

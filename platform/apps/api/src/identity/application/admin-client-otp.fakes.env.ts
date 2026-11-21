@@ -4,10 +4,21 @@
 import { User } from '../domain/user';
 import { PhoneNumber } from '../domain/phone-number';
 import type { Clock, IdGenerator, UnitOfWork } from '../domain/ports';
-import { AdminRequestClientOtpHandler, AdminVerifyClientOtpHandler, type AdminClientOtpDeps } from './admin-client-otp';
+import {
+  AdminRequestClientOtpHandler,
+  AdminVerifyClientOtpHandler,
+  type AdminClientOtpDeps,
+} from './admin-client-otp';
 import { AdminOnboardClientHandler } from './admin-onboard-client';
 import { AdminRegisterClientHandler } from './admin-register-client';
-import { CapturingSender, MemChallenges, MemClientProfiles, MemOutbox, MemUsers, NOW } from './admin-client-otp.fakes';
+import {
+  CapturingSender,
+  MemChallenges,
+  MemClientProfiles,
+  MemOutbox,
+  MemUsers,
+  NOW,
+} from './admin-client-otp.fakes';
 import { USER_1 } from './test-ids';
 
 export const passthrough: UnitOfWork = { run: async <T>(work: () => Promise<T>) => work() };

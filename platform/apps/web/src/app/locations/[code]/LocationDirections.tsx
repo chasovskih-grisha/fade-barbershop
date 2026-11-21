@@ -7,11 +7,16 @@ export function LocationDirections({ address }: { address: string }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-fg-secondary">
         <div className="flex flex-col gap-1">
           <span className="font-semibold text-fg">🚇 На метро</span>
-          <p>5-7 хвилин пішки від центральної станції району. Зручний пішохідний маршрут безперебійними тротуарами.</p>
+          <p>
+            5-7 хвилин пішки від центральної станції району. Зручний пішохідний маршрут
+            безперебійними тротуарами.
+          </p>
         </div>
         <div className="flex flex-col gap-1">
           <span className="font-semibold text-fg">🚗 На автомобілі</span>
-          <p>Парковка безпосередньо біля входу ({address}). Завжди є вільні місця для гостей студії.</p>
+          <p>
+            Парковка безпосередньо біля входу ({address}). Завжди є вільні місця для гостей студії.
+          </p>
         </div>
         <div className="flex flex-col gap-1">
           <span className="font-semibold text-fg">☕ Гостинність</span>

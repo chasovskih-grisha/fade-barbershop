@@ -35,7 +35,7 @@ describe('SupportCenterPage Accessibility & WCAG Compliance', () => {
     render(<SupportCenterPage />);
     const diagnosticButton = screen.getByText('⏳ Я запізнююся на візит').closest('button')!;
     expect(diagnosticButton).toBeDefined();
-    
+
     // Toggle
     fireEvent.click(diagnosticButton);
     expect(screen.getByText(/Якщо запізнення становить менше 15 хвилин/i)).toBeDefined();

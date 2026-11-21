@@ -2,7 +2,11 @@
 // LOC-гейтом): email → локація, sms → клієнт, both → обидва; null — немає
 // кому слати. Падіння send прокидається нагороду (at-least-once ретрай).
 import type { ConfirmationLetterData } from './booking-confirmation-template';
-import { renderConfirmationHtml, renderConfirmationSubject, renderConfirmationText } from './booking-confirmation-template';
+import {
+  renderConfirmationHtml,
+  renderConfirmationSubject,
+  renderConfirmationText,
+} from './booking-confirmation-template';
 import { renderConfirmationSms, type SmsSender } from './booking-confirmation-sms';
 import type { ConfirmationChannel } from '../domain/booking-confirmation-settings';
 import type { EmailSender } from '../../shared/email/ports';

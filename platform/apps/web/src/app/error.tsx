@@ -23,11 +23,10 @@ export default function WebErrorBoundary({
   return (
     <div className="min-h-[50vh] flex flex-col items-center justify-center p-6 text-center">
       <div className="max-w-md space-y-4">
-        <h2 className="text-2xl font-bold text-fg">
-          Щось пішло не так / Something went wrong
-        </h2>
+        <h2 className="text-2xl font-bold text-fg">Щось пішло не так / Something went wrong</h2>
         <p className="text-sm text-fg-secondary">
-          Виникла неочікувана помилка при завантаженні сторінки. Наша система телеметрії зафіксувала інцидент.
+          Виникла неочікувана помилка при завантаженні сторінки. Наша система телеметрії зафіксувала
+          інцидент.
         </p>
         <div className="pt-2">
           <button

@@ -13,7 +13,12 @@ describe('toPoolSnapshot (T-4803)', () => {
   });
 
   it('без рядків — нульовий снапшот, без NaN', () => {
-    expect(toPoolSnapshot(undefined, undefined)).toEqual({ active: 0, idle: 0, waiting: 0, maxConnections: 0 });
+    expect(toPoolSnapshot(undefined, undefined)).toEqual({
+      active: 0,
+      idle: 0,
+      waiting: 0,
+      maxConnections: 0,
+    });
   });
 
   it('максимум може прийти рядком', () => {

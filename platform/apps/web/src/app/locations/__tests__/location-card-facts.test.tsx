@@ -85,7 +85,9 @@ describe('LocationCard — факты, которые знает запись (T
 
   it('prints the stored phone as a tel: link and invents amenities or rank', () => {
     const { container } = render(
-      <LocationCard location={{ ...base, phone: '+380501234567', hours: hours('09:00', '18:00') }} />
+      <LocationCard
+        location={{ ...base, phone: '+380501234567', hours: hours('09:00', '18:00') }}
+      />
     );
     const link = screen.getByRole('link', { name: '+380501234567' });
     expect(link.getAttribute('href')).toBe('tel:+380501234567');

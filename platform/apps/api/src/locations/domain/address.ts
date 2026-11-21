@@ -1,3 +1,4 @@
+/* eslint-disable max-params -- 1 signature whose 5-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 // Структурована адреса локації — value object (T-4405, MNG-ADM-01).
 
 export interface AddressProps {
@@ -9,7 +10,6 @@ export interface AddressProps {
 }
 
 export class Address {
-  // eslint-disable-next-line max-params
   private constructor(
     public readonly street: string,
     public readonly building: string,

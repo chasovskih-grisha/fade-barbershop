@@ -37,7 +37,9 @@ export function AddNoteModal({
       tabIndex={-1}
     >
       <div className="w-full max-w-md rounded-card bg-surface-base p-6 outline-none focus:outline-none">
-        <h2 id="add-note-title" className="font-display text-h4 mb-4">Додати нотатку</h2>
+        <h2 id="add-note-title" className="font-display text-h4 mb-4">
+          Додати нотатку
+        </h2>
         <textarea
           value={noteText}
           onChange={(e) => onTextChange(e.target.value)}

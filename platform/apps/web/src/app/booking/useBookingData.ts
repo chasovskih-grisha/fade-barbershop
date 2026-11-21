@@ -5,6 +5,8 @@
 // T-053h: waitlist integration
 import { useEffect, useState } from 'react';
 import { listBarbers, listServices, listSlots } from './bookingApi';
+import { cancellable, noopCleanup } from './cancellable';
+import { useWaitlist } from './useWaitlist';
 import type { AvailableSlotDto, BarberDto, LocationDto, ServiceDto } from './types';
 
 export function useBookingData(input: {
@@ -19,228 +21,61 @@ export function useBookingData(input: {
   const [slots, setSlots] = useState<AvailableSlotDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [waitlist, setWaitlist] = useState<{
-    entryId?: string;
-    queuePosition?: number;
-    estimatedWaitMinutes?: number;
-  }>({});
 
-  const retryServices = () => {
-    if (!location) return;
-    let cancelled = false;
-    setLoading(true);
-    listServices(location.id)
-      .then((s) => {
-        if (!cancelled) {
-          setServices(s);
-          setError('');
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setError('Не вдалося завантажити послуги');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+  const waitlistFeature = useWaitlist({ location, service, barberId, date, setLoading, setError });
+  const { setWaitlist } = waitlistFeature;
+
+  const loadServices = () => {
+    if (!location) return noopCleanup;
+    return cancellable(listServices(location.id), {
+      onSuccess: (s) => {
+        setServices(s);
+        setError('');
+      },
+      onError: () => setError('Не вдалося завантажити послуги'),
+      setLoading,
+    });
   };
 
   // Крок 2 (T-4521): барбери звужуються до тих, хто виконує обрану послугу.
-  const retryBarbers = () => {
-    if (!location) return;
-    let cancelled = false;
-    setLoading(true);
-    listBarbers(location.id, service?.id)
-      .then((b) => {
-        if (!cancelled) {
-          setBarbers(b);
-          setError('');
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setError('Не вдалося завантажити барберів');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+  const loadBarbers = (reportError: boolean) => {
+    if (!location) return noopCleanup;
+    return cancellable(listBarbers(location.id, service?.id), {
+      onSuccess: (b) => {
+        setBarbers(b);
+        if (reportError) setError('');
+      },
+      onError: reportError
+        ? () => setError('Не вдалося завантажити барберів')
+        : () => setBarbers([]),
+      setLoading: reportError ? setLoading : undefined,
+    });
   };
 
-  const retrySlots = () => {
-    if (!location || !service) return;
-    let cancelled = false;
-    setLoading(true);
-    // prettier-ignore
-    listSlots({ locationId: location.id, date, serviceId: service.id, ...(barberId ? { barberId } : {}) })
-      .then((s) => {
-        if (!cancelled) {
+  const loadSlots = (hideWaitlist: boolean) => {
+    if (!location || !service) return noopCleanup;
+    return cancellable(
+      listSlots({
+        locationId: location.id,
+        date,
+        serviceId: service.id,
+        ...(barberId ? { barberId } : {}),
+      }),
+      {
+        onSuccess: (s) => {
           setSlots(s);
           setError('');
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setError('Не вдалося завантажити слоти');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+          if (hideWaitlist && s.length > 0) setWaitlist({});
+        },
+        onError: () => setError('Не вдалося завантажити слоти'),
+        setLoading,
+      }
+    );
   };
 
-  const joinWaitlist = () => {
-    if (!location || !service) return;
-    let cancelled = false;
-    setLoading(true);
-    listSlots({
-      locationId: location.id,
-      date,
-      serviceId: service.id,
-      ...(barberId ? { barberId } : {}),
-    })
-      .then(() => {
-        // Slots exist - don't join waitlist; user can pick a slot instead
-      })
-      .catch(async () => {
-        // No slots available - join waitlist
-        const result = await fetch('/booking/waitlist/join', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ locationId: location.id, serviceId: service.id, barberId }),
-        }).then((r) => r.json());
-        if (!cancelled) {
-          setWaitlist({
-            entryId: result.entryId,
-            queuePosition: result.queuePosition,
-            estimatedWaitMinutes: result.estimatedWaitMinutes,
-          });
-          setError('');
-          setLoading(false);
-          // TODO: show notification when slot opens
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  };
-
-  const cancelWaitlist = () => {
-    if (!waitlist.entryId) return;
-    let cancelled = false;
-    setLoading(true);
-    fetch('/booking/waitlist/cancel', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entryId: waitlist.entryId }),
-    })
-      .then(() => {
-        if (!cancelled) {
-          setWaitlist({});
-          setError('');
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setError('Не вдалося скасувати запис на waitlist');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  };
-
-  const getWaitlistPosition = () => {
-    if (!waitlist.entryId) return;
-    let cancelled = false;
-    fetch('/booking/waitlist/position/' + waitlist.entryId)
-      .then((r) => r.json())
-      .then((result: { queuePosition: number; estimatedWaitMinutes: number }) => {
-        if (!cancelled) {
-          setWaitlist({
-            ...waitlist,
-            queuePosition: result.queuePosition,
-            estimatedWaitMinutes: result.estimatedWaitMinutes,
-          });
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setError('Не вдалося отримати позицію в черзі');
-      });
-    return () => {
-      cancelled = true;
-    };
-  };
-
-  useEffect(() => {
-    if (!location) return;
-    let cancelled = false;
-    setLoading(true);
-    listServices(location.id)
-      .then((s) => {
-        if (!cancelled) {
-          setServices(s);
-          setError('');
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setError('Не вдалося завантажити послуги');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [location]);
-
-  // Крок 2 (T-4521): список барберів залежить від обраної послуги.
-  useEffect(() => {
-    if (!location) return;
-    let cancelled = false;
-    listBarbers(location.id, service?.id)
-      .then((b) => {
-        if (!cancelled) setBarbers(b);
-      })
-      .catch(() => {
-        if (!cancelled) setBarbers([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [location, service]);
-
-  useEffect(() => {
-    if (!location || !service) return;
-    let cancelled = false;
-    setLoading(true);
-    // prettier-ignore
-    listSlots({ locationId: location.id, date, serviceId: service.id, ...(barberId ? { barberId } : {}) })
-      .then((s) => {
-        if (!cancelled) {
-          setSlots(s);
-          setError('');
-          // Hide waitlist if slots become available
-          if (s.length > 0) {
-            setWaitlist({});
-          }
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setError('Не вдалося завантажити слоти');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [location, service, date, barberId]);
+  useEffect(() => loadServices(), [location]);
+  useEffect(() => loadBarbers(false), [location, service]);
+  useEffect(() => loadSlots(true), [location, service, date, barberId]);
 
   return {
     services,
@@ -249,13 +84,9 @@ export function useBookingData(input: {
     loading,
     error,
     setError,
-    waitlist,
-    setWaitlist,
-    retryServices,
-    retryBarbers,
-    retrySlots,
-    joinWaitlist,
-    cancelWaitlist,
-    getWaitlistPosition,
+    ...waitlistFeature,
+    retryServices: loadServices,
+    retryBarbers: () => loadBarbers(true),
+    retrySlots: () => loadSlots(false),
   };
 }

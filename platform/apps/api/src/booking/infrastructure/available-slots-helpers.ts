@@ -8,7 +8,10 @@ import type { PrismaLocationRepository } from '../../locations/infrastructure/pr
 import type { PrismaServiceRepository } from '../../catalog/infrastructure/prisma-service.repository';
 import type { PrismaUserRepository } from '../../identity/infrastructure/prisma-adapters';
 import type { BarberServiceAssignmentRepository } from '../../scheduling/domain/ports.barber-service-assignment';
-import { barbersForService, type BarberServiceMatrix } from '../../scheduling/domain/barber-service-matrix';
+import {
+  barbersForService,
+  type BarberServiceMatrix,
+} from '../../scheduling/domain/barber-service-matrix';
 import type { SlotPolicyRepository } from '../../scheduling/domain/ports.slot-policy';
 import type { Clock } from '../../locations/domain/ports';
 
@@ -22,6 +25,14 @@ export interface AvailableSlotsDeps {
   slotPolicyRepo: SlotPolicyRepository;
   /** Годинник для політик горизонту/last-minute (T-4522); у тестах — фейк. */
   clock: Clock;
+  /**
+   * T-4619a: візити, чиї депозитні утримання вже не діють (прострочені чи
+   * скасовані). Такі візити не тримають крісло, навіть якщо sweeper ще не
+   * встиг пройти. Без залежності слоти працюють як раніше.
+   */
+  depositHolds?: {
+    releasedAppointmentIds(now: Date): Promise<Set<string>>;
+  };
 }
 
 export interface SlotContext {

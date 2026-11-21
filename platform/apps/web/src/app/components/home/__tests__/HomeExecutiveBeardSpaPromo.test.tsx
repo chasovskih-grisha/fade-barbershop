@@ -7,8 +7,16 @@ describe('HomeExecutiveBeardSpaPromo', () => {
     render(<HomeExecutiveBeardSpaPromo />);
 
     expect(screen.getByText(/Преміум-догляд/i)).toBeInTheDocument();
-    expect(screen.getByText(/Відновлюючий спа-догляд за бородою та шкірою обличчя/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Замовити спа-догляд/i })).toHaveAttribute('href', '/booking');
-    expect(screen.getByRole('link', { name: /Дізнатися більше/i })).toHaveAttribute('href', '/services');
+    expect(
+      screen.getByText(/Відновлюючий спа-догляд за бородою та шкірою обличчя/i)
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Замовити спа-догляд/i })).toHaveAttribute(
+      'href',
+      '/booking'
+    );
+    expect(screen.getByRole('link', { name: /Дізнатися більше/i })).toHaveAttribute(
+      'href',
+      '/services'
+    );
   });
 });

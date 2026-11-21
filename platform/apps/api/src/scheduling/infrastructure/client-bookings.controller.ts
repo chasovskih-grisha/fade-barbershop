@@ -3,7 +3,16 @@
 // BookAppointment, що й в адмінки — валідації слота, снепшоти і подія booked
 // спільні; контролер примусово ставить source 'web' (ANL-004), бо клієнтський
 // шлях не повинен мати змоги видати себе за інший канал.
-import { Body, Controller, HttpCode, HttpStatus, HttpException, Inject, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  HttpException,
+  Inject,
+  Post,
+  Req,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BookAppointment } from '../application/book-appointment.use-case';
 import { BookingConflictError } from '../domain/booking';
@@ -74,7 +83,8 @@ export class ClientBookingsController {
   }
   private async releaseSlot(held: HeldSlot): Promise<void> {
     if (held.ephemeral) await this.reservations.release(held.ephemeral);
-    else if (held.reserved) await this.reservations.releaseByKey(held.reserved.key, held.reserved.token);
+    else if (held.reserved)
+      await this.reservations.releaseByKey(held.reserved.key, held.reserved.token);
   }
 
   /** Плаский мапінг помилок домену → HTTP (спільна семантика з адмінським). */
@@ -94,6 +104,6 @@ export class ClientBookingsController {
   private buildHandler(prepared: ServicePreparation, hours: OpeningHours, dto: ClientBookingDto): BookAppointment {
     const d = this.deps;
     // prettier-ignore
-    return new BookAppointment({ bookingRepo: d.bookingRepo, scheduleRepo: d.scheduleRepo, openingHours: hours, serviceDuration: prepared.duration, appointmentRepo: d.appointmentRepo, depositPolicy: d.depositPolicy, ...(d.surge ? { surge: d.surge } : {}), ...(prepared.snapshot ? { serviceSnapshot: prepared.snapshot } : {}), ...(dto.reference ? { reference: dto.reference } : {}), origin: { source: 'web', ...(dto.clientId ? { clientId: dto.clientId } : {}) } });
+    return new BookAppointment({ bookingRepo: d.bookingRepo, scheduleRepo: d.scheduleRepo, openingHours: hours, serviceDuration: prepared.duration, appointmentRepo: d.appointmentRepo, depositPolicy: d.depositPolicy, ...(d.dayOffs ? { dayOffs: d.dayOffs } : {}), ...(d.surge ? { surge: d.surge } : {}), ...(d.depositHolds ? { depositHolds: d.depositHolds } : {}), ...(prepared.snapshot ? { serviceSnapshot: prepared.snapshot } : {}), ...(dto.reference ? { reference: dto.reference } : {}), origin: { source: 'web', ...(dto.clientId ? { clientId: dto.clientId } : {}) } });
   }
 }

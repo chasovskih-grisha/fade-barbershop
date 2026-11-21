@@ -17,7 +17,7 @@ describe('Barber Productivity & Capacity Optimizer (T-4620)', () => {
     expect(metrics.totalCapacityMinutes).toBe(1440);
     expect(metrics.occupiedMinutes).toBe(360); // 6 hours total
     expect(metrics.occupancyRate).toBe(0.25);
-    
+
     // Capacity optimization suggestion: Idle gap analysis
     const idleMinutes = metrics.totalCapacityMinutes - metrics.occupiedMinutes;
     expect(idleMinutes).toBe(1080);

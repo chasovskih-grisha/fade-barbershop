@@ -1,7 +1,12 @@
 // Воркер архіву (T-4804): добовий прогін. ARCHIVE_INTERVAL_MS (дефолт 24 год,
 // 0 — вимкнути), ARCHIVE_DISABLED=true — вимкнути повністю, ARCHIVE_AFTER_MONTHS
 // (дефолт 24) — скільки місяців лишається гарячим. У тестах автостарт off.
-import { Injectable, Logger, type OnApplicationBootstrap, type OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  type OnApplicationBootstrap,
+  type OnModuleDestroy,
+} from '@nestjs/common';
 import { ArchiveBookings } from './archive-bookings.use-case';
 
 const DEFAULT_INTERVAL_MS = 24 * 60 * 60 * 1000;

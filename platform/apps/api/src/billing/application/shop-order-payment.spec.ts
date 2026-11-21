@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (207 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import { Payment } from '../domain/payment.entity';
 import { PaymentForm, PaymentStatus } from '../domain/payment-status.enum';
 import { InitiatePaymentHandler } from './initiate-payment.use-case';
@@ -5,7 +6,7 @@ import { ProcessStripeWebhookHandler } from './process-stripe-webhook.use-case';
 import { IssueFiscalReceiptHandler } from './issue-fiscal-receipt.use-case';
 import { PaymentRepository, OutboxPublisher } from '../domain/ports';
 import { AcquiringGateway } from '../domain/acquiring.gateway.interface';
-import { FiscalGateway } from '../domain/fiscal.gateway.interface';
+import { FiscalGateway, type FiscalReceiptDetails } from '../domain/fiscal.gateway.interface';
 import { DomainEvent } from '../../shared/domain/domain-event';
 
 class InMemoryPaymentRepository implements PaymentRepository {
@@ -60,7 +61,10 @@ class MockAcquiringGateway implements AcquiringGateway {
     return { refundId: 're_order_123' };
   }
 
-  async verifyPaymentStatus(): Promise<{ status: 'succeeded' | 'pending' | 'failed'; amountReceived?: number }> {
+  async verifyPaymentStatus(): Promise<{
+    status: 'succeeded' | 'pending' | 'failed';
+    amountReceived?: number;
+  }> {
     return { status: 'succeeded' };
   }
 }
@@ -70,11 +74,9 @@ class MockFiscalGateway implements FiscalGateway {
     return { isOpen: true, openedAt: new Date() };
   }
 
-  async createReceipt(params: {
-    paymentId: string;
-    amount: number;
-    type: string;
-  }): Promise<{ receiptId: string; fiscalCode: string; status: string; total: number }> {
+  async createReceipt(
+    params: Parameters<FiscalGateway['createReceipt']>[0]
+  ): Promise<FiscalReceiptDetails> {
     return {
       receiptId: `rcpt_${params.paymentId}`,
       fiscalCode: 'fc_999999',
@@ -83,7 +85,9 @@ class MockFiscalGateway implements FiscalGateway {
     };
   }
 
-  async getReceiptStatus(params: { receiptId: string }): Promise<{ receiptId: string; status: string; total: number }> {
+  async getReceiptStatus(
+    params: Parameters<FiscalGateway['getReceiptStatus']>[0]
+  ): Promise<FiscalReceiptDetails> {
     return { receiptId: params.receiptId, status: 'DONE', total: 1200 };
   }
 }
@@ -103,9 +107,19 @@ describe('Shop Order Payment & Fiscalization (T-275 / SHOP-022 / SHOP-024)', () 
     outbox = new InMemoryOutbox();
     acquiringGateway = new MockAcquiringGateway();
     fiscalGateway = new MockFiscalGateway();
-    initiateHandler = new InitiatePaymentHandler({ payments: repository, acquiringGateway, outbox, clock });
+    initiateHandler = new InitiatePaymentHandler({
+      payments: repository,
+      acquiringGateway,
+      outbox,
+      clock,
+    });
     webhookHandler = new ProcessStripeWebhookHandler({ payments: repository, outbox, clock });
-    issueReceiptHandler = new IssueFiscalReceiptHandler({ payments: repository, fiscalGateway, outbox, clock });
+    issueReceiptHandler = new IssueFiscalReceiptHandler({
+      payments: repository,
+      fiscalGateway,
+      outbox,
+      clock,
+    });
   });
 
   it('initiates order payment and handles webhook success with OrderPaid event (SHOP-022)', async () => {

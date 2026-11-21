@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import { BarberServiceAssignmentRepository, type BarberServiceAssignmentSnapshot } from '../domain/ports.barber-service-assignment';
+import {
+  BarberServiceAssignmentRepository,
+  type BarberServiceAssignmentSnapshot,
+} from '../domain/ports.barber-service-assignment';
 
 @Injectable()
 export class PrismaBarberServiceAssignmentRepository implements BarberServiceAssignmentRepository {

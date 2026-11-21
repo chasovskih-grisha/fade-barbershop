@@ -5,7 +5,13 @@ import { uuidv7 } from '@fade/domain-shared';
 import type { INestApplication } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
-import { assignBarber, cleanupTestLocation, postWithRetry, seedBarberUser, seedTestLocation } from '@fade/test-utils';
+import {
+  assignBarber,
+  cleanupTestLocation,
+  postWithRetry,
+  seedBarberUser,
+  seedTestLocation,
+} from '@fade/test-utils';
 import type { PrismaService } from '../../shared/prisma/prisma.service';
 
 export const DATE = '2026-11-09'; // Понеділок.
@@ -59,7 +65,10 @@ export async function book(
   };
   // 409 (P2034 Serializable) і 500 (насичення пулу) — транзитні: повтор
   // за контрактом клієнта в спільному хелпері @fade/test-utils.
-  return postWithRetry((b: object) => request(app.getHttpServer()).post('/admin/bookings').send(b), body);
+  return postWithRetry(
+    (b: object) => request(app.getHttpServer()).post('/admin/bookings').send(b),
+    body
+  );
 }
 
 /** Сесія адміна для e2e без IdentityModule: guard у проді кладе той самий adminUserId. */

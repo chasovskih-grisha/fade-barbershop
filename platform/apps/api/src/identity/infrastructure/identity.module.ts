@@ -1,6 +1,3 @@
-// IdentityModule — збірка контексту identity: доменні use cases зв'язуються з
-// інфраструктурою (Prisma, DevOtpSender, годинник, ID). Транзакція = один use case (PrismaUnitOfWork).
-
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaService } from '../../shared/prisma/prisma.service';
@@ -14,6 +11,7 @@ import { MobileLogoutController } from './mobile-logout.controller';
 import { ClientSessionsController } from './client-sessions.controller';
 import { ChangePhoneController } from './change-phone.controller';
 import { PushTokensController } from './push-tokens.controller';
+import { WebPushSubscriptionController } from './web-push-subscription.controller';
 import { ClientProfileController } from './client-profile.controller';
 import { ClientBirthdayController } from './client-birthday.controller';
 import { AdminAccountController } from './admin-account.controller';
@@ -56,6 +54,7 @@ import { CrmModule } from '../../crm/crm.module';
     ClientSessionsController,
     ChangePhoneController,
     PushTokensController,
+    WebPushSubscriptionController,
     ClientProfileController,
     ClientBirthdayController,
     AdminLoginController,

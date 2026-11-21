@@ -22,13 +22,26 @@ As the platform scales to multiple locations and high booking concurrency, debug
 - `platform/infra/docker-compose.yml`, `platform/infra/tempo/`
 - `platform/docs/architecture.md`
 
+## Implementation plan
+
+Checks:
+- `node scripts/check-otel-wiring.mjs`
+- `node --test scripts/check-otel-wiring.test.mjs`
+- `node scripts/validate-docs.mjs`
+
 ## Done
 
-- [ ] OpenTelemetry SDK initialized in NestJS API bootstrap (`apps/api/src/main.ts`)
-- [ ] W3C Trace Context propagation verified across API requests and outbox event publishing
-- [ ] Next.js frontend tracing configured and reporting to OpenTelemetry Collector
-- [ ] Grafana Tempo data source dashboards displaying end-to-end request traces with log correlation
-- [ ] CI pipeline health check verifying OTel collector export endpoints
+- [x] OpenTelemetry SDK initialized in NestJS API bootstrap (`apps/api/src/main.ts`) — `import './otel'` first, T-4204f
+- [x] W3C Trace Context propagation verified across API requests and outbox event publishing — `shared/tracing/outbox-trace.ts`, T-4204f
+- [ ] Next.js frontend tracing configured and reporting to OpenTelemetry Collector — `apps/web/instrumentation.ts` does not exist; still open
+- [x] Grafana Tempo data source dashboards displaying end-to-end request traces with log correlation — `infra/grafana/provisioning/datasources/tempo.yml` (tracesToLogs → `loki-fade`)
+- [x] CI pipeline health check verifying OTel collector export endpoints — `scripts/check-otel-wiring.mjs`, `pnpm otel:check`/`otel:test` in `.github/workflows/ci.yml`
+
+> State 2026-11-19: 4 of 5 criteria closed. The wiring gate catches four silent
+> breakages that otherwise show up only in Grafana: `./otel` is not the first
+> import, `OTEL_EXPORTER_OTLP_ENDPOINT` port ≠ collector OTLP receiver,
+> collector without an `otlp/tempo` exporter, datasource port ≠ Tempo's
+> internal port.
 
 ## Risks
 

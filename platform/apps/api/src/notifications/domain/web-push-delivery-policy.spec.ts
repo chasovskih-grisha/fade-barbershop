@@ -1,5 +1,10 @@
 // Політика доставки web push (T-4449): дедуп між поверхнями, тихі години, згода.
-import { dedupeBySession, isQuietHour, planPushDelivery, type PushSubscriptionRef } from './web-push-delivery-policy';
+import {
+  dedupeBySession,
+  isQuietHour,
+  planPushDelivery,
+  type PushSubscriptionRef,
+} from './web-push-delivery-policy';
 
 const quiet = { fromMinutes: 22 * 60, toMinutes: 8 * 60 };
 

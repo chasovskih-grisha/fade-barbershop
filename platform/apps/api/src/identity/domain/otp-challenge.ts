@@ -3,7 +3,16 @@
 // Константи політики й форми даних — у otp-challenge.data.ts.
 
 import { otpMatches } from './otp-code';
-import { OTP_LOCK_MIN, OTP_MAX_ATTEMPTS, OTP_RESEND_SEC, OTP_TTL_MIN, type CreateOtpChallenge, type OtpChallengeData, type OtpPurpose, type OtpVerifyResult } from './otp-challenge.data';
+import {
+  OTP_LOCK_MIN,
+  OTP_MAX_ATTEMPTS,
+  OTP_RESEND_SEC,
+  OTP_TTL_MIN,
+  type CreateOtpChallenge,
+  type OtpChallengeData,
+  type OtpPurpose,
+  type OtpVerifyResult,
+} from './otp-challenge.data';
 
 export { OTP_LOCK_MIN, OTP_MAX_ATTEMPTS, OTP_RESEND_SEC, OTP_TTL_MIN } from './otp-challenge.data';
 export type {

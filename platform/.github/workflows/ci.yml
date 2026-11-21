@@ -28,9 +28,15 @@ jobs:
       # T-4812: гейт безпеки Prisma-міграцій — деструктивні зміни ламають rolling deploy.
       - run: pnpm db:migration:check
       - run: pnpm db:migration:test
+      # T-4209: гейт зворотного ходу — кожна нова міграція має rollback.sql.
+      - run: pnpm db:migration:rollback:check
+      - run: pnpm db:migration:rollback:test
       # T-4611a: email = системний стек, Fixel у листах не використовується.
       - run: pnpm email:check
       - run: pnpm email:test
+      # T-4801: трейси api → колектор → Tempo → Grafana звʼязані (інакше тихо зникають).
+      - run: pnpm otel:check
+      - run: pnpm otel:test
       # T-4611a: dist == tokens.json + контраст-гейт (email.* разом з рештою пар).
       - run: pnpm --filter @fade/design-tokens verify
       # T-4609a: гейт цілісності бренд-асетів (assets/ == checksums.json).

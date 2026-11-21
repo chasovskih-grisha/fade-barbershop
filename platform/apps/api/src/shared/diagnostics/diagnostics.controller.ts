@@ -6,7 +6,7 @@ import { ErrorTrackerService, type ErrorRecord } from '../logging/error-tracker.
 export class DiagnosticsController {
   constructor(
     @Optional() @Inject(HttpMetrics) private readonly httpMetrics?: HttpMetrics,
-    @Optional() private readonly errorTracker?: ErrorTrackerService,
+    @Optional() private readonly errorTracker?: ErrorTrackerService
   ) {}
 
   @Get()

@@ -39,7 +39,9 @@ export default function LocationScreen() {
   if (loading) {
     return (
       <View style={[styles.content, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text testID="loading-skeleton" style={styles.cardMuted}>Завантаження...</Text>
+        <Text testID="loading-skeleton" style={styles.cardMuted}>
+          Завантаження...
+        </Text>
       </View>
     );
   }
@@ -49,11 +51,7 @@ export default function LocationScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.hero}>Студію не знайдено</Text>
         <Text style={styles.cardMuted}>Локацію з кодом {code} не знайдено в системі.</Text>
-        <Pressable
-          accessibilityRole="button"
-          style={styles.cta}
-          onPress={() => router.push('/')}
-        >
+        <Pressable accessibilityRole="button" style={styles.cta} onPress={() => router.push('/')}>
           <Text style={styles.ctaLabel}>До списку локацій</Text>
         </Pressable>
       </ScrollView>
@@ -70,15 +68,21 @@ export default function LocationScreen() {
         <Text style={styles.cardMuted}>← Назад до списку</Text>
       </Pressable>
 
-      <Text style={styles.hero} testID="studio-name">{location.name}</Text>
-      <Text style={styles.heroSub} testID="studio-address">{location.address}</Text>
+      <Text style={styles.hero} testID="studio-name">
+        {location.name}
+      </Text>
+      <Text style={styles.heroSub} testID="studio-address">
+        {location.address}
+      </Text>
       <LocationChairLine chairs={location.chairs} />
 
       <View style={{ marginTop: 24 }}>
         <Pressable
           accessibilityRole="button"
           style={styles.cta}
-          onPress={() => router.push({ pathname: '/(client)/booking', params: { locationCode: location.code } })}
+          onPress={() =>
+            router.push({ pathname: '/(client)/booking', params: { locationCode: location.code } })
+          }
         >
           <Text style={styles.ctaLabel}>Записатися</Text>
         </Pressable>

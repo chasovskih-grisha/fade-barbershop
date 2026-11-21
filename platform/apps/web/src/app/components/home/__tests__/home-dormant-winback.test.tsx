@@ -8,9 +8,17 @@ describe('HomeDormantClientWinBackPromo', () => {
     render(<HomeDormantClientWinBackPromo />);
 
     expect(screen.getByText(/Персональна реактивація FADE Win-Back/i)).toBeInTheDocument();
-    expect(screen.getByText('Давно не бачилися? Отримайте спеціальний бонус повернення до 25%')).toBeInTheDocument();
+    expect(
+      screen.getByText('Давно не бачилися? Отримайте спеціальний бонус повернення до 25%')
+    ).toBeInTheDocument();
     expect(screen.getByText(/До 25% знижки/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Активувати Win-Back/i })).toHaveAttribute('href', '/account');
-    expect(screen.getByRole('link', { name: /Записатися зараз/i })).toHaveAttribute('href', '/booking');
+    expect(screen.getByRole('link', { name: /Активувати Win-Back/i })).toHaveAttribute(
+      'href',
+      '/account'
+    );
+    expect(screen.getByRole('link', { name: /Записатися зараз/i })).toHaveAttribute(
+      'href',
+      '/booking'
+    );
   });
 });

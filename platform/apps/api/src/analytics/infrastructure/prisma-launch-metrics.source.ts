@@ -48,24 +48,31 @@ export class PrismaLaunchMetricsSource implements LaunchMetricsSource {
 
   async countersBetween(from: Date, to: Date): Promise<LaunchCounters> {
     const inRange = { gte: from, lte: to };
-    const [locationsOnline, clientsCreated, bookingsCreated, noShows, paymentsCaptured, receiptsIssued, deliveries] =
-      await Promise.all([
-        this.prisma.location.count({ where: { active: true } }),
-        this.prisma.clientProfile.count({ where: { createdAt: inRange } }),
-        this.prisma.appointmentParty.count({ where: { createdAt: inRange } }),
-        this.prisma.booking.count({ where: { status: 'no_show', start: inRange } }),
-        this.prisma.outboxMessage.count({
-          where: { type: 'billing.payment.captured', createdAt: inRange },
-        }),
-        this.prisma.outboxMessage.count({
-          where: { type: 'billing.receipt.issued', createdAt: inRange },
-        }),
-        this.prisma.notificationRecord.groupBy({
-          by: ['channel', 'status'],
-          where: { sentAt: inRange },
-          _count: { _all: true },
-        }),
-      ]);
+    const [
+      locationsOnline,
+      clientsCreated,
+      bookingsCreated,
+      noShows,
+      paymentsCaptured,
+      receiptsIssued,
+      deliveries,
+    ] = await Promise.all([
+      this.prisma.location.count({ where: { active: true } }),
+      this.prisma.clientProfile.count({ where: { createdAt: inRange } }),
+      this.prisma.appointmentParty.count({ where: { createdAt: inRange } }),
+      this.prisma.booking.count({ where: { status: 'no_show', start: inRange } }),
+      this.prisma.outboxMessage.count({
+        where: { type: 'billing.payment.captured', createdAt: inRange },
+      }),
+      this.prisma.outboxMessage.count({
+        where: { type: 'billing.receipt.issued', createdAt: inRange },
+      }),
+      this.prisma.notificationRecord.groupBy({
+        by: ['channel', 'status'],
+        where: { sentAt: inRange },
+        _count: { _all: true },
+      }),
+    ]);
     const sms = channel(deliveries as DeliveryRow[], 'sms');
     const push = channel(deliveries as DeliveryRow[], 'push');
     const http = httpTotals(this.http.snapshot());

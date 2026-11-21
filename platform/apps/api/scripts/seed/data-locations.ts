@@ -38,7 +38,11 @@ export const LOCATIONS = [
     ],
     photos: [
       { url: `${IMG}photo-1585747860715-2ba37e788b70?w=1200`, caption: 'Зал Podil', sortOrder: 0 },
-      { url: `${IMG}photo-1621605815971-fbc98d665033?w=1200`, caption: 'Робоче місце', sortOrder: 1 },
+      {
+        url: `${IMG}photo-1621605815971-fbc98d665033?w=1200`,
+        caption: 'Робоче місце',
+        sortOrder: 1,
+      },
       { url: `${IMG}photo-1503951914875-452162b0f3f1?w=1200`, caption: 'Лаунж зона', sortOrder: 2 },
     ],
   },
@@ -97,7 +101,11 @@ export const LOCATIONS = [
     ],
     photos: [
       { url: `${IMG}photo-1503951914875-452162b0f3f1?w=1200`, caption: 'Зал Odesa', sortOrder: 0 },
-      { url: `${IMG}photo-1585747860715-2ba37e788b70?w=1200`, caption: 'Морський стиль', sortOrder: 1 },
+      {
+        url: `${IMG}photo-1585747860715-2ba37e788b70?w=1200`,
+        caption: 'Морський стиль',
+        sortOrder: 1,
+      },
     ],
   },
   {
@@ -116,8 +124,16 @@ export const LOCATIONS = [
       { channel: 'instagram', value: 'fade.kharkiv', sortOrder: 2 },
     ],
     photos: [
-      { url: `${IMG}photo-1621605815971-fbc98d665033?w=1200`, caption: 'Зал Kharkiv', sortOrder: 0 },
-      { url: `${IMG}photo-1585747860715-2ba37e788b70?w=1200`, caption: 'Стиль і комфорт', sortOrder: 1 },
+      {
+        url: `${IMG}photo-1621605815971-fbc98d665033?w=1200`,
+        caption: 'Зал Kharkiv',
+        sortOrder: 0,
+      },
+      {
+        url: `${IMG}photo-1585747860715-2ba37e788b70?w=1200`,
+        caption: 'Стиль і комфорт',
+        sortOrder: 1,
+      },
     ],
   },
   {
@@ -125,7 +141,12 @@ export const LOCATIONS = [
     code: 'DNP-01',
     name: 'FADE Dnipro',
     address: 'просп. Дмитра Яворницького 50, Дніпро',
-    addressParts: { street: 'просп. Дмитра Яворницького', building: '50', city: 'Дніпро', country: 'UA' },
+    addressParts: {
+      street: 'просп. Дмитра Яворницького',
+      building: '50',
+      city: 'Дніпро',
+      country: 'UA',
+    },
     lat: 48.4647,
     lng: 35.0462,
     phone: '+380561234506',
@@ -144,8 +165,8 @@ export const LOCATIONS = [
     name: 'FADE Kharkiv',
     address: 'вул. Сумська 45, Харків',
     addressParts: { street: 'Сумська', building: '45', city: 'Харків', country: 'UA' },
-    lat: 50.0050,
-    lng: 36.2300,
+    lat: 50.005,
+    lng: 36.23,
     phone: '+380571234505',
     email: 'kharkiv@fade.dev',
     channels: [
@@ -153,7 +174,11 @@ export const LOCATIONS = [
       { channel: 'telegram', value: 'fade_kharkiv', sortOrder: 1 },
     ],
     photos: [
-      { url: `${IMG}photo-1585747860715-2ba37e788b70?w=1200`, caption: 'Зал Kharkiv', sortOrder: 0 },
+      {
+        url: `${IMG}photo-1585747860715-2ba37e788b70?w=1200`,
+        caption: 'Зал Kharkiv',
+        sortOrder: 0,
+      },
     ],
   },
 ];

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (266 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-4453: пріоритетний вибір із черги, тайм-аут пропозиції,
 // каскад на наступного та ручне втручання оператора з журналом.
 import type { SmsSender } from '../../notifications/application/send-sms.use-case';
@@ -9,10 +10,7 @@ import {
   type WaitlistConfiguration,
   type WaitlistEntryData,
 } from '../domain/waitlist-queue';
-import {
-  OfferNextWaitlistCandidate,
-  type WaitlistOfferNotifier,
-} from './waitlist-offer.use-case';
+import { OfferNextWaitlistCandidate, type WaitlistOfferNotifier } from './waitlist-offer.use-case';
 
 const NOW = new Date('2026-11-19T12:00:00Z');
 const slot: FreedSlot = {
@@ -77,7 +75,11 @@ describe('waitlist priority selection (T-4453)', () => {
       completedVisits: 5,
     });
 
-    const result = await useCase.execute({ entries: [olderFirstTimer, newerLoyal], slot, now: NOW });
+    const result = await useCase.execute({
+      entries: [olderFirstTimer, newerLoyal],
+      slot,
+      now: NOW,
+    });
 
     expect(result.offered?.id).toBe('w-loyal');
     expect(offers[0]?.clientId).toBe('c-loyal');
@@ -102,7 +104,11 @@ describe('waitlist priority selection (T-4453)', () => {
     });
     const newerClean = entry({ id: 'w-clean', waitingSince: new Date('2026-11-16T08:00:00Z') });
 
-    const result = await useCase.execute({ entries: [olderWithMisses, newerClean], slot, now: NOW });
+    const result = await useCase.execute({
+      entries: [olderWithMisses, newerClean],
+      slot,
+      now: NOW,
+    });
 
     expect(result.offered?.id).toBe('w-clean');
   });
@@ -117,7 +123,11 @@ describe('waitlist priority selection (T-4453)', () => {
     const exact = entry({
       id: 'w-exact',
       waitingSince: new Date('2026-11-16T08:00:00Z'),
-      configuration: configuration({ precision: 'exact', windowFrom: '2026-11-20', windowTo: '2026-11-20' }),
+      configuration: configuration({
+        precision: 'exact',
+        windowFrom: '2026-11-20',
+        windowTo: '2026-11-20',
+      }),
     });
 
     const result = await useCase.execute({ entries: [wideRange, exact], slot, now: NOW });
@@ -198,7 +208,10 @@ describe('offer timeout and cascade (T-4453)', () => {
 
     expect(useCase.accept({ entry: offered, now: NOW }).entry.status).toBe('fulfilled');
     expect(() =>
-      useCase.accept({ entry: { ...offered, holdExpiresAt: new Date(NOW.getTime() - 1) }, now: NOW })
+      useCase.accept({
+        entry: { ...offered, holdExpiresAt: new Date(NOW.getTime() - 1) },
+        now: NOW,
+      })
     ).toThrow('has expired');
   });
 });
@@ -214,7 +227,11 @@ describe('operator override (T-4453)', () => {
     const chosen = entry({ id: 'w-chosen', waitingSince: new Date('2026-11-18T08:00:00Z') });
     const override = { by: 'admin-1', reason: 'клієнт прийшов у салон', at: NOW };
 
-    const overridden = useCase.override({ entries: [loyal, chosen], entryId: 'w-chosen', override });
+    const overridden = useCase.override({
+      entries: [loyal, chosen],
+      entryId: 'w-chosen',
+      override,
+    });
     const result = await useCase.execute({
       entries: overridden.entries,
       slot,

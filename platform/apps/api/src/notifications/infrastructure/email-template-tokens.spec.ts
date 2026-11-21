@@ -60,7 +60,10 @@ describe('email templates on design tokens (T-4611c)', () => {
       brand: 'FADE',
       rows: [],
     });
-    const logo = receipt.slice(receipt.indexOf('data:image/svg+xml;base64,'), receipt.indexOf('alt='));
+    const logo = receipt.slice(
+      receipt.indexOf('data:image/svg+xml;base64,'),
+      receipt.indexOf('alt=')
+    );
     expect(receipt).toContain('До сплати');
     expect(confirmation).toContain(logo);
   });

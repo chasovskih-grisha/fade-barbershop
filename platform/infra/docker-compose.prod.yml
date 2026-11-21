@@ -1,0 +1,119 @@
+# Production stack for the GMHost VPS (ADR 0051, T-4614a).
+#
+#   docker compose -f infra/docker-compose.prod.yml --env-file infra/.env.prod up -d
+#
+# No host sources are mounted and nothing runs a watcher: every service starts
+# the built artefact from the `prod` stage of infra/*.Dockerfile. Local dev
+# stays on infra/docker-compose.yml `--profile apps` (ADR 0018), which pins the
+# `dev` stage of the same files.
+
+name: fade-platform-prod
+
+x-prod-api-env: &prod-api-env
+  NODE_ENV: production
+  API_PORT: '13000'
+  DATABASE_URL: postgresql://${POSTGRES_USER:-barbershop}:${POSTGRES_PASSWORD:-barbershop}@postgres:5432/${POSTGRES_DB:-barbershop}
+  REDIS_URL: redis://redis:6379
+  FADE_REDIS_URL: redis://redis:6379
+  FADE_GEOCODER_STORE: redis
+  FADE_CLIENT_DOMAIN: ${FADE_CLIENT_DOMAIN:-fade.com.ua}
+  FADE_ADMIN_DOMAIN: ${FADE_ADMIN_DOMAIN:-fade.com.ua}
+  CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://fade.com.ua}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fade-platform-prod-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-barbershop}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-barbershop}
+      POSTGRES_DB: ${POSTGRES_DB:-barbershop}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-barbershop} -d ${POSTGRES_DB:-barbershop}']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+    networks:
+      - fade-platform-prod-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: fade-platform-prod-redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+    networks:
+      - fade-platform-prod-net
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/api.Dockerfile
+      target: prod
+    container_name: fade-platform-prod-api
+    environment: *prod-api-env
+    expose:
+      - '13000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - fade-platform-prod-net
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/web.Dockerfile
+      target: prod
+    container_name: fade-platform-prod-web
+    environment:
+      NODE_ENV: production
+      API_ORIGIN: http://api:13000
+      WEB_API_URL: http://api:13000
+      LOCATION_API_URL: http://api:13000
+    expose:
+      - '13001'
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - fade-platform-prod-net
+
+  admin:
+    build:
+      context: ..
+      dockerfile: infra/admin.Dockerfile
+      target: prod
+    container_name: fade-platform-prod-admin
+    environment:
+      NODE_ENV: production
+      ADMIN_API_UPSTREAM: http://api:13000
+    expose:
+      - '13002'
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - fade-platform-prod-net
+
+networks:
+  fade-platform-prod-net:
+    name: fade-platform-prod-net
+
+volumes:
+  pg_data:
+  redis_data:

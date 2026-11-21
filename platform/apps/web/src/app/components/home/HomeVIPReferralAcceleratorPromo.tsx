@@ -17,7 +17,9 @@ export function HomeVIPReferralAcceleratorPromo() {
             Подвійний привілей FADE: статус VIP-клубу зі знижкою -20% та реферальний бонус 300 ₴
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Отримайте безлімітний пріоритетний запис, закріпленого топ-майстра та щомісячний презент преміум-косметики. А запросивши друга, ви обоє отримуєте по 300 ₴ бонусів на рахунок у першій приватній студії центру Києва.
+            Отримайте безлімітний пріоритетний запис, закріпленого топ-майстра та щомісячний презент
+            преміум-косметики. А запросивши друга, ви обоє отримуєте по 300 ₴ бонусів на рахунок у
+            першій приватній студії центру Києва.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div className="flex items-center gap-3 p-3.5 rounded-input bg-surface-sunken/80 border border-line">
@@ -43,7 +45,9 @@ export function HomeVIPReferralAcceleratorPromo() {
             className="inline-flex h-13 w-full sm:w-auto lg:w-64 items-center justify-center rounded-input bg-accent px-8 text-body font-semibold text-accent-fg hover:opacity-95 transition-all duration-300 shadow-xl hover:scale-[1.02] active:scale-[0.98] text-center"
           >
             <span>Активувати VIP-статус</span>
-            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+              &rarr;
+            </span>
           </Link>
           <Link
             href="/account/referrals"

@@ -26,7 +26,13 @@ export interface SkeletonProps extends HTMLAttributes<HTMLSpanElement> {
   'aria-label'?: string;
 }
 
-export function Skeleton({ variant = 'text', animate = true, className, 'aria-label': ariaLabel, ...rest }: SkeletonProps) {
+export function Skeleton({
+  variant = 'text',
+  animate = true,
+  className,
+  'aria-label': ariaLabel,
+  ...rest
+}: SkeletonProps) {
   return (
     <span
       aria-hidden={ariaLabel ? undefined : 'true'}

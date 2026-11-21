@@ -1,5 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsDateString, ValidateIf, IsNotEmpty } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsOptional, IsEnum, IsDateString, IsNotEmpty } from 'class-validator';
 
 /** Input for admin creating a waitlist entry. */
 export class AdminCreateWaitlistEntryInput {
@@ -35,12 +34,12 @@ export class AdminCreateWaitlistEntryInput {
 
   /** Optional: the date/time slot start (ISO date string) */
   @IsOptional()
-  @IsDateString({ message: 'start must be an ISO date string' })
+  @IsDateString(undefined, { message: 'start must be an ISO date string' })
   start?: string;
 
   /** Optional: the date/time slot end (ISO date string) */
   @IsOptional()
-  @IsDateString({ message: 'end must be an ISO date string' })
+  @IsDateString(undefined, { message: 'end must be an ISO date string' })
   end?: string;
 
   /** Optional: precision/metadata about the entry */

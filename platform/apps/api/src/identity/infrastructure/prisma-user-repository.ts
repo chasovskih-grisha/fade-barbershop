@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (112 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Prisma-адаптер репозиторію User. Методи працюють з активним
 // tx-клієнтом (currentDb) у транзакції PrismaUnitOfWork, інакше — базовим.
 

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (232 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-4451: відповідь адміна, статуси «новий/опрацьований/архів»,
 // черга «неопрацьовані» і SLA. Домен, сервіс і HTTP-контролер.
 import { BadRequestException } from '@nestjs/common';
@@ -114,11 +115,14 @@ describe('review SLA (T-4451)', () => {
   it('tracks ok → due_soon → breached → done across the 24h SLA', () => {
     expect(slaState(review({ submittedAt: new Date(NOW.getTime() - HOUR) }), NOW)).toBe('ok');
     expect(
-      slaState(review({ submittedAt: new Date(NOW.getTime() - (REVIEW_SLA_HOURS - 2) * HOUR) }), NOW)
+      slaState(
+        review({ submittedAt: new Date(NOW.getTime() - (REVIEW_SLA_HOURS - 2) * HOUR) }),
+        NOW
+      )
     ).toBe('due_soon');
-    expect(
-      slaState(review({ submittedAt: new Date(NOW.getTime() - 30 * HOUR) }), NOW)
-    ).toBe('breached');
+    expect(slaState(review({ submittedAt: new Date(NOW.getTime() - 30 * HOUR) }), NOW)).toBe(
+      'breached'
+    );
     expect(slaState(review({ status: 'processed' }), NOW)).toBe('done');
   });
 
@@ -159,7 +163,9 @@ describe('ReviewProcessingService (T-4451)', () => {
   it('empties the unprocessed queue as reviews are answered', async () => {
     const { service: reviews } = service();
     await reviews.register(review({ id: 'rev-1' }));
-    await reviews.register(review({ id: 'rev-2', submittedAt: new Date(NOW.getTime() - 3 * HOUR) }));
+    await reviews.register(
+      review({ id: 'rev-2', submittedAt: new Date(NOW.getTime() - 3 * HOUR) })
+    );
 
     expect((await reviews.listUnprocessed()).map((item) => item.id)).toEqual(['rev-2', 'rev-1']);
 
@@ -177,7 +183,7 @@ describe('ReviewProcessingService (T-4451)', () => {
 
     expect(reply.threadId).toBe('rev-1#1');
     expect(stored?.status).toBe('processed');
-    expect(stored?.replies[0]?.text).toBe('Дякуємо!');
+    expect(stored?.replies?.[0]?.text).toBe('Дякуємо!');
     expect(stored?.processedBy).toBe('admin-1');
   });
 
@@ -185,9 +191,9 @@ describe('ReviewProcessingService (T-4451)', () => {
     const { service: reviews } = service();
     await reviews.register(review({ id: 'rev-archived', status: 'archived' }));
 
-    await expect(
-      reviews.reply('missing', { adminId: 'admin-1', text: 'Привіт' })
-    ).rejects.toThrow('not found');
+    await expect(reviews.reply('missing', { adminId: 'admin-1', text: 'Привіт' })).rejects.toThrow(
+      'not found'
+    );
     await expect(
       reviews.reply('rev-archived', { adminId: 'admin-1', text: 'Привіт' })
     ).rejects.toThrow('restore it first');
@@ -195,7 +201,9 @@ describe('ReviewProcessingService (T-4451)', () => {
 
   it('reports SLA coverage from stored reviews', async () => {
     const { service: reviews } = service();
-    await reviews.register(review({ id: 'rev-old', submittedAt: new Date(NOW.getTime() - 30 * HOUR) }));
+    await reviews.register(
+      review({ id: 'rev-old', submittedAt: new Date(NOW.getTime() - 30 * HOUR) })
+    );
     await reviews.register(review({ id: 'rev-ok' }));
 
     const summary = await reviews.sla(NOW);
@@ -223,7 +231,9 @@ describe('FeedbackSurfacesController review routes (T-4451)', () => {
   it('serves the unprocessed queue with a limit', async () => {
     const { controller: api, reviews } = controller();
     await reviews.register(review({ id: 'rev-1' }));
-    await reviews.register(review({ id: 'rev-2', submittedAt: new Date(NOW.getTime() - 3 * HOUR) }));
+    await reviews.register(
+      review({ id: 'rev-2', submittedAt: new Date(NOW.getTime() - 3 * HOUR) })
+    );
 
     const response = await api.unprocessedReviews('1');
 

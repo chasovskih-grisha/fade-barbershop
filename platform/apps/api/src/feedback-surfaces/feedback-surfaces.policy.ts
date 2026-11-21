@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (110 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 /**
  * T-151: чиста політика поверхонь відгуків (без Prisma, без Nest).
  *

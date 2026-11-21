@@ -21,6 +21,7 @@ export function makeVisit(
     referenceId: null,
     referenceComment: '',
     canEditReference: true,
+    canBookAgain: true,
     ...overrides,
   };
 }

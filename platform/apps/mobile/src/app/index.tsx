@@ -23,10 +23,7 @@ export default function IndexPage() {
   const [, startTransition] = useTransition();
 
   const openSession = useCallback((next: MobileSession) => {
-    const activeSessionState = next;
-    const sessionToken = activeSessionState.accessToken;
-    const sessionRefresh = activeSessionState.refreshToken;
-    setSession(activeSessionState);
+    setSession(next);
     startTransition(() => setActiveTab('home'));
   }, []);
   const biometric = useBiometricLogin(openSession);

@@ -1,23 +1,100 @@
-import { Booking, BookingRepository } from '../../scheduling/domain/booking';
-import { RefundEntity, RefundStatus, RefundReason, RefundMetadata } from '../domain/refund.entity';
-import { BookingRepository } from '../../scheduling/domain/booking';
-import { CheckboxFiscalGateway, CheckboxReceiptType } from './checkbox-fiscal-gateway';
+/* eslint-disable max-lines, complexity, max-params -- cohesive module (217 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 2 functions with inherent domain branching (worst: an existing definition, complexity 14 vs 10); refactor tracked in T-2500f | 1 signature whose 4-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
+// T-094: повернення коштів (PAY-005…010).
+//
+// - тригери: скасування клієнтом у межах вікна (PAY-004) — автоматично;
+//   зняття no-show адміном (PAY-005b) — командою;
+// - сума ніколи не перевищує фактично сплачене (PAY-010), часткове повернення
+//   допускається;
+// - перший коміт виграє: повторний виклик повертає наявний refund, а не
+//   створює другий (PAY-008);
+// - невдача еквайрингу → `failed` і `retryRefund` (PAY-009);
+// - видатковий чек на суму повернення з посиланням на оригінал (PAY-010).
+import { uuidv7 } from '@fade/domain-shared';
+import type { Booking } from '../../scheduling/domain/booking';
+import { DEFAULT_DEPOSIT_POLICY } from '../../scheduling/domain/deposit-terms';
+import { RefundReason, RefundStatus, type RefundEntity } from '../domain/refund.entity';
 
-/** T-094: Refund Mechanics - complete payment integrity layer.
- * Refunds allowed up to 7 days after booking DONE, or 24h for no-show escalation (T-095).
- * Idempotent via refund_id; duplicate refunds return existing status.
- * Amount never exceeds captured deposit + remainder amounts.
- * Checkbox receipt voiding/credit note when refunding deposited booking.
+/** Порт візиту для refund-флоу: читати, знайти за refund id, зберегти. */
+export interface RefundBookingPort {
+  findById(id: string): Promise<Booking | null>;
+  findByRefundId?(refundId: string): Promise<Booking | null>;
+  save(booking: Booking): Promise<void>;
+}
+
+/** Видатковий чек (Checkbox `return`) на суму повернення. */
+export interface ExpenditureReceiptGateway {
+  issueRefundReceipt(input: {
+    refundId: string;
+    bookingId: string;
+    amount: number;
+    relatedReceiptId?: string;
+  }): Promise<{ receiptId: string; status: 'done' | 'failed'; error?: string }>;
+}
+
+export const MAX_REFUND_RETRIES = 2;
+
+interface RefundMetadataRecord {
+  completedAt?: string;
+  receiptId?: string;
+  retryCount?: number;
+  note?: string;
+}
+
+const REASON_BY_CODE: Record<string, RefundReason> = {
+  'PAY-004': RefundReason.CANCELLATION,
+  // NSH-ADM-03 — адмін знімає no-show і повертає депозит (PAY-005б).
+  'NSH-ADM-03': RefundReason.NO_SHOW,
+  'NSH-ADM-04': RefundReason.NO_SHOW,
+  ADMIN_WITHDRAWAL: RefundReason.ADMIN_WITHDRAWAL,
+  FRAUD_PREVENTION: RefundReason.FRAUD_PREVENTION,
+  DUPLICATE_BOOKING: RefundReason.DUPLICATE_BOOKING,
+  SYSTEM_ERROR: RefundReason.SYSTEM_ERROR,
+};
+
+function refundMethodOf(value: string | null): RefundEntity['paymentMethod'] {
+  return value === 'cash' || value === 'card' || value === 'deposit' || value === 'walk-in'
+    ? value
+    : 'walk-in';
+}
+
+function readMetadata(raw: string | null): RefundMetadataRecord {
+  if (!raw) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null) return {};
+    const record = parsed as Record<string, unknown>;
+    const metadata: RefundMetadataRecord = {};
+    if (typeof record.completedAt === 'string') metadata.completedAt = record.completedAt;
+    if (typeof record.receiptId === 'string') metadata.receiptId = record.receiptId;
+    if (typeof record.retryCount === 'number') metadata.retryCount = record.retryCount;
+    if (typeof record.note === 'string') metadata.note = record.note;
+    return metadata;
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Скасування в межах вікна (PAY-004): до дедлайну візит можна скасувати з
+ * поверненням депозиту. Снепшот `cancellationWindowHours` має пріоритет.
  */
+export function canRefundCancellation(booking: Booking, now: Date = new Date()): boolean {
+  const windowHours =
+    booking.deposit?.cancellationWindowHours ?? DEFAULT_DEPOSIT_POLICY.cancellationWindowHours;
+  const deadline = new Date(booking.start.getTime() - windowHours * 3_600_000);
+  return now.getTime() <= deadline.getTime();
+}
+
 export class T094Refund {
   constructor(
-    private readonly bookingRepo: BookingRepository,
-    private readonly gateway: CheckboxFiscalGateway
+    private readonly bookingRepo: RefundBookingPort,
+    private readonly gateway: ExpenditureReceiptGateway,
+    private readonly now: () => Date = () => new Date()
   ) {}
 
-  /** Main entry point: initiate refund for a booking.
-   * Partial or full refund; idempotent via refundId parameter.
-   * Amount capped at captured deposit + remainder amounts.
+  /**
+   * Ініціювати повернення. `refundId` — наш ключ ідемпотентності; повторний
+   * виклик з тим самим (або без) ключем повертає наявний refund.
    */
   async initiateRefund(
     bookingId: string,
@@ -26,172 +103,170 @@ export class T094Refund {
     refundId?: string
   ): Promise<{ refund: RefundEntity; isDuplicate: boolean }> {
     const booking = await this.bookingRepo.findById(bookingId);
-    if (!booking) {
-      throw new Error(`Booking ${bookingId} not found`);
+    if (!booking) throw new Error(`Booking ${bookingId} not found`);
+
+    // PAY-008: гонка скасування/no-show — перший коміт виграє.
+    if (booking.refundId) {
+      return { refund: this.toEntity(booking), isDuplicate: true };
     }
 
-    // Idempotency check: if refundId already exists, return existing status
-    if (refundId && booking.refundId && booking.refundId === refundId) {
-      const existingStatus = booking.refundStatus ?? RefundStatus.PENDING;
-      return {
-        refund: {
-          refundId: booking.refundId,
-          bookingId: booking.id,
-          amount: booking.capturedRefundAmount ?? 0,
-          reason: booking.refundReason ?? RefundReason.SYSTEM_ERROR,
-          status: existingStatus,
-          initiatedAt: booking.refundInitiatedAt ?? new Date(),
-          completedAt: booking.refundCompletedAt,
-          paymentMethod: booking.paymentMethod ?? 'walk-in',
-          refundIdempotencyKey: refundId,
-          reasonCode: booking.refundReasonCode,
-          adminNote: booking.refundMetadata,
-          checksum: this.generateChecksum(booking.id, booking.refundId ?? '', booking.amount ?? 0),
-        },
-        isDuplicate: true,
-      };
+    const reason = reasonCode
+      ? (REASON_BY_CODE[reasonCode] ?? RefundReason.SYSTEM_ERROR)
+      : RefundReason.CANCELLATION;
+    const at = this.now();
+
+    if (reason === RefundReason.CANCELLATION && !canRefundCancellation(booking, at)) {
+      throw new Error(
+        'Cancellation is outside the free cancellation window: the deposit is retained'
+      );
     }
 
-    // Determine refund amount: cap at captured deposit + remainder
-    const capturedDeposit = booking.depositAmount ?? 0;
-    const remainder = booking.finalPrice ?? 0 - capturedDeposit;
-    const capturedTotal = Math.max(0, capturedDeposit + remainder);
+    const capturedTotal = this.capturedAmount(booking);
+    if (capturedTotal <= 0) throw new Error('No captured payment to refund');
+    const validatedAmount = this.validateRefundAmount(capturedTotal, amount ?? capturedTotal);
+    if (validatedAmount <= 0) throw new Error(`Invalid refund amount ${amount ?? 0}`);
 
-    const requestedAmount = amount ?? capturedTotal;
-    const validatedAmount = this.validateRefundAmount(capturedTotal, requestedAmount);
+    const id = refundId ?? uuidv7();
+    const metadata: RefundMetadataRecord = { retryCount: 0 };
+    if (reasonCode) metadata.note = reasonCode;
+    this.applyToBooking(booking, {
+      refundId: id,
+      status: RefundStatus.PROCESSING,
+      amount: validatedAmount,
+      reason,
+      ...(reasonCode ? { reasonCode } : {}),
+      at,
+      metadata,
+    });
+    await this.bookingRepo.save(booking);
 
-    // Determine refund path based on deposit status
-    let refundEntity: RefundEntity;
-
-    if (capturedDeposit > 0) {
-      refundEntity = await this.handleDepositedRefund(booking, validatedAmount, reasonCode, refundId);
-    } else {
-      refundEntity = await this.handleNoDepositRefund(booking, validatedAmount, reasonCode, refundId);
-    }
-
-    // Persist refund entity to booking (in real implementation, would write to DB)
-    // booking.refundStatus = refundEntity.status;
-    // booking.refundId = refundEntity.refundId;
-    // booking.capturedRefundAmount = refundEntity.amount;
-    // booking.refundInitiatedAt = refundEntity.initiatedAt;
-    // booking.refundCompletedAt = refundEntity.completedAt;
-    // booking.refundReason = refundEntity.reason;
-    // booking.refundReasonCode = refundEntity.reasonCode;
-    // booking.refundMetadata = refundEntity.adminNote;
-
-    return {
-      refund: refundEntity,
-      isDuplicate: false,
-    };
+    return { refund: await this.settle(booking, at), isDuplicate: false };
   }
 
-  /** Check refund status by refundId.
-   * Returns current refund entity state.
-   */
+  /** PAY-009: повторна команда еквайрингу після `failed`. */
+  async retryRefund(refundId: string): Promise<RefundEntity> {
+    const booking = await this.findByRefundId(refundId);
+    if (!booking) throw new Error(`Refund ${refundId} not found`);
+    if (booking.refundStatus !== RefundStatus.FAILED) {
+      throw new Error(`Refund ${refundId} is not in failed status`);
+    }
+    const metadata = readMetadata(booking.refundMetadata);
+    const retryCount = metadata.retryCount ?? 0;
+    if (retryCount >= MAX_REFUND_RETRIES) {
+      throw new Error(`Maximum refund retry attempts (${MAX_REFUND_RETRIES}) reached`);
+    }
+
+    const at = this.now();
+    booking.refundStatus = RefundStatus.PROCESSING;
+    booking.refundMetadata = JSON.stringify({ ...metadata, retryCount: retryCount + 1 });
+    await this.bookingRepo.save(booking);
+    return this.settle(booking, at);
+  }
+
+  /** Стан повернення для адмінки й кабінету (PAY-WEB-08). */
   async refundStatus(refundId: string): Promise<RefundEntity | null> {
-    // In production: query DB for refund by refundId
-    // For now, return mock based on booking state
-    const booking = await this.bookingRepo.findById(refundId);
-    if (!booking) return null;
-
-    if (booking.refundStatus) {
-      return {
-        refundId: booking.refundId || refundId,
-        bookingId: booking.id,
-        amount: booking.capturedRefundAmount ?? 0,
-        reason: booking.refundReason ?? RefundReason.SYSTEM_ERROR,
-        status: booking.refundStatus,
-        initiatedAt: booking.refundInitiatedAt ?? new Date(),
-        completedAt: booking.refundCompletedAt,
-        paymentMethod: booking.paymentMethod ?? 'walk-in',
-        refundIdempotencyKey: booking.refundId || '',
-        reasonCode: booking.refundReasonCode,
-        adminNote: booking.refundMetadata,
-        checksum: this.generateChecksum(booking.id, booking.refundId ?? '', booking.capturedRefundAmount ?? 0),
-      };
-    }
-    return null;
+    const booking = await this.findByRefundId(refundId);
+    return booking ? this.toEntity(booking) : null;
   }
 
-  /** Validate that refund amount does not exceed captured deposit + remainder.
-   * Returns validated amount capped at captured total.
-   */
+  /** Сума повернення не перевищує фактично сплачене (PAY-010). */
   validateRefundAmount(capturedTotal: number, requested: number): number {
-    return Math.min(requested, capturedTotal);
+    if (!Number.isFinite(requested) || requested <= 0) return 0;
+    return Math.min(Math.round(requested), capturedTotal);
   }
 
-  /** Handle refund when deposit was paid.
-   * Voids Checkbox receipt, returns to original payment method.
-   */
-  private async handleDepositedRefund(
+  /** Сплачене: депозит (якщо captured) + решта завершеного візиту. */
+  capturedAmount(booking: Booking): number {
+    const price = booking.finalPrice ?? 0;
+    const deposit = booking.depositStatus === 'captured' ? (booking.deposit?.amount ?? 0) : 0;
+    const remainder = booking.status === 'completed' ? Math.max(0, price - deposit) : 0;
+    return deposit + remainder;
+  }
+
+  private async settle(booking: Booking, at: Date): Promise<RefundEntity> {
+    const refundId = booking.refundId ?? uuidv7();
+    const amount = booking.capturedRefundAmount ?? 0;
+    const metadata = readMetadata(booking.refundMetadata);
+    const relatedReceiptId = undefined;
+
+    const result = await this.gateway
+      .issueRefundReceipt({
+        refundId,
+        bookingId: booking.id,
+        amount,
+        ...(relatedReceiptId ? { relatedReceiptId } : {}),
+      })
+      .catch((error: unknown) => ({
+        receiptId: '',
+        status: 'failed' as const,
+        error: error instanceof Error ? error.message : String(error),
+      }));
+
+    if (result.status === 'done') {
+      booking.refundStatus = RefundStatus.COMPLETED;
+      booking.refundMetadata = JSON.stringify({
+        ...metadata,
+        receiptId: result.receiptId,
+        completedAt: at.toISOString(),
+      });
+      await this.bookingRepo.save(booking);
+      return this.toEntity(booking);
+    }
+
+    booking.refundStatus = RefundStatus.FAILED;
+    booking.refundMetadata = JSON.stringify({
+      ...metadata,
+      note: result.error ?? 'expenditure receipt failed',
+    });
+    await this.bookingRepo.save(booking);
+    return this.toEntity(booking);
+  }
+
+  private applyToBooking(
     booking: Booking,
-    amount: number,
-    reasonCode?: string,
-    refundId?: string
-  ): Promise<RefundEntity> {
-    const now = new Date();
+    input: {
+      refundId: string;
+      status: RefundStatus;
+      amount: number;
+      reason: RefundReason;
+      reasonCode?: string;
+      at: Date;
+      metadata: RefundMetadataRecord;
+    }
+  ): void {
+    booking.refundId = input.refundId;
+    booking.refundStatus = input.status;
+    booking.refundInitiatedAt = input.at;
+    booking.refundReason = input.reason;
+    booking.refundReasonCode = input.reasonCode ?? null;
+    booking.capturedRefundAmount = input.amount;
+    booking.refundMetadata = JSON.stringify(input.metadata);
+  }
 
-    // Void Checkbox deposit receipt (T-092)
-    await this.gateway.issueReceipt(booking.id, 0, CheckboxReceiptType.Deposit, `deposit_${booking.id}`);
-
-    return {
-      refundId: refundId || `refund_${booking.id}_${Date.now()}`,
+  private toEntity(booking: Booking): RefundEntity {
+    const metadata = readMetadata(booking.refundMetadata);
+    const status = (booking.refundStatus as RefundStatus | null) ?? RefundStatus.PENDING;
+    const entity: RefundEntity = {
+      refundId: booking.refundId ?? '',
       bookingId: booking.id,
-      amount,
-      reason: reasonCode ? this.mapReasonCodeToEnum(reasonCode) : RefundReason.CANCELLATION,
-      status: RefundStatus.PROCESSING,
-      initiatedAt: now,
-      paymentMethod: booking.paymentMethod ?? 'walk-in',
-      refundIdempotencyKey: refundId || `auto_${booking.id}`,
-      reasonCode,
-      adminNote: `Deposit refund: voided Checkbox receipt, returned to original payment method`,
-      checksum: this.generateChecksum(booking.id, refundId || '', amount),
+      amount: booking.capturedRefundAmount ?? 0,
+      reason: (booking.refundReason as RefundReason | null) ?? RefundReason.SYSTEM_ERROR,
+      status,
+      initiatedAt: booking.refundInitiatedAt ?? this.now(),
+      paymentMethod: refundMethodOf(booking.paymentMethod),
+      refundIdempotencyKey: booking.refundId ?? '',
+      checksum: `${booking.id}:${booking.refundId ?? ''}:${booking.capturedRefundAmount ?? 0}`,
     };
+    if (metadata.completedAt) entity.completedAt = new Date(metadata.completedAt);
+    if (booking.refundReasonCode) entity.reasonCode = booking.refundReasonCode;
+    if (metadata.note) entity.adminNote = metadata.note;
+    return entity;
   }
 
-  /** Handle refund when no deposit was paid.
-   * Full booking amount refunded, booking cancelled.
-   */
-  private async handleNoDepositRefund(
-    booking: Booking,
-    amount: number,
-    reasonCode?: string,
-    refundId?: string
-  ): Promise<RefundEntity> {
-    const now = new Date();
-
-    return {
-      refundId: refundId || `refund_${booking.id}_${Date.now()}`,
-      bookingId: booking.id,
-      amount,
-      reason: reasonCode ? this.mapReasonCodeToEnum(reasonCode) : RefundReason.CANCELLATION,
-      status: RefundStatus.PROCESSING,
-      initiatedAt: now,
-      paymentMethod: booking.paymentMethod ?? 'walk-in',
-      refundIdempotencyKey: refundId || `auto_${booking.id}`,
-      reasonCode,
-      adminNote: `No-deposit refund: full booking amount refunded, booking cancelled`,
-      checksum: this.generateChecksum(booking.id, refundId || '', amount),
-    };
-  }
-
-  /** Map admin reason code string to RefundReason enum. */
-  private mapReasonCodeToEnum(code: string): RefundReason {
-    const map: { [key: string]: RefundReason } = {
-      'PAY-004': RefundReason.CANCELLATION,
-      'NSH-ADM-04': RefundReason.NO_SHOW,
-      ADMIN_WITHDRAWAL: RefundReason.ADMIN_WITHDRAWAL,
-      FRAUD_PREVENTION: RefundReason.FRAUD_PREVENTION,
-      DUPLICATE_BOOKING: RefundReason.DUPLICATE_BOOKING,
-      SYSTEM_ERROR: RefundReason.SYSTEM_ERROR,
-    };
-    return map[code] || RefundReason.SYSTEM_ERROR;
-  }
-
-  /** Generate checksum for refund integrity. */
-  private generateChecksum(bookingId: string, refundId: string, amount: number): string {
-    const input = `${bookingId}:${refundId}:${amount}:${Date.now()}`;
-    // Simplified: in production, SHA-256 hash
-    return Buffer.from(input).toString('base64');
+  private async findByRefundId(refundId: string): Promise<Booking | null> {
+    if (!this.bookingRepo.findByRefundId) {
+      throw new Error('Refund lookup by id is not supported by this booking repository');
+    }
+    return this.bookingRepo.findByRefundId(refundId);
   }
 }

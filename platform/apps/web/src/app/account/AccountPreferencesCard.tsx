@@ -5,6 +5,7 @@ import { Card, Field, Button } from '@fade/ui';
 import {
   PREFERENCE_LIMIT_MESSAGE,
   isWithinPreferenceLimit,
+  savedNoteQuote,
   splitPreferenceLines,
 } from './preferences';
 
@@ -48,12 +49,20 @@ export function AccountPreferencesCard({
         </p>
       ) : null}
       <p className="text-body-s text-fg-secondary">Цей текст побачить ваш майстер перед візитом</p>
+      <blockquote
+        data-testid="saved-note-quote"
+        className="whitespace-pre-line rounded-input border border-line bg-surface-base p-3 text-body-s text-fg-secondary"
+      >
+        {savedNoteQuote(savedPreferences)}
+      </blockquote>
       <div className="flex items-center gap-3">
         <Button size="md" onClick={onSave} disabled={!canSave} className="w-fit">
           {saving ? 'Збереження...' : 'Зберегти вподобання'}
         </Button>
         {saveStatus === 'success' && <p className="text-body-s text-success">Збережено</p>}
-        {saveStatus === 'error' && <p className="text-body-s text-danger">Помилка збереження. Спробуйте ще раз.</p>}
+        {saveStatus === 'error' && (
+          <p className="text-body-s text-danger">Помилка збереження. Спробуйте ще раз.</p>
+        )}
       </div>
     </Card>
   );

@@ -4,7 +4,12 @@ export interface BarberProductivityPacingInput {
   barberId: string;
   operatingStart: Date;
   operatingEnd: Date;
-  scheduledAppointments: Array<{ start: Date; end: Date; serviceName: string; hairDensity?: 'fine' | 'normal' | 'thick' | 'coarse' }>;
+  scheduledAppointments: Array<{
+    start: Date;
+    end: Date;
+    serviceName: string;
+    hairDensity?: 'fine' | 'normal' | 'thick' | 'coarse';
+  }>;
   targetPacingMinutesPerClient?: number; // e.g. default 30 mins
   chairSanitationBufferMinutes?: number; // e.g. default 5 mins
 }
@@ -25,7 +30,9 @@ export interface BarberProductivityPacingResult {
  * Analyzes barber chair turnover, hair density pacing friction, and sanitation recovery buffers
  * to maximize daily throughput and prevent burnout.
  */
-export function calculateBarberProductivityPacing(input: BarberProductivityPacingInput): BarberProductivityPacingResult {
+export function calculateBarberProductivityPacing(
+  input: BarberProductivityPacingInput
+): BarberProductivityPacingResult {
   const sanitationBuffer = input.chairSanitationBufferMinutes ?? 5;
   const totalClients = input.scheduledAppointments.length;
 
@@ -41,12 +48,13 @@ export function calculateBarberProductivityPacing(input: BarberProductivityPacin
     totalDurationMinutes += duration + sanitationBuffer;
   }
 
-  const averageServiceDurationMinutes = totalClients > 0 ? Math.round((totalDurationMinutes / totalClients) * 10) / 10 : 0;
+  const averageServiceDurationMinutes =
+    totalClients > 0 ? Math.round((totalDurationMinutes / totalClients) * 10) / 10 : 0;
 
   const metrics = calculateChairUtilizationMetrics({
     operatingStart: input.operatingStart,
     operatingEnd: input.operatingEnd,
-    existing: input.scheduledAppointments.map(a => ({ start: a.start, end: a.end })),
+    existing: input.scheduledAppointments.map((a) => ({ start: a.start, end: a.end })),
     chairs: 1,
   });
 
@@ -54,24 +62,30 @@ export function calculateBarberProductivityPacing(input: BarberProductivityPacin
 
   // Compute pacing efficiency score (0 - 100)
   // Ideal occupancy ~ 0.75 - 0.85
-  let pacingEfficiencyScore = Math.round(Math.min(100, Math.max(0, (occupancyRate / 0.80) * 100)));
+  const pacingEfficiencyScore = Math.round(Math.min(100, Math.max(0, (occupancyRate / 0.8) * 100)));
 
   let pacingRating: 'Elite' | 'Optimal' | 'Pacing Deficit' | 'Overburdened' = 'Optimal';
   const recommendations: string[] = [];
 
-  if (occupancyRate > 0.90) {
+  if (occupancyRate > 0.9) {
     pacingRating = 'Overburdened';
-    recommendations.push('High risk of fatigue: Barber is operating above 90% chair occupancy without adequate recovery gaps.');
-    recommendations.push('Recommend adding a 10-minute micro-break or activating the chair sanitation buffer parser.');
+    recommendations.push(
+      'High risk of fatigue: Barber is operating above 90% chair occupancy without adequate recovery gaps.'
+    );
+    recommendations.push(
+      'Recommend adding a 10-minute micro-break or activating the chair sanitation buffer parser.'
+    );
   } else if (occupancyRate >= 0.75) {
     pacingRating = 'Elite';
     recommendations.push('Elite pacing and chair turnover achieved. Excellent revenue velocity.');
-  } else if (occupancyRate >= 0.50) {
+  } else if (occupancyRate >= 0.5) {
     pacingRating = 'Optimal';
     recommendations.push('Balanced workflow and steady chair utilization.');
   } else {
     pacingRating = 'Pacing Deficit';
-    recommendations.push('Under-utilized capacity: Recommend opening walk-in standby slots or smart bundle promotion.');
+    recommendations.push(
+      'Under-utilized capacity: Recommend opening walk-in standby slots or smart bundle promotion.'
+    );
   }
 
   return {

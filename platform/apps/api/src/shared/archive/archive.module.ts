@@ -12,7 +12,10 @@ import { ARCHIVE_STORE, ARCHIVE_UPLOADER } from './archive.ports';
     PrismaService,
     PrismaArchiveStore,
     { provide: ARCHIVE_STORE, useExisting: PrismaArchiveStore },
-    { provide: ARCHIVE_UPLOADER, useFactory: () => new FileArchiveUploader(process.env.ARCHIVE_DIR) },
+    {
+      provide: ARCHIVE_UPLOADER,
+      useFactory: () => new FileArchiveUploader(process.env.ARCHIVE_DIR),
+    },
     {
       provide: ArchiveBookings,
       useFactory: (store, uploader) =>

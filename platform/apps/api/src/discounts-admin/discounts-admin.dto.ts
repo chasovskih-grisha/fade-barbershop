@@ -3,13 +3,7 @@
 
 // Discount rule type values (consolidated from T-153 enum; note: 'birthday' kept for parity with existing data, but could be merged with 'client' in a future ADR)
 export type DiscountRuleType =
-  | 'first_visit'
-  | 'off_peak'
-  | 'day_of_week'
-  | 'category'
-  | 'service'
-  | 'client'
-  | 'birthday';
+  'first_visit' | 'off_peak' | 'day_of_week' | 'category' | 'service' | 'client' | 'birthday';
 
 // Discount rule status values
 export type DiscountRuleStatus = 'active' | 'inactive' | 'archived';
@@ -106,4 +100,35 @@ export class DiscountAuditLog {
   changedBy: string;
   changedAt: Date;
   details?: string;
+}
+
+//
+// Response DTOs (Swagger `type:` targets)
+//
+
+export class DiscountRuleResponse {
+  success!: boolean;
+  data!: object;
+}
+
+export class PromoCodeResponse {
+  success!: boolean;
+  data!: object;
+}
+
+export class ApplyDiscountRuleResponse {
+  success!: boolean;
+  breakdown!: object;
+}
+
+export class DiscountRulesListResponse {
+  success!: boolean;
+  data!: object[];
+  total!: number;
+}
+
+export class PromoCodesListResponse {
+  success!: boolean;
+  data!: object[];
+  total!: number;
 }

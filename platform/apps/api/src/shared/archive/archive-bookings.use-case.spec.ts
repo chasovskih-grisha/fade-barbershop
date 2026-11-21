@@ -1,7 +1,12 @@
 // T-4804: архівування — батчинг, порядок upload→verify→delete, відмова на
 // зіпсованому архіві й аудит залишку.
 import { ArchiveBookings, monthsAgo } from './archive-bookings.use-case';
-import type { ArchiveStore, ArchiveUploader, ArchivedBooking, ArchiveRunRecord } from './archive.ports';
+import type {
+  ArchiveStore,
+  ArchiveUploader,
+  ArchivedBooking,
+  ArchiveRunRecord,
+} from './archive.ports';
 import { checksumOf, decodeArchive, encodeArchive } from './archive-manifest';
 
 const NOW = new Date('2026-11-17T12:00:00Z');
@@ -42,12 +47,18 @@ class FakeUploader implements ArchiveUploader {
   }
 }
 
-const booking = (id: string): ArchivedBooking => ({ id, start: '2024-01-05T10:00:00Z', clientId: `c-${id}` });
+const booking = (id: string): ArchivedBooking => ({
+  id,
+  start: '2024-01-05T10:00:00Z',
+  clientId: `c-${id}`,
+});
 
 describe('ArchiveBookings (T-4804)', () => {
   it('cutoff віднімає місяці в UTC', () => {
     expect(monthsAgo(NOW, 24).toISOString()).toBe('2024-11-17T12:00:00.000Z');
-    expect(monthsAgo(new Date('2027-01-31T00:00:00Z'), 2).toISOString()).toBe('2026-11-30T00:00:00.000Z');
+    expect(monthsAgo(new Date('2027-01-31T00:00:00Z'), 2).toISOString()).toBe(
+      '2026-11-30T00:00:00.000Z'
+    );
   });
 
   it('вивантажує батчами, перевіряє checksum і видаляє лише після звірки', async () => {
@@ -59,12 +70,15 @@ describe('ArchiveBookings (T-4804)', () => {
 
     expect(result.archived).toBe(3);
     expect(result.remaining).toBe(0);
-    expect(result.keys).toEqual(['archive/bookings/2024-11/part-0000.json.gz', 'archive/bookings/2024-11/part-0001.json.gz']);
+    expect(result.keys).toEqual([
+      'archive/bookings/2024-11/part-0000.json.gz',
+      'archive/bookings/2024-11/part-0001.json.gz',
+    ]);
     const first = uploader.objects.get(result.keys[0] ?? '');
     expect(first).toBeDefined();
     expect(decodeArchive(first ?? Buffer.alloc(0))).toHaveLength(2);
     expect(store.runs[0]?.archived).toBe(3);
-    expect(store.runs[0]?.checksums[0]).toBe(checksumOf(first ?? Buffer.alloc(0)));
+    expect(store.runs[0]?.checksums?.[0]).toBe(checksumOf(first ?? Buffer.alloc(0)));
   });
 
   it('не видаляє рядки, якщо checksum не збігся', async () => {

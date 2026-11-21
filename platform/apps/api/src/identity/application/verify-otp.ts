@@ -7,7 +7,14 @@
 
 import { PhoneNumber } from '../domain/phone-number';
 import type { OtpVerifyResult } from '../domain/otp-challenge';
-import { InvalidOtpInputError, OtpChallengeNotFoundError, OtpExpiredError, OtpInvalidError, OtpLockedError, OtpPurposeMismatchError } from './identity-errors';
+import {
+  InvalidOtpInputError,
+  OtpChallengeNotFoundError,
+  OtpExpiredError,
+  OtpInvalidError,
+  OtpLockedError,
+  OtpPurposeMismatchError,
+} from './identity-errors';
 import { issueVerifySession } from './verify-otp.issue-session';
 import type {
   VerifyOtpDeps,

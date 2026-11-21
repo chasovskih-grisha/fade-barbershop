@@ -12,7 +12,7 @@ describe('AIStylingConcierge Component', () => {
 
   it('allows selecting face shape and running analysis to show recommendations', async () => {
     render(<AIStylingConcierge />);
-    
+
     // Select square face shape
     const squareBtn = screen.getByText(/Квадратне/i);
     fireEvent.click(squareBtn);
@@ -25,9 +25,12 @@ describe('AIStylingConcierge Component', () => {
     expect(screen.getByText(/Аналізуємо пропорції та тренди/i)).toBeInTheDocument();
 
     // Wait for recommendation step
-    await waitFor(() => {
-      expect(screen.getByText(/Аналіз успішно завершено/i)).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Аналіз успішно завершено/i)).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
 
     expect(screen.getAllByText(/High Skin Fade & Hard Part/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Записатись на цей образ →/i)).toBeInTheDocument();

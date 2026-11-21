@@ -1,174 +1,168 @@
-import { Booking, BookingRepository } from '../domain/booking';
-import { RefundEntity, RefundStatus, RefundReason } from '../../payment/domain/refund.entity';
+/* eslint-disable max-lines -- cohesive module (127 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
+// T-095: ескалація незакритих no-show (запланована задача): через 24 години
+// візит зі статусом `pending` no-show фіксується остаточно.
+//
+// NSH-003: сама ескалація депозит **утримує** — платіж не рухається. Повернення
+// відбувається лише коли ескалацію знімають (NSH-ADM-03 / PAY-005б), тому
+// рішення передається явно (`resolution: 'refund'`), а не виводиться з суми.
+// Гроші йдуть через `T094Refund`: захоплена сума, перший коміт виграє,
+// видатковий чек і `failed` з обмеженими повторами — усе там.
+import { Logger } from '@nestjs/common';
+import { Booking } from '../domain/booking';
+import { RefundEntity, RefundStatus } from '../../payment/domain/refund.entity';
 import { T094Refund } from '../../payment/application/refund.use-case';
 import { usePush } from '../../lib/notifications';
-import type { RefundMetadata } from '../../payment/domain/refund.entity';
 
-/** T-095: No-Show Escalation - automatic detection and handling of missed appointments.
- * Escalates bookings where client didn't show up after 24 hours.
- * Full refund processed since no deposit typically paid for walk-in/no-deposit bookings.
- * Push notification + email sent to client. Balance updated. Audit log created.
- */
+/** Читання й збереження бронювань, потрібні ескалації. */
+export interface EscalationBookingReader {
+  findMany(query: {
+    where: { noShowStatus: string; start: { lt: Date } };
+    order?: { start: 'asc' | 'desc' };
+  }): Promise<Booking[]>;
+  save(booking: Booking): Promise<void>;
+}
+
+export type EscalationResolution = 'retain' | 'refund';
+
+export interface EscalationOptions {
+  /** `retain` (дефолт) — депозит лишається, платіж не рухається (NSH-003). */
+  resolution?: EscalationResolution;
+  /** Код підстави для refund; дефолт — зняття no-show адміном (NSH-ADM-03). */
+  reasonCode?: string;
+  /** Ключ ідемпотентності refund; дефолт — `ns_<bookingId>`. */
+  refundId?: string;
+  now?: Date;
+}
+
+export interface EscalationResult {
+  booking: Booking;
+  refund: RefundEntity | null;
+  refundError?: string;
+  notificationSent: boolean;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 export class T095NoShowEscalation {
   constructor(
-    private readonly bookingRepo: BookingRepository,
+    private readonly bookingRepo: EscalationBookingReader,
     private readonly refundUseCase: T094Refund
   ) {}
 
-  /** Main escalation check: finds bookings eligible for no-show escalation.
-   * Looks for bookings with noShowStatus 'pending' older than 24h from start time.
-   * Returns bookings that need escalation.
-   */
-  async findEligibleForEscalation(): Promise<Booking[]> {
-    const now = new Date();
-    // Find bookings where:
-    // - noShowStatus is 'pending'
-    // - booking start time was more than 24h ago
-    // - booking not already escalated or completed
+  /** Візити, які прострочили no-show на 24 години й ще не ескаловані. */
+  async findEligibleForEscalation(now: Date = new Date()): Promise<Booking[]> {
     const bookings = await this.bookingRepo.findMany({
       where: {
         noShowStatus: 'pending',
-        start: {
-          // Booking started more than 24 hours ago
-          lt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
-        },
+        start: { lt: new Date(now.getTime() - DAY_MS) },
       },
-      order: {
-        start: 'asc',
-      },
+      order: { start: 'asc' },
     });
 
-    return bookings.filter((b) => {
-      // Skip if already escalated
-      if (b.noShowStatus === 'escalated') return false;
-      // Skip if booking status is already COMPLETED or CANCELLED
-      if (b.status === 'completed' || b.status === 'cancelled') return false;
-      // Check if 24h has passed since booking start
-      const timeSinceStart = now.getTime() - b.start.getTime();
-      return timeSinceStart >= 24 * 60 * 60 * 1000;
+    return bookings.filter((booking) => {
+      if (booking.noShowStatus === 'escalated') return false;
+      if (booking.status === 'completed' || booking.status === 'cancelled') return false;
+      return now.getTime() - booking.start.getTime() >= DAY_MS;
     });
   }
 
-  /** Escalate a single booking: update status, process refund, send notifications.
-   * This is the core T-095 logic.
+  /**
+   * Ескалація одного візиту: фіксує статус і (за рішенням) повертає депозит.
+   *
+   * `refund` викликається до збереження остаточного статусу, щоб невдача
+   * еквайрингу не залишила візит «ескалованим із поверненими грошима».
    */
-  async escalateBooking(booking: Booking): Promise<{
-    booking: Booking;
-    refund: RefundEntity;
-    notificationSent: boolean;
-  }> {
-    const now = new Date();
+  async escalateBooking(
+    booking: Booking,
+    options: EscalationOptions = {}
+  ): Promise<EscalationResult> {
+    const now = options.now ?? new Date();
+    const resolution = options.resolution ?? 'retain';
 
-    // 1. Update booking no-show status
-    booking.noShowStatus = 'escalated';
-    booking.noShowEscalatedAt = now;
-    booking.noShowRefundId = `ns_${booking.id}_${Date.now()}`;
-    booking.status = 'cancelled'; // or 'no_show' depending on domain model
-    booking.refundStatus = RefundStatus.PROCESSING;
-    booking.refundInitiatedAt = now;
-    booking.refundReason = RefundReason.NO_SHOW;
-    booking.refundReasonCode = 'NSH-ADM-04';
-    booking.refundMetadata = JSON.stringify({
-      escalationId: booking.noShowRefundId,
-      originalBookingId: booking.id,
-      trigger: '24h_no_show',
-    });
+    let refund: RefundEntity | null = null;
+    let refundError: string | undefined;
 
-    // 2. Process full refund (no deposit typically paid for no-shows)
-    // Since no deposit was paid, we refund the full finalPrice
-    const finalPrice = booking.finalPrice ?? 0;
-    const refundResult = await this.refundUseCase.initiateRefund(
-      booking.id,
-      finalPrice,
-      RefundReason.NO_SHOW,
-      booking.noShowRefundId
-    );
-
-    const refund = refundResult.refund;
-
-    // 3. Update booking with refund details
-    booking.capturedRefundAmount = refund.amount;
-    booking.refundId = refund.refundId;
-    booking.status = 'cancelled'; // final status
-
-    // 4. Persist booking changes (in real impl, would save to DB)
-    // await this.bookingRepo.save(booking);
-
-    // 5. Send push notification to client
-    const { permission, allowed, register, revoke, error } = usePush();
-    if (permission === 'granted' && allowed) {
-      const clientMessage = `Ваш візит ${booking.id} був відмічен як no-show. Повна сума ${refund.amount} UAH буде повернена до способи оплати.`;
+    if (resolution === 'refund') {
       try {
-        // Register push notification for client
-        // await register({
-        //   title: 'No-show Escalation',
-        //   body: clientMessage,
-        //   data: { type: 'no_show_escalation', bookingId: booking.id },
-        // });
-      } catch (e) {
-        console.error('Failed to send push notification:', e);
+        const result = await this.refundUseCase.initiateRefund(
+          booking.id,
+          undefined,
+          options.reasonCode ?? 'NSH-ADM-03',
+          options.refundId ?? `ns_${booking.id}`
+        );
+        refund = result.refund;
+        booking.noShowRefundId = result.refund.refundId;
+      } catch (error) {
+        refundError = error instanceof Error ? error.message : String(error);
       }
     }
 
-    // 6. Send email to client (would use transactional email service)
-    // await sendNoShowEmail(booking, refund);
+    // NSH-003: утримання депозиту не змінює статус платежу.
+    booking.noShowStatus = refundError ? 'escalation_failed' : 'escalated';
+    booking.noShowEscalatedAt = now;
+    booking.status = 'cancelled';
+    await this.bookingRepo.save(booking);
 
-    // 7. Update client balance reflection
-    // await updateClientBalance(booking.clientId!, refund.amount);
+    const notificationSent = await this.notifyClient(booking, refund);
 
-    return {
-      booking,
-      refund,
-      notificationSent: permission === 'granted', // simplified check
-    };
+    const result: EscalationResult = { booking, refund, notificationSent };
+    if (refundError) result.refundError = refundError;
+    return result;
   }
 
-  /** Run full escalation: find all eligible bookings and process them.
-   * Typically called by a scheduled job/cron.
-   */
-  async runEscalation(): Promise<{
+  /** Пакетний прогін (cron): по одному візиту, помилки не зривають решту. */
+  async runEscalation(options: EscalationOptions = {}): Promise<{
     totalChecked: number;
     totalEscalated: number;
     totalRefunded: number;
     errors: string[];
   }> {
-    const eligible = await this.findEligibleForEscalation();
+    const now = options.now ?? new Date();
+    const eligible = await this.findEligibleForEscalation(now);
     const errors: string[] = [];
-    const results: Array<{
-      booking: Booking;
-      refund: RefundEntity;
-      success: boolean;
-    }> = [];
-
     let totalEscalated = 0;
     let totalRefunded = 0;
 
     for (const booking of eligible) {
       try {
-        const result = await this.escalateBooking(booking);
-        results.push({
-          booking,
-          refund: result.refund,
-          success: true,
-        });
-        totalEscalated++;
-        totalRefunded += result.refund.amount;
-      } catch (error: any) {
-        console.error(`No-show escalation error for booking ${booking.id}:`, error);
-        errors.push(`Booking ${booking.id}: ${error.message}`);
-        results.push({
-          booking,
-          refund: { refundId: '', amount: 0, status: RefundStatus.FAILED } as any,
-          success: false,
-        });
+        const result = await this.escalateBooking(booking, { ...options, now });
+        totalEscalated += 1;
+        totalRefunded +=
+          result.refund?.status === RefundStatus.COMPLETED ? result.refund.amount : 0;
+        if (result.refundError) errors.push(`Booking ${booking.id}: ${result.refundError}`);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        Logger.error(
+          `No-show escalation error for booking ${booking.id}: ${message}`,
+          'NoShowEscalation'
+        );
+        errors.push(`Booking ${booking.id}: ${message}`);
       }
     }
 
     return {
-      totalChecked: eligible.length + (await this.bookingRepo.count({})), // simplified
+      totalChecked: eligible.length,
       totalEscalated,
       totalRefunded,
       errors,
     };
+  }
+
+  /** NSH-007: нейтральний текст, без штрафних формулювань. */
+  private async notifyClient(booking: Booking, refund: RefundEntity | null): Promise<boolean> {
+    const body = refund
+      ? `Вас не було на записі ${booking.start.toLocaleDateString('uk-UA')}. Депозит повернено. Записатися знову можна в застосунку.`
+      : `Вас не було на записі ${booking.start.toLocaleDateString('uk-UA')}. Записатися знову можна в застосунку.`;
+    try {
+      await usePush().send({
+        title: 'Запис',
+        body,
+        data: { type: 'no_show_escalation', bookingId: booking.id },
+      });
+      return true;
+    } catch (error) {
+      Logger.error(`Failed to send no-show push: ${String(error)}`, 'NoShowEscalation');
+      return false;
+    }
   }
 }

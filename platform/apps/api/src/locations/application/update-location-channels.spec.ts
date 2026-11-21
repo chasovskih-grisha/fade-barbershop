@@ -28,8 +28,8 @@ describe('UpdateLocationHandler channels/photos/events', () => {
       photos: [{ url: 'https://fade.com.ua/img/a.jpg', caption: 'Inside', sortOrder: 1 }],
     });
     const location = await seed.locations.findById('loc-1');
-    expect(location?.channels.map((c) => c.channel)).toEqual(['phone', 'instagram']);
-    expect(location?.photos.map((p) => p.url)).toEqual(['https://fade.com.ua/img/a.jpg']);
+    expect(location?.channels?.map((c) => c.channel)).toEqual(['phone', 'instagram']);
+    expect(location?.photos?.map((p) => p.url)).toEqual(['https://fade.com.ua/img/a.jpg']);
     expect(seed.outbox.events.slice(before).map((e) => e.type)).toEqual([
       'locations.location.channels_changed',
       'locations.location.photos_changed',

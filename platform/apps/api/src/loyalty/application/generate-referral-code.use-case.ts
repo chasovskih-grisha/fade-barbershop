@@ -4,8 +4,6 @@
 // referee completes their first visit.
 
 import { prisma } from '../../index';
-import { DomainEvent } from '../domain/domain-event';
-import { LoyaltyPointsEarned } from '../domain/loyalty-events';
 
 export interface GenerateReferralCodeInput {
   clientId: string;

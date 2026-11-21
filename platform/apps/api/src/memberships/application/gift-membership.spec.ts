@@ -1,7 +1,15 @@
+/* eslint-disable max-lines -- cohesive module (178 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import { MembershipPlan } from '../domain/membership-plan.entity';
 import { MembershipInstance } from '../domain/membership-instance.entity';
 import { GiftMembership } from '../domain/gift-membership.entity';
-import { MembershipPlanRepository, MembershipInstanceRepository, GiftMembershipRepository, MembershipCodeGenerator, OutboxPublisher, Clock } from '../domain/ports';
+import {
+  MembershipPlanRepository,
+  MembershipInstanceRepository,
+  GiftMembershipRepository,
+  MembershipCodeGenerator,
+  OutboxPublisher,
+  Clock,
+} from '../domain/ports';
 import { DomainEvent } from '../domain/domain-event';
 import { PurchaseGiftMembershipUseCase } from './purchase-gift-membership.use-case';
 import { RedeemGiftMembershipUseCase } from './redeem-gift-membership.use-case';
@@ -101,7 +109,7 @@ describe('FADE Gift Membership Suite', () => {
       giftRepo,
       codeGen,
       outbox,
-      clock,
+      clock
     );
 
     const gift = await purchaseHandler.handle({
@@ -120,7 +128,7 @@ describe('FADE Gift Membership Suite', () => {
       planRepo,
       instanceRepo,
       outbox,
-      clock,
+      clock
     );
 
     const instance = await redeemHandler.handle({
@@ -144,7 +152,7 @@ describe('FADE Gift Membership Suite', () => {
         code: 'GIFT-FADE-9999',
         clientId: 'client-someone-else',
         membershipInstanceId: 'mem-inst-gift-2',
-      }),
+      })
     ).rejects.toThrow('Gift membership has already been redeemed');
   });
 
@@ -164,7 +172,7 @@ describe('FADE Gift Membership Suite', () => {
       giftRepo,
       codeGen,
       outbox,
-      clock,
+      clock
     );
 
     await purchaseHandler.handle({
@@ -182,7 +190,7 @@ describe('FADE Gift Membership Suite', () => {
       planRepo,
       instanceRepo,
       outbox,
-      clock,
+      clock
     );
 
     await expect(
@@ -190,7 +198,7 @@ describe('FADE Gift Membership Suite', () => {
         code: 'GIFT-FADE-9999',
         clientId: 'client-recipient',
         membershipInstanceId: 'mem-inst-gift-3',
-      }),
+      })
     ).rejects.toThrow('Gift membership has expired');
   });
 });

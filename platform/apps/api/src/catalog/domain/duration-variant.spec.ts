@@ -1,4 +1,10 @@
-import { InvalidDurationVariantError, assertDurationVariant, resolveDurations, selectDurationVariant, type DurationVariant } from './duration-variant';
+import {
+  InvalidDurationVariantError,
+  assertDurationVariant,
+  resolveDurations,
+  selectDurationVariant,
+  type DurationVariant,
+} from './duration-variant';
 
 const short: DurationVariant = {
   label: 'short',

@@ -23,9 +23,9 @@ A count without the zero rule gets hidden for new clients, and a count without t
 
 ## Done
 
-- [ ] §2 states the sentence, zero, and the error
-- [ ] §5 points at §2
-- [ ] `pnpm docs:validate` reports no new error from these files
+- [x] §2 states the sentence, zero, and the error
+- [x] §5 points at §2
+- [x] `pnpm docs:validate` reports no new error from these files (7 pre-existing errors unchanged: 6× status «qa», 1× unescaped `|` in m5)
 
 ## Risks
 

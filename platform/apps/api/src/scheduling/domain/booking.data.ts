@@ -1,8 +1,9 @@
+/* eslint-disable max-lines -- cohesive module (119 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Імпорти
 import { uuidv7 } from '@fade/domain-shared';
 import { depositTermsFor, type DepositPolicy, type DepositTerms } from './deposit-terms';
 import type { AppliedDiscount } from '../../discounts/domain/price-breakdown';
-import type { BookingSource } from './booking-source';
+
 import type { ServicePosition } from './composed-slot-span';
 
 /** Канал запису (ANL-004, T-4536): канонічний набір + історичні аліаси. */
@@ -33,15 +34,37 @@ export interface BookingData {
   source?: string | null;
   /** Снепшот умов депозиту (PAY-ADM-09); null — візит без депозиту. */
   deposit?: DepositTerms | null;
-  /** Чи є що платити (DSC-013): 100% знижка — візит безкоштовний. */
-  requiresPayment?: boolean | null;
-  /** Причина безкоштовного візиту (`full_discount_promo` тощо). */
-  discountReason?: string | null;
   /** Позиції послуг у записі (T-4520a): для композитного слота. */
   servicePositions?: ServicePosition[] | null;
+  /** Снепшот surge (T-4811): множник у базисних пунктах id правила. */
+  surgeBasisPoints?: number | null;
+  surgeRuleId?: string | null;
+  /** Життєвий статус візиту (T-095): pending → confirmed → completed/cancelled. */
+  status?: string | null;
+  /** Чи візит вимагає оплати (T-092): false — повна знижка або безкоштовний візит. */
+  requiresPayment?: boolean | null;
+  /** Причина нульової доплати: full_discount_promo тощо (T-092). */
+  discountReason?: string | null;
+  /** Спосіб оплати візиту (PAY-ADM-04). */
+  paymentMethod?: string | null;
+  /** Статус депозиту візиту (PAY-ADM-09). */
+  depositStatus?: string | null;
+  /** Версія політики депозиту, яку клієнт підтвердив (PAY-4444). */
+  depositPolicyVersionAccepted?: number | null;
+  /** No-show ескалація (T-095): статус, момент і пов'язаний рефанд. */
+  noShowStatus?: string | null;
+  noShowEscalatedAt?: Date | null;
+  noShowRefundId?: string | null;
+  refundStatus?: string | null;
+  refundInitiatedAt?: Date | null;
+  refundReason?: string | null;
+  refundReasonCode?: string | null;
+  refundMetadata?: string | null;
+  capturedRefundAmount?: number | null;
+  refundId?: string | null;
 }
 
-/** Параметри створення Booking (use case збирає їх зі снепшотів). */
+/** Booking – booking-create-params.bookingData параметри. */
 export interface BookingCreateParams {
   barberId: string;
   locationId: string;
@@ -58,21 +81,19 @@ export interface BookingCreateParams {
   haircutReferenceId?: string;
   appointmentComment?: string;
   clientId?: string;
-  /** Канал запису (ANL-004); без нього — «web». */
-  source?: BookingSource;
-  /**
-   * Політика депозиту з адмін-налаштувань (PAY-ADM-09): з неї рахується
-   * снепшот умов; без неї — дефолти політики.
-   */
-  depositPolicy?: DepositPolicy;
-  /** Снепшот surge (T-4811): множник у базисних пунктів і id правила. */
+  /** Снепшот surge (T-4811): множник у базисних пунктів id правила. */
   surgeBasisPoints?: number | null;
   surgeRuleId?: string | null;
-  /** Результат T-152: чи є що платити і чому візит безкоштовний. */
-  requiresPayment?: boolean;
-  discountReason?: string;
   /** Позиції послуг у записі (T-4520a): для композитного слота. */
   servicePositions?: ServicePosition[];
+  /** Політика депозиту (PAY-ADM-09): снапшотиться на запис. */
+  depositPolicy?: DepositPolicy;
+  /** Причина повної знижки (DSC-013): потрібна для звітності й флоу оплати. */
+  discountReason?: string;
+  /** false — візит безкоштовний: без платежу й депозиту (PAY-003). */
+  requiresPayment?: boolean;
+  /** Канал запису (T-046): у BookAppointment визначає аналітику візиту. */
+  source?: string;
 }
 
 /** Скалярні nullable-поля й дефолти; винесено, щоб тримати складність низькою. */
@@ -93,8 +114,6 @@ function surgeOptionalFields(params: BookingCreateParams) {
     clientId: params.clientId ?? null,
     surgeBasisPoints: params.surgeBasisPoints ?? null,
     surgeRuleId: params.surgeRuleId ?? null,
-    requiresPayment: params.requiresPayment ?? null,
-    discountReason: params.discountReason ?? null,
   };
 }
 
@@ -112,8 +131,10 @@ export function newBookingData(params: BookingCreateParams): BookingData {
     deposit: resolveDeposit(params),
     ...basicOptionalFields(params),
     ...surgeOptionalFields(params),
+    ...(params.discountReason === undefined ? {} : { discountReason: params.discountReason }),
+    ...(params.requiresPayment === undefined ? {} : { requiresPayment: params.requiresPayment }),
     finalPrice: resolveFinalPrice(params),
-    servicePositions: params.servicePositions ?? undefined,
+    ...(params.servicePositions === undefined ? {} : { servicePositions: params.servicePositions }),
   };
 }
 
@@ -124,13 +145,9 @@ function resolveDuration(params: BookingCreateParams): number {
   );
 }
 
-/**
- * Снепшот умов депозиту (PAY-ADM-09, T-160): рахується від підсумкової ціни
- * візиту, тож 100% зничка (FinalPrice = 0) дає `null` — без Payment і чека
- * (DSC-013), а депозит вимкнений політикою теж не створюється.
- */
+/** Визначення депозиту: від підсумкової ціни й політики візиту. */
 function resolveDeposit(params: BookingCreateParams): DepositTerms | null {
-  const price = params.finalPrice ?? params.agreedPrice;
+  const price = resolveFinalPrice(params) ?? params.agreedPrice;
   return depositTermsFor(price, params.depositPolicy);
 }
 

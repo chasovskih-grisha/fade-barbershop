@@ -1,7 +1,12 @@
 import { Controller, Get, Post, Body, Param, UsePipes } from '@nestjs/common';
 import { z } from 'zod';
 import { ZodValidationPipe } from '../../shared/validation/zod-validation.pipe';
-import { CreateSupportTicketUseCase, ResolveSupportTicketUseCase, GetInteractiveFaqsUseCase, GetErrorRecoverySuggestionUseCase } from '../application/support.use-cases';
+import {
+  CreateSupportTicketUseCase,
+  ResolveSupportTicketUseCase,
+  GetInteractiveFaqsUseCase,
+  GetErrorRecoverySuggestionUseCase,
+} from '../application/support.use-cases';
 import { InMemorySupportRepository } from '../application/in-memory-support.repository';
 
 const CreateTicketSchema = z.object({
@@ -10,7 +15,13 @@ const CreateTicketSchema = z.object({
   clientName: z.string().min(1, 'Client name is required'),
   clientEmail: z.string().email('Invalid email address'),
   clientPhone: z.string().min(5, 'Phone number is required'),
-  category: z.enum(['BOOKING_ISSUE', 'PAYMENT_REFUND', 'SERVICE_FEEDBACK', 'CANCELLATION', 'GENERAL_INQUIRY'] as const),
+  category: z.enum([
+    'BOOKING_ISSUE',
+    'PAYMENT_REFUND',
+    'SERVICE_FEEDBACK',
+    'CANCELLATION',
+    'GENERAL_INQUIRY',
+  ] as const),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'] as const),
   subject: z.string().min(3, 'Subject must be at least 3 characters'),
   message: z.string().min(10, 'Message must be at least 10 characters'),
@@ -30,7 +41,9 @@ export class SupportController {
   private readonly createTicketUseCase = new CreateSupportTicketUseCase(this.repository);
   private readonly resolveTicketUseCase = new ResolveSupportTicketUseCase(this.repository);
   private readonly getFaqsUseCase = new GetInteractiveFaqsUseCase(this.repository);
-  private readonly getErrorSuggestionUseCase = new GetErrorRecoverySuggestionUseCase(this.repository);
+  private readonly getErrorSuggestionUseCase = new GetErrorRecoverySuggestionUseCase(
+    this.repository
+  );
 
   @Post('tickets')
   @UsePipes(new ZodValidationPipe(CreateTicketSchema))
@@ -40,10 +53,7 @@ export class SupportController {
 
   @Post('tickets/:id/resolve')
   @UsePipes(new ZodValidationPipe(ResolveTicketSchema))
-  async resolveTicket(
-    @Param('id') id: string,
-    @Body() body: ResolveTicketDto,
-  ) {
+  async resolveTicket(@Param('id') id: string, @Body() body: ResolveTicketDto) {
     return this.resolveTicketUseCase.execute({
       ticketId: id,
       resolutionNotes: body.resolutionNotes,

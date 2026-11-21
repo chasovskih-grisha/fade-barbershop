@@ -52,7 +52,9 @@ describe('SupportCenterPage', () => {
     expect(screen.getByText('Миттєвий чат підтримки FADE')).toBeDefined();
     const quickPrompt = screen.getByRole('button', { name: /Як скасувати запис\?/i });
     fireEvent.click(quickPrompt);
-    expect(await screen.findByText(/Ви можете безкоштовно скасувати або перенести запис/i)).toBeDefined();
+    expect(
+      await screen.findByText(/Ви можете безкоштовно скасувати або перенести запис/i)
+    ).toBeDefined();
   });
 
   it('allows requesting an instant callback', () => {

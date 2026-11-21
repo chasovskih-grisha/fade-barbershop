@@ -21,7 +21,7 @@ describe('AdminBookingDetail (admin-screens §5.2)', () => {
       barber: { name: 'Іван', phone: '+380501111111' },
       client: { name: 'Марко', profileId: 'cp-1', vipDiscountPercent: 10, loyaltyVisitsCount: 3 },
     });
-    expect(detail?.events[0]).toMatchObject({
+    expect(detail?.events?.[0]).toMatchObject({
       label: 'Перенесено',
       status: 'pending',
       publishedAt: null,
@@ -30,7 +30,7 @@ describe('AdminBookingDetail (admin-screens §5.2)', () => {
         '2026-11-09T09:00:00.000Z–2026-11-09T09:30:00.000Z → 2026-11-09T10:00:00.000Z–2026-11-09T10:30:00.000Z',
       ],
     });
-    expect(detail?.notifications[0]).toMatchObject({
+    expect(detail?.notifications?.[0]).toMatchObject({
       channel: 'email',
       recipient: 'a@b.c',
       subject: 'Візит перенесено',
@@ -57,7 +57,7 @@ describe('AdminBookingDetail (admin-screens §5.2)', () => {
           .mockResolvedValue([{ ...outboxRow, publishedAt: new Date('2026-11-08T12:00:03.000Z') }]),
       },
     });
-    expect((await readModel.handle('bk-1'))?.events[0]).toMatchObject({
+    expect((await readModel.handle('bk-1'))?.events?.[0]).toMatchObject({
       status: 'published',
       publishedAt: '2026-11-08T12:00:03.000Z',
     });

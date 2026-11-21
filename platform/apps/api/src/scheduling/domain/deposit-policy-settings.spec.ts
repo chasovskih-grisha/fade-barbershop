@@ -1,7 +1,12 @@
 // Політика депозиту як налаштування (PAY-ADM-09): дефолти, затискання
 // діапазонів і кроки округлення. Зіпсований JSON не має ламати запис.
 import { DEFAULT_DEPOSIT_POLICY, depositTermsFor } from './deposit-terms';
-import { DEPOSIT_POLICY_SETTING_KEY, parseDepositPolicySettings, parsePolicyVersion, sameDepositPolicy } from './deposit-policy-settings';
+import {
+  DEPOSIT_POLICY_SETTING_KEY,
+  parseDepositPolicySettings,
+  parsePolicyVersion,
+  sameDepositPolicy,
+} from './deposit-policy-settings';
 
 describe('parseDepositPolicySettings', () => {
   it('без значення віддає дефолти PAY-ADM-09', () => {

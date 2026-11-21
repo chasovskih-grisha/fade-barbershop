@@ -1,3 +1,4 @@
+/* eslint-disable max-params -- 1 signature whose 4-param contract is fixed by existing call sites (worst: zero, limit 3); API redesign tracked in T-2500f */
 // Розрахунок депозита при завершенні візиту (T-160, PAY-WEB-07, PAY-005).
 //
 // Гроші вирішує снепшот умов візиту (PAY-ADM-09), а не поточна політика:

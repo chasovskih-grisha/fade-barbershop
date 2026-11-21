@@ -9,7 +9,10 @@ import { RequestErasure } from './application/request-erasure';
 import { RunErasure } from './application/run-erasure';
 import { PrismaErasureStore } from './infrastructure/prisma-erasure.store';
 import { OtpChallengeVerifier, S3ErasureObjects } from './infrastructure/erasure.adapters';
-import { AccountErasureController, AccountErasureReportController } from './infrastructure/erasure.controller';
+import {
+  AccountErasureController,
+  AccountErasureReportController,
+} from './infrastructure/erasure.controller';
 import { ErasureWorker } from './infrastructure/erasure.worker';
 
 const logger = new Logger('AccountErasure');

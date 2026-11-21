@@ -1,7 +1,7 @@
 ---
 id: T-6009
 title: "Defect: T-4300c missing implementation plan verification checks"
-status: todo
+status: review
 sp: 2
 priority: medium
 category: qa, backend, devops

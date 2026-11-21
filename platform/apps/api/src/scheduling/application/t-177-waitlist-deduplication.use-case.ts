@@ -1,15 +1,16 @@
 /**
  * T-177: Waitlist Deduplication and Client History Integration
- * 
+ *
  * Implement waitlist deduplication and client visit history integration,
  * ensuring clients don't get multiple waitlist entries and
  * their visit history is properly tracked for priority scoring.
  */
 
+import { Inject, Injectable } from '@nestjs/common';
 import { WaitlistQueue } from '../domain/waitlist-queue';
-import { ClientRepository } from '../../clients/domain/repositories';
-import { AppointmentRepository } from '../domain/repositories';
-import { uuidv7 } from '@fade/domain-shared';
+import { CLIENT_REPOSITORY, type ClientRepository } from '../../clients/domain/repositories';
+import { APPOINTMENT_RECORD_REPOSITORY, type AppointmentRepository } from '../domain/repositories';
+import { v4 as uuidv4 } from '../../lib/uuid';
 
 /**
  * Interface for deduplication check input
@@ -34,15 +35,16 @@ export interface DeduplicationCheckResult {
 
 /**
  * T-177: Waitlist Deduplication and Client History Integration
- * 
+ *
  * Ensures clients don't receive duplicate waitlist entries and
  * integrates with client visit history for better priority scoring.
  */
+@Injectable()
 export class T177WaitlistDeduplicationUseCase {
   constructor(
-    private waitlistQueue: WaitlistQueue,
-    private clientRepo: ClientRepository,
-    private appointmentRepo: AppointmentRepository
+    @Inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
+    @Inject(CLIENT_REPOSITORY) private clientRepo: ClientRepository,
+    @Inject(APPOINTMENT_RECORD_REPOSITORY) private appointmentRepo: AppointmentRepository
   ) {}
 
   /**
@@ -50,7 +52,7 @@ export class T177WaitlistDeduplicationUseCase {
    * Returns deduplication status and whether they should be promoted.
    */
   async checkDeduplication(input: DeduplicationCheckInput): Promise<DeduplicationCheckResult> {
-    const { clientId, serviceId } = input;
+    const { clientId } = input;
 
     // Check for active waitlist entry
     const activeEntry = await this.waitlistQueue.getActiveEntry(clientId);
@@ -70,27 +72,33 @@ export class T177WaitlistDeduplicationUseCase {
     const isDuplicate = !!(activeEntry || recentBookings.length > 0);
 
     // Determine if client should be promoted (has history, can be moved to front)
-    const shouldPromote = !isDuplicate || recentBookings[0]?.status === 'completed';
+    const latestBooking = recentBookings[0];
+    const shouldPromote = !isDuplicate || latestBooking?.status === 'completed';
 
     let existingEntryInfo;
     if (activeEntry) {
       existingEntryInfo = {
         entryId: activeEntry.id,
-        bookedAt: String((activeEntry as { addedAt?: unknown }).addedAt ?? ''),
+        bookedAt: activeEntry.addedAt.toISOString(),
         status: activeEntry.status,
       };
     }
 
-    const result: DeduplicationCheckResult = { isDuplicate, shouldPromote };
-    if (isDuplicate && existingEntryInfo) result.existingEntry = existingEntryInfo;
-    return result;
+    return {
+      isDuplicate,
+      ...(existingEntryInfo === undefined ? {} : { existingEntry: existingEntryInfo }),
+      shouldPromote,
+    };
   }
 
   /**
    * Create or update a waitlist entry, ensuring no duplicates.
    * If client already has entry, update it rather than create new.
    */
-  async upsertWaitlistEntry(clientId: string, serviceId: string): Promise<{
+  async upsertWaitlistEntry(
+    clientId: string,
+    serviceId: string
+  ): Promise<{
     success: boolean;
     entryId: string;
     duplicate: boolean;
@@ -105,7 +113,7 @@ export class T177WaitlistDeduplicationUseCase {
     }
 
     // Create new waitlist entry
-    const entryId = uuidv7();
+    const entryId = uuidv4();
     const now = new Date();
 
     await this.waitlistQueue.addEntry({

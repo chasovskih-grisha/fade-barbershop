@@ -29,9 +29,7 @@ describe('RunErasure (T-4805)', () => {
     expect(objects.removed).toEqual([['photos/a.jpg', 'photos/b.jpg']]);
     expect(store.rows[0]?.status).toBe('completed');
     expect(store.rows[0]?.report).toMatchObject({ sessionsRevoked: 2, objectsDeleted: 2 });
-    expect(audit).toEqual([
-      expect.objectContaining({ status: 'completed', objectsDeleted: 2 }),
-    ]);
+    expect(audit).toEqual([expect.objectContaining({ status: 'completed', objectsDeleted: 2 })]);
   });
 
   it('не бере заявки, час яких ще не настав', async () => {

@@ -15,7 +15,8 @@ export function HomeDormantClientWinBackPromo() {
             Давно не бачилися? Отримайте спеціальний бонус повернення до 25%
           </h2>
           <p className="text-body text-fg-secondary">
-            Якщо ви не відвідували барбершоп останні 30+ днів, наша система автоматично генерує персональний код знижки на ваш наступний візит із пріоритетним часом у мастера.
+            Якщо ви не відвідували барбершоп останні 30+ днів, наша система автоматично генерує
+            персональний код знижки на ваш наступний візит із пріоритетним часом у мастера.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div className="flex items-center gap-3 p-3.5 rounded-input bg-surface-sunken/60 border border-line/65">

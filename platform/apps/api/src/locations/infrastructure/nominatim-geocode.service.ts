@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (128 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // NominatimGeocodeService — адмінський геокодер для пікера на карті (T-4405).
 // Один адаптер на Nominatim: пошук адреси і reverse geocode. Політика usage —
 // ≤1 запит/сек і кеш на добу; помилка провайдера не валить форму (порожній

@@ -4,11 +4,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "jsx": "react-jsx",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "resolveJsonModule": true,
     "outDir": "./dist",
     "rootDir": "./src",
@@ -16,13 +12,6 @@
     "declaration": true,
     "declarationMap": true
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.test.tsx"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
 }

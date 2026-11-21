@@ -6,7 +6,16 @@ import request from 'supertest';
 import { PhoneNumber } from '../domain/phone-number';
 import { User } from '../domain/user';
 import { testId } from '../application/test-ids';
-import { NEW_PHONE, OLD_PHONE, OTHER_PHONE, cookie, createChangePhoneApp, seedClient, seedLoginCode, type ChangePhoneApp } from './change-phone.e2e.harness';
+import {
+  NEW_PHONE,
+  OLD_PHONE,
+  OTHER_PHONE,
+  cookie,
+  createChangePhoneApp,
+  seedClient,
+  seedLoginCode,
+  type ChangePhoneApp,
+} from './change-phone.e2e.harness';
 
 const TOKEN = 'client-token-a';
 const TOKEN_OTHER = 'client-token-b';
@@ -59,7 +68,7 @@ describe('ChangePhone (e2e, T-4620a) — /identity/phone/change', () => {
     const digits = ctx.sender.sent[0]?.digits ?? '';
     const verify = await changeVerify(ctx, NEW_PHONE, digits).expect(201);
     expect(verify.body).toEqual({ ok: true, phone: NEW_PHONE });
-    expect(ctx.users.findById(userId)?.phone.value).toBe(NEW_PHONE);
+    expect(ctx.users.findById(userId)?.phone?.value).toBe(NEW_PHONE);
     expect(ctx.users.findByPhone(NEW_PHONE)?.id).toBe(userId);
 
     // Інші сесії ревоковано, поточна (TOKEN) жива.
@@ -94,7 +103,7 @@ describe('ChangePhone (e2e, T-4620a) — /identity/phone/change', () => {
     const digits = ctx.sender.sent.at(-1)?.digits ?? '';
     const res = await changeVerify(ctx, OTHER_PHONE, digits).expect(409);
     expect(res.body.code).toBe('PHONE_TAKEN');
-    expect(ctx.users.findById(userId)?.phone.value).toBe(NEW_PHONE);
+    expect(ctx.users.findById(userId)?.phone?.value).toBe(NEW_PHONE);
   });
 
   it('код призначення login не завершує зміну номера → 400', async () => {

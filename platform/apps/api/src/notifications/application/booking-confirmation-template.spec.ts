@@ -1,6 +1,11 @@
 // Шаблон листа підтвердження (T-4608): детермінований рендер, умовні рядки
 // (лише наявні дані), екранування HTML, узгодженість text/HTML/теми.
-import { confirmationLines, renderConfirmationHtml, renderConfirmationSubject, renderConfirmationText } from './booking-confirmation-template';
+import {
+  confirmationLines,
+  renderConfirmationHtml,
+  renderConfirmationSubject,
+  renderConfirmationText,
+} from './booking-confirmation-template';
 
 const FULL = {
   locationName: 'FADE Podil',

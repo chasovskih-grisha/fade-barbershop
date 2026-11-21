@@ -30,7 +30,7 @@ describe('Реферальна програма (T-4457)', () => {
     render(
       <AccountLayout>
         <ReferralsPage />
-      </AccountLayout>,
+      </AccountLayout>
     );
 
     expect(await screen.findByText('Реферальна програма')).toBeInTheDocument();

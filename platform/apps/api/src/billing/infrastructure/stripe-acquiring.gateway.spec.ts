@@ -81,7 +81,7 @@ describe('StripeAcquiringGateway', () => {
 
     expect(result.invoice).toBeDefined();
     expect(result.invoice?.total).toBe(1200);
-    expect(result.invoice?.taxRate).toBe(0.20);
+    expect(result.invoice?.taxRate).toBe(0.2);
     expect(result.invoice?.taxAmount).toBe(240);
     expect(result.invoice?.subtotal).toBe(960);
   });

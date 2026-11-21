@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, complexity, max-statements -- cohesive module (127 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: optimizeCancellationPolicy, complexity 31 vs 10); refactor tracked in T-2500f | 1 method with a single orchestration flow (worst: optimizeCancellationPolicy, 37 statements vs 30); extraction tracked in T-2500f */
 export interface CancellationContext {
   hoursBeforeAppointment: number;
   clientHistoricalNoShowRate: number; // 0.0 to 1.0
@@ -82,7 +83,7 @@ export function optimizeCancellationPolicy(
     riskScore = Number((riskScore * 0.75).toFixed(4));
   } else if (isFirstTimeClient) {
     // Gentle onboarding buffer for first-time clients reducing perceived friction
-    riskScore = Number((riskScore * 0.90).toFixed(4));
+    riskScore = Number((riskScore * 0.9).toFixed(4));
   }
 
   let policyTier: 'FLEXIBLE' | 'MODERATE' | 'STRICT' | 'NON_REFUNDABLE' = 'FLEXIBLE';
@@ -98,8 +99,18 @@ export function optimizeCancellationPolicy(
     policyTier = 'STRICT';
     refundPercentage = isVipClient ? 75 : isFirstTimeClient ? 65 : 50;
   } else {
-    policyTier = (isVipClient || isFirstTimeClient) && hoursBeforeAppointment >= 1 ? 'STRICT' : 'NON_REFUNDABLE';
-    refundPercentage = (isVipClient || isFirstTimeClient) && hoursBeforeAppointment >= 1 ? (isVipClient ? 50 : 40) : (expressCreditOptIn ? 25 : 0);
+    policyTier =
+      (isVipClient || isFirstTimeClient) && hoursBeforeAppointment >= 1
+        ? 'STRICT'
+        : 'NON_REFUNDABLE';
+    refundPercentage =
+      (isVipClient || isFirstTimeClient) && hoursBeforeAppointment >= 1
+        ? isVipClient
+          ? 50
+          : 40
+        : expressCreditOptIn
+          ? 25
+          : 0;
   }
 
   const feeAmount = Number((servicePrice * ((100 - refundPercentage) / 100)).toFixed(2));

@@ -1,5 +1,12 @@
 // T-4439: пороги гейтів запуску — межа 95% доставки і 3% 5xx.
-import { DELIVERY_MIN, SERVER_ERROR_MAX, deliveryRate, launchGates, serverErrorRate, type LaunchCounters } from './launch-dashboard';
+import {
+  DELIVERY_MIN,
+  SERVER_ERROR_MAX,
+  deliveryRate,
+  launchGates,
+  serverErrorRate,
+  type LaunchCounters,
+} from './launch-dashboard';
 
 const base: LaunchCounters = {
   locationsOnline: 1,
@@ -18,14 +25,26 @@ const base: LaunchCounters = {
 
 describe('launch-dashboard gates (T-4439)', () => {
   it('доставка рахується по SMS і push разом', () => {
-    expect(deliveryRate({ ...base, smsAttempted: 10, smsDelivered: 9, pushAttempted: 10, pushDelivered: 10 })).toBeCloseTo(
-      0.95
-    );
+    expect(
+      deliveryRate({
+        ...base,
+        smsAttempted: 10,
+        smsDelivered: 9,
+        pushAttempted: 10,
+        pushDelivered: 10,
+      })
+    ).toBeCloseTo(0.95);
   });
 
   it('без спроб доставка вважається повною — нема чого провалювати', () => {
     expect(
-      deliveryRate({ ...base, smsAttempted: 0, smsDelivered: 0, pushAttempted: 0, pushDelivered: 0 })
+      deliveryRate({
+        ...base,
+        smsAttempted: 0,
+        smsDelivered: 0,
+        pushAttempted: 0,
+        pushDelivered: 0,
+      })
     ).toBe(1);
   });
 

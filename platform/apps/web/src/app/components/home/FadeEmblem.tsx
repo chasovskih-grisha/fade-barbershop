@@ -15,14 +15,61 @@ export function FadeEmblem({ className = 'w-12 h-12' }: { className?: string }) 
         </linearGradient>
       </defs>
       {/* Outer precision geometric frame */}
-      <circle cx="50" cy="50" r="46" stroke="url(#emblem-grad)" strokeWidth="1.5" strokeOpacity="0.45" />
-      <circle cx="50" cy="50" r="38" stroke="currentColor" strokeWidth="1" strokeOpacity="0.2" strokeDasharray="4 4" />
-      
+      <circle
+        cx="50"
+        cy="50"
+        r="46"
+        stroke="url(#emblem-grad)"
+        strokeWidth="1.5"
+        strokeOpacity="0.45"
+      />
+      <circle
+        cx="50"
+        cy="50"
+        r="38"
+        stroke="currentColor"
+        strokeWidth="1"
+        strokeOpacity="0.2"
+        strokeDasharray="4 4"
+      />
+
       {/* Precision crosshairs */}
-      <line x1="50" y1="4" x2="50" y2="16" stroke="url(#emblem-grad)" strokeWidth="2" strokeOpacity="0.95" />
-      <line x1="50" y1="84" x2="50" y2="96" stroke="url(#emblem-grad)" strokeWidth="2" strokeOpacity="0.95" />
-      <line x1="4" y1="50" x2="16" y2="50" stroke="url(#emblem-grad)" strokeWidth="2" strokeOpacity="0.95" />
-      <line x1="84" y1="50" x2="96" y2="50" stroke="url(#emblem-grad)" strokeWidth="2" strokeOpacity="0.95" />
+      <line
+        x1="50"
+        y1="4"
+        x2="50"
+        y2="16"
+        stroke="url(#emblem-grad)"
+        strokeWidth="2"
+        strokeOpacity="0.95"
+      />
+      <line
+        x1="50"
+        y1="84"
+        x2="50"
+        y2="96"
+        stroke="url(#emblem-grad)"
+        strokeWidth="2"
+        strokeOpacity="0.95"
+      />
+      <line
+        x1="4"
+        y1="50"
+        x2="16"
+        y2="50"
+        stroke="url(#emblem-grad)"
+        strokeWidth="2"
+        strokeOpacity="0.95"
+      />
+      <line
+        x1="84"
+        y1="50"
+        x2="96"
+        y2="50"
+        stroke="url(#emblem-grad)"
+        strokeWidth="2"
+        strokeOpacity="0.95"
+      />
 
       {/* FA Monogram / Geometric Fade Lines */}
       <path

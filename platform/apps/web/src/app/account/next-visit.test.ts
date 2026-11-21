@@ -1,4 +1,10 @@
-import { pickNextVisit, formatVisitWhen, formatVisitWhere, waitingForDeposit } from './next-visit';
+import {
+  countPastVisits,
+  pickNextVisit,
+  formatVisitWhen,
+  formatVisitWhere,
+  waitingForDeposit,
+} from './next-visit';
 import type { ExtendedAppointment } from '@/lib/api/appointments';
 
 function visit(over: Partial<ExtendedAppointment> = {}): ExtendedAppointment {
@@ -15,6 +21,7 @@ function visit(over: Partial<ExtendedAppointment> = {}): ExtendedAppointment {
     referenceId: null,
     referenceComment: '',
     canEditReference: true,
+    canBookAgain: true,
     deposit: null,
     ...over,
   };
@@ -73,5 +80,22 @@ describe('waitingForDeposit (T-4716b)', () => {
   it('не попереджає без депозиту', () => {
     expect(waitingForDeposit(visit({ deposit: null }))).toBe(false);
     expect(waitingForDeposit(visit({ deposit: { amount: 0, freeCancelUntil: null } }))).toBe(false);
+  });
+});
+
+describe('countPastVisits (T-4734b)', () => {
+  it('рахує лише минулі візити з того самого списку', () => {
+    const list = [
+      visit({ id: 'past-1', status: 'completed' }),
+      visit({ id: 'past-2', status: 'cancelled' }),
+      visit({ id: 'next', status: 'confirmed' }),
+      visit({ id: 'later', status: 'upcoming' }),
+    ];
+    expect(countPastVisits(list)).toBe(2);
+  });
+
+  it('нуль лишається нулем, а не ховається', () => {
+    expect(countPastVisits([])).toBe(0);
+    expect(countPastVisits([visit({ status: 'confirmed' })])).toBe(0);
   });
 });

@@ -9,7 +9,7 @@ describe('SmartGracePeriodOptimizer', () => {
       scheduledStartTime: '10:00',
       scheduledEndTime: '10:45',
       serviceDurationMinutes: 45,
-      clientNoShowRate: 0.10,
+      clientNoShowRate: 0.1,
       clientVipStatus: false,
       currentStudioQueueLoadPercentage: 50,
     });

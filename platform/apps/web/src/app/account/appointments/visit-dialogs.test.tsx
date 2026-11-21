@@ -15,6 +15,7 @@ const visit: ExtendedAppointment = {
   referenceId: null,
   referenceComment: '',
   canEditReference: false,
+  canBookAgain: true,
 };
 
 function renderDialog(dialog: 'cancel' | 'reschedule', onReschedule = jest.fn()) {

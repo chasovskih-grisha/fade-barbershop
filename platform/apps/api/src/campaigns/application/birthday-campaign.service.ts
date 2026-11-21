@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-params -- cohesive module (200 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 signature whose 5-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 /**
  * T-4459: запуск авто-кампанії «День народження».
  *

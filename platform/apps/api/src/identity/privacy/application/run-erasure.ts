@@ -1,7 +1,13 @@
 // Виконання стирання (T-4805): воркер бере прострочені заявки й анонімізує
 // субʼєкта. Збій не втрачає заявку: backoff, після 3 спроб — failed для
 // ручного розбору. Фінансові рядки не видаляються — лише PII (ризик задачі).
-import { anonymizedEmail, anonymizedPhone, isRetryable, nextAttemptAt, type ErasureReport } from '../domain/erasure-policy';
+import {
+  anonymizedEmail,
+  anonymizedPhone,
+  isRetryable,
+  nextAttemptAt,
+  type ErasureReport,
+} from '../domain/erasure-policy';
 import type { ErasureObjectStore, ErasureRecord, ErasureStore } from './erasure.ports';
 
 export interface RunErasureDeps {

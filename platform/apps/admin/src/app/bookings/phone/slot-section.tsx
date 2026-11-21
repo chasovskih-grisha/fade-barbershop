@@ -69,11 +69,7 @@ export function SlotSection({
           На цю дату слотів немає — оберіть іншу дату або іншого барбера.
         </div>
       ) : (
-        <SlotPicker
-          slots={slotButtons}
-          value={pickedId}
-          onChange={selectSlot}
-        />
+        <SlotPicker slots={slotButtons} value={pickedId} onChange={selectSlot} />
       )}
     </>
   );

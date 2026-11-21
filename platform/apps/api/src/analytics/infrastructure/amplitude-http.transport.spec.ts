@@ -27,7 +27,8 @@ describe('AmplitudeHttpTransport (T-4587)', () => {
   });
 
   it('кидає помилку на non-2xx, щоб use case запланував retry', async () => {
-    const fetchImpl = (async () => ({ ok: false, status: 503 }) as Response) as unknown as typeof fetch;
+    const fetchImpl = (async () =>
+      ({ ok: false, status: 503 }) as Response) as unknown as typeof fetch;
     await expect(new AmplitudeHttpTransport('fk-test', { fetchImpl }).send(events)).rejects.toThrow(
       'HTTP 503'
     );
@@ -37,7 +38,9 @@ describe('AmplitudeHttpTransport (T-4587)', () => {
     const fetchImpl = (async () => {
       throw new Error('must not be called');
     }) as unknown as typeof fetch;
-    await expect(new AmplitudeHttpTransport('fk-test', { fetchImpl }).send([])).resolves.toBeUndefined();
+    await expect(
+      new AmplitudeHttpTransport('fk-test', { fetchImpl }).send([])
+    ).resolves.toBeUndefined();
   });
 
   it('без ключа транспорт не створюється (захист від тихого сміття)', () => {

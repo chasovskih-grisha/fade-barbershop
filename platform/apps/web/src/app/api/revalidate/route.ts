@@ -12,34 +12,57 @@ const revalidateSchema = z.object({
   tags: z.array(z.string({})).optional(),
 });
 
-export async function POST(request: NextRequest) {
+type RevalidationRequest = z.infer<typeof revalidateSchema>;
+
+function hasValidSecret(request: NextRequest): boolean {
   const secret = request.nextUrl.searchParams.get('secret');
   const token = process.env.NEXT_REVALIDATE_SECRET;
-  if (!token || secret !== token) {
-    return NextResponse.json({ error: 'Invalid secret' }, { status: 401 });
-  }
+  return Boolean(token && secret === token);
+}
 
-  let body = {};
+async function readRevalidationRequest(
+  request: NextRequest
+): Promise<{ data: RevalidationRequest } | { response: NextResponse }> {
   const contentType = request.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
-    try {
-      const text = await request.text();
-      if (text.trim().length > 0) {
-        body = JSON.parse(text);
-      }
-    } catch {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-    }
-  }
-
-  const parseResult = revalidateSchema.safeParse(body);
-  if (!parseResult.success) {
-    const errorMessage = parseResult.error.issues[0]?.message ?? 'Invalid request body format';
-    return NextResponse.json({ error: errorMessage }, { status: 400 });
+  if (!contentType || !contentType.includes('application/json')) {
+    return { data: revalidateSchema.parse({}) };
   }
 
   try {
-    const { path: targetPath, tags } = parseResult.data;
+    const text = await request.text();
+    const body: unknown = text.trim().length > 0 ? JSON.parse(text) : {};
+    const result = revalidateSchema.safeParse(body);
+    if (!result.success) {
+      const message = result.error.issues[0]?.message ?? 'Invalid request body format';
+      return { response: NextResponse.json({ error: message }, { status: 400 }) };
+    }
+    return { data: result.data };
+  } catch {
+    return { response: NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 }) };
+  }
+}
+
+function collectArticlePaths(articles: Array<{ slug?: string }>): string[] {
+  return ['/blog', ...articles.flatMap((a) => (a.slug ? [`/blog/${a.slug}`] : []))];
+}
+
+async function revalidatePaths(paths: string[], apiBase: string): Promise<void> {
+  process.stdout.write(`Revalidating paths: ${paths.join(', ')}\n`);
+  for (const p of paths) {
+    await fetch(`${apiBase}/api/revalidate-internal?path=${encodeURIComponent(p)}`);
+  }
+}
+
+export async function POST(request: NextRequest) {
+  if (!hasValidSecret(request)) {
+    return NextResponse.json({ error: 'Invalid secret' }, { status: 401 });
+  }
+
+  const parsed = await readRevalidationRequest(request);
+  if ('response' in parsed) return parsed.response;
+
+  try {
+    const { path: targetPath, tags } = parsed.data;
     const apiBase = process.env.WEB_API_URL ?? 'http://localhost:13000';
 
     if (targetPath) {
@@ -54,19 +77,15 @@ export async function POST(request: NextRequest) {
     });
 
     if (!result.ok) {
-      return NextResponse.json({ error: 'Failed to fetch articles for revalidation' }, { status: 502 });
+      return NextResponse.json(
+        { error: 'Failed to fetch articles for revalidation' },
+        { status: 502 }
+      );
     }
 
     const articles = (await result.json()) as Array<{ slug?: string }>;
-    const pathsToRevalidate = [
-      '/blog',
-      ...articles.flatMap((a) => (a.slug ? [`/blog/${a.slug}`] : [])),
-    ];
-
-    process.stdout.write(`Revalidating paths: ${pathsToRevalidate.join(', ')}\n`);
-    for (const p of pathsToRevalidate) {
-      await fetch(`${apiBase}/api/revalidate-internal?path=${encodeURIComponent(p)}`);
-    }
+    const pathsToRevalidate = collectArticlePaths(articles);
+    await revalidatePaths(pathsToRevalidate, apiBase);
 
     return NextResponse.json({ revalidated: true, paths: pathsToRevalidate, tags });
   } catch (e) {

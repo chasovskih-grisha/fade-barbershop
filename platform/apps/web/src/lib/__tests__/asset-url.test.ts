@@ -7,7 +7,7 @@ describe('assetUrl', () => {
 
   it('reads src from a Next static image module', () => {
     expect(assetUrl({ src: '/_next/static/media/lockup-on-dark.svg' })).toBe(
-      '/_next/static/media/lockup-on-dark.svg',
+      '/_next/static/media/lockup-on-dark.svg'
     );
   });
 });

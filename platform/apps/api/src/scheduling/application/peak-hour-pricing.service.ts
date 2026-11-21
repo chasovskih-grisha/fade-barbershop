@@ -7,8 +7,8 @@ export interface PeakPricingConfig {
 
 export const DEFAULT_PEAK_PRICING_CONFIG: PeakPricingConfig = {
   weekendPeakMultiplier: 1.25,
-  eveningPeakMultiplier: 1.20,
-  highOccupancySurgeMultiplier: 1.40,
+  eveningPeakMultiplier: 1.2,
+  highOccupancySurgeMultiplier: 1.4,
   occupancyThresholdForSurge: 0.85,
 };
 
@@ -38,7 +38,8 @@ export class PeakHourPricingService {
 
     let multiplier = 1.0;
     let isPeak = false;
-    let surgeReason: 'STANDARD' | 'WEEKEND_PEAK' | 'EVENING_PEAK' | 'HIGH_OCCUPANCY_SURGE' = 'STANDARD';
+    let surgeReason: 'STANDARD' | 'WEEKEND_PEAK' | 'EVENING_PEAK' | 'HIGH_OCCUPANCY_SURGE' =
+      'STANDARD';
 
     // High occupancy surge takes highest priority
     if (occupancy >= this.config.occupancyThresholdForSurge) {

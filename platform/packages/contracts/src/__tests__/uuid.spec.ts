@@ -1,12 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import {
-  isUuid,
-  isUuidV7,
-  UUID_PATTERN,
-  UUID_V7_PATTERN,
-  uuidSchema,
-  uuidV7Schema,
-} from '../uuid';
+import { isUuid, isUuidV7, UUID_PATTERN, UUID_V7_PATTERN, uuidSchema, uuidV7Schema } from '../uuid';
 
 /** v7 як його генерує домен: 48 біт часу + версія 7 + variant 10. */
 const V7 = '0192f1a4-7c3b-7a8e-9b41-2f6d5c8e0a13';

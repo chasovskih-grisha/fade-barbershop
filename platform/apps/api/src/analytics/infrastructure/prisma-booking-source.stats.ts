@@ -1,7 +1,10 @@
 // Prisma-статистика каналів запису (T-4536): group by source за вікном старту.
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import type { BookingSourceCount, BookingSourceStats } from '../application/booking-source-breakdown';
+import type {
+  BookingSourceCount,
+  BookingSourceStats,
+} from '../application/booking-source-breakdown';
 
 @Injectable()
 export class PrismaBookingSourceStats implements BookingSourceStats {

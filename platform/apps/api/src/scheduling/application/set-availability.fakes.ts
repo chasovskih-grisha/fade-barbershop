@@ -1,7 +1,11 @@
 import { AvailabilityWindowData, BarberSchedule } from '../domain/availability';
 import type { BarberSchedulePolicy } from '../domain/barber-self-service';
 import type { ScheduleChange } from '../domain/schedule-change-log';
-import { AvailabilityRepository, ScheduleChangeLogRepository, SchedulePolicyRepository } from '../domain/ports';
+import {
+  AvailabilityRepository,
+  ScheduleChangeLogRepository,
+  SchedulePolicyRepository,
+} from '../domain/ports';
 
 /** Simple in‑memory fake repository for tests */
 export class FakeAvailabilityRepository implements AvailabilityRepository {

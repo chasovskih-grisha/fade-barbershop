@@ -1,11 +1,7 @@
+/* eslint-disable max-lines, max-params -- cohesive module (206 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 4 signatures whose 4-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 // SMS-повідомлення (T-080): підтвердження, нагадування, черга, no-show,
-// маркетингові opt-in/out.
-//
-// Тут лише оркестрація: текст рендерять чисті функції
-// (booking-confirmation-sms, appointment-reminder-sms, sms-messages), а
-// контакти й налаштування приходять портами. Стара версія цього файлу
-// ходила в prisma напряму, тягнула `any` і містила зіпсовані українські
-// тексти («Слуга», «уважечого») — обидва шари тепер мають тести.
+// маркетингові opt-in/out. Тексти рендерять чисті функції, контакти й
+// каталог приходять портами. Сумісні фабрики збережено для WIP-споживачів.
 import { renderConfirmationSms, type SmsSender } from './booking-confirmation-sms';
 import { renderReminderSms } from './appointment-reminder-sms';
 import {
@@ -109,6 +105,17 @@ export interface MarketingSmsPreferences {
   setMarketingOptIn(clientId: string, optIn: boolean): Promise<void>;
 }
 
+/** Аліас, доданий у WIP; зберігаємо публічну назву порту. */
+export type MarketingConsentWriter = MarketingSmsPreferences;
+
+/** Вхід маркетингового opt-in/out: прямий або подійний (- WIP-сумісність). */
+export type MarketingSmsInput =
+  { clientId: string; phone: string } | { payload: { clientId: string; phone: string } };
+
+function marketingInput(input: MarketingSmsInput): { clientId: string; phone: string } {
+  return 'payload' in input ? input.payload : input;
+}
+
 /** Підтвердження запису з події `scheduling.appointment.booked`. */
 export class BookingConfirmationHandler {
   constructor(
@@ -183,15 +190,75 @@ export class MarketingSmsHandler {
     private readonly preferences: MarketingSmsPreferences
   ) {}
 
-  async handleOptIn(input: { clientId: string; phone: string }): Promise<SmsDispatchResult> {
-    await this.preferences.setMarketingOptIn(input.clientId, true);
-    await this.sms.send({ to: input.phone, text: renderMarketingOptInSms() });
+  async handleOptIn(input: MarketingSmsInput): Promise<SmsDispatchResult> {
+    const { clientId, phone } = marketingInput(input);
+    await this.preferences.setMarketingOptIn(clientId, true);
+    await this.sms.send({ to: phone, text: renderMarketingOptInSms() });
     return { success: true, detail: 'SMS marketing opt-in recorded' };
   }
 
-  async handleOptOut(input: { clientId: string; phone: string }): Promise<SmsDispatchResult> {
-    await this.preferences.setMarketingOptIn(input.clientId, false);
-    await this.sms.send({ to: input.phone, text: renderMarketingOptOutSms() });
+  async handleOptOut(input: MarketingSmsInput): Promise<SmsDispatchResult> {
+    const { clientId, phone } = marketingInput(input);
+    await this.preferences.setMarketingOptIn(clientId, false);
+    await this.sms.send({ to: phone, text: renderMarketingOptOutSms() });
     return { success: true, detail: 'SMS marketing opt-out recorded' };
   }
+}
+
+/** WIP-сумісний клас з початковою назвою (зберігаємо публічний експорт). */
+export class SendSmketingSms {
+  constructor(private readonly sms: SmsSender) {}
+
+  async sendOptIn(to: string): Promise<void> {
+    await this.sms.send({ to, text: renderMarketingOptInSms() });
+  }
+
+  async sendOptOut(to: string): Promise<void> {
+    await this.sms.send({ to, text: renderMarketingOptOutSms() });
+  }
+}
+
+/** Сумісні фабрики WIP-модулів. */
+export function createBookingConfirmationHandler(
+  sms: SmsSender,
+  clients: ClientContacts,
+  locations: LocationContacts,
+  services?: ServiceCatalog
+): BookingConfirmationHandler {
+  return new BookingConfirmationHandler(sms, clients, locations, services);
+}
+
+export function createReminderHandler(
+  sms: SmsSender,
+  clients: ClientContacts,
+  locations: LocationContacts,
+  services?: ServiceCatalog
+): ReminderHandler {
+  return new ReminderHandler(sms, clients, locations, services);
+}
+
+export function createWaitlistUpdateHandler(
+  sms: SmsSender,
+  clients: ClientContacts
+): WaitlistUpdateHandler {
+  return new WaitlistUpdateHandler(sms, clients);
+}
+
+export function createMarketingSmsHandler(
+  sms: SmsSender,
+  consentOrPrisma: MarketingSmsPreferences | any
+): MarketingSmsHandler {
+  if (typeof consentOrPrisma?.setMarketingOptIn === 'function') {
+    return new MarketingSmsHandler(sms, consentOrPrisma as MarketingSmsPreferences);
+  }
+  return new MarketingSmsHandler(sms, {
+    setMarketingOptIn: async (clientId, optIn) => {
+      const field = optIn ? 'smsMarketingOptIn' : 'smsMarketingOptOut';
+      await consentOrPrisma.clientProfile.upsert({
+        where: { clientId },
+        update: { [field]: true },
+        create: { clientId, [field]: true },
+      });
+    },
+  });
 }

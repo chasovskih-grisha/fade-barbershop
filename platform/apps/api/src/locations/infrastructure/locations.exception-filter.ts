@@ -1,7 +1,7 @@
 // Фільтр для locations: стандартизує body помилок через locations-http.mapper
 // (домен → HTTP-статус) і логує 500.
 
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
 import type { Response } from 'express';
 import { toHttp } from './locations-http.mapper';
 
@@ -13,10 +13,9 @@ export class LocationsExceptionFilter implements ExceptionFilter {
     const http = exception instanceof HttpException ? exception : toHttp(exception);
     // 500 не мовчать: стек — у stdout контейнера (інакше діагностика сліпа).
     if (!(exception instanceof HttpException)) {
-      // eslint-disable-next-line no-console
-      console.error(
-        '[locations] internal error:',
-        exception instanceof Error ? exception.stack : exception
+      Logger.error(
+        exception instanceof Error ? (exception.stack ?? exception.message) : String(exception),
+        'LocationsExceptionFilter'
       );
     }
     response.status(http.getStatus()).json(http.getResponse());

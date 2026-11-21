@@ -13,7 +13,8 @@ export function HomeSocialProof() {
             Вибір понад 1,400 чоловіків, які цінують свій час і стиль
           </h2>
           <p className="text-body text-fg-secondary">
-            Ми не женемося за кількістю крісел. Наші студії створені для комфорту, конфіденційності та ідеальної точності стрижки.
+            Ми не женемося за кількістю крісел. Наші студії створені для комфорту, конфіденційності
+            та ідеальної точності стрижки.
           </p>
         </div>
 
@@ -34,7 +35,8 @@ export function HomeSocialProof() {
           <div className="flex flex-col gap-2">
             <div className="flex text-fg text-sm">★★★★★</div>
             <p className="text-body text-fg italic">
-              &ldquo;Неймовірна атмосфера приватного клубу. Ніяких черг і галасу. Майстер одразу зрозумів ідею стрижки.&rdquo;
+              &ldquo;Неймовірна атмосфера приватного клубу. Ніяких черг і галасу. Майстер одразу
+              зрозумів ідею стрижки.&rdquo;
             </p>
           </div>
           <div className="flex items-center gap-3 pt-4 border-t border-line/50">
@@ -52,7 +54,8 @@ export function HomeSocialProof() {
           <div className="flex flex-col gap-2">
             <div className="flex text-fg text-sm">★★★★★</div>
             <p className="text-body text-fg italic">
-              &ldquo;Найкращий fade у місті. Тримається форму понад 3 тижні бездоганно. Дуже зручний онлайн-запис за 1 хвилину.&rdquo;
+              &ldquo;Найкращий fade у місті. Тримається форму понад 3 тижні бездоганно. Дуже зручний
+              онлайн-запис за 1 хвилину.&rdquo;
             </p>
           </div>
           <div className="flex items-center gap-3 pt-4 border-t border-line/50">
@@ -70,7 +73,8 @@ export function HomeSocialProof() {
           <div className="flex flex-col gap-2">
             <div className="flex text-fg text-sm">★★★★★</div>
             <p className="text-body text-fg italic">
-              &ldquo;Сервіс рівня топ-готелів: смачна кава, спокійна музика та професійний підхід до кожної деталі.&rdquo;
+              &ldquo;Сервіс рівня топ-готелів: смачна кава, спокійна музика та професійний підхід до
+              кожної деталі.&rdquo;
             </p>
           </div>
           <div className="flex items-center gap-3 pt-4 border-t border-line/50">

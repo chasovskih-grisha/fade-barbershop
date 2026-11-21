@@ -72,7 +72,12 @@ export default function LocationMapPicker({
           placeholder="Вулиця, будинок, місто"
           disabled={disabled}
         />
-        <Button type="button" variant="secondary" onClick={() => void runSearch()} disabled={disabled || searching}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => void runSearch()}
+          disabled={disabled || searching}
+        >
           {searching ? 'Пошук…' : 'Знайти'}
         </Button>
       </div>

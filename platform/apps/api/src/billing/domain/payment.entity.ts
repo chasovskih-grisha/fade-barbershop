@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (176 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import { PaymentStatus, PaymentForm } from './payment-status.enum';
 
 export interface PaymentProps {
@@ -59,6 +60,14 @@ export class Payment {
     return this.props.traceId;
   }
 
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
+
+  get updatedAt(): Date {
+    return this.props.updatedAt;
+  }
+
   get receiptId(): string | undefined {
     return this.props.receiptId;
   }
@@ -75,20 +84,29 @@ export class Payment {
     return this.props.retryCount ?? 0;
   }
 
-  get createdAt(): Date {
-    return this.props.createdAt;
-  }
-
-  get updatedAt(): Date {
-    return this.props.updatedAt;
-  }
-
   public markDepositPaid(receiptId: string): void {
     if (this.props.status !== PaymentStatus.AWAITING_DEPOSIT) {
       throw new Error(`Cannot mark deposit paid from status ${this.props.status}`);
     }
     this.props.status = PaymentStatus.DEPOSIT_PAID;
     this.props.receiptId = receiptId;
+    this.props.updatedAt = new Date();
+  }
+
+  /**
+   * T-091 (PAY-WEB-05/06): еквайринг не списав гроші. Платіж лишається
+   * видимим клієнту як скасований, щоб UI сказав «гроші не списані» і дав
+   * повторити спробу новим платежем.
+   */
+  public failCapture(reason: string): void {
+    if (
+      this.props.status !== PaymentStatus.AWAITING_DEPOSIT &&
+      this.props.status !== PaymentStatus.AWAITING_BALANCE
+    ) {
+      throw new Error(`Cannot fail capture from status ${this.props.status}`);
+    }
+    this.props.status = PaymentStatus.CANCELLED;
+    this.props.refundReason = reason;
     this.props.updatedAt = new Date();
   }
 
@@ -101,7 +119,11 @@ export class Payment {
   }
 
   public markPaid(receiptId: string): void {
-    if (this.props.status !== PaymentStatus.AWAITING_BALANCE && this.props.status !== PaymentStatus.DEPOSIT_PAID && this.props.status !== PaymentStatus.AWAITING_DEPOSIT) {
+    if (
+      this.props.status !== PaymentStatus.AWAITING_BALANCE &&
+      this.props.status !== PaymentStatus.DEPOSIT_PAID &&
+      this.props.status !== PaymentStatus.AWAITING_DEPOSIT
+    ) {
       throw new Error(`Cannot mark paid from status ${this.props.status}`);
     }
     this.props.status = PaymentStatus.PAID;
@@ -110,12 +132,18 @@ export class Payment {
   }
 
   public initiateRefund(reason: string, refundAmount?: number): void {
-    if (this.props.status !== PaymentStatus.PAID && this.props.status !== PaymentStatus.DEPOSIT_PAID && this.props.status !== PaymentStatus.PARTIALLY_REFUNDED) {
+    if (
+      this.props.status !== PaymentStatus.PAID &&
+      this.props.status !== PaymentStatus.DEPOSIT_PAID &&
+      this.props.status !== PaymentStatus.PARTIALLY_REFUNDED
+    ) {
       throw new Error(`Cannot refund payment in status ${this.props.status}`);
     }
-    const targetAmount = refundAmount ?? (this.amount - this.refundedAmount);
-    if (targetAmount <= 0 || (this.refundedAmount + targetAmount) > this.amount) {
-      throw new Error(`Invalid refund amount ${targetAmount}. Total refunded cannot exceed payment amount ${this.amount}`);
+    const targetAmount = refundAmount ?? this.amount - this.refundedAmount;
+    if (targetAmount <= 0 || this.refundedAmount + targetAmount > this.amount) {
+      throw new Error(
+        `Invalid refund amount ${targetAmount}. Total refunded cannot exceed payment amount ${this.amount}`
+      );
     }
     this.props.status = PaymentStatus.REFUNDING;
     this.props.refundReason = reason;
@@ -126,12 +154,13 @@ export class Payment {
     if (this.props.status !== PaymentStatus.REFUNDING) {
       throw new Error(`Cannot complete refund when status is ${this.props.status}`);
     }
-    const addedRefund = refundedAmount ?? (this.amount - this.refundedAmount);
+    const addedRefund = refundedAmount ?? this.amount - this.refundedAmount;
     const newTotalRefunded = this.refundedAmount + addedRefund;
-    
+
     this.props.refundedAmount = newTotalRefunded;
     this.props.receiptId = receiptId;
-    this.props.status = newTotalRefunded >= this.amount ? PaymentStatus.REFUNDED : PaymentStatus.PARTIALLY_REFUNDED;
+    this.props.status =
+      newTotalRefunded >= this.amount ? PaymentStatus.REFUNDED : PaymentStatus.PARTIALLY_REFUNDED;
     this.props.updatedAt = new Date();
   }
 
@@ -157,7 +186,10 @@ export class Payment {
   }
 
   public markDisputed(reason: string): void {
-    if (this.props.status !== PaymentStatus.PAID && this.props.status !== PaymentStatus.DEPOSIT_PAID) {
+    if (
+      this.props.status !== PaymentStatus.PAID &&
+      this.props.status !== PaymentStatus.DEPOSIT_PAID
+    ) {
       throw new Error(`Cannot dispute payment in status ${this.props.status}`);
     }
     this.props.status = PaymentStatus.DISPUTED;

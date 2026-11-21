@@ -2,7 +2,7 @@
 // в коді не літерали). Порожнє поле = секція не рендериться (web-screens: сайт не
 // показує пусток), тому дефолтів «на око» тут немає.
 
-import type { IconName } from "@fade/ui/dist/icons";
+import type { IconName } from '@fade/ui/dist/icons';
 
 export interface SiteContact {
   label: string;

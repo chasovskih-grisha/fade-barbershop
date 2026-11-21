@@ -4,12 +4,11 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, AlertBanner } from '@fade/ui';
 import { useAuth } from '../components/auth/AuthProvider';
-import Link from 'next/link';
-import { BrandLockup } from '../components/shell/BrandLockup';
 import { formatPhone, unformatPhone } from './phoneFormat';
 import { PhoneStepForm, CodeStepForm } from './LoginForms';
 import { useLoginTimers } from './useLoginTimers';
 import { safeNextPath, useLoginActions } from './useLoginActions';
+import { LoginHeader } from './LoginHeader';
 
 // Next 15 вимагає Suspense-межу навколо useSearchParams: інакше пререндер
 // /login падає з «missing-suspense-with-csr-bailout».
@@ -49,28 +48,18 @@ function LoginPageContent() {
     setError,
   });
 
-  // displayPhone синхронізується з rawPhone в onPhoneChange; стартові значення
-  // однакові ('+380'), тож окремий mount-ефект тут зайвий.
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6 px-4 py-20">
-      <p role="status" aria-live="polite" className="sr-only">
-        {step === 1 ? 'Крок 1 з 2: Введіть номер телефону' : `Крок 2 з 2: Введіть код підтвердження з SMS на номер ${displayPhone}`}
-      </p>
-      <header className="flex flex-col items-center justify-center gap-2 text-center">
-        <Link href="/" className="flex items-center justify-center">
-          <BrandLockup />
-        </Link>
-        <h1 className="font-display text-h4 mt-4">Вхід до кабінету</h1>
-        <p className="text-body text-fg-secondary">
-          {step === 1
-            ? 'Введіть номер телефону для отримання коду'
-            : `Код відправлено на ${displayPhone}`}
-        </p>
-      </header>
+      <LoginHeader step={step} displayPhone={displayPhone} />
       <div tabIndex={-1} ref={stepRef} data-testid="login-step" className="outline-none">
         <Card className="p-6">
           {error ? (
-            <AlertBanner tone="error" title="Помилка" className="mb-4" onDismiss={() => setError('')}>
+            <AlertBanner
+              tone="error"
+              title="Помилка"
+              className="mb-4"
+              onDismiss={() => setError('')}
+            >
               {error}
             </AlertBanner>
           ) : null}

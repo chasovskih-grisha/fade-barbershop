@@ -1,26 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { normalizeBarberPerformance } from './barber-performance-normalizer';
+import type { BarberPerformanceData } from './barber-performance-types';
 
-export interface VacationRequest {
-  id: string;
-  startDate: string;
-  endDate: string;
-  reason: string;
-  status: 'pending' | 'approved' | 'rejected';
-}
-
-export interface BarberPerformanceData {
-  appointmentsCount: number;
-  revenue: number;
-  avgCheck: number;
-  utilizationRate: number;
-  commissionTier: 'standard' | 'bronze' | 'silver' | 'gold';
-  bonusMultiplier: number;
-  recommendedAction: string;
-  idleGapsMinutes: Array<{ start: string; end: string; durationMinutes: number }>;
-  vacationRequests: VacationRequest[];
-}
+export type { BarberPerformanceData, VacationRequest } from './barber-performance-types';
 
 export function useBarberPerformance(barberId: string) {
   const [data, setData] = useState<BarberPerformanceData | null>(null);
@@ -36,27 +20,11 @@ export function useBarberPerformance(barberId: string) {
       const res = await fetch(`/admin/barbers/${barberId}/performance`, {
         credentials: 'include',
       });
-      if (!res.ok) {
-        throw new Error('Не вдалося завантажити дані продуктивності');
-      }
-      const json = (await res.json()) as BarberPerformanceData;
-      setData(json);
+      if (!res.ok) throw new Error('Не вдалося завантажити дані продуктивності');
+      const json = (await res.json()) as Partial<BarberPerformanceData> | null;
+      setData(normalizeBarberPerformance(json));
     } catch {
-      setData({
-        appointmentsCount: 42,
-        revenue: 35000,
-        avgCheck: 833,
-        utilizationRate: 0.78,
-        commissionTier: 'silver',
-        bonusMultiplier: 1.10,
-        recommendedAction: 'Оптимальне завантаження: стабільний графік',
-        idleGapsMinutes: [
-          { start: '13:00', end: '13:45', durationMinutes: 45 },
-        ],
-        vacationRequests: [
-          { id: 'v-1', startDate: '2026-12-01', endDate: '2026-12-07', reason: 'Відпустка', status: 'approved' },
-        ],
-      });
+      setData(normalizeBarberPerformance(null));
     } finally {
       setLoading(false);
     }
@@ -66,7 +34,11 @@ export function useBarberPerformance(barberId: string) {
     void fetchPerformance();
   }, [fetchPerformance]);
 
-  const requestVacation = async (startDate: string, endDate: string, reason: string): Promise<boolean> => {
+  const requestVacation = async (
+    startDate: string,
+    endDate: string,
+    reason: string
+  ): Promise<boolean> => {
     setSubmittingVacation(true);
     setError('');
     try {

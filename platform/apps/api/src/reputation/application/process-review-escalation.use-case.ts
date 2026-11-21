@@ -1,5 +1,8 @@
 import { ReviewItem } from '../domain/reputation.entity';
-import { ReviewResponseTemplate, ReviewSentimentType } from '../domain/review-response.value-object';
+import {
+  ReviewResponseTemplate,
+  ReviewSentimentType,
+} from '../domain/review-response.value-object';
 
 export interface AdminNotifier {
   notifyNegativeEscalation(review: ReviewItem): Promise<void>;
@@ -21,7 +24,10 @@ export class ProcessReviewEscalationUseCase {
     }
 
     const autoResponse = ReviewResponseTemplate.getTemplate(sentiment, 'Client');
-    const escalatedToAdmin = ReviewResponseTemplate.shouldEscalateToAdmin(review.rating, review.sentimentScore);
+    const escalatedToAdmin = ReviewResponseTemplate.shouldEscalateToAdmin(
+      review.rating,
+      review.sentimentScore
+    );
 
     if (escalatedToAdmin && this.adminNotifier) {
       await this.adminNotifier.notifyNegativeEscalation(review);

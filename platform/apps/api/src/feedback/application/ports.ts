@@ -8,4 +8,3 @@ export interface CompetitorBenchmarkRepository {
   findByLocationId(locationId: string): Promise<CompetitorBenchmark[]>;
   save(benchmark: CompetitorBenchmark): Promise<void>;
 }
-

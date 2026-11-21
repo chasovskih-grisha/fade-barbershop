@@ -4,7 +4,12 @@
 import { Booking, BookingConflictError } from '../domain/booking';
 import { BarberSchedule } from '../domain/availability';
 import { BookAppointment } from './book-appointment.use-case';
-import { FakeBookingRepository, FakeScheduleRepo, makeOpeningHours, slotOf } from './book-appointment.fakes';
+import {
+  FakeBookingRepository,
+  FakeScheduleRepo,
+  makeOpeningHours,
+  slotOf,
+} from './book-appointment.fakes';
 import { expectRejected } from '@fade/test-utils';
 
 const opening = makeOpeningHours(0, '08:00', '20:00');

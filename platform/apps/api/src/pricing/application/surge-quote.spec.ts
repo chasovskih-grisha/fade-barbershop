@@ -41,7 +41,12 @@ describe('SurgePricing (T-4811)', () => {
       start: FRIDAY_EVENING,
       basePrice: 20_000,
     });
-    expect(quote).toEqual({ multiplierBp: 12_500, ruleId: 'surge-1', amount: 5_000, price: 25_000 });
+    expect(quote).toEqual({
+      multiplierBp: 12_500,
+      ruleId: 'surge-1',
+      amount: 5_000,
+      price: 25_000,
+    });
   });
 
   it('правило конкретної локації перемагає мережеве', async () => {
@@ -62,10 +67,18 @@ describe('SurgePricing (T-4811)', () => {
   it('рівень барбера передається в матчинг', async () => {
     const seniorOnly = rule({ seniorityTier: 'senior' });
     const pricing = new SurgePricing(new FakeStore([seniorOnly]));
-    expect((await pricing.quote({ locationId: 'loc-1', start: FRIDAY_EVENING, basePrice: 100 })).ruleId).toBeNull();
     expect(
-      (await pricing.quote({ locationId: 'loc-1', start: FRIDAY_EVENING, basePrice: 100, seniorityTier: 'senior' }))
-        .ruleId
+      (await pricing.quote({ locationId: 'loc-1', start: FRIDAY_EVENING, basePrice: 100 })).ruleId
+    ).toBeNull();
+    expect(
+      (
+        await pricing.quote({
+          locationId: 'loc-1',
+          start: FRIDAY_EVENING,
+          basePrice: 100,
+          seniorityTier: 'senior',
+        })
+      ).ruleId
     ).toBe('surge-1');
   });
 });

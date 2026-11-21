@@ -15,7 +15,9 @@ export const biometricsService = {
   async isEnrolledAsync(): Promise<boolean> {
     return mockIsEnrolled;
   },
-  async authenticateAsync(_promptMessage = 'Підтвердіть особу'): Promise<{ success: boolean; error?: string }> {
+  async authenticateAsync(
+    _promptMessage = 'Підтвердіть особу'
+  ): Promise<{ success: boolean; error?: string }> {
     if (!mockHasHardware || !mockIsEnrolled) {
       return { success: false, error: 'NOT_AVAILABLE' };
     }
@@ -44,5 +46,5 @@ export const biometricsService = {
   _setMockState(hardware: boolean, enrolled: boolean) {
     mockHasHardware = hardware;
     mockIsEnrolled = enrolled;
-  }
+  },
 };

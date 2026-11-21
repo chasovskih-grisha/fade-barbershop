@@ -9,7 +9,7 @@ describe('FADE Smart Capacity & Payout Optimizer (T-4621)', () => {
       operatingStart: at(9, 0),
       operatingEnd: at(17, 0), // 8 hours * 1 chair = 480 capacity mins
       chairs: 1,
-      baseCommissionRate: 0.50,
+      baseCommissionRate: 0.5,
       existingAppointments: [
         { start: at(9, 0), end: at(12, 0), revenue: 300 }, // 180 mins
         { start: at(12, 30), end: at(16, 30), revenue: 400 }, // 240 mins
@@ -29,15 +29,13 @@ describe('FADE Smart Capacity & Payout Optimizer (T-4621)', () => {
       operatingStart: at(9, 0),
       operatingEnd: at(17, 0),
       chairs: 1,
-      baseCommissionRate: 0.50,
-      existingAppointments: [
-        { start: at(10, 0), end: at(12, 0), revenue: 150 },
-      ], // 120 mins out of 480 = 25% occupancy
+      baseCommissionRate: 0.5,
+      existingAppointments: [{ start: at(10, 0), end: at(12, 0), revenue: 150 }], // 120 mins out of 480 = 25% occupancy
     });
 
     expect(result.chairOccupancyRate).toBe(0.25);
     expect(result.efficiencyGrade).toBe('D');
-    expect(result.tierBonusMultiplier).toBe(1.00);
+    expect(result.tierBonusMultiplier).toBe(1.0);
     expect(result.finalPayoutAmount).toBe(75);
   });
 });

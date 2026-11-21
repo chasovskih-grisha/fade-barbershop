@@ -2,7 +2,15 @@
 // Мапить доменні винятки на HTTP статус-коди.
 
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
-import { SourcePhotoNotFoundError, SuggestionNotFoundError, ConsentRequiredError, GenerationLimitExceededError, InvalidGenerationStatusError, PhotoAlreadyDeletedError, VariantNotFoundError } from '../application/haircut-errors';
+import {
+  SourcePhotoNotFoundError,
+  SuggestionNotFoundError,
+  ConsentRequiredError,
+  GenerationLimitExceededError,
+  InvalidGenerationStatusError,
+  PhotoAlreadyDeletedError,
+  VariantNotFoundError,
+} from '../application/haircut-errors';
 
 @Catch()
 export class HaircutExceptionFilter implements ExceptionFilter {

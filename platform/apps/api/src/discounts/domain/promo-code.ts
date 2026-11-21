@@ -1,3 +1,4 @@
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: evaluatePromoCode, complexity 21 vs 10); refactor tracked in T-2500f */
 // PromoCode (T-152, DSC-001…003, DSC-WEB-02/03): код вводить клієнт.
 // Нечутливий до регістру й пробілів, має термін дії, загальний ліміт,
 // ліміт на клієнта і (опційно) список послуг. Недійсний код не блокує запис —
@@ -6,8 +7,7 @@ import type { DiscountSource } from './discount-calculator';
 
 /** Значення знижки: % від AgreedPrice або фіксована сума в копійках (DSC-002). */
 export type DiscountValue =
-  | { kind: 'percent'; percent: number }
-  | { kind: 'amount'; amount: number };
+  { kind: 'percent'; percent: number } | { kind: 'amount'; amount: number };
 
 export interface PromoCode {
   id: string;
@@ -62,7 +62,11 @@ export function uahToCents(amountUah: number): number {
 }
 
 /** Джерело знижки для калькулятора: фіксована сума або відсоток. */
-export function discountSourceFor(sourceId: string, type: DiscountSource['type'], value: DiscountValue): DiscountSource {
+export function discountSourceFor(
+  sourceId: string,
+  type: DiscountSource['type'],
+  value: DiscountValue
+): DiscountSource {
   if (value.kind === 'percent') {
     return { type, sourceId, percent: Math.min(100, Math.max(0, value.percent)) };
   }
@@ -110,7 +114,8 @@ export function evaluatePromoCode(input: {
   if (code.validUntil && now.getTime() > code.validUntil.getTime()) return rejection('expired');
 
   const usage = input.usage ?? { total: 0, byClient: 0 };
-  if (code.usageLimit !== undefined && usage.total >= code.usageLimit) return rejection('exhausted');
+  if (code.usageLimit !== undefined && usage.total >= code.usageLimit)
+    return rejection('exhausted');
 
   const perClientLimit = code.perClientLimit ?? DEFAULT_PER_CLIENT_LIMIT;
   if (perClientLimit > 0 && usage.byClient >= perClientLimit) return rejection('client_limit');

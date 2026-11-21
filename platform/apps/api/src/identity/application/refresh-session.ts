@@ -82,7 +82,7 @@ export class RefreshSessionHandler {
         refreshToken,
         expiresInSec: ttl,
         userId: session.userId,
-        phone: user?.phone.value ?? '',
+        phone: user?.phone?.value ?? '',
       };
     });
   }

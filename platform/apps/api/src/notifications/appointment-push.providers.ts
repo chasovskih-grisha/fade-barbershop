@@ -5,7 +5,10 @@ import { PrismaNotificationJournal } from './infrastructure/notification-journal
 import { PrismaClientContacts } from './infrastructure/client-contacts';
 import { PrismaDevicePushTokens } from './infrastructure/device-push-tokens';
 import { PrismaClientPushPreferences } from './infrastructure/client-push-preferences';
-import { AppointmentPushNotification, type AppointmentPushDeps } from './application/appointment-push';
+import {
+  AppointmentPushNotification,
+  type AppointmentPushDeps,
+} from './application/appointment-push';
 import { PUSH_SENDER } from './notifications.tokens';
 
 /** Push-канал візиту (T-080): push на пристрої клієнта, відписка поважається. */

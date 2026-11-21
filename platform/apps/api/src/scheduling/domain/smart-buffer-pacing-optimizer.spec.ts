@@ -24,9 +24,7 @@ describe('SmartBufferPacingOptimizer', () => {
           clientHistoricalNoShowRate: 0.25,
         },
       ],
-      peakHours: [
-        { startHour: 17, endHour: 20 },
-      ],
+      peakHours: [{ startHour: 17, endHour: 20 }],
     });
 
     expect(result.barberId).toBe('barber-1');

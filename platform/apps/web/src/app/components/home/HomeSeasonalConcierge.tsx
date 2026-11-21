@@ -16,21 +16,31 @@ export function HomeSeasonalConcierge() {
             Індивідуальний підбір стилю під сезон і бездоганна якість
           </h2>
           <p className="text-body text-fg-secondary">
-            Змініть свій образ під новий сезон з персональною консультацією нашого топ-майстра. Ми враховуємо тренди, особливості форми голови, стиль життя та щільність бороди, забезпечуючи ідеальний результат із гарантією збереження форми на 3 тижні.
+            Змініть свій образ під новий сезон з персональною консультацією нашого топ-майстра. Ми
+            враховуємо тренди, особливості форми голови, стиль життя та щільність бороди,
+            забезпечуючи ідеальний результат із гарантією збереження форми на 3 тижні.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div className="flex items-start gap-3 p-3.5 rounded-[var(--radius-card)] bg-surface-sunken border border-line">
               <span className="text-accent-blue font-bold">✓</span>
               <div>
-                <h4 className="font-display font-semibold text-fg text-sm">Гарантія форми 21 день</h4>
-                <p className="text-caption text-fg-secondary">Коригування довжини бакенбардів та окантовки безкоштовно.</p>
+                <h4 className="font-display font-semibold text-fg text-sm">
+                  Гарантія форми 21 день
+                </h4>
+                <p className="text-caption text-fg-secondary">
+                  Коригування довжини бакенбардів та окантовки безкоштовно.
+                </p>
               </div>
             </div>
             <div className="flex items-start gap-3 p-3.5 rounded-[var(--radius-card)] bg-surface-sunken border border-line">
               <span className="text-accent-blue font-bold">✓</span>
               <div>
-                <h4 className="font-display font-semibold text-fg text-sm">Експрес-запис за 60 секунд</h4>
-                <p className="text-caption text-fg-secondary">Миттєвий вибір майстра, студії та зручного часу онлайн.</p>
+                <h4 className="font-display font-semibold text-fg text-sm">
+                  Експрес-запис за 60 секунд
+                </h4>
+                <p className="text-caption text-fg-secondary">
+                  Миттєвий вибір майстра, студії та зручного часу онлайн.
+                </p>
               </div>
             </div>
           </div>
@@ -45,7 +55,8 @@ export function HomeSeasonalConcierge() {
               Комплекс «Стрижка + Борода + Догляд»
             </h3>
             <p className="text-body text-fg-secondary">
-              Заощаджуйте 20% при бронюванні комплексного ритуалу з укладанням та ароматерапією гарячим рушником.
+              Заощаджуйте 20% при бронюванні комплексного ритуалу з укладанням та ароматерапією
+              гарячим рушником.
             </p>
           </div>
           <div className="pt-2 flex flex-col sm:flex-row lg:flex-col gap-3">

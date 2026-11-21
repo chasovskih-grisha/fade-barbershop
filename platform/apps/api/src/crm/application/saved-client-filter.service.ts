@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (142 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // T-4461: збережені CRM-фільтри — застосунковий шар.
 // Правила (валідація, канонічний запит, підпис, квота) — у
 // domain/saved-client-filter.ts; тут порт сховища й повторне виконання запиту
@@ -78,7 +79,13 @@ export class SavedClientFilterService {
     query: Record<string, string | undefined>;
   }): Promise<SavedClientFilter> {
     const at = this.clock.now();
-    const draft = createSavedFilter({ id: uuidv7(), ownerId: input.ownerId, name: input.name, query: input.query, at });
+    const draft = createSavedFilter({
+      id: uuidv7(),
+      ownerId: input.ownerId,
+      name: input.name,
+      query: input.query,
+      at,
+    });
     assertFilterCanBeSaved(await this.repository.listByOwner(input.ownerId), {
       ownerId: input.ownerId,
       name: draft.name,
@@ -108,7 +115,7 @@ export class SavedClientFilterService {
     return renamed;
   }
 
-  /** «Зберегти як» поверх наявного: оновлює запит фільтра. */
+  /** Оновлення запиту збереженого фільтра (те саме «зберегти як»). */
   async updateQuery(
     id: string,
     ownerId: string,
@@ -140,6 +147,24 @@ export class SavedClientFilterService {
       readAt: this.clock.now(),
       page,
       result,
+    };
+  }
+
+  /** Dry-run preview: повертає label, count та першу сторінку для перевірки до збереження. */
+  async preview(
+    ownerId: string,
+    name: string,
+    query: Record<string, string | undefined>
+  ): Promise<{ label: string; count: number; page: number }> {
+    const draft = createSavedFilter({ id: uuidv7(), ownerId, name, query });
+    const existing = await this.repository.listByOwner(ownerId);
+    const assertInput = { ownerId, name };
+    assertFilterCanBeSaved(existing, assertInput);
+    const pageResult = await this.clientList.handle(toListParams(draft.query, 1));
+    return {
+      label: savedFilterLabel(draft.query),
+      count: existing.length,
+      page: pageResult.page,
     };
   }
 

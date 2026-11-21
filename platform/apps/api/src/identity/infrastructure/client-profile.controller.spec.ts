@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (106 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікації контролера клієнтського профілю (T-??): GET /identity/profile,
 // PATCH /identity/profile/name, PATCH /identity/profile/preferences. Канали доступу
 // гварда — client-session.guard.spec.ts; CRM-експешн-фільтр — crm.exception-filter.ts.
@@ -79,7 +80,7 @@ describe('ClientProfileController (T-??): клієнтський профіль'
     );
     const anonSession = { userId: anonId, sessionId: testId() };
     await env.controller.patchName(reqOf(anonSession), { name: null as unknown as string });
-    expect(env.profiles.store.get(anonProfileId)!.name).toBeNull();
+    expect(env.profiles.store.get(anonProfileId)?.name).toBeNull();
   });
 
   it('PATCH name: профіль відсутний — ClientProfileNotFoundError', async () => {
@@ -98,8 +99,8 @@ describe('ClientProfileController (T-??): клієнтський профіль'
 
     expect(result.preferences).toHaveLength(2);
     expect(result.preferences.map((p) => p.text)).toEqual(['стильний футь', 'без зайвих запитань']);
-    expect(result.preferences[0]!.id).toMatch(UUID_V7_RE);
-    expect((await env.profiles.findById(PROFILE_1)!)!.preferences).toHaveLength(2);
+    expect(result?.preferences?.[0]?.id).toMatch(UUID_V7_RE);
+    expect((await env.profiles.findById(PROFILE_1))?.preferences).toHaveLength(2);
     expect(env.events.map((e) => e.type)).toEqual(['crm.preferences.updated']);
   });
 
@@ -108,7 +109,7 @@ describe('ClientProfileController (T-??): клієнтський профіль'
     await env.controller.patchPreferences(req, { preferences: ['перше'] });
     await env.controller.patchPreferences(req, { preferences: [] });
 
-    expect((await env.profiles.findById(PROFILE_1)!)!.preferences).toHaveLength(0);
+    expect((await env.profiles.findById(PROFILE_1))?.preferences).toHaveLength(0);
   });
 
   it('PATCH preferences: профіль відсутний — ClientProfileNotFoundError', async () => {

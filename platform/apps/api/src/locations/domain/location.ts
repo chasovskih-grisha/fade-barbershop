@@ -6,7 +6,14 @@ import { OpeningHours } from './opening-hours';
 import { Chair } from './chair';
 import type { ChannelData } from './location-channel';
 import type { PhotoData } from './location-photo';
-import { applyActive, applyChannels, applyChairs, applyHours, applyPhotos, applyProfilePatch } from './location.mutations';
+import {
+  applyActive,
+  applyChannels,
+  applyChairs,
+  applyHours,
+  applyPhotos,
+  applyProfilePatch,
+} from './location.mutations';
 import { createLocationData } from './location.create';
 import type { CreateLocationInput, LocationData, LocationProfilePatch } from './location.types';
 

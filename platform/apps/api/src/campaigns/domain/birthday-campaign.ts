@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, complexity -- cohesive module (253 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 2 functions with inherent domain branching (worst: normalizeBirthdayCampaignConfig, complexity 14 vs 10); refactor tracked in T-2500f */
 /**
  * T-4459: авто-кампанія «День народження» — чиста політика без Nest/Prisma.
  *
@@ -134,9 +135,7 @@ export function localDateParts(
 }
 
 export function addDays(parts: LocalDateParts, delta: number): LocalDateParts {
-  const moved = new Date(
-    Date.UTC(parts.year, parts.month - 1, parts.day) + delta * DAY_MS
-  );
+  const moved = new Date(Date.UTC(parts.year, parts.month - 1, parts.day) + delta * DAY_MS);
   return {
     year: moved.getUTCFullYear(),
     month: moved.getUTCMonth() + 1,

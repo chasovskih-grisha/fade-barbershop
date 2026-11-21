@@ -53,9 +53,7 @@ describe('Feedback & Competitive Intelligence (e2e)', () => {
       .expect(201);
 
     // Get updated competitors list
-    const listRes = await request(http)
-      .get('/admin/feedback/competitors/loc-center')
-      .expect(200);
+    const listRes = await request(http).get('/admin/feedback/competitors/loc-center').expect(200);
 
     expect(listRes.body.length).toBe(3);
     expect(listRes.body[2].competitorName).toBe('Modern Fade Studio');

@@ -1,4 +1,5 @@
-export type AmbassadorTier = 'AMBASSADOR_BRONZE' | 'AMBASSADOR_SILVER' | 'AMBASSADOR_GOLD' | 'AMBASSADOR_ELITE';
+export type AmbassadorTier =
+  'AMBASSADOR_BRONZE' | 'AMBASSADOR_SILVER' | 'AMBASSADOR_GOLD' | 'AMBASSADOR_ELITE';
 
 export interface AmbassadorTierRule {
   tier: AmbassadorTier;
@@ -28,14 +29,23 @@ export const AMBASSADOR_TIER_RULES: Record<AmbassadorTier, AmbassadorTierRule> =
     requiredReferrals: 5,
     serviceDiscountPercentage: 20,
     bonusPointsAward: 1000,
-    perks: ['20% Off All Services', 'Complimentary Whiskey & Beverage Bar', 'Dedicated Barber Chair Guarantee'],
+    perks: [
+      '20% Off All Services',
+      'Complimentary Whiskey & Beverage Bar',
+      'Dedicated Barber Chair Guarantee',
+    ],
   },
   AMBASSADOR_ELITE: {
     tier: 'AMBASSADOR_ELITE',
     requiredReferrals: 10,
     serviceDiscountPercentage: 25,
     bonusPointsAward: 2500,
-    perks: ['25% Off Lifetime', 'Free VIP Grooming Kit', 'Unlimited Priority Weekend Slots', 'Private Lounge Access'],
+    perks: [
+      '25% Off Lifetime',
+      'Free VIP Grooming Kit',
+      'Unlimited Priority Weekend Slots',
+      'Private Lounge Access',
+    ],
   },
 };
 

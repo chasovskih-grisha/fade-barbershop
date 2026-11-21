@@ -1,5 +1,9 @@
 // T-4536: розбивка за каналом — аліаси зливаються в канонічні значення.
-import { GetBookingSourceBreakdown, groupByCanonical, type BookingSourceStats } from './booking-source-breakdown';
+import {
+  GetBookingSourceBreakdown,
+  groupByCanonical,
+  type BookingSourceStats,
+} from './booking-source-breakdown';
 
 const FROM = new Date('2026-10-01T00:00:00Z');
 const TO = new Date('2026-11-01T00:00:00Z');

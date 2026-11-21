@@ -1,7 +1,11 @@
 // Ядро споживача підтверджень (T-4608): які події брати, ідемпотентність за
 // журналом (патерн T-042c). Канали доставки — send-booking-confirmation-channels.spec.ts,
 // skip/ретрай — send-booking-confirmation-skip.spec.ts, лист — template-спека.
-import { SendBookingConfirmation, confirmationEvent, makeConfirmationDeps } from './send-booking-confirmation.fakes';
+import {
+  SendBookingConfirmation,
+  confirmationEvent,
+  makeConfirmationDeps,
+} from './send-booking-confirmation.fakes';
 
 describe('SendBookingConfirmation: фільтрація подій', () => {
   it('чужі типи подій ігнорує без відправок і без записів журналу', async () => {

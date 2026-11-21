@@ -40,9 +40,12 @@ describe('GET /api/account/loyalty', () => {
       }),
     });
 
-    const req = new NextRequest('http://localhost:3000/api/account/loyalty?includeHistory=true&limit=5', {
-      headers: { Authorization: 'Bearer token', Cookie: 'session=123' },
-    });
+    const req = new NextRequest(
+      'http://localhost:3000/api/account/loyalty?includeHistory=true&limit=5',
+      {
+        headers: { Authorization: 'Bearer token', Cookie: 'session=123' },
+      }
+    );
 
     const res = await GET(req);
     expect(res.status).toBe(200);

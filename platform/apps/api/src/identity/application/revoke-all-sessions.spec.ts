@@ -4,7 +4,16 @@
 // access просто догорає за TTL. Одна подія identity.sessions.revoked.all
 // з кількістю — сповіщення без дублів (журнал notifications за eventId).
 import { RevokeAllSessionsHandler } from './revoke-all-sessions';
-import { FakeClock, FakeOutbox, FakeSessionRepository, FakeUserRepository, T0, passthroughUow, seedSession, seedUser } from './client-sessions.fakes';
+import {
+  FakeClock,
+  FakeOutbox,
+  FakeSessionRepository,
+  FakeUserRepository,
+  T0,
+  passthroughUow,
+  seedSession,
+  seedUser,
+} from './client-sessions.fakes';
 import { SESSION_MOBILE, USER_1, USER_2, testId } from './test-ids';
 
 const CURRENT = testId();

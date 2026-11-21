@@ -12,7 +12,9 @@ export interface EvaluateLoyaltyTierInput {
 export class EvaluateLoyaltyTierHandler {
   constructor(private readonly ctx: LoyaltyCommandContext) {}
 
-  async handle(input: EvaluateLoyaltyTierInput): Promise<{ tier: string; discountPercent: number; upgraded: boolean }> {
+  async handle(
+    input: EvaluateLoyaltyTierInput
+  ): Promise<{ tier: string; discountPercent: number; upgraded: boolean }> {
     let state = await this.ctx.states.findByClientId(input.clientId);
     if (!state) {
       state = ClientLoyaltyState.createNew(input.clientId, input.occurredAt);

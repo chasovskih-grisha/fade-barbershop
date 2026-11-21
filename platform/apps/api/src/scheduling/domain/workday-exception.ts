@@ -83,6 +83,7 @@ export function hasWorkdayExceptionOverlap(
   candidate: WorkdayExceptionData
 ): boolean {
   return existing.some(
-    (ex) => ex.locationId === candidate.locationId && ex.date === candidate.date && ex.id !== candidate.id
+    (ex) =>
+      ex.locationId === candidate.locationId && ex.date === candidate.date && ex.id !== candidate.id
   );
 }

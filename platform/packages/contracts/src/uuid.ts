@@ -31,9 +31,7 @@ export const isUuidV7 = (value: unknown): value is Uuid =>
   typeof value === 'string' && UUID_V7_PATTERN.test(value);
 
 /** Вхідні id: v7 від домену, v4/v5 у фікстурах і сідах. */
-export const uuidSchema = z
-  .string()
-  .regex(UUID_PATTERN, 'Expected a UUID (v1–v8, RFC 9562)');
+export const uuidSchema = z.string().regex(UUID_PATTERN, 'Expected a UUID (v1–v8, RFC 9562)');
 
 /** Для місць, де потрібен саме час-упорядкований id (сортування, курсори). */
 export const uuidV7Schema = z.string().regex(UUID_V7_PATTERN, 'Expected a UUID v7');

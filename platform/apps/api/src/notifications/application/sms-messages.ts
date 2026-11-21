@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (134 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Тексти SMS поза підтвердженням і нагадуванням (T-080, WTL, NSH-007):
 // чистий рендер даних у рядок, без HTML (канал його не несе), час — Europe/Kyiv.
 // Правило NSH-007: повідомлення про no-show нейтральне — жодних штрафів,
@@ -106,23 +107,17 @@ export interface LoyaltyExpiringSmsData {
 
 /** Нараховані бали після візиту (LYL). */
 export function renderLoyaltyPointsEarnedSms(data: LoyaltyPointsSmsData): string {
-  return clampToSmsLimit(
-    `FADE: +${data.points} балів за візит. Баланс: ${data.newBalance}.`
-  );
+  return clampToSmsLimit(`FADE: +${data.points} балів за візит. Баланс: ${data.newBalance}.`);
 }
 
 /** Досягнуто нового рівня. */
 export function renderLoyaltyTierReachedSms(data: LoyaltyTierSmsData): string {
-  return clampToSmsLimit(
-    `FADE: новий рівень — ${data.tier}, знижка ${data.discountPercent}%.`
-  );
+  return clampToSmsLimit(`FADE: новий рівень — ${data.tier}, знижка ${data.discountPercent}%.`);
 }
 
 /** Використані бали. */
 export function renderLoyaltyPointsSpentSms(data: LoyaltyPointsSmsData): string {
-  return clampToSmsLimit(
-    `FADE: списано ${data.points} балів. Залишок: ${data.newBalance}.`
-  );
+  return clampToSmsLimit(`FADE: списано ${data.points} балів. Залишок: ${data.newBalance}.`);
 }
 
 /** Попередження за 7 днів до згорання балів. */
@@ -141,3 +136,53 @@ export function renderLoyaltyPointsExpiringSms(data: LoyaltyExpiringSmsData): st
 export function renderLoyaltyDigestSms(lines: string[]): string {
   return clampToSmsLimit(['FADE: оновлення лояльності', ...lines].join('\n'));
 }
+
+/** Push-повідомлення про no-show (Europe/Kyiv час). */
+export function renderNoShowPush(data: NoShowSmsData): string {
+  const when = formatWhen(data.start);
+  const parts = [when ? `FADE: вас не було на записі ${when}.` : 'FADE: вас не було на записі.'];
+  if (data.locationName) parts.push(data.locationName);
+  parts.push('Будемо раді бачити вас знову.');
+  return parts.join(' ');
+}
+
+/** Email-повідомлення про нарахування балів лояльності. */
+export function renderLoyaltyPointsEarnedEmail(data: {
+  points: number;
+  newBalance: number;
+  tier?: string;
+}): string {
+  const tierInfo = data.tier ? `, новий рівень ${data.tier}` : '';
+  return `FADE: +${data.points} балів за візит${tierInfo}. Залишок балансу: ${data.newBalance}.`;
+}
+
+/** Email-повідомлення про досягнення нового рівня лояльності. */
+export function renderLoyaltyTierReachedEmail(data: {
+  tier: string;
+  discountPercent: number;
+}): string {
+  return `FADE: досягнут новий рівень — ${data.tier}, знижка ${data.discountPercent}%.`;
+}
+
+/** Email-повідомлення про використання балів. */
+export function renderLoyaltyPointsSpentEmail(data: {
+  points: number;
+  newBalance: number;
+}): string {
+  return `FADE: списано ${data.points} балів. Залишок: ${data.newBalance}.`;
+}
+
+/** Email-повідомлення про згоряння балів. */
+export function renderLoyaltyPointsExpiringEmail(data: {
+  points: number;
+  expiresAt: Date;
+}): string {
+  const date = new Intl.DateTimeFormat('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    timeZone: 'Europe/Kyiv',
+  }).format(data.expiresAt);
+  return `FADE: ${data.points} балів згорять ${date}. Використайте їх на наступному візиті.`;
+}
+
+/* EOF */

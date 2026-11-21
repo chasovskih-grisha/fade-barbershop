@@ -19,7 +19,10 @@ function toNumber(value: bigint | number | string | undefined): number {
 }
 
 /** Мапа «сирі рядки pg_stat_activity + max_connections» → снапшот. */
-export function toPoolSnapshot(activity: ActivityRow | undefined, maxConnections: string | number | undefined): DbPoolSnapshot {
+export function toPoolSnapshot(
+  activity: ActivityRow | undefined,
+  maxConnections: string | number | undefined
+): DbPoolSnapshot {
   return {
     active: toNumber(activity?.active),
     idle: toNumber(activity?.idle),
@@ -40,7 +43,8 @@ export class DbPoolMetricsProbe {
         "SELECT count(*) FILTER (WHERE state = 'active') AS active," +
           " count(*) FILTER (WHERE state = 'idle') AS idle FROM pg_stat_activity"
       );
-      const settings = await this.prisma.$queryRawUnsafe<{ max_connections: string }[]>('SHOW max_connections');
+      const settings =
+        await this.prisma.$queryRawUnsafe<{ max_connections: string }[]>('SHOW max_connections');
       return toPoolSnapshot(activity[0], settings[0]?.max_connections);
     } catch (error) {
       this.logger.warn(error instanceof Error ? error.message : String(error));

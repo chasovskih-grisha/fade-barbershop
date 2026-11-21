@@ -65,7 +65,9 @@ describe('StaffScheduleOvertimeGuard', () => {
 
     await waitFor(() => {
       expect(handleSave).toHaveBeenCalledWith(normalShifts);
-      expect(screen.getByText('Графік та ліміти робочих годин успішно збережено')).toBeInTheDocument();
+      expect(
+        screen.getByText('Графік та ліміти робочих годин успішно збережено')
+      ).toBeInTheDocument();
     });
   });
 });

@@ -2,7 +2,15 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { styles } from './kit-styles';
 
-export function MobileSlotPicker({ slots, selectedId, onSelect }: { slots: { id: string; time: string; available: boolean }[]; selectedId: string; onSelect: (id: string) => void }) {
+export function MobileSlotPicker({
+  slots,
+  selectedId,
+  onSelect,
+}: {
+  slots: { id: string; time: string; available: boolean }[];
+  selectedId: string;
+  onSelect: (id: string) => void;
+}) {
   return (
     <View style={styles.slotContainer}>
       {slots.map((slot) => (
@@ -10,7 +18,11 @@ export function MobileSlotPicker({ slots, selectedId, onSelect }: { slots: { id:
           key={slot.id}
           disabled={!slot.available}
           onPress={() => onSelect(slot.id)}
-          style={[styles.slot, selectedId === slot.id && styles.slotSelected, !slot.available && styles.slotDisabled]}
+          style={[
+            styles.slot,
+            selectedId === slot.id && styles.slotSelected,
+            !slot.available && styles.slotDisabled,
+          ]}
         >
           <Text style={styles.slotText}>{slot.time}</Text>
         </Pressable>
@@ -19,7 +31,13 @@ export function MobileSlotPicker({ slots, selectedId, onSelect }: { slots: { id:
   );
 }
 
-export function MobilePriceBreakdown({ items, total }: { items: { label: string; price: number }[]; total: number }) {
+export function MobilePriceBreakdown({
+  items,
+  total,
+}: {
+  items: { label: string; price: number }[];
+  total: number;
+}) {
   return (
     <View style={styles.priceContainer}>
       {items.map((item, idx) => (

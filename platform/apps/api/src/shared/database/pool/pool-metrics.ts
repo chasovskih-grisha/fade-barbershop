@@ -28,10 +28,30 @@ export function dbPoolExpositionLines(snapshot: DbPoolSnapshot | null): string[]
     lines.push(`# TYPE ${name} gauge`);
     lines.push(`${name} ${value}`);
   };
-  gauge('fade_db_pool_active_connections', 'Database connections currently executing a query.', snapshot.active);
-  gauge('fade_db_pool_idle_connections', 'Idle database connections held by the pool.', snapshot.idle);
-  gauge('fade_db_pool_waiting_requests', 'Requests waiting for a free database connection.', snapshot.waiting);
-  gauge('fade_db_pool_max_connections', 'Connection limit (server max_connections or PgBouncer pool size).', snapshot.maxConnections);
-  gauge('fade_db_pool_utilization_percent', 'Share of the connection limit in use, percent.', poolUtilization(snapshot));
+  gauge(
+    'fade_db_pool_active_connections',
+    'Database connections currently executing a query.',
+    snapshot.active
+  );
+  gauge(
+    'fade_db_pool_idle_connections',
+    'Idle database connections held by the pool.',
+    snapshot.idle
+  );
+  gauge(
+    'fade_db_pool_waiting_requests',
+    'Requests waiting for a free database connection.',
+    snapshot.waiting
+  );
+  gauge(
+    'fade_db_pool_max_connections',
+    'Connection limit (server max_connections or PgBouncer pool size).',
+    snapshot.maxConnections
+  );
+  gauge(
+    'fade_db_pool_utilization_percent',
+    'Share of the connection limit in use, percent.',
+    poolUtilization(snapshot)
+  );
   return lines;
 }

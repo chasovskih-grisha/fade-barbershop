@@ -28,6 +28,9 @@ export class BookAgainIntentReader {
 
   async handle(appointmentId: string, clientId: string): Promise<BookAgainIntent> {
     const row = await this.ownCompleted(appointmentId, clientId);
+    // Партія (father-and-son): флоу ще не вміє передзаповнення пакета, тож
+    // повторний запис із неї не починається — половина пари не створюється.
+    if (row.partyId !== null) throw new AppointmentNotFoundError(appointmentId);
     const price = await this.priceRow(row.serviceId, row.locationId);
     const [location, service, barber] = await Promise.all([
       this.location(row.locationId),
@@ -40,7 +43,13 @@ export class BookAgainIntentReader {
   private async ownCompleted(appointmentId: string, clientId: string) {
     const row = await this.prisma.booking.findFirst({
       where: { clientId, OR: [{ appointmentId }, { id: appointmentId }] },
-      select: { barberId: true, locationId: true, serviceId: true, status: true },
+      select: {
+        barberId: true,
+        locationId: true,
+        serviceId: true,
+        status: true,
+        partyId: true,
+      },
     });
     if (!row || row.status !== 'completed') throw new AppointmentNotFoundError(appointmentId);
     return row;

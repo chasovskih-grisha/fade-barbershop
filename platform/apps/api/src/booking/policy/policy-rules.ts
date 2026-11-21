@@ -21,7 +21,11 @@ export interface BookingBlock {
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
 
-export function checkLeadTime(policy: OnlineBookingPolicy, start: Date, now: Date): BookingBlock | null {
+export function checkLeadTime(
+  policy: OnlineBookingPolicy,
+  start: Date,
+  now: Date
+): BookingBlock | null {
   const minutes = (start.getTime() - now.getTime()) / MINUTE_MS;
   if (minutes >= policy.minLeadMinutes) return null;
   return {
@@ -30,7 +34,11 @@ export function checkLeadTime(policy: OnlineBookingPolicy, start: Date, now: Dat
   };
 }
 
-export function checkHorizon(policy: OnlineBookingPolicy, start: Date, now: Date): BookingBlock | null {
+export function checkHorizon(
+  policy: OnlineBookingPolicy,
+  start: Date,
+  now: Date
+): BookingBlock | null {
   const days = (start.getTime() - now.getTime()) / (24 * HOUR_MS);
   if (days <= policy.maxHorizonDays) return null;
   return {
@@ -65,7 +73,10 @@ export function checkRescheduleDeadline(
   };
 }
 
-export function checkActiveBookings(policy: OnlineBookingPolicy, activeCount: number): BookingBlock | null {
+export function checkActiveBookings(
+  policy: OnlineBookingPolicy,
+  activeCount: number
+): BookingBlock | null {
   if (activeCount < policy.maxActiveBookings) return null;
   return {
     code: 'max_active_bookings',
@@ -79,7 +90,10 @@ export function checkDuplicate(hasDuplicate: boolean): BookingBlock | null {
     : null;
 }
 
-export function checkNoShowBlock(policy: OnlineBookingPolicy, noShows: number): BookingBlock | null {
+export function checkNoShowBlock(
+  policy: OnlineBookingPolicy,
+  noShows: number
+): BookingBlock | null {
   if (policy.noShowBlock.count === 0 || noShows < policy.noShowBlock.count) return null;
   return {
     code: 'no_show_block',

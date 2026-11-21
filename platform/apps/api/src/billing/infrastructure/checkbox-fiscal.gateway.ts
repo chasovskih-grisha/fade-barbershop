@@ -3,14 +3,25 @@ import { FiscalGateway, FiscalReceiptDetails } from '../domain/fiscal.gateway.in
 
 @Injectable()
 export class CheckboxFiscalGateway implements FiscalGateway {
-  private receipts = new Map<string, { status: 'CREATED' | 'DONE' | 'CANCELLED' | 'ERROR'; total: number; fiscalCode?: string; error?: string }>();
+  private receipts = new Map<
+    string,
+    {
+      status: 'CREATED' | 'DONE' | 'CANCELLED' | 'ERROR';
+      total: number;
+      fiscalCode?: string;
+      error?: string;
+    }
+  >();
   private shiftOpenedAt: Date | null = new Date(Date.now() - 2 * 3600 * 1000);
 
   setShiftOpenedAt(date: Date | null) {
     this.shiftOpenedAt = date;
   }
 
-  async checkShiftOpen(params: { cashRegisterId?: string; traceId: string }): Promise<{ isOpen: boolean; openedAt?: Date; isTooLong?: boolean }> {
+  async checkShiftOpen(_params: {
+    cashRegisterId?: string;
+    traceId: string;
+  }): Promise<{ isOpen: boolean; openedAt?: Date; isTooLong?: boolean }> {
     if (!this.shiftOpenedAt) {
       return { isOpen: false };
     }
@@ -37,7 +48,10 @@ export class CheckboxFiscalGateway implements FiscalGateway {
       throw new Error('receipt.zero_payment_after_rounding: amount must be greater than zero');
     }
 
-    const shift = await this.checkShiftOpen({ cashRegisterId: params.cashRegisterId, traceId: params.traceId });
+    const shift = await this.checkShiftOpen({
+      ...(params.cashRegisterId ? { cashRegisterId: params.cashRegisterId } : {}),
+      traceId: params.traceId,
+    });
     if (!shift.isOpen) {
       throw new Error('shift.not_opened: Cash register shift is not open');
     }
@@ -62,17 +76,20 @@ export class CheckboxFiscalGateway implements FiscalGateway {
     };
   }
 
-  async getReceiptStatus(params: { receiptId: string; traceId: string }): Promise<FiscalReceiptDetails> {
+  async getReceiptStatus(params: {
+    receiptId: string;
+    traceId: string;
+  }): Promise<FiscalReceiptDetails> {
     const r = this.receipts.get(params.receiptId);
     if (!r) {
       throw new Error(`Receipt not found: ${params.receiptId}`);
     }
     return {
       receiptId: params.receiptId,
-      fiscalCode: r.fiscalCode,
+      ...(r.fiscalCode ? { fiscalCode: r.fiscalCode } : {}),
       status: r.status,
       total: r.total,
-      ...(r.error && { error: r.error }),
+      ...(r.error ? { error: r.error } : {}),
     };
   }
 }

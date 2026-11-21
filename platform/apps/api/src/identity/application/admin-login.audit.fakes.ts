@@ -1,6 +1,12 @@
 // Хелпери аудит-спек AdminLogin (T-4411) — окремо від спеки (max-lines).
 import { AdminLoginHandler } from './admin-login';
-import { FakeClock, FakeOutbox, FakeSessionRepository, FakeUserRepository, UuidIds } from './ports.fakes';
+import {
+  FakeClock,
+  FakeOutbox,
+  FakeSessionRepository,
+  FakeUserRepository,
+  UuidIds,
+} from './ports.fakes';
 import { FakeLoginAudit } from './login-audit.fakes';
 import { hashPassword } from '../domain/password';
 import { User } from '../domain/user';

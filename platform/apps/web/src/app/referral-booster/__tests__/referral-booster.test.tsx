@@ -11,7 +11,7 @@ describe('ReferralBoosterPage', () => {
   it('allows incrementing referrals and unlocking tiers', () => {
     render(<ReferralBoosterPage />);
     expect(screen.getByText('Запрошено друзів:')).toBeInTheDocument();
-    
+
     const increaseBtn = screen.getByText('+ Збільшити');
     fireEvent.click(increaseBtn);
 

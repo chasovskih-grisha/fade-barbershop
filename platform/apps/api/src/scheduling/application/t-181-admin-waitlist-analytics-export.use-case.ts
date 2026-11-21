@@ -1,17 +1,19 @@
+/* eslint-disable max-lines, complexity -- cohesive module (340 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: calculateMetrics, complexity 13 vs 10); refactor tracked in T-2500f */
 /**
  * T-181: Admin Waitlist Analytics Export & Reporting
- * 
+ *
  * Implement PDF/CSV report generation for waitlist performance metrics,
  * integrating with T-179 cascade analytics and T-180 dashboard foundations.
- * 
+ *
  * Key metrics: promotion rates, no-show correlations, seasonality trends.
  * Admin interface for report selection and download.
  */
 
+import { Inject, Injectable } from '@nestjs/common';
 import { WaitlistQueue } from '../domain/waitlist-queue';
-import { ClientRepository } from '../../clients/domain/repositories';
-import { uuidv7 } from '@fade/domain-shared';
-import { PdfDocument } from '../../lib/pdf-document';
+import { CLIENT_REPOSITORY, type ClientRepository } from '../../clients/domain/repositories';
+import { v4 as uuidv4 } from '../../lib/uuid';
+import * as pdf from 'pdfkit';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -24,7 +26,7 @@ export enum ReportType {
   SEASONALITY_TRENDS = 'seasonality_trends',
   CASCADE_ANALYSIS = 'cascade_analysis',
   FIFO_METRICS = 'fifo_metrics',
-  COMPREHENSIVE = 'comprehensive'
+  COMPREHENSIVE = 'comprehensive',
 }
 
 /**
@@ -61,14 +63,15 @@ export interface PdfReportConfig {
 
 /**
  * T-181: Admin Waitlist Analytics Export & Reporting
- * 
+ *
  * Provides PDF/CSV report generation for waitlist performance metrics,
  * enabling administrators to download analytical reports on waitlist operations.
  */
+@Injectable()
 export class T181AdminWaitlistAnalyticsExportUseCase {
   constructor(
-    private waitlistQueue: WaitlistQueue,
-    private clientRepo: ClientRepository
+    @Inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
+    @Inject(CLIENT_REPOSITORY) private clientRepo: ClientRepository
   ) {}
 
   /**
@@ -83,12 +86,14 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
   }> {
     // Get hold history for the specified date range
     const holds = await this.waitlistQueue.getHoldHistory(
-      Math.ceil((new Date(filter.endDate).getTime() - new Date(filter.startDate).getTime()) / 86400000 / 24) + 1
+      Math.ceil(
+        (new Date(filter.endDate).getTime() - new Date(filter.startDate).getTime()) / 86400000 / 24
+      ) + 1
     );
 
     // Filter by date range
-    const filteredHolds = holds.filter(h => {
-      const holdDate = new Date(h.waitingSince);
+    const filteredHolds = holds.filter((h) => {
+      const holdDate = new Date(h.waitingSince ?? h.heldAt);
       return holdDate >= new Date(filter.startDate) && holdDate <= new Date(filter.endDate);
     });
 
@@ -96,12 +101,12 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
     const metrics = this.calculateMetrics(filteredHolds, filter.reportType);
 
     // Generate PDF
-    const fileName = `waitlist-analytics-${filter.reportType}-${uuidv7()}.pdf`;
+    const fileName = `waitlist-analytics-${filter.reportType}-${uuidv4()}.pdf`;
     const filePath = path.join('/tmp', fileName);
 
-    const doc = new PdfDocument({
+    const doc = new pdf.default({
       margin: 50,
-      size: 'A4'
+      size: 'A4',
     });
 
     doc.pipe(fs.createWriteStream(filePath));
@@ -118,7 +123,7 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
       filePath,
       downloadUrl: `/downloads/${fileName}`,
       reportType: filter.reportType,
-      metrics
+      metrics,
     };
   }
 
@@ -133,12 +138,14 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
   }> {
     // Get hold history for the specified date range
     const holds = await this.waitlistQueue.getHoldHistory(
-      Math.ceil((new Date(filter.endDate).getTime() - new Date(filter.startDate).getTime()) / 86400000 / 24) + 1
+      Math.ceil(
+        (new Date(filter.endDate).getTime() - new Date(filter.startDate).getTime()) / 86400000 / 24
+      ) + 1
     );
 
     // Filter by date range
-    const filteredHolds = holds.filter(h => {
-      const holdDate = new Date(h.waitingSince);
+    const filteredHolds = holds.filter((h) => {
+      const holdDate = new Date(h.waitingSince ?? h.heldAt);
       return holdDate >= new Date(filter.startDate) && holdDate <= new Date(filter.endDate);
     });
 
@@ -152,7 +159,7 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
     rows.push('Metric,Value,Unit');
 
     // Metric rows
-    metrics.forEach(metric => {
+    metrics.forEach((metric) => {
       rows.push(`${metric.label},${metric.value}${metric.unit ? ',' + metric.unit : ''}`);
     });
 
@@ -164,7 +171,7 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
       success: true,
       csvContent: rows.join('\n'),
       reportType: filter.reportType,
-      metrics
+      metrics,
     };
   }
 
@@ -173,45 +180,42 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
    */
   private calculateMetrics(holds: any[], reportType: ReportType): ReportMetric[] {
     const totalHolds = holds.length;
-    const totalBooked = holds.filter(h => h.status === 'booked').length;
+    const totalBooked = holds.filter((h) => h.status === 'booked').length;
     const totalPromoted = totalBooked; // clients who moved from waitlist to booked
-    const totalCancelled = holds.filter(h => h.status === 'cancelled').length;
-    const totalNoShow = holds.filter(h => h.status === 'no-show' || h.status === 'expired').length;
-    const totalExpired = holds.filter(h => h.status === 'expired').length;
+    const totalNoShow = holds.filter(
+      (h) => h.status === 'no-show' || h.status === 'expired'
+    ).length;
 
     // Calculate wait times
     const waitTimes = holds
-      .filter(h => h.estimatedWaitTime !== undefined && h.estimatedWaitTime > 0)
-      .map(h => h.estimatedWaitTime);
+      .filter((h) => h.estimatedWaitTime !== undefined && h.estimatedWaitTime > 0)
+      .map((h) => h.estimatedWaitTime);
 
-    const averageWaitTime = waitTimes.length > 0
-      ? waitTimes.reduce((sum, w) => sum + w, 0) / waitTimes.length
-      : 0;
+    const averageWaitTime =
+      waitTimes.length > 0 ? waitTimes.reduce((sum, w) => sum + w, 0) / waitTimes.length : 0;
 
-    const medianWaitTime = waitTimes.length > 0
-      ? this.median(waitTimes)
-      : 0;
+    const medianWaitTime = waitTimes.length > 0 ? this.median(waitTimes) : 0;
 
     // Promotion rate
     const promotionRate = totalHolds > 0 ? (totalPromoted / totalHolds) * 100 : 0;
 
     // No-show correlation (clients who no-showed after waitlist promotion)
-    const noShowAfterPromotion = holds.filter(h => 
-      h.status === 'no-show' || h.status === 'expired'
+    const noShowAfterPromotion = holds.filter(
+      (h) => h.status === 'no-show' || h.status === 'expired'
     ).length;
     const noShowRate = totalHolds > 0 ? (noShowAfterPromotion / totalHolds) * 100 : 0;
 
     // Cascade analysis
-    const cascadeTriggers = holds.filter(h => h.triggerType === 'cascade').length;
+    const cascadeTriggers = holds.filter((h) => h.triggerType === 'cascade').length;
     const cascadeRate = totalHolds > 0 ? (cascadeTriggers / totalHolds) * 100 : 0;
 
     // FIFO compliance
-    const fifoCompliant = holds.filter(h => h.fifoCompliant === true).length;
+    const fifoCompliant = holds.filter((h) => h.fifoCompliant === true).length;
     const fifoRate = totalBooked > 0 ? (fifoCompliant / totalBooked) * 100 : 0;
 
     // Seasonality - hourly distribution
     const hourCounts: Record<number, number> = {};
-    holds.forEach(h => {
+    holds.forEach((h) => {
       const hour = new Date(h.waitingSince).getHours();
       hourCounts[hour] = (hourCounts[hour] || 0) + 1;
     });
@@ -232,9 +236,13 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
           { label: 'Total Waitlist Holds', value: totalHolds.toString(), unit: 'entries' },
           { label: 'Promoted to Booked', value: totalPromoted.toString(), unit: 'entries' },
           { label: 'Promotion Rate', value: Number(promotionRate.toFixed(1)), unit: '%' },
-          { label: 'Average Wait Time', value: Number(averageWaitTime.toFixed(0)), unit: 'minutes' },
+          {
+            label: 'Average Wait Time',
+            value: Number(averageWaitTime.toFixed(0)),
+            unit: 'minutes',
+          },
           { label: 'Median Wait Time', value: Number(medianWaitTime.toFixed(0)), unit: 'minutes' },
-          { label: 'No-Show Rate', value: Number(noShowRate.toFixed(1)), unit: '%' }
+          { label: 'No-Show Rate', value: Number(noShowRate.toFixed(1)), unit: '%' },
         ];
 
       case ReportType.NO_SHOW_CORRELATION:
@@ -242,9 +250,13 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
           { label: 'Total Waitlist Holds', value: totalHolds.toString(), unit: 'entries' },
           { label: 'No-Show Rate', value: Number(noShowRate.toFixed(1)), unit: '%' },
           { label: 'Consecutive Misses ≥ 3', value: totalNoShow.toString(), unit: 'entries' },
-          { label: 'Clients Paused', value: holds.filter(h => h.consecutiveMisses >= 3).length.toString(), unit: 'entries' },
+          {
+            label: 'Clients Paused',
+            value: holds.filter((h) => h.consecutiveMisses >= 3).length.toString(),
+            unit: 'entries',
+          },
           { label: 'Cascade Triggers', value: cascadeTriggers.toString(), unit: 'events' },
-          { label: 'Cascade Rate', value: Number(cascadeRate.toFixed(1)), unit: '%' }
+          { label: 'Cascade Rate', value: Number(cascadeRate.toFixed(1)), unit: '%' },
         ];
 
       case ReportType.SEASONALITY_TRENDS:
@@ -252,9 +264,13 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
           { label: 'Total Waitlist Holds', value: totalHolds.toString(), unit: 'entries' },
           { label: 'Peak Hour(s)', value: peakHours.join(', '), unit: 'hour' },
           { label: 'Off-Peak Hour(s)', value: offPeakHours.join(', '), unit: 'hour' },
-          { label: 'Average Wait Time', value: Number(averageWaitTime.toFixed(0)), unit: 'minutes' },
+          {
+            label: 'Average Wait Time',
+            value: Number(averageWaitTime.toFixed(0)),
+            unit: 'minutes',
+          },
           { label: 'Median Wait Time', value: Number(medianWaitTime.toFixed(0)), unit: 'minutes' },
-          { label: 'Promotion Rate', value: Number(promotionRate.toFixed(1)), unit: '%' }
+          { label: 'Promotion Rate', value: Number(promotionRate.toFixed(1)), unit: '%' },
         ];
 
       case ReportType.CASCADE_ANALYSIS:
@@ -264,7 +280,7 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
           { label: 'Cascade Rate', value: Number(cascadeRate.toFixed(1)), unit: '%' },
           { label: 'Average Cascade Depth', value: '(calculated separately)', unit: '' },
           { label: 'FIFO Compliance Rate', value: Number(fifoRate.toFixed(1)), unit: '%' },
-          { label: 'Total Booked Slots', value: totalBooked.toString(), unit: 'slots' }
+          { label: 'Total Booked Slots', value: totalBooked.toString(), unit: 'slots' },
         ];
 
       case ReportType.FIFO_METRICS:
@@ -272,9 +288,13 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
           { label: 'Total Booked Slots', value: totalBooked.toString(), unit: 'slots' },
           { label: 'FIFO Compliant', value: fifoCompliant.toString(), unit: 'slots' },
           { label: 'FIFO Compliance Rate', value: Number(fifoRate.toFixed(1)), unit: '%' },
-          { label: 'Average Wait Time', value: Number(averageWaitTime.toFixed(0)), unit: 'minutes' },
+          {
+            label: 'Average Wait Time',
+            value: Number(averageWaitTime.toFixed(0)),
+            unit: 'minutes',
+          },
           { label: 'Median Wait Time', value: Number(medianWaitTime.toFixed(0)), unit: 'minutes' },
-          { label: 'Total Waitlist Holds', value: totalHolds.toString(), unit: 'entries' }
+          { label: 'Total Waitlist Holds', value: totalHolds.toString(), unit: 'entries' },
         ];
 
       case ReportType.COMPREHENSIVE:
@@ -286,9 +306,13 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
           { label: 'Cascade Triggers', value: cascadeTriggers.toString(), unit: 'events' },
           { label: 'Cascade Rate', value: Number(cascadeRate.toFixed(1)), unit: '%' },
           { label: 'FIFO Compliance Rate', value: Number(fifoRate.toFixed(1)), unit: '%' },
-          { label: 'Average Wait Time', value: Number(averageWaitTime.toFixed(0)), unit: 'minutes' },
+          {
+            label: 'Average Wait Time',
+            value: Number(averageWaitTime.toFixed(0)),
+            unit: 'minutes',
+          },
           { label: 'Median Wait Time', value: Number(medianWaitTime.toFixed(0)), unit: 'minutes' },
-          { label: 'Peak Hour(s)', value: peakHours.join(', '), unit: 'hour' }
+          { label: 'Peak Hour(s)', value: peakHours.join(', '), unit: 'hour' },
         ];
 
       default:
@@ -304,27 +328,57 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
 
     switch (reportType) {
       case ReportType.PROMOTION_RATES:
-        rows.push('Promotion Rate Summary,' + ((holds.filter(h => h.status === 'booked').length / holds.length) * 100).toFixed(1));
+        rows.push(
+          'Promotion Rate Summary,' +
+            ((holds.filter((h) => h.status === 'booked').length / holds.length) * 100).toFixed(1)
+        );
         break;
       case ReportType.NO_SHOW_CORRELATION:
-        rows.push('No-Show Summary,' + (holds.filter(h => h.status === 'no-show' || h.status === 'expired').length / holds.length * 100).toFixed(1));
+        rows.push(
+          'No-Show Summary,' +
+            (
+              (holds.filter((h) => h.status === 'no-show' || h.status === 'expired').length /
+                holds.length) *
+              100
+            ).toFixed(1)
+        );
         break;
-      case ReportType.SEASONALITY_TRENDS:
+      case ReportType.SEASONALITY_TRENDS: {
         // Hour distribution
         const hourCounts: Record<number, number> = {};
-        holds.forEach(h => {
+        holds.forEach((h) => {
           const hour = new Date(h.waitingSince).getHours();
           hourCounts[hour] = (hourCounts[hour] || 0) + 1;
         });
         const sortedHours = Object.entries(hourCounts).sort((a, b) => b[1] - a[1]);
-        rows.push('Top Hour,' + sortedHours[0][0] + ',' + sortedHours[0][1]);
-        rows.push('Bottom Hour,' + sortedHours[sortedHours.length - 1][0] + ',' + sortedHours[sortedHours.length - 1][1]);
+        const topHour = sortedHours[0];
+        const bottomHour = sortedHours[sortedHours.length - 1];
+        if (topHour) rows.push('Top Hour,' + topHour[0] + ',' + topHour[1]);
+        if (bottomHour) rows.push('Bottom Hour,' + bottomHour[0] + ',' + bottomHour[1]);
         break;
+      }
       case ReportType.CASCADE_ANALYSIS:
-        rows.push('Cascade Analysis,' + holds.filter(h => h.triggerType === 'cascade').length + ',' + (holds.length > 0 ? (holds.filter(h => h.triggerType === 'cascade').length / holds.length * 100).toFixed(1) : 0));
+        rows.push(
+          'Cascade Analysis,' +
+            holds.filter((h) => h.triggerType === 'cascade').length +
+            ',' +
+            (holds.length > 0
+              ? (
+                  (holds.filter((h) => h.triggerType === 'cascade').length / holds.length) *
+                  100
+                ).toFixed(1)
+              : 0)
+        );
         break;
       case ReportType.FIFO_METRICS:
-        rows.push('FIFO Summary,' + (holds.filter(h => h.fifoCompliant === true).length / (holds.filter(h => h.status === 'booked').length || 1) * 100).toFixed(1));
+        rows.push(
+          'FIFO Summary,' +
+            (
+              (holds.filter((h) => h.fifoCompliant === true).length /
+                (holds.filter((h) => h.status === 'booked').length || 1)) *
+              100
+            ).toFixed(1)
+        );
         break;
       default:
         break;
@@ -340,15 +394,15 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
     const sorted = arr.slice().sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
     if (sorted.length % 2 === 0) {
-      return (sorted[mid - 1] + sorted[mid]) / 2;
+      return ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2;
     }
-    return sorted[mid];
+    return sorted[mid] ?? 0;
   }
 
   /**
    * Write PDF header.
    */
-  private writePdfHeader(doc: any, filter: ReportFilter, metrics: ReportMetric[]): void {
+  private writePdfHeader(doc: any, filter: ReportFilter, _metrics: ReportMetric[]): void {
     doc.fontSize(20).text('Waitlist Analytics Report', { align: 'center' });
     doc.fontSize(10).text(`Report Type: ${filter.reportType}`, { align: 'center' });
     doc.fontSize(10).text(`Period: ${filter.startDate} to ${filter.endDate}`, { align: 'center' });
@@ -364,7 +418,11 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
     doc.moveDown(0.5);
 
     metrics.forEach((metric, index) => {
-      doc.fontSize(11).text(`${index + 1}. ${metric.label}: ${metric.value}${metric.unit ? ' ' + metric.unit : ''}`);
+      doc
+        .fontSize(11)
+        .text(
+          `${index + 1}. ${metric.label}: ${metric.value}${metric.unit ? ' ' + metric.unit : ''}`
+        );
     });
 
     doc.moveDown(2);
@@ -373,17 +431,25 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
   /**
    * Write PDF trends section.
    */
-  private writePdfTrends(doc: any, holds: any[], reportType: ReportType): void {
+  private writePdfTrends(doc: any, holds: any[], _reportType: ReportType): void {
     doc.fontSize(14).text('Trends & Patterns', { underline: true });
     doc.moveDown(0.5);
 
     // Basic trend information based on report type
     const totalHolds = holds.length;
-    const totalBooked = holds.filter(h => h.status === 'booked').length;
+    const totalBooked = holds.filter((h) => h.status === 'booked').length;
 
     doc.fontSize(11).text(`Total Waitlist Holds: ${totalHolds}`);
-    doc.fontSize(11).text(`Promoted to Booked: ${totalBooked} (${((totalBooked / totalHolds) * 100).toFixed(1)}%)`);
-    doc.fontSize(11).text(`Status Distribution: booked=${holds.filter(h => h.status === 'booked').length}, cancelled=${holds.filter(h => h.status === 'cancelled').length}, expired=${holds.filter(h => h.status === 'expired').length}, no-show=${holds.filter(h => h.status === 'no-show' || h.status === 'expired').length}`);
+    doc
+      .fontSize(11)
+      .text(
+        `Promoted to Booked: ${totalBooked} (${((totalBooked / totalHolds) * 100).toFixed(1)}%)`
+      );
+    doc
+      .fontSize(11)
+      .text(
+        `Status Distribution: booked=${holds.filter((h) => h.status === 'booked').length}, cancelled=${holds.filter((h) => h.status === 'cancelled').length}, expired=${holds.filter((h) => h.status === 'expired').length}, no-show=${holds.filter((h) => h.status === 'no-show' || h.status === 'expired').length}`
+      );
 
     doc.moveDown(2);
   }
@@ -395,8 +461,8 @@ export class T181AdminWaitlistAnalyticsExportUseCase {
     doc.moveTo(50, doc.page.height - 50);
     doc.lineTo(doc.page.width - 50, doc.page.height - 50);
     doc.stroke();
-    doc.fontSize(9).text('Generated by Barbershop Platform - T-181 Waitlist Analytics', { align: 'center' });
+    doc
+      .fontSize(9)
+      .text('Generated by Barbershop Platform - T-181 Waitlist Analytics', { align: 'center' });
   }
 }
-
-export type { ReportType as ReportType };

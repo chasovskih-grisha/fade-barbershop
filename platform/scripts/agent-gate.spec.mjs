@@ -21,9 +21,7 @@ import { planStart, planSync, runPreflight } from './agent-preflight.mjs';
 import { installGateHook } from './render-antigravity-sidecars.mjs';
 
 const owns = { owns: ['apps/api/src/scheduling'], except: [] };
-const row = parseIndexRow(
-  '| [T-1](../tasks/T-1.md) | Lock | — | backend | middle | todo |'
-);
+const row = parseIndexRow('| [T-1](../tasks/T-1.md) | Lock | — | backend | middle | todo |');
 
 const plan = `# T-1
 
@@ -70,7 +68,10 @@ test('a review that only edits the backlog is refused', () => {
 
 test('a one-line stub and a comment are not an implementation', () => {
   const stub = substantialFiles(
-    { 'apps/api/src/scheduling/lock.ts': '+\n+export default function GiftPage() { return <div>Gift</div> }\n' },
+    {
+      'apps/api/src/scheduling/lock.ts':
+        '+\n+export default function GiftPage() { return <div>Gift</div> }\n',
+    },
     owns
   );
   const comment = substantialFiles(
@@ -86,7 +87,13 @@ test('a one-line stub and a comment are not an implementation', () => {
   assert.deepEqual(markdown, []);
   assert.equal(planProblems('# T\n', owns), 'implementation plan names no owned path');
   assert.equal(
-    planProblems(plan.replace('node --test apps/api/src/scheduling/lock.test.mjs', 'node -e "process.exit(0)"'), owns),
+    planProblems(
+      plan.replace(
+        'node --test apps/api/src/scheduling/lock.test.mjs',
+        'node -e "process.exit(0)"'
+      ),
+      owns
+    ),
     'implementation plan check does not run the test'
   );
 });
@@ -126,7 +133,11 @@ test('review notes must list the files the diff actually changed', () => {
   const notes = `${plan}\n## Implementation notes\n\n- apps/api/src/scheduling/lock.test.mjs\n- apps/api/src/scheduling/lock.ts\n`;
   const result = assessRange({
     changes: [{ id: 'T-1', from: 'in_progress', to: 'review', tags: ['backend'], taskText: notes }],
-    files: ['apps/api/src/scheduling/lock.ts', 'apps/api/src/scheduling/lock.test.mjs', 'backlog/index/m0.md'],
+    files: [
+      'apps/api/src/scheduling/lock.ts',
+      'apps/api/src/scheduling/lock.test.mjs',
+      'backlog/index/m0.md',
+    ],
     patches: {
       'apps/api/src/scheduling/lock.ts': realPatch,
       'apps/api/src/scheduling/lock.test.mjs': testPatch,
@@ -175,7 +186,10 @@ test('preflight skips an empty queue and a dirty tree', () => {
     reason: 'no ready todo',
   });
   assert.equal(planStart({ kind: 'implement', eligible: 0, inProgress: 1 }).action, 'start');
-  assert.equal(planStart({ kind: 'accept', realReviews: 0, statusOnlyReviews: 2 }).action, 'withdraw');
+  assert.equal(
+    planStart({ kind: 'accept', realReviews: 0, statusOnlyReviews: 2 }).action,
+    'withdraw'
+  );
   let started = false;
   const code = runPreflight({
     dirty: () => true,
@@ -252,7 +266,10 @@ test('review commits only when an owned file changed', async () => {
     );
     assert.equal(claimTask(root, 'backend-developer', { push: false }), 'T-1');
     await mkdir(join(root, 'apps', 'api', 'src', 'scheduling'), { recursive: true });
-    await writeFile(join(root, 'apps', 'api', 'src', 'scheduling', 'lock.mjs'), 'export const lock = 1;\n');
+    await writeFile(
+      join(root, 'apps', 'api', 'src', 'scheduling', 'lock.mjs'),
+      'export const lock = 1;\n'
+    );
     assert.throws(
       () => reviewTask(root, 'backend-developer', 'T-1', { push: false }),
       /not an implementation/
@@ -326,7 +343,10 @@ test('qa refuses a test that still passes without the product file', async () =>
       "import test from 'node:test';\nimport assert from 'node:assert/strict';\n\ntest('always passes', () => {\n  assert.equal(1, 1);\n});\n"
     );
     reviewTask(root, 'backend-developer', 'T-1', { push: false });
-    assert.throws(() => qaTask(root, 'T-1', { push: false }), /still passes without the product diff/);
+    assert.throws(
+      () => qaTask(root, 'T-1', { push: false }),
+      /still passes without the product diff/
+    );
     const task = await readFile(join(root, 'backlog', 'tasks', 'T-1.md'), 'utf8');
     assert.doesNotMatch(task, /## QA/);
   } finally {

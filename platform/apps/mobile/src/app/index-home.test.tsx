@@ -1,6 +1,6 @@
 // T-4429: банер «застарілі дані» показується лише при офлайні.
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, within } from '@testing-library/react-native';
 import { IndexHome } from './index-home';
 
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn() }) }));
@@ -67,9 +67,9 @@ describe('IndexHome — hero без однієї студії (T-4845)', () => {
     );
 
     const hero = getByTestId('home-hero');
-    expect(hero).toHaveTextContent('FADE');
-    expect(hero).not.toHaveTextContent('Тепла');
-    expect(hero).not.toHaveTextContent('Хрещатик');
+    expect(within(hero).getByText(/FADE/)).toBeTruthy();
+    expect(within(hero).queryByText(/Тепла/)).toBeNull();
+    expect(within(hero).queryByText(/Хрещатик/)).toBeNull();
     expect(queryByText(/Тепла, 5/)).toBeTruthy(); // адреса лишається в картці
   });
 
@@ -78,6 +78,6 @@ describe('IndexHome — hero без однієї студії (T-4845)', () => {
       <IndexHome loading={false} stale={false} locations={[]} services={[]} />
     );
 
-    expect(getByTestId('home-hero')).toHaveTextContent('Мережа чоловічих перукарень');
+    expect(within(getByTestId('home-hero')).getByText(/Мережа чоловічих перукарень/)).toBeTruthy();
   });
 });

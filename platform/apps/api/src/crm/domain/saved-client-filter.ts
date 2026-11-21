@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (178 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 /**
  * T-4461: збережені CRM-фільтри — чиста політика.
  *
@@ -74,7 +75,9 @@ export function validateFilterName(name: string): string[] {
  * Валідацію робить `parseClientListQuery` (той самий контракт, що й список),
  * тому збережений фільтр не може містити невідомого параметра з масиву.
  */
-export function normalizeSavedFilterQuery(raw: Record<string, string | undefined>): SavedFilterQuery {
+export function normalizeSavedFilterQuery(
+  raw: Record<string, string | undefined>
+): SavedFilterQuery {
   if (raw.page !== undefined && raw.page !== '') {
     throw new InvalidClientListQueryError('saved filters always start at page 1');
   }

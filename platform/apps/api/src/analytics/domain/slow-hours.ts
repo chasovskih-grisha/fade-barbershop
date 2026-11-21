@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, complexity, max-params -- cohesive module (257 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: validateSlowHoursParams, complexity 24 vs 10); refactor tracked in T-2500f | 2 signatures whose 4-param contract is fixed by existing call sites (worst: utcFromLocal, limit 3); API redesign tracked in T-2500f */
 /**
  * T-4464: «слабкі години» — чиста read-модель для оператора.
  *
@@ -89,7 +90,7 @@ const DAY_MS = 24 * 60 * MINUTE_MS;
 /** Менше днів даних — підказка може бути шумом; показуємо, але позначаємо. */
 export const MIN_DATA_DAYS = 3;
 
-const WEEKDAY_LABELS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'нд'];
+export const WEEKDAY_LABELS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'нд'];
 
 /** Локальні частини часу (рік/місяць/день/година) у таймзоні. */
 export function zonedParts(
@@ -147,7 +148,7 @@ export function windowDates(now: Date, windowDays: number, timeZone: string): st
   return dates;
 }
 
-function weekdayFor(date: string): number {
+export function weekdayFor(date: string): number {
   const [year, month, day] = date.split('-').map((part) => Number.parseInt(part, 10));
   const jsDay = new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1, day ?? 1)).getUTCDay();
   return jsDay === 0 ? 7 : jsDay;
@@ -177,10 +178,7 @@ export function occupancyCells(
         hour,
         bookedMinutes: Math.min(bookedMinutes, availableMinutes),
         availableMinutes,
-        occupancyPercent: Math.min(
-          100,
-          Math.round((bookedMinutes / availableMinutes) * 100)
-        ),
+        occupancyPercent: Math.min(100, Math.round((bookedMinutes / availableMinutes) * 100)),
       });
     }
   }
@@ -316,7 +314,10 @@ export function validateSlowHoursParams(input: {
   if (openHour !== undefined && (!Number.isInteger(openHour) || openHour < 0 || openHour > 23)) {
     errors.push('openHour must be 0..23');
   }
-  if (closeHour !== undefined && (!Number.isInteger(closeHour) || closeHour < 1 || closeHour > 24)) {
+  if (
+    closeHour !== undefined &&
+    (!Number.isInteger(closeHour) || closeHour < 1 || closeHour > 24)
+  ) {
     errors.push('closeHour must be 1..24');
   }
   if (openHour !== undefined && closeHour !== undefined && closeHour <= openHour) {

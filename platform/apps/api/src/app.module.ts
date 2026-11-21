@@ -19,7 +19,6 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { ReputationModule } from './reputation/infrastructure/reputation.module';
 import { FeedbackModule } from './feedback/infrastructure/feedback.module';
-import { FeedbackSurfacesModule } from './feedback-surfaces/feedback-surfaces.module';
 import { SupportModule } from './support/infrastructure/support.module';
 import { AnalyticsModule } from './analytics/infrastructure/analytics.module';
 import { IdempotencyModule } from './shared/idempotency/idempotency.module';
@@ -28,10 +27,7 @@ import { RetentionModule } from './shared/retention/retention.module';
 import { DbPoolModule } from './shared/database/pool/db-pool.module';
 import { ArchiveModule } from './shared/archive/archive.module';
 import { PricingModule } from './pricing/pricing.module';
-import { CampaignsModule } from './campaigns/campaigns.module';
-import { PortfolioModule } from './portfolio/portfolio.module';
-import { GiftCertificatesModule } from './gift-certificates/gift-certificates.module';
-import { ReferralsModule } from './referrals/referrals.module';
+import { AssistantsModule } from './assistants/infrastructure/assistants.module';
 import { IdempotencyInterceptor } from './shared/idempotency/idempotency.interceptor';
 
 // HTTP-middleware обліку (SLO SLI, docs/slo.md) вішаються першими — до guard'ів
@@ -55,7 +51,6 @@ import { IdempotencyInterceptor } from './shared/idempotency/idempotency.interce
     RealtimeModule,
     ReputationModule,
     FeedbackModule,
-    FeedbackSurfacesModule,
     SupportModule,
     AnalyticsModule,
     IdempotencyModule,
@@ -64,10 +59,7 @@ import { IdempotencyInterceptor } from './shared/idempotency/idempotency.interce
     DbPoolModule,
     ArchiveModule,
     PricingModule,
-    CampaignsModule,
-    PortfolioModule,
-    GiftCertificatesModule,
-    ReferralsModule,
+    AssistantsModule,
   ],
   providers: [
     {

@@ -16,6 +16,7 @@ interface RawAppointment {
   referenceId?: string | null;
   referenceComment?: string;
   canEditReference?: boolean;
+  canBookAgain?: boolean;
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -55,6 +56,8 @@ export async function getAppointments(): Promise<ExtendedAppointment[]> {
     referenceComment: app.referenceComment ?? '',
     // Сервер вирішує право редагування; відсутнє поле трактуємо як «ні».
     canEditReference: app.canEditReference ?? false,
+    // Правило партії (T-4617): відсутнє поле — старий API, дію не ховаємо.
+    canBookAgain: app.canBookAgain ?? true,
   }));
 }
 

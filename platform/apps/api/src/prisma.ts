@@ -6,7 +6,8 @@
 // репозиторію (він генерується зі schema.prisma під час інсталяції), тому
 // конкретні типи моделей тут недоступні під час перевірки типів.
 
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { PrismaClient } = require('@prisma/client');
+import { createRequire } from 'node:module';
+
+const { PrismaClient } = createRequire(__filename)('@prisma/client');
 
 export const prisma: any = new PrismaClient();

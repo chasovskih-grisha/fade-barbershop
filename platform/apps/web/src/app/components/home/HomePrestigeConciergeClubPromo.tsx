@@ -18,7 +18,9 @@ export function HomePrestigeConciergeClubPromo() {
             The Executive Prestige Concierge & Priority Access
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Elevate your grooming routine with unlimited priority bookings, dedicated Master Barber assignment, complimentary valet parking, and private after-hours lounge access for executives and leaders.
+            Elevate your grooming routine with unlimited priority bookings, dedicated Master Barber
+            assignment, complimentary valet parking, and private after-hours lounge access for
+            executives and leaders.
           </p>
           <div className="flex flex-wrap gap-4 pt-2">
             <div className="flex items-center gap-2 rounded-pill bg-surface border border-line px-4 py-2 text-body text-fg-secondary">
@@ -35,7 +37,9 @@ export function HomePrestigeConciergeClubPromo() {
 
         <div className="flex flex-col items-center md:items-end gap-4 shrink-0 bg-surface-sunken/80 border border-line p-6 rounded-card backdrop-blur-md shadow-lg w-full md:w-auto">
           <div className="text-center md:text-right">
-            <span className="text-caption uppercase tracking-wider text-fg-secondary">Membership by Invitation or Application</span>
+            <span className="text-caption uppercase tracking-wider text-fg-secondary">
+              Membership by Invitation or Application
+            </span>
             <div className="font-display text-2xl font-bold text-fg mt-0.5">Join Prestige Club</div>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full">

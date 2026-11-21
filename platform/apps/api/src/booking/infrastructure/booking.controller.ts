@@ -7,7 +7,7 @@ import type { ServiceDto } from '../dto/service.dto';
 import type { BarberDto } from '../dto/barber.dto';
 import type { SlotRequestDto } from '../dto/slot-request.dto';
 import type { AvailableSlotDto } from '../dto/available-slot.dto';
-import type { WaitlistEntryDto } from '../dto/waitlist-entry.dto';
+
 import { JoinWaitlistDto, CancelWaitlistDto } from '../dto/waitlist-command.dto';
 import { ZodValidationPipe } from '../../shared/pipes/zod-validation.pipe';
 import { slotRequestZodSchema } from '../dto/slot-request.zod';

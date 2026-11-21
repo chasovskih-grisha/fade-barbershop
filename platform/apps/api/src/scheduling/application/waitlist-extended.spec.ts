@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (307 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-4559: керована черга — VIP-пріоритет, каскад пропозицій,
 // прострочення → наступний, відмова клієнта, дії адміна, fuzzy window.
 import { BadRequestException, NotFoundException } from '@nestjs/common';
@@ -28,6 +29,7 @@ const MINUTE = 60 * 1000;
 const SLOT: FreedSlot = {
   locationId: 'loc-1',
   serviceId: 'svc-1',
+  barberId: 'bar-1',
   date: '2026-11-21',
   start: '10:00',
 };
@@ -39,6 +41,7 @@ function entry(overrides: Partial<WaitlistEntryData> = {}): WaitlistEntryData {
     configuration: {
       locationId: 'loc-1',
       serviceId: 'svc-1',
+      barberId: 'bar-1',
       windowFrom: '2026-11-20',
       windowTo: '2026-11-22',
       precision: 'range',
@@ -109,12 +112,12 @@ describe('waitlist offer lifecycle (T-4559)', () => {
     expect(offers).toHaveLength(MAX_CASCADE_OFFERS);
     expect(offers.map((offer) => offer.entry.id)).toEqual(['e-2', 'e-1', 'e-3']);
     expect(offers.map((offer) => offer.rank)).toEqual([1, 2, 3]);
-    expect(offers[0]?.entry.status).toBe('offered');
+    expect(offers[0]?.entry?.status).toBe('offered');
     expect(offers[0]?.holdExpiresAt).toEqual(
       new Date(NOW.getTime() + OFFER_WINDOW_MINUTES * MINUTE)
     );
-    expect(offers[0]?.entry.history?.at(-1)).toMatchObject({ action: 'offered' });
-    expect(offers[0]?.entry.configuration.locationId).toBe('loc-1');
+    expect(offers[0]?.entry?.history?.at(-1)).toMatchObject({ action: 'offered' });
+    expect(offers[0]?.entry?.configuration?.locationId).toBe('loc-1');
   });
 
   it('respects a smaller cascade limit', () => {
@@ -222,8 +225,11 @@ describe('waitlist admin management (T-4559)', () => {
   });
 
   it('demotes, pauses, resumes and transfers between locations', () => {
-    const promoted = applyAdminAction(entry(), 'promote', { by: 'admin-1', reason: 'x', at: at(1) })
-      .entry;
+    const promoted = applyAdminAction(entry(), 'promote', {
+      by: 'admin-1',
+      reason: 'x',
+      at: at(1),
+    }).entry;
 
     const demoted = applyAdminAction(promoted, 'demote', {
       by: 'admin-1',

@@ -13,14 +13,7 @@ export interface CancelModalProps {
   onConfirm: () => void;
 }
 
-export function CancelModal({
-  visit,
-  visible,
-  busy,
-  error,
-  onClose,
-  onConfirm,
-}: CancelModalProps) {
+export function CancelModal({ visit, visible, busy, error, onClose, onConfirm }: CancelModalProps) {
   if (!visible || !visit) return null;
 
   return (

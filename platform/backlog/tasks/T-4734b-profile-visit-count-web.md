@@ -19,10 +19,18 @@ The list is already on the site. The profile never reads the count.
 
 ## Done
 
-- [ ] N matches the past list
-- [ ] Zero renders
-- [ ] An error hides the line
+- [x] N matches the past list
+- [x] Zero renders
+- [x] An error hides the line
 
 ## Risks
 
-- [ ] **A second appointments request with different filters.** Use the same past list
+- [x] **A second appointments request with different filters.** `useVisitSummary` loads `getAppointments` once per page and feeds both the next-visit card and the count
+
+## Status
+
+- `review` 2026-11-20. `countPastVisits` in `next-visit.ts`; `useVisitSummary` replaced
+  `useNextVisit` so the profile keeps one `getAppointments` call for both the next-visit
+  card and the count. `AccountProfileCard` takes `visitCount: number | null` — `null`
+  hides the line, so a failed load never renders a confident zero. 19 tests in
+  `visit-count.test.tsx` / `next-visit.test.ts` / `phone-change.test.tsx`.

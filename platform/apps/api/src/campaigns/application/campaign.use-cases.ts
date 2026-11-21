@@ -37,9 +37,13 @@ export class SendWinbackCampaignUseCase {
     }
 
     if (campaign.lastSentAt) {
-      const hoursSinceLastSend = (new Date().getTime() - campaign.lastSentAt.getTime()) / (1000 * 60 * 60);
-      if (hoursSinceLastSend < 720) { // 30 days anti-spam throttle rule (WNB-006)
-        throw new Error('Anti-spam rule: campaign cannot be resent within 30 days to the same segment');
+      const hoursSinceLastSend =
+        (new Date().getTime() - campaign.lastSentAt.getTime()) / (1000 * 60 * 60);
+      if (hoursSinceLastSend < 720) {
+        // 30 days anti-spam throttle rule (WNB-006)
+        throw new Error(
+          'Anti-spam rule: campaign cannot be resent within 30 days to the same segment'
+        );
       }
     }
 

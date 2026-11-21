@@ -44,7 +44,11 @@ describe('PurgeExpiredData (T-4490)', () => {
     const store = new FakeStore();
     await new PurgeExpiredData({ store, holds: new Set() }).execute(NOW);
     expect(store.audits).toHaveLength(3);
-    expect(store.audits[0]?.entry).toMatchObject({ dataset: 'otp_challenges', purged: 3, held: false });
+    expect(store.audits[0]?.entry).toMatchObject({
+      dataset: 'otp_challenges',
+      purged: 3,
+      held: false,
+    });
     expect(store.audits[0]?.at).toBe(NOW);
   });
 
@@ -57,7 +61,7 @@ describe('PurgeExpiredData (T-4490)', () => {
 
     expect(result.purged.sessions).toBe(0);
     expect(store.purged.some((item) => item.dataset === 'sessions')).toBe(false);
-    expect(store.audits.find((item) => item.entry.dataset === 'sessions')?.entry.held).toBe(true);
+    expect(store.audits.find((item) => item.entry.dataset === 'sessions')?.entry?.held).toBe(true);
   });
 
   it('пост-перевірка показує прострочені залишки', async () => {

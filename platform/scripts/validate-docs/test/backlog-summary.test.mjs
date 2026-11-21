@@ -55,10 +55,13 @@ describe('backlog SP і підсумок', () => {
       'backlog/tasks/T-100-skeleton.md': files['backlog/tasks/T-100-skeleton.md'],
       'backlog/tasks/T-100a-cors.md': files['backlog/tasks/T-100a-cors.md'],
     };
-    const agg = withFixture({ ...rest, 'backlog/index/m0.md': INDEX, 'backlog/README.md': README }, () => {
-      const parsed = parseBacklogIndex();
-      return computeStoryPoints(parsed.rows, parsed.taskFiles);
-    });
+    const agg = withFixture(
+      { ...rest, 'backlog/index/m0.md': INDEX, 'backlog/README.md': README },
+      () => {
+        const parsed = parseBacklogIndex();
+        return computeStoryPoints(parsed.rows, parsed.taskFiles);
+      }
+    );
     assert.equal(agg.totalSp, 3); // лише слайс T-100a
   });
 

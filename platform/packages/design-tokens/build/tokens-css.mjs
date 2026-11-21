@@ -45,7 +45,8 @@ export const renderTokensCss = (tokens) => {
     for (const [key, tok] of Object.entries(obj)) {
       if (key === 'comment') continue;
       const name = prefix ? `${prefix}-${key}` : key;
-      if (tok && typeof tok === 'object' && 'value' in tok) out.push([name, tok.value, tok.comment]);
+      if (tok && typeof tok === 'object' && 'value' in tok)
+        out.push([name, tok.value, tok.comment]);
       else if (tok && typeof tok === 'object') out.push(...flattenEmail(tok, name));
     }
     return out;

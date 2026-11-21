@@ -11,6 +11,7 @@
       "types": "./dist/tokens.d.ts",
       "default": "./dist/tokens.js"
     },
+    "./tokens.cjs": "./dist/tokens.cjs",
     "./css": "./dist/tokens.css",
     "./fonts": "./dist/fonts.css",
     "./tokens.js": "./dist/tokens.js",

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (122 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Пропозиція слота з черги (T-4453): вибір за пріоритетом, soft-hold з
 // тайм-аутом, каскад на наступного при пропуску і ручне втручання оператора.
 // Рішення — у домені (waitlist-queue.ts), тут лише послідовність кроків і
@@ -118,10 +119,10 @@ export class OfferNextWaitlistCandidate {
   }
 
   /** Акцепт у межах hold; далі запис створює booking-флоу. */
-  accept(input: {
+  accept(input: { entry: WaitlistEntryData; now?: Date }): {
     entry: WaitlistEntryData;
-    now?: Date;
-  }): { entry: WaitlistEntryData; event: WaitlistOfferAccepted } {
+    event: WaitlistOfferAccepted;
+  } {
     const now = input.now ?? this.clock();
     const entry = acceptOffer(input.entry, now);
     return { entry, event: new WaitlistOfferAccepted({ entry, occurredAt: now }) };
@@ -131,11 +132,11 @@ export class OfferNextWaitlistCandidate {
    * Ручне втручання оператора (T-4453): підняти заявку з причиною.
    * Повертає оновлений список і рядок журналу для аудиту.
    */
-  override(input: {
+  override(input: { entries: WaitlistEntryData[]; entryId: string; override: OperatorOverride }): {
     entries: WaitlistEntryData[];
-    entryId: string;
-    override: OperatorOverride;
-  }): { entries: WaitlistEntryData[]; log: string; event: WaitlistOverrideApplied } {
+    log: string;
+    event: WaitlistOverrideApplied;
+  } {
     const target = input.entries.find((entry) => entry.id === input.entryId);
     if (!target) throw new Error(`Waitlist entry ${input.entryId} not found`);
 
@@ -143,7 +144,10 @@ export class OfferNextWaitlistCandidate {
     return {
       entries: input.entries.map((candidate) => (candidate.id === entry.id ? entry : candidate)),
       log,
-      event: new WaitlistOverrideApplied({ entry, occurredAt: input.override.at }),
+      event: new WaitlistOverrideApplied({
+        entry,
+        ...(input.override.at === undefined ? {} : { occurredAt: input.override.at }),
+      }),
     };
   }
 

@@ -11,7 +11,7 @@ describe('NewDeviceAlert: доставка', () => {
     const outcome = await new NewDeviceAlert(deps).handleOne(startedEvent('web'));
 
     expect(outcome).toEqual({ handled: true, reason: 'sent' });
-    expect(sent[0]!).toMatchObject({
+    expect(sent[0]).toMatchObject({
       to: 'client@example.com',
       subject: expect.stringContaining('FADE'),
     });
@@ -21,7 +21,7 @@ describe('NewDeviceAlert: доставка', () => {
     expect(sent[0]?.html).toContain('вебсайт');
     expect(sent[0]?.html).toContain('<!DOCTYPE html>');
     expect(sent[0]?.html).not.toContain('<script');
-    expect(journalRows[0]!).toMatchObject({
+    expect(journalRows[0]).toMatchObject({
       eventId: 'evt-1',
       channel: 'email',
       recipient: 'client@example.com',

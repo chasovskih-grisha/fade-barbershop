@@ -1,4 +1,9 @@
-import { cancellationLines, renderCancellationHtml, renderCancellationSubject, renderCancellationText } from './cancellation-confirmation-template';
+import {
+  cancellationLines,
+  renderCancellationHtml,
+  renderCancellationSubject,
+  renderCancellationText,
+} from './cancellation-confirmation-template';
 
 const FULL = {
   locationName: 'FADE Obolon',

@@ -2,7 +2,12 @@
 // reschedule. Повертає всі причини одразу (фронт показує їх списком), а не
 // першу-ліпшу; кидок — лише через OnlineBookingBlockedError в guard-і.
 import { mergePolicy, type OnlineBookingPolicy } from './online-booking-policy';
-import { checkCancellationDeadline, checkGuestBooking, checkRescheduleDeadline, type BookingBlock } from './policy-rules';
+import {
+  checkCancellationDeadline,
+  checkGuestBooking,
+  checkRescheduleDeadline,
+  type BookingBlock,
+} from './policy-rules';
 import { createBlocks } from './evaluate-online-booking.create';
 import type { OnlineBookingStore } from './booking-policy.ports';
 
@@ -56,5 +61,4 @@ export class EvaluateOnlineBooking {
     if (input.action === 'reschedule') push(checkRescheduleDeadline(policy, input.start, now));
     return { allowed: blocks.length === 0, policy, blocks };
   }
-
 }

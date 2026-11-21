@@ -1,4 +1,5 @@
-export type AmbassadorTier = 'BRONZE_AMBASSADOR' | 'SILVER_AMBASSADOR' | 'GOLD_AMBASSADOR' | 'DIAMOND_EMISSARY';
+export type AmbassadorTier =
+  'BRONZE_AMBASSADOR' | 'SILVER_AMBASSADOR' | 'GOLD_AMBASSADOR' | 'DIAMOND_EMISSARY';
 
 export interface AmbassadorProfileEntity {
   id: string;

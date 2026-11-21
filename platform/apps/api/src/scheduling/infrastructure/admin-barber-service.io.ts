@@ -1,9 +1,17 @@
+/* eslint-disable max-lines -- cohesive module (108 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Thin use-case factories for the admin matrix IO (T-4521) and slot policy
 // (T-4522). Split from admin-barber-service.dto.ts (gate max-lines).
 
 import type { BarberServiceAssignmentRepository } from '../domain/ports.barber-service-assignment';
 import type { SlotPolicyRepository, SlotPolicyRow } from '../domain/ports.slot-policy';
-import { SLOT_POLICY_DEFAULTS, assertPolicyValues, type BarberServiceAssignmentForBarberDto, type BarberServiceAssignmentsForLocationDto, type SlotPolicyDto, type UpdateSlotPolicyDto } from './admin-barber-service.dto';
+import {
+  SLOT_POLICY_DEFAULTS,
+  assertPolicyValues,
+  type BarberServiceAssignmentForBarberDto,
+  type BarberServiceAssignmentsForLocationDto,
+  type SlotPolicyDto,
+  type UpdateSlotPolicyDto,
+} from './admin-barber-service.dto';
 
 // ---------- matrix ----------
 
@@ -75,7 +83,12 @@ export function getSlotPolicy(slotPolicyRepo: SlotPolicyRepository) {
   };
 }
 
-const POLICY_NUMERIC_FIELDS = ['stepMinutes', 'bufferMinutes', 'horizonDays', 'lastMinuteMinutes'] as const;
+const POLICY_NUMERIC_FIELDS = [
+  'stepMinutes',
+  'bufferMinutes',
+  'horizonDays',
+  'lastMinuteMinutes',
+] as const;
 
 /** dto overrides existing overrides defaults - a partial update is a full row. */
 function mergePolicyValues(

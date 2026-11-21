@@ -3,7 +3,18 @@
 // застосовує подію ідемпотентно. Фікстури — reschedule-chain.fixture.ts.
 import { HttpStatus } from '@nestjs/common';
 import { lifecycleSuite, type LifecycleSuite } from './appointment-lifecycle.suite';
-import { NEW_DATE, deliverActivity, dropWebClient, expectClientRouteErrors, moveBooking, newClientId, newWebToken, rescheduledEvents, rowOf, seedWebClient } from './reschedule-chain.fixture';
+import {
+  NEW_DATE,
+  deliverActivity,
+  dropWebClient,
+  expectClientRouteErrors,
+  moveBooking,
+  newClientId,
+  newWebToken,
+  rescheduledEvents,
+  rowOf,
+  seedWebClient,
+} from './reschedule-chain.fixture';
 
 const clientId = newClientId();
 
@@ -37,7 +48,7 @@ describe('Reschedule chain: клієнт → подія → споживач (e2
 
     expect(res.status).toBe(HttpStatus.OK);
     const updated = await rowOf(ctx, bookingId);
-    expect(updated?.start.toISOString()).toBe(`${NEW_DATE}T10:00:00.000Z`);
+    expect(updated?.start?.toISOString()).toBe(`${NEW_DATE}T10:00:00.000Z`);
     expect(updated?.appointmentId).toBe(bookingId);
     expect(updated?.status).toBe('booked');
   });
@@ -52,7 +63,7 @@ describe('Reschedule chain: клієнт → подія → споживач (e2
     });
 
     expect(res.status).toBe(HttpStatus.OK);
-    expect((await rowOf(ctx, bookingId))?.start.toISOString()).toBe(`${NEW_DATE}T11:00:00.000Z`);
+    expect((await rowOf(ctx, bookingId))?.start?.toISOString()).toBe(`${NEW_DATE}T11:00:00.000Z`);
   });
 
   test('подія rescheduled несе ISO старий/новий час і актора-клієнта', async () => {

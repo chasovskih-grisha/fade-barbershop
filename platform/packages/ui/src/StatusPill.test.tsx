@@ -17,6 +17,13 @@ describe('StatusPill', () => {
     expect(screen.getByText('Зараз')).toBeTruthy();
   });
 
+  it('показує фокус-стан через focus-visible, не через focus', () => {
+    render(<StatusPill status="confirmed" />);
+    const className = screen.getByText('Підтверджено').className;
+    expect(className).toContain('focus-visible:ring-2');
+    expect(className).not.toMatch(/(^|\s)focus:ring/);
+  });
+
   it('має роль status за замовчуванням та підтримує HTML атрибути', () => {
     render(<StatusPill status="confirmed" data-testid="pill" aria-label="Status confirmed" />);
     const el = screen.getByTestId('pill');

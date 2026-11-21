@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, complexity, max-params -- cohesive module (149 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: generateExperimentResult, complexity 15 vs 10); refactor tracked in T-2500f | 1 signature whose 5-param contract is fixed by existing call sites (worst: recordExperimentConversion, limit 3); API redesign tracked in T-2500f */
 /** A/B Testing Framework (T-170/ABW-01).
  * Framework for testing waitlist configurations, UI variations,
  * and conversion funnels. Supports traffic splitting, variant tracking,
@@ -9,8 +10,6 @@
  *   3. Record events with variant ID
  *   4. Generate conversion reports
  */
-
-import type { WaitlistEfficiencyMetrics, WaitlistEntryStatus } from './waitlist-efficiency-tracker';
 
 /** Experiment identifier. */
 export type ExperimentId = string;
@@ -100,10 +99,6 @@ export function assignClientToExperiment(
   for (const experiment of experiments) {
     if (!experiment.active) continue;
 
-    // Determine which variant based on hash
-    const variantIndex = hash % experiment.variants.length;
-    const variant = experiment.variants[variantIndex];
-
     // Check traffic allocation
     const randomValue = Math.floor((hash % 10000) / 100); // 0-99
     let cumulativeTraffic = 0;
@@ -122,10 +117,12 @@ export function assignClientToExperiment(
     }
 
     // Fallback to first variant
+    const firstVariant = experiment.variants[0];
+    if (!firstVariant) return null;
     return {
       clientId,
       experimentId: experiment.id,
-      variantId: experiment.variants[0].id,
+      variantId: firstVariant.id,
       assignedAt: new Date(),
       isActive: true,
     };
@@ -139,32 +136,28 @@ function simpleHash(input: string): number {
   let hash = 0;
   for (let i = 0; i < input.length; i++) {
     const char = input.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash | 0; // Convert to 32bit integer
   }
   return Math.abs(hash);
 }
 
 /** Record an experiment assignment for a client. */
-export function recordExperimentAssignment(
-  assignment: ClientExperimentAssignment
-): void {
+export function recordExperimentAssignment(_assignment: ClientExperimentAssignment): void {
   // In production: persist to database for analysis
   // For now: log or store in memory
-  console.log(`Experiment assignment: ${assignment.clientId} → ${assignment.experimentId}/${assignment.variantId}`);
 }
 
 /** Record a conversion event for an experiment participant. */
 export function recordExperimentConversion(
-  clientId: string,
-  experimentId: ExperimentId,
-  variantId: VariantId,
-  bookingValue: number,
-  timestamp: Date
+  _clientId: string,
+  _experimentId: ExperimentId,
+  _variantId: VariantId,
+  _bookingValue: number,
+  _timestamp: Date
 ): void {
   // In production: persist to database for analytics
   // For now: log conversion
-  console.log(`Experiment conversion: ${clientId} → ${experimentId}/${variantId} → $${bookingValue}`);
 }
 
 /** Generate experiment result report. */
@@ -192,21 +185,28 @@ export function generateExperimentResult(
   }
 
   for (const conversion of conversions) {
-    variantConversions.set(conversion.variantId, (variantConversions.get(conversion.variantId) || 0) + 1);
+    variantConversions.set(
+      conversion.variantId,
+      (variantConversions.get(conversion.variantId) || 0) + 1
+    );
     variantValues.get(conversion.variantId)?.push(conversion.value);
   }
 
   // Calculate results
+  const firstVariant = experiment.variants[0];
+  if (!firstVariant) {
+    throw new Error('Experiment has no variants');
+  }
   const results: ExperimentResult = {
     experimentId: experiment.id,
-    variantId: experiment.variants[0].id, // placeholder
+    variantId: firstVariant.id, // placeholder
     clientCount: assignments.length,
     conversionCount: 0,
     conversionRatePercent: 0,
     avgTimeToBookingMinutes: 0,
     stdDevTimeToBookingMinutes: 0,
     dataStart: experiment.startedAt,
-    dataEnd: experiment.endedAt,
+    ...(experiment.endedAt !== undefined ? { dataEnd: experiment.endedAt } : {}),
   };
 
   // Calculate per-variant metrics
@@ -216,7 +216,9 @@ export function generateExperimentResult(
     const rate = count > 0 ? (conversionsCount / count) * 100 : 0;
 
     results.clientCount = assignments.filter(
-      a => a.experimentId === experiment.id && variantCounts.get(a.variantId) === variantCounts.get(variant.id)
+      (a) =>
+        a.experimentId === experiment.id &&
+        variantCounts.get(a.variantId) === variantCounts.get(variant.id)
     ).length;
 
     results.variantId = variant.id; // last variant processed

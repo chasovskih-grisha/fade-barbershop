@@ -6,9 +6,21 @@ describe('BarberBreakOptimizer', () => {
 
   it('detects low fatigue and zero recommended breaks for well-spaced appointments', () => {
     const appointments = [
-      { id: '1', start: new Date('2026-11-15T09:00:00.000Z'), end: new Date('2026-11-15T09:30:00.000Z') },
-      { id: '2', start: new Date('2026-11-15T10:00:00.000Z'), end: new Date('2026-11-15T10:45:00.000Z') },
-      { id: '3', start: new Date('2026-11-15T11:30:00.000Z'), end: new Date('2026-11-15T12:00:00.000Z') },
+      {
+        id: '1',
+        start: new Date('2026-11-15T09:00:00.000Z'),
+        end: new Date('2026-11-15T09:30:00.000Z'),
+      },
+      {
+        id: '2',
+        start: new Date('2026-11-15T10:00:00.000Z'),
+        end: new Date('2026-11-15T10:45:00.000Z'),
+      },
+      {
+        id: '3',
+        start: new Date('2026-11-15T11:30:00.000Z'),
+        end: new Date('2026-11-15T12:00:00.000Z'),
+      },
     ];
 
     const result = optimizeBarberBreaks({
@@ -25,10 +37,26 @@ describe('BarberBreakOptimizer', () => {
 
   it('recommends recovery breaks when back-to-back appointments exceed continuous thresholds', () => {
     const appointments = [
-      { id: '1', start: new Date('2026-11-15T09:00:00.000Z'), end: new Date('2026-11-15T09:50:00.000Z') },
-      { id: '2', start: new Date('2026-11-15T09:50:00.000Z'), end: new Date('2026-11-15T10:40:00.000Z') },
-      { id: '3', start: new Date('2026-11-15T10:40:00.000Z'), end: new Date('2026-11-15T11:30:00.000Z') },
-      { id: '4', start: new Date('2026-11-15T11:30:00.000Z'), end: new Date('2026-11-15T12:20:00.000Z') },
+      {
+        id: '1',
+        start: new Date('2026-11-15T09:00:00.000Z'),
+        end: new Date('2026-11-15T09:50:00.000Z'),
+      },
+      {
+        id: '2',
+        start: new Date('2026-11-15T09:50:00.000Z'),
+        end: new Date('2026-11-15T10:40:00.000Z'),
+      },
+      {
+        id: '3',
+        start: new Date('2026-11-15T10:40:00.000Z'),
+        end: new Date('2026-11-15T11:30:00.000Z'),
+      },
+      {
+        id: '4',
+        start: new Date('2026-11-15T11:30:00.000Z'),
+        end: new Date('2026-11-15T12:20:00.000Z'),
+      },
     ];
 
     const result = optimizeBarberBreaks({

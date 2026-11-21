@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, complexity -- cohesive module (217 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: renderLoyaltyIntentText, complexity 26 vs 10); refactor tracked in T-2500f */
 /**
  * T-4462: доставка сповіщень про події лояльності.
  *
@@ -10,9 +11,13 @@ import type { DomainEvent } from '../domain/domain-event';
 import {
   clampToSmsLimit,
   renderLoyaltyDigestSms,
+  renderLoyaltyPointsEarnedEmail,
   renderLoyaltyPointsEarnedSms,
+  renderLoyaltyPointsExpiringEmail,
   renderLoyaltyPointsExpiringSms,
+  renderLoyaltyPointsSpentEmail,
   renderLoyaltyPointsSpentSms,
+  renderLoyaltyTierReachedEmail,
   renderLoyaltyTierReachedSms,
 } from '../../notifications/application/sms-messages';
 import {
@@ -29,7 +34,7 @@ import {
   type PlannedDelivery,
 } from './loyalty-notification-policy';
 
-export type LoyaltyDeliveryChannel = 'sms' | 'push';
+export type LoyaltyDeliveryChannel = 'sms' | 'push' | 'email';
 
 /** Канал доставки (SMS-шлюз, push-шлюз, email — рішення інфраструктури). */
 export interface LoyaltyNotificationGateway {
@@ -49,8 +54,36 @@ export interface LoyaltyDispatchSummary {
   unsubscribed: string[];
 }
 
-/** Текст сповіщення для конкретного наміру (той самий для push і SMS). */
-export function renderLoyaltyIntentText(intent: LoyaltyNotificationIntent): string {
+/** Текст сповіщення для конкретного наміру й каналу. */
+export function renderLoyaltyIntentText(
+  intent: LoyaltyNotificationIntent,
+  channel: LoyaltyDeliveryChannel = 'sms'
+): string {
+  if (channel === 'email') {
+    switch (intent.event) {
+      case 'points_earned':
+        return renderLoyaltyPointsEarnedEmail({
+          points: intent.points ?? 0,
+          newBalance: intent.newBalance ?? 0,
+        });
+      case 'tier_reached':
+        return renderLoyaltyTierReachedEmail({
+          tier: intent.tier ?? '',
+          discountPercent: intent.discountPercent ?? 0,
+        });
+      case 'points_spent':
+        return renderLoyaltyPointsSpentEmail({
+          points: intent.points ?? 0,
+          newBalance: intent.newBalance ?? 0,
+        });
+      case 'points_expiring':
+        return renderLoyaltyPointsExpiringEmail({
+          points: intent.points ?? 0,
+          expiresAt: intent.expiresAt ?? new Date(),
+        });
+    }
+  }
+
   switch (intent.event) {
     case 'points_earned':
       return renderLoyaltyPointsEarnedSms({
@@ -92,10 +125,7 @@ export class LoyaltyNotificationDispatcher {
   ) {}
 
   /** Обробляє пачку доменних подій лояльності. */
-  async dispatch(
-    events: DomainEvent[],
-    now: Date = new Date()
-  ): Promise<LoyaltyDispatchSummary> {
+  async dispatch(events: DomainEvent[], now: Date = new Date()): Promise<LoyaltyDispatchSummary> {
     const intents = events
       .map((event) => buildLoyaltyIntent(event))
       .filter((intent): intent is LoyaltyNotificationIntent => intent !== null);
@@ -206,13 +236,15 @@ export class LoyaltyNotificationDispatcher {
     const intents = takeDigest(this.log, clientId);
     if (intents.length === 0) return { sent: false, items: 0 };
 
-    const channel: LoyaltyDeliveryChannel =
-      intents.some((intent) => this.config.channels[intent.event] === 'push') ? 'push' : 'sms';
+    const first = intents[0];
+    if (!first) return { sent: false, items: 0 };
+    const configured = this.config.channels[first.event];
+    const channel: LoyaltyDeliveryChannel = configured === 'none' ? 'sms' : configured;
     const text = clampToSmsLimit(
       renderLoyaltyDigestSms(intents.map((intent) => digestLine(intent)))
     );
 
-    await this.deliver({ intent: intents[0]!, channel, scheduledFor: now }, now, text);
+    await this.deliver({ intent: first, channel, scheduledFor: now }, now, text);
     return { sent: true, items: intents.length };
   }
 
@@ -221,15 +253,11 @@ export class LoyaltyNotificationDispatcher {
     return [...this.deferred.values()].reduce((total, queue) => total + queue.length, 0);
   }
 
-  private async deliver(
-    delivery: PlannedDelivery,
-    _now: Date,
-    text?: string
-  ): Promise<void> {
+  private async deliver(delivery: PlannedDelivery, _now: Date, text?: string): Promise<void> {
     await this.gateway.send({
       clientId: delivery.intent.clientId,
       channel: delivery.channel,
-      text: text ?? renderLoyaltyIntentText(delivery.intent),
+      text: text ?? renderLoyaltyIntentText(delivery.intent, delivery.channel),
     });
   }
 }

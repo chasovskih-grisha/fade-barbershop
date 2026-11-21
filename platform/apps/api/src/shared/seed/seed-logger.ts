@@ -3,13 +3,15 @@
 // Використовується лише у .ts-скриптах (ts-node), що імпортують з src/.
 import { mkdirSync, createWriteStream, type WriteStream } from 'node:fs';
 import { join } from 'node:path';
+import { createRequire } from 'node:module';
 
 type ActiveContext = { traceId: string; spanId: string } | null;
 
 function activeTrace(): ActiveContext {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    const api = require('@opentelemetry/api') as typeof import('@opentelemetry/api');
+    const api = createRequire(__filename)(
+      '@opentelemetry/api'
+    ) as typeof import('@opentelemetry/api');
     const span = api.trace.getSpan(api.context.active());
     if (!span) return null;
     const { traceId, spanId } = span.spanContext();

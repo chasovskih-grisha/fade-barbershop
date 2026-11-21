@@ -1,6 +1,6 @@
 # T-2100c · Reference screens (5/20)
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, design · **Complexity**: middle · **Dependencies**: T-2100b
+- **Stage**: M5 (phase 30) · **Tags**: design · **Complexity**: middle · **Dependencies**: T-2100b
 - **StoryPoints**: 5
 
 ## What
@@ -16,8 +16,22 @@ Reference screens demonstrate system in action. Check on real cases reveals gaps
 - `docs/design-system.md` §Screens
 - `apps/web/`, `apps/admin/`, `apps/mobile/`
 
+## Implementation plan
+
+Paths:
+- packages/ui/src/ReferenceScreenPreview.tsx
+- packages/ui/src/ReferenceScreenPreview.test.tsx
+
+Checks:
+- pnpm --filter @fade/ui test packages/ui/src/ReferenceScreenPreview.test.tsx
+
 ## Done
 
 - [ ] 4 screens updated
 - [ ] Dark mode works
 - [ ] Responsive passed
+
+## Implementation notes
+
+- packages/ui/src/ReferenceScreenPreview.test.tsx
+- packages/ui/src/ReferenceScreenPreview.tsx

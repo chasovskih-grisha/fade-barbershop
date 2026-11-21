@@ -12,7 +12,15 @@ interface Props {
   retryServices?: () => void;
 }
 
-export default function ServiceStep({ services, loading = false, error, onBack, onSelect, retryServices, optimisticSetStep: _optimisticSetStep }: Props) {
+export default function ServiceStep({
+  services,
+  loading = false,
+  error,
+  onBack,
+  onSelect,
+  retryServices,
+  optimisticSetStep: _optimisticSetStep,
+}: Props) {
   const [selected, setSelected] = useState('');
   if (loading) {
     return (

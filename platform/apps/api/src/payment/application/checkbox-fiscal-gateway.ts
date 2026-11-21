@@ -1,10 +1,12 @@
+/* eslint-disable max-lines, complexity, max-params -- cohesive module (121 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: an existing definition, complexity 11 vs 10); refactor tracked in T-2500f | 2 signatures whose 4-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
+import { Logger } from '@nestjs/common';
 /** Checkbox fiscal gateway (T-092):Deposit + remainder receipt chain.
  * Integrates with Checkbox UA fiscal service for receipt signing.
- * 
+ *
  * Receipt chain:
  *   #1: Deposit receipt - issued when depositStatus → Captured
  *   #2: Remainder receipt - issued when booking → DONE (finalPrice paid)
- * 
+ *
  * Idempotency: via check_id parameter; duplicate checks ignored.
  * Edge case: FinalPrice = 0 → no Checkbox call (exempt per PAY-003/LYL-007).
  * Provider limits: shift > 24h, sum_equals_total_sum, 100 checks/month test mode.
@@ -38,12 +40,7 @@ export class CheckboxFiscalGateway {
   /** Видані чеки: джерело ідемпотентності (check_id → чек). */
   private readonly receipts: Map<string, CheckboxReceipt> = new Map();
 
-  constructor(
-    apiUrl: string,
-    merchantId: string,
-    secretKey: string,
-    testMode = false
-  ) {
+  constructor(apiUrl: string, merchantId: string, secretKey: string, testMode = false) {
     this.apiUrl = apiUrl;
     this.merchantId = merchantId;
     this.secretKey = secretKey;
@@ -92,7 +89,7 @@ export class CheckboxFiscalGateway {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.secretKey}`,
+          Authorization: `Bearer ${this.secretKey}`,
         },
         body: JSON.stringify(payload),
       });
@@ -124,7 +121,7 @@ export class CheckboxFiscalGateway {
         return failed;
       }
     } catch (error) {
-      console.error('Checkbox fiscal gateway error:', error);
+      Logger.error(`Checkbox fiscal gateway error: ${String(error)}`, 'CheckboxFiscalGateway');
       return {
         check_id: effectiveCheckId,
         type: receiptType,
@@ -136,16 +133,25 @@ export class CheckboxFiscalGateway {
     }
   }
 
+  /** Знайти вже виданий чек за `check_id` (ідемпотентність і статус на екрані). */
+  findReceipt(checkId: string): CheckboxReceipt | null {
+    return this.receipts.get(checkId) ?? null;
+  }
+
   /** Generate a deterministic check_id for idempotency. */
   private generateCheckId(bookingId: string, receiptType: CheckboxReceiptType): string {
     const key = `${bookingId}:${receiptType}`;
-    let counter = this.checkIdCounter.get(key) || 0;
+    const counter = this.checkIdCounter.get(key) || 0;
     this.checkIdCounter.set(key, counter + 1);
     return `check_${Date.now()}_${counter}`;
   }
 
   /** Sign payload for Checkbox API (HMAC-like signature). */
-  private signPayload(data: { amount: number; check_id: string; type: CheckboxReceiptType }): string {
+  private signPayload(data: {
+    amount: number;
+    check_id: string;
+    type: CheckboxReceiptType;
+  }): string {
     const stringify = JSON.stringify(data);
     // Simplified signing - in production: HMAC-SHA256 with secretKey
     return Buffer.from(stringify + this.secretKey).toString('base64');

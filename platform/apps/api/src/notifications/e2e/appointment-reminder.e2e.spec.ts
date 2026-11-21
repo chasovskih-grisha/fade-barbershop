@@ -3,7 +3,12 @@
 // availableAt, а після спрацювання закриває рядок і пише журнал. Канал none —
 // операторська відписка, тому SMS не надсилається (Mailpit у CI не гарантований).
 // Стенд — visit-reminder.fixture.ts; дані — рядки БД, без HTTP.
-import { LEAD_MINUTES, VISIT_START, openVisitReminder, type VisitReminder } from './visit-reminder.fixture';
+import {
+  LEAD_MINUTES,
+  VISIT_START,
+  openVisitReminder,
+  type VisitReminder,
+} from './visit-reminder.fixture';
 
 describe('Нагадування про візит (e2e, Postgres, T-080)', () => {
   let visit: VisitReminder;

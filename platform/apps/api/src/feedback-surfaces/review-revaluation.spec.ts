@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (229 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-4463: закритий цикл відгуку — повторна оцінка, стан «закрито»,
 // повторний запит після відповіді адміна й допуск до публічної вітрини.
 import { BadRequestException } from '@nestjs/common';
@@ -87,9 +88,9 @@ describe('review revaluation policy (T-4463)', () => {
     const closed = closeLoop(state(), 'admin-1', at(30));
 
     expect(canEditRating(closed).allowed).toBe(false);
-    expect(() =>
-      applyClientRating(closed, { rating: 5, text: GOOD_TEXT, at: at(40) })
-    ).toThrow('closed');
+    expect(() => applyClientRating(closed, { rating: 5, text: GOOD_TEXT, at: at(40) })).toThrow(
+      'closed'
+    );
     expect(revaluationSummary(closed)).toMatchObject({
       originalRating: 2,
       currentRating: 2,
@@ -154,7 +155,10 @@ describe('review revaluation policy (T-4463)', () => {
     expect(isShowcaseQualityText('ок')).toBe(false);
     expect(isShowcaseQualityText(GOOD_TEXT)).toBe(true);
     expect(() =>
-      moderateShowcase(state({ currentRating: 2 }), { moderatorId: 'admin-1', decision: 'approved' })
+      moderateShowcase(state({ currentRating: 2 }), {
+        moderatorId: 'admin-1',
+        decision: 'approved',
+      })
     ).toThrow('4–5★');
     expect(() =>
       moderateShowcase(state({ currentRating: 5, text: 'ок' }), {
@@ -192,9 +196,9 @@ describe('ReviewRevaluationService (T-4463)', () => {
 
     const closed = await service.close('rev-1', 'admin-1', at(15));
     expect(closed.closedBy).toBe('admin-1');
-    await expect(
-      service.rate('rev-1', { rating: 5, text: GOOD_TEXT, at: at(20) })
-    ).rejects.toThrow('closed');
+    await expect(service.rate('rev-1', { rating: 5, text: GOOD_TEXT, at: at(20) })).rejects.toThrow(
+      'closed'
+    );
   });
 
   it('exposes only moderated 4–5★ reviews on the public showcase', async () => {
@@ -244,9 +248,9 @@ describe('FeedbackSurfacesController revaluation routes (T-4463)', () => {
   it('maps policy failures to 400 and publishes only approved reviews', async () => {
     const { controller: api } = controller();
 
-    await expect(
-      api.closeReviewLoop('missing', { actorId: 'admin-1' })
-    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(api.closeReviewLoop('missing', { actorId: 'admin-1' })).rejects.toBeInstanceOf(
+      BadRequestException
+    );
 
     await api.rateReview('rev-high', { rating: 5, text: GOOD_TEXT });
     await expect(

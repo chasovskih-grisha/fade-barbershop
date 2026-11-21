@@ -68,6 +68,20 @@ describe('BookAgainIntentReader', () => {
     expect(intent.location.stale).toBe(false);
   });
 
+  it('візит у партії не дає наміру повторного запису', async () => {
+    const party = prismaOf({
+      booking: {
+        barberId: 'barber-1',
+        locationId: 'loc-1',
+        serviceId: 'svc-1',
+        status: 'completed',
+        partyId: 'party-1',
+      },
+    });
+
+    await expect(read(party.prisma)).rejects.toBeInstanceOf(AppointmentNotFoundError);
+  });
+
   it('виклик не створює рядка візиту', async () => {
     const { prisma, create } = prismaOf();
     await read(prisma);

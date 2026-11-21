@@ -27,7 +27,9 @@ export function AnalyticsStaffBreakdown({ metrics }: { metrics: AnalyticsMetrics
                 <tr key={bp.barberId} className="hover:bg-surface-raised">
                   <td className="py-3 font-medium">{bp.barberName}</td>
                   <td className="py-3 text-right">{bp.visitsCount}</td>
-                  <td className="py-3 text-right font-semibold text-semantic-success">{bp.revenue} ₴</td>
+                  <td className="py-3 text-right font-semibold text-semantic-success">
+                    {bp.revenue} ₴
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -1,5 +1,9 @@
 import { InMemoryCampaignRepository } from './application/in-memory-campaign.repository';
-import { CreateWinbackCampaignUseCase, SendWinbackCampaignUseCase, TrackCampaignUsageUseCase } from './application/campaign.use-cases';
+import {
+  CreateWinbackCampaignUseCase,
+  SendWinbackCampaignUseCase,
+  TrackCampaignUsageUseCase,
+} from './application/campaign.use-cases';
 
 describe('Winback Campaign & Reactivation Engine', () => {
   let repo: InMemoryCampaignRepository;

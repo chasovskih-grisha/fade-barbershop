@@ -12,9 +12,7 @@ describe('AnalyticsExport', () => {
     activeBarbersCount: 2,
     activeLocationsCount: 1,
     totalRevenue: 4000,
-    barberPerformance: [
-      { barberId: 'b1', barberName: 'Олександр', visitsCount: 5, revenue: 2500 },
-    ],
+    barberPerformance: [{ barberId: 'b1', barberName: 'Олександр', visitsCount: 5, revenue: 2500 }],
   };
 
   const mockFilters: AnalyticsFiltersState = {
@@ -26,8 +24,12 @@ describe('AnalyticsExport', () => {
   it('рендерить крій експорту та кнопки', () => {
     render(<AnalyticsExport metrics={mockMetrics} filters={mockFilters} />);
     expect(screen.getByText('Експорт звітності')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Експортувати звіт у форматі CSV' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Експортувати звіт у форматі JSON' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Експортувати звіт у форматі CSV' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Експортувати звіт у форматі JSON' })
+    ).toBeInTheDocument();
   });
 
   it('викликає createObjectURL при кліку на експорт', () => {
@@ -35,7 +37,7 @@ describe('AnalyticsExport', () => {
     window.URL.createObjectURL = createObjectURLSpy;
 
     render(<AnalyticsExport metrics={mockMetrics} filters={mockFilters} />);
-    
+
     fireEvent.click(screen.getByRole('button', { name: 'Експортувати звіт у форматі CSV' }));
     expect(createObjectURLSpy).toHaveBeenCalled();
 

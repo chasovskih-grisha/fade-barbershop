@@ -1,7 +1,7 @@
 // Фільтр content: доменні помилки → HTTP (404/409/400), 500 логується.
 // Публічний 404 не розкриває, що стаття існує, але є чернеткою.
 
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
 import type { Response } from 'express';
 import { ContentError } from '../application/content-errors';
 
@@ -25,10 +25,9 @@ export class ContentExceptionFilter implements ExceptionFilter {
         .json({ code: exception.code, message: exception.message });
       return;
     }
-    // eslint-disable-next-line no-console
-    console.error(
-      '[content] internal error:',
-      exception instanceof Error ? exception.stack : exception
+    Logger.error(
+      exception instanceof Error ? (exception.stack ?? exception.message) : String(exception),
+      'ContentExceptionFilter'
     );
     response.status(500).json({ code: 'CONTENT_INTERNAL', message: 'Internal error' });
   }

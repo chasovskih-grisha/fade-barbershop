@@ -14,6 +14,9 @@ export interface AppointmentRecord {
   updatedAt: Date;
 }
 
+/** DI-токен: інтерфейс репозиторію не існує в рантаймі. */
+export const APPOINTMENT_RECORD_REPOSITORY = 'APPOINTMENT_RECORD_REPOSITORY';
+
 export interface AppointmentRepository {
   create(record: AppointmentRecord): Promise<void>;
   findMany(filter?: Record<string, unknown>): Promise<AppointmentRecord[]>;

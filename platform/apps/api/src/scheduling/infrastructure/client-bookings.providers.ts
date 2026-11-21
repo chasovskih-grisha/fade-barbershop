@@ -8,6 +8,7 @@ import { PrismaAppointmentRepository } from './prisma-appointment.repository';
 import { PrismaDepositPolicySettings } from './prisma-deposit-policy-settings';
 import { EvaluateOnlineBooking } from '../../booking/policy/booking-policy.module';
 import { SurgePricing } from '../../pricing/pricing.module';
+import { DepositHoldService } from '../application/deposit-hold.service';
 import { CLIENT_BOOKINGS_IO } from './client-bookings.controller';
 
 export const clientBookingsProvider = {
@@ -21,6 +22,7 @@ export const clientBookingsProvider = {
     depositPolicy: deps[5],
     onlineBooking: deps[6],
     surge: deps[7],
+    depositHolds: deps[8],
   }),
   inject: [
     PrismaBookingRepository,
@@ -31,5 +33,6 @@ export const clientBookingsProvider = {
     PrismaDepositPolicySettings,
     EvaluateOnlineBooking,
     SurgePricing,
+    DepositHoldService,
   ],
 };

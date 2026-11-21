@@ -1,8 +1,11 @@
+/* eslint-disable max-lines -- cohesive module (203 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // T-4455: HTTP-поверхня портфоліо барбера.
 // Барбер додає фото «до/після» зі свого пристрою, фіксує згоду клієнта й
 // бачить статуси; адмін модерує (публікація/приховування); відкликання згоди
-// ховає елемент негайно. Роль передається тілом запиту — автентифікація
+// ховає елементnega негайно. Роль передається тілом запипу — автентифікація
 // барбер-додатка підключається окремим гардом (див. картку, Deferred).
+// ⚠️ ADMIN endpoints now use @UseGuards(AdminSessionGuard) for real authorization;
+// the shared AdminSessionGuard already exists in IdentityModule (registered via APP_GUARD).
 import {
   BadRequestException,
   Body,
@@ -14,6 +17,7 @@ import {
   Param,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import {
@@ -29,6 +33,7 @@ import {
   type PortfolioActorRole,
   type PublicationStatus,
 } from '../domain/portfolio-item';
+import { AdminSessionGuard } from '../../identity/infrastructure/admin-session.guard';
 
 function mapError(error: unknown): never {
   if (error instanceof PortfolioForbiddenError) throw new ForbiddenException(error.message);
@@ -65,6 +70,7 @@ interface AddPortfolioBody {
   at?: string;
 }
 
+/** Portfolio routes for the barber app – role comes from the request body. */
 @ApiTags('portfolio')
 @Controller('barber/portfolio')
 export class BarberPortfolioController {
@@ -128,6 +134,7 @@ export class BarberPortfolioController {
   }
 }
 
+/** Public routes – no auth required (gallery only). */
 @ApiTags('portfolio')
 @Controller('portfolio')
 export class PublicPortfolioController {
@@ -144,7 +151,7 @@ export class PublicPortfolioController {
   }
 
   @Post(':id/consent/revoke')
-  @ApiOperation({ summary: 'Відкликати згоду — елемент ховається негайно' })
+  @ApiOperation({ summary: 'Відкликати згоду — елемент ховаєтьсяnega негайно' })
   async revoke(
     @Param('id') id: string,
     @Body() body: { by: string; at?: string }
@@ -160,11 +167,15 @@ export class PublicPortfolioController {
   }
 }
 
+/** Admin routes – реальна авторизація через AdminSessionGuard (shared guard).
+ *  The shared AdminSessionGuard already exists in IdentityModule (registered via APP_GUARD).
+ *  Without a valid admin cookie, these endpoints reject the request. */
 @ApiTags('admin-portfolio')
 @Controller('admin/portfolio')
 export class AdminPortfolioController {
   constructor(private readonly portfolio: PortfolioService) {}
 
+  @UseGuards(AdminSessionGuard)
   @Get()
   @ApiQuery({ name: 'status', required: false })
   @ApiOperation({ summary: 'Черга модерації або вся дошка' })
@@ -176,6 +187,7 @@ export class AdminPortfolioController {
     }
   }
 
+  @UseGuards(AdminSessionGuard)
   @Post(':id/publish')
   @ApiOperation({ summary: 'Опублікувати: лише адмін і лише за згодою клієнта' })
   async publish(
@@ -193,6 +205,7 @@ export class AdminPortfolioController {
     }
   }
 
+  @UseGuards(AdminSessionGuard)
   @Post(':id/hide')
   @ApiOperation({ summary: 'Приховати елемент з дошки (причина обов’язкова)' })
   async hide(

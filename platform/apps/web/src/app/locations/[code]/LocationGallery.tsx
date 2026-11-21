@@ -26,7 +26,9 @@ export default function LocationGallery({ photos }: { photos: Photo[] }) {
               <div className="absolute inset-0 bg-gradient-to-t from-surface/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
             </div>
             {photo.caption && (
-              <figcaption className="text-caption text-fg-secondary font-medium px-1 line-clamp-1">{photo.caption}</figcaption>
+              <figcaption className="text-caption text-fg-secondary font-medium px-1 line-clamp-1">
+                {photo.caption}
+              </figcaption>
             )}
           </figure>
         ))}

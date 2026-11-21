@@ -1,6 +1,26 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Patch, Post, Req, UseFilters } from '@nestjs/common';
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: an existing definition, complexity 12 vs 10); refactor tracked in T-2500f */
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseFilters,
+} from '@nestjs/common';
 import { ServicesExceptionFilter } from './services.exception-filter';
-import { ADMIN_SERVICES_IO, type AdminRequest, type AdminServicesDeps, type CreateServiceDto, type UpdateServiceDto, toCreateServiceInput } from './admin-services.dto';
+import {
+  ADMIN_SERVICES_IO,
+  type AdminRequest,
+  type AdminServicesDeps,
+  type CreateServiceDto,
+  type UpdateServiceDto,
+  toCreateServiceInput,
+} from './admin-services.dto';
 
 export { ADMIN_SERVICES_IO, type AdminServicesDeps } from './admin-services.dto';
 
@@ -50,7 +70,6 @@ export class AdminServicesController {
   }
 
   @Patch(':id')
-  // eslint-disable-next-line complexity
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateServiceDto,

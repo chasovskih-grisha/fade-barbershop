@@ -24,7 +24,7 @@ export async function fetchBarbers(locationId: string): Promise<BarberDto[]> {
   const res = await fetch(`${apiBase()}/booking/barbers/${encodeURIComponent(locationId)}`);
   if (!res.ok) throw new Error('Failed to fetch barbers');
   const json = await res.json();
-  const list = Array.isArray(json) ? json : json.data ?? [];
+  const list = Array.isArray(json) ? json : (json.data ?? []);
   return list.filter((b: BarberDto) => !b.any);
 }
 

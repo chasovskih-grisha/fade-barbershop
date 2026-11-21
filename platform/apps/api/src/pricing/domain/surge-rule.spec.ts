@@ -1,5 +1,12 @@
 // T-4811: матчинг surge-правил і ціна з множником (цілочисельна математика).
-import { applySurge, dayOfWeekUtc, matchSurgeRule, minuteOfDayUtc, ruleSpecificity, type SurgeRule } from './surge-rule';
+import {
+  applySurge,
+  dayOfWeekUtc,
+  matchSurgeRule,
+  minuteOfDayUtc,
+  ruleSpecificity,
+  type SurgeRule,
+} from './surge-rule';
 
 const rule = (patch: Partial<SurgeRule>): SurgeRule => ({
   id: 'r1',
@@ -66,7 +73,9 @@ describe('surge rules (T-4811)', () => {
   it('специфічність монотонна за кількістю обмежень', () => {
     expect(ruleSpecificity(rule({}))).toBe(0);
     expect(ruleSpecificity(rule({ locationId: 'l' }))).toBe(8);
-    expect(ruleSpecificity(rule({ locationId: 'l', dayOfWeek: 4, fromMinute: 0, toMinute: 60 }))).toBe(11);
+    expect(
+      ruleSpecificity(rule({ locationId: 'l', dayOfWeek: 4, fromMinute: 0, toMinute: 60 }))
+    ).toBe(11);
   });
 
   it('ціна множиться без float і ніколи не падає нижче базової', () => {

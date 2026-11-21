@@ -18,7 +18,9 @@ export function HomeMasterclassMasteryPromo() {
             The Fade Platinum Hair & Beard Mastery
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Go behind the chair with our Master Artisans. Learn professional grooming techniques, precision fading principles, and bespoke beard architecture in our intimate quarterly masterclass session.
+            Go behind the chair with our Master Artisans. Learn professional grooming techniques,
+            precision fading principles, and bespoke beard architecture in our intimate quarterly
+            masterclass session.
           </p>
           <div className="flex flex-wrap gap-4 pt-2">
             <div className="flex items-center gap-2 rounded-pill bg-surface border border-line px-4 py-2 text-body text-fg-secondary">
@@ -35,8 +37,12 @@ export function HomeMasterclassMasteryPromo() {
 
         <div className="flex flex-col items-center md:items-end gap-4 shrink-0 bg-surface-sunken/80 border border-line p-6 rounded-card backdrop-blur-md shadow-lg w-full md:w-auto">
           <div className="text-center md:text-right">
-            <span className="text-caption uppercase tracking-wider text-fg-secondary">Limited to 10 Seats / Quarter</span>
-            <div className="font-display text-2xl font-bold text-fg mt-0.5">Secure Your Masterclass</div>
+            <span className="text-caption uppercase tracking-wider text-fg-secondary">
+              Limited to 10 Seats / Quarter
+            </span>
+            <div className="font-display text-2xl font-bold text-fg mt-0.5">
+              Secure Your Masterclass
+            </div>
           </div>
           <Link
             href="/booking"

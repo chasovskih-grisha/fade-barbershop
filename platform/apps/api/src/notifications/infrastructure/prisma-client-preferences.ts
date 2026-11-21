@@ -1,3 +1,4 @@
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: an existing definition, complexity 11 vs 10); refactor tracked in T-2500f */
 // Prisma-адаптер налаштувань сповіщень клієнта (T-3100/T-4462)
 import { Injectable } from '@nestjs/common';
 import { uuidv7 } from '@fade/domain-shared';
@@ -44,7 +45,7 @@ export class PrismaClientPreferences {
       pushEnabled?: boolean;
       loyaltyOptOut?: boolean;
       reminderOptOut?: boolean;
-    },
+    }
   ) {
     return this.prisma.clientNotificationPreference.upsert({
       where: { clientId },

@@ -31,8 +31,16 @@ function positiveInt(raw: string | undefined, fallback: number, name: string): n
 /** Settings із env; непридатне значення — помилка, а не тихе замовчування. */
 export function resolvePoolSettings(env: NodeJS.ProcessEnv = process.env): PoolSettings {
   return {
-    connectionLimit: positiveInt(env.DB_POOL_CONNECTION_LIMIT, DEFAULT_POOL_SETTINGS.connectionLimit, 'DB_POOL_CONNECTION_LIMIT'),
-    poolTimeoutSeconds: positiveInt(env.DB_POOL_TIMEOUT_SECONDS, DEFAULT_POOL_SETTINGS.poolTimeoutSeconds, 'DB_POOL_TIMEOUT_SECONDS'),
+    connectionLimit: positiveInt(
+      env.DB_POOL_CONNECTION_LIMIT,
+      DEFAULT_POOL_SETTINGS.connectionLimit,
+      'DB_POOL_CONNECTION_LIMIT'
+    ),
+    poolTimeoutSeconds: positiveInt(
+      env.DB_POOL_TIMEOUT_SECONDS,
+      DEFAULT_POOL_SETTINGS.poolTimeoutSeconds,
+      'DB_POOL_TIMEOUT_SECONDS'
+    ),
     pgbouncer: env.DB_PGBOUNCER === 'true',
   };
 }
@@ -41,7 +49,10 @@ export function resolvePoolSettings(env: NodeJS.ProcessEnv = process.env): PoolS
  * Повертає DATABASE_URL із застосованими pool-параметрами. Наявні параметри,
  * які ми не керуємо (schema, sslmode, connect_timeout), лишаються як є.
  */
-export function applyPoolSettings(databaseUrl: string, settings: PoolSettings = DEFAULT_POOL_SETTINGS): string {
+export function applyPoolSettings(
+  databaseUrl: string,
+  settings: PoolSettings = DEFAULT_POOL_SETTINGS
+): string {
   let parsed: URL;
   try {
     parsed = new URL(databaseUrl);

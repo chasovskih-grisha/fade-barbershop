@@ -43,6 +43,10 @@ export class ReferralCode {
 export class Referral {
   constructor(private props: ReferralProps) {}
 
+  static reconstitute(props: ReferralProps): Referral {
+    return new Referral(props);
+  }
+
   get id(): string {
     return this.props.id;
   }
@@ -89,11 +93,6 @@ export class Referral {
       // Allow revocation if needed for fraud/no-shows
     }
     this.props.status = 'REVOKED';
-  }
-
-  /** Відновлення зі сховища (або фікстура з явними датами) без побічних ефектів. */
-  static reconstitute(props: ReferralProps): Referral {
-    return new Referral({ ...props });
   }
 
   static create(referrerId: string, referredId: string, code: string): Referral {

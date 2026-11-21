@@ -1,7 +1,17 @@
 // Специфікація черги листа очікування (T-170a): FIFO-конфігурація, soft-hold
 // 15 хв, прострочення і анти-спам. Чистий домен, без БД.
 
-import { MAX_CONSECUTIVE_MISSES, OFFER_WINDOW_MINUTES, expireOffers, matchesConfiguration, offerSlot, registerMiss, selectNextEntry, type FreedSlot, type WaitlistEntryData } from './waitlist-queue';
+import {
+  MAX_CONSECUTIVE_MISSES,
+  OFFER_WINDOW_MINUTES,
+  expireOffers,
+  matchesConfiguration,
+  offerSlot,
+  registerMiss,
+  selectNextEntry,
+  type FreedSlot,
+  type WaitlistEntryData,
+} from './waitlist-queue';
 
 const slot: FreedSlot = {
   locationId: 'loc-1',

@@ -10,7 +10,13 @@ import { INestApplication, HttpStatus } from '@nestjs/common';
 import { BookingModule } from '../booking.module';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { postWithRetry } from '@fade/test-utils';
-import { buildGwtIds, cleanupGwt, seedGwt, GWT_DATE, type GwtIds } from './booking-flow-gwt.fixtures';
+import {
+  buildGwtIds,
+  cleanupGwt,
+  seedGwt,
+  GWT_DATE,
+  type GwtIds,
+} from './booking-flow-gwt.fixtures';
 
 describe('Client booking confirm (e2e, Postgres)', () => {
   let app: INestApplication;

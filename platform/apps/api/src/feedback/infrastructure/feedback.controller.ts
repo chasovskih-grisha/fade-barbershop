@@ -1,8 +1,14 @@
 import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { AnalyzeCompetitivePositionUseCase } from '../application/analyze-competitive-position.use-case';
-import type { AnalyzeCompetitivePositionQuery, CompetitivePositionResult } from '../application/analyze-competitive-position.use-case';
+import type {
+  AnalyzeCompetitivePositionQuery,
+  CompetitivePositionResult,
+} from '../application/analyze-competitive-position.use-case';
 import { AnalyzeCompetitiveMarketGapsUseCase } from '../application/analyze-competitive-market-gaps.use-case';
-import type { AnalyzeMarketGapsQuery, MarketGapAnalysisResult } from '../application/analyze-competitive-market-gaps.use-case';
+import type {
+  AnalyzeMarketGapsQuery,
+  MarketGapAnalysisResult,
+} from '../application/analyze-competitive-market-gaps.use-case';
 import { CompetitorBenchmark, CompetitorPlatform } from '../domain/competitor-benchmark.entity';
 import type { CompetitorBenchmarkRepository } from '../application/ports';
 import { Inject } from '@nestjs/common';
@@ -13,11 +19,13 @@ export class AdminFeedbackController {
     private readonly analyzeCompetitivePositionUseCase: AnalyzeCompetitivePositionUseCase,
     private readonly analyzeCompetitiveMarketGapsUseCase: AnalyzeCompetitiveMarketGapsUseCase,
     @Inject('CompetitorBenchmarkRepository')
-    private readonly competitorRepo: CompetitorBenchmarkRepository,
+    private readonly competitorRepo: CompetitorBenchmarkRepository
   ) {}
 
   @Post('competitive-analysis')
-  async analyzePosition(@Body() query: AnalyzeCompetitivePositionQuery): Promise<CompetitivePositionResult> {
+  async analyzePosition(
+    @Body() query: AnalyzeCompetitivePositionQuery
+  ): Promise<CompetitivePositionResult> {
     return this.analyzeCompetitivePositionUseCase.execute(query);
   }
 
@@ -28,7 +36,17 @@ export class AdminFeedbackController {
 
   @Post('competitors')
   async saveBenchmark(
-    @Body() body: { id: string; locationId: string; competitorName: string; platform: CompetitorPlatform; rating: number; reviewCount: number; averageHaircutPrice: number; sentimentScore: number }
+    @Body()
+    body: {
+      id: string;
+      locationId: string;
+      competitorName: string;
+      platform: CompetitorPlatform;
+      rating: number;
+      reviewCount: number;
+      averageHaircutPrice: number;
+      sentimentScore: number;
+    }
   ): Promise<{ success: boolean }> {
     const benchmark = new CompetitorBenchmark(body);
     await this.competitorRepo.save(benchmark);

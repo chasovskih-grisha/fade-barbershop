@@ -17,7 +17,13 @@ export interface SlotPolicySnapshot {
  */
 export function readSlotPolicySnapshot(policy: SlotPolicyRow | null): SlotPolicySnapshot {
   if (!policy) {
-    return { stepMinutes: 15, bufferMinutes: 0, horizonDays: 14, lastMinuteMinutes: 60, timeZone: 'Europe/Kyiv' };
+    return {
+      stepMinutes: 15,
+      bufferMinutes: 0,
+      horizonDays: 14,
+      lastMinuteMinutes: 60,
+      timeZone: 'Europe/Kyiv',
+    };
   }
   let tz = policy.timeZone || 'Europe/Kyiv';
   try {

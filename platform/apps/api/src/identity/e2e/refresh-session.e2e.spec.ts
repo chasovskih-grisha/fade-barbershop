@@ -4,7 +4,13 @@ import request from 'supertest';
 import { hashOtpCode } from '../domain/otp-code';
 import { OtpChallenge } from '../domain/otp-challenge';
 import { SESSION_COOKIE_NAME } from '../infrastructure/session-cookie';
-import { REFRESH_E2E_PHONE, REFRESH_E2E_T0, createRefreshSessionApp, loginMobile, type RefreshE2eCtx } from './refresh-session.e2e.harness';
+import {
+  REFRESH_E2E_PHONE,
+  REFRESH_E2E_T0,
+  createRefreshSessionApp,
+  loginMobile,
+  type RefreshE2eCtx,
+} from './refresh-session.e2e.harness';
 
 describe('Mobile refresh flow (e2e, T-014)', () => {
   let app: INestApplication;

@@ -1,11 +1,24 @@
+/* eslint-disable max-params -- 1 signature whose 7-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 import { Controller, Get, Post, Body, Param, Inject } from '@nestjs/common';
 import { AnalyzeReviewFeedbackUseCase } from '../application/analyze-review.use-case';
 import { ProcessReviewEscalationUseCase } from '../application/process-review-escalation.use-case';
-import { CalculateReputationHealthUseCase, ReputationHealthReport } from '../application/calculate-reputation-health.use-case';
-import { AnalyzeReviewSentimentAlertUseCase, SentimentAlertReport } from '../application/analyze-review-sentiment-alert.use-case';
-import { AnalyzeCompetitorGapUseCase, CompetitorGapReport } from '../application/analyze-competitor-gap.use-case';
+import {
+  CalculateReputationHealthUseCase,
+  ReputationHealthReport,
+} from '../application/calculate-reputation-health.use-case';
+import {
+  AnalyzeReviewSentimentAlertUseCase,
+  SentimentAlertReport,
+} from '../application/analyze-review-sentiment-alert.use-case';
+import {
+  AnalyzeCompetitorGapUseCase,
+  CompetitorGapReport,
+} from '../application/analyze-competitor-gap.use-case';
 import { GenerateReviewResponseUseCase } from '../application/generate-review-response.use-case';
-import type { GenerateResponseInput, GenerateResponseOutput } from '../application/generate-review-response.use-case';
+import type {
+  GenerateResponseInput,
+  GenerateResponseOutput,
+} from '../application/generate-review-response.use-case';
 import type { ReputationRepository } from '../application/ports';
 import type { ReviewItem, CompetitorBenchmark } from '../domain/reputation.entity';
 
@@ -19,7 +32,7 @@ export class AdminReputationController {
     private readonly analyzeCompetitorGapUseCase: AnalyzeCompetitorGapUseCase,
     private readonly generateReviewResponseUseCase: GenerateReviewResponseUseCase,
     @Inject('ReputationRepository')
-    private readonly reputationRepo: ReputationRepository,
+    private readonly reputationRepo: ReputationRepository
   ) {}
 
   @Post('reviews')

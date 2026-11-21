@@ -30,7 +30,7 @@ export class UseMembershipVisitUseCase {
   constructor(
     private readonly instancesRepo: MembershipInstanceRepository,
     private readonly outbox: OutboxPublisher,
-    private readonly clock: Clock,
+    private readonly clock: Clock
   ) {}
 
   async handle(input: UseMembershipVisitInput): Promise<{ remainingVisits: number }> {

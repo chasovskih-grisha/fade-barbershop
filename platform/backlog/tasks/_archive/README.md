@@ -71,6 +71,16 @@
 | T-4740a · └ Slice: specify the app visit actions (2 SP) | [T-4740a-app-visit-actions-spec.md](2026/11/T-4740a-app-visit-actions-spec.md) |
 | T-4740b · └ Slice: reschedule and cancel on the app visit (8 SP) | [T-4740b-app-visit-actions-ui.md](2026/11/T-4740b-app-visit-actions-ui.md) |
 | T-042c · └ Slice: idempotent handler reference (3 SP) | [T-042c-idempotent-handler-reference.md](2026/11/T-042c-idempotent-handler-reference.md) |
+| T-4204b · └ Слайс: Prometheus dev-стек + алерти лагу outbox (5 SP) | [T-4204b-prometheus-dev-stack.md](2026/11/T-4204b-prometheus-dev-stack.md) |
+| T-4421 · Daily workload limit | [T-4421-daily-booking-limit.md](2026/11/T-4421-daily-booking-limit.md) |
+| T-4730 · An optional birthday on the profile | [T-4730-profile-birthday.md](2026/11/T-4730-profile-birthday.md) |
+| T-4730a · └ Slice: specify the optional birthday (2 SP) | [T-4730a-profile-birthday-spec.md](2026/11/T-4730a-profile-birthday-spec.md) |
+| T-4730b · └ Slice: birthday on the website profile (3 SP) | [T-4730b-profile-birthday-web.md](2026/11/T-4730b-profile-birthday-web.md) |
+| T-4730c · └ Slice: birthday on the app profile (3 SP) | [T-4730c-profile-birthday-app.md](2026/11/T-4730c-profile-birthday-app.md) |
+| T-5006 · Automated Disaster Recovery Drill & Point-in-Time Recovery Pipeline | [T-5006-automated-disaster-recovery-drill.md](2026/11/T-5006-automated-disaster-recovery-drill.md) |
+| T-6004 · Automated GDPR & CCPA Data Anonymization, Retention, and Subject Access Request Portal | [T-6004-gdpr-automated-privacy-compliance-dsar.md](2026/11/T-6004-gdpr-automated-privacy-compliance-dsar.md) |
+| T-4620a · └ Slice: swap the phone on the same user (8 SP) | [T-4620a-phone-swap.md](2026/11/T-4620a-phone-swap.md) |
+| T-4614d · └ Слайс: cookie стейджа не на `.fade.com.ua` (3 SP) | [T-4614d-staging-cookie-isolation.md](2026/11/T-4614d-staging-cookie-isolation.md) |
 
 ## Старі скасовані задачі (без підтеки YYYY/MM)
 

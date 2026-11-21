@@ -8,7 +8,9 @@ describe('EvaluateMembershipTierAutoUpgradeHandler', () => {
       clock: { now: () => new Date('2026-11-13T10:00:00Z') },
       states: {
         findByClientId: async (id: string) => memoryStates.get(id) || null,
-        save: async (st: ClientLoyaltyState) => { memoryStates.set(st.clientId, st); },
+        save: async (st: ClientLoyaltyState) => {
+          memoryStates.set(st.clientId, st);
+        },
       },
     };
 

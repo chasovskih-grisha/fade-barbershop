@@ -8,6 +8,9 @@
 // Чому саме порт: контексти не діляться доменом (ADR 0017) — scheduling не
 // імпортує haircut-ai. Оголошення тут, адаптер — в infrastructure.
 
+/** DI-токен: інтерфейс не існує в рантаймі, тож провайдер реєструється за ним. */
+export const REFERENCE_PHOTO_URLS = 'REFERENCE_PHOTO_URLS';
+
 export interface ReferencePhotoUrls {
   /**
    * Підписані URL за ID фото. Невідомі й м'яко видалені ID у мапі відсутні:

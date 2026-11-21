@@ -4,9 +4,33 @@ import { AnalyticsPeakHours } from './AnalyticsPeakHours';
 describe('AnalyticsPeakHours', () => {
   it('рендерить пікові години та розподіл записів', () => {
     const visits = [
-      { id: '1', start: '2026-11-10T10:00:00', end: '2026-11-10T11:00:00', status: 'completed', barberId: 'b1', locationId: 'l1', agreedPrice: 500 },
-      { id: '2', start: '2026-11-10T14:00:00', end: '2026-11-10T15:00:00', status: 'completed', barberId: 'b1', locationId: 'l1', agreedPrice: 500 },
-      { id: '3', start: '2026-11-10T18:00:00', end: '2026-11-10T19:00:00', status: 'completed', barberId: 'b1', locationId: 'l1', agreedPrice: 500 },
+      {
+        id: '1',
+        start: '2026-11-10T10:00:00',
+        end: '2026-11-10T11:00:00',
+        status: 'completed',
+        barberId: 'b1',
+        locationId: 'l1',
+        agreedPrice: 500,
+      },
+      {
+        id: '2',
+        start: '2026-11-10T14:00:00',
+        end: '2026-11-10T15:00:00',
+        status: 'completed',
+        barberId: 'b1',
+        locationId: 'l1',
+        agreedPrice: 500,
+      },
+      {
+        id: '3',
+        start: '2026-11-10T18:00:00',
+        end: '2026-11-10T19:00:00',
+        status: 'completed',
+        barberId: 'b1',
+        locationId: 'l1',
+        agreedPrice: 500,
+      },
     ];
 
     render(<AnalyticsPeakHours visits={visits} />);

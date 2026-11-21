@@ -1,15 +1,16 @@
 /**
  * T-176: Enhanced Mobile Waitlist Client Features - Notification integration and slot acceptance
- * 
+ *
  * Implement push notification integration and slot acceptance/rejection
  * for waitlist clients, building on the existing waitlist infrastructure
  * from T-170/T-171/T-172/T-173/T-174/T-175.
  */
 
+import { Inject, Injectable } from '@nestjs/common';
 import { WaitlistQueue } from '../domain/waitlist-queue';
-import { ClientRepository } from '../../clients/domain/repositories';
+import { CLIENT_REPOSITORY, type ClientRepository } from '../../clients/domain/repositories';
 import { ExpoPushSender } from '../../notifications/infrastructure/expo-push-sender';
-import { uuidv7 } from '@fade/domain-shared';
+import { v4 as uuidv4 } from '../../lib/uuid';
 
 /**
  * Interface for slot acceptance input
@@ -33,16 +34,17 @@ export interface SlotAcceptanceResult {
 
 /**
  * T-176: Enhanced Mobile Waitlist Client Features - Notification and slot acceptance
- * 
+ *
  * Provides push notification integration and slot acceptance/rejection functionality
  * for waitlist clients. When a slot becomes available, clients can accept or decline,
  * and the system handles the waitlist cascade logic.
  */
+@Injectable()
 export class T176WaitlistNotificationsUseCase {
   constructor(
-    private waitlistQueue: WaitlistQueue,
-    private clientRepo: ClientRepository,
-    private pushSender: ExpoPushSender
+    @Inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
+    @Inject(CLIENT_REPOSITORY) private clientRepo: ClientRepository,
+    @Inject(ExpoPushSender) private pushSender: ExpoPushSender
   ) {}
 
   /**
@@ -54,7 +56,7 @@ export class T176WaitlistNotificationsUseCase {
 
     // Get slot details from the waitlist queue
     const slotDetails = await this.waitlistQueue.getSlotDetails(slotId);
-    
+
     if (!slotDetails) {
       return {
         success: false,
@@ -65,7 +67,7 @@ export class T176WaitlistNotificationsUseCase {
 
     if (accept) {
       // Create appointment from the accepted slot
-      const appointmentId = uuidv7();
+      const appointmentId = uuidv4();
       const now = new Date();
 
       await this.waitlistQueue.markSlotAsBooked(slotId);
@@ -86,12 +88,13 @@ export class T176WaitlistNotificationsUseCase {
       // Send confirmation push notification
       const client = await this.clientRepo.getById(clientId);
       if (client && client.pushToken) {
-        await this.pushSender.send({
-          to: client.pushToken,
-          title: 'Appointment Confirmed',
-          body: `Your appointment is confirmed for ${this.formatTime(slotDetails.startTime)} with ${slotDetails.barberName}`,
-          data: { appointmentId, type: 'confirmation' },
-        });
+        await this.pushSender.send([
+          {
+            token: client.pushToken,
+            title: 'Appointment Confirmed',
+            body: `Your appointment is confirmed for ${this.formatTime(slotDetails.startTime)} with ${slotDetails.barberName}`,
+          },
+        ]);
       }
 
       return {
@@ -117,4 +120,3 @@ export class T176WaitlistNotificationsUseCase {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 }
-

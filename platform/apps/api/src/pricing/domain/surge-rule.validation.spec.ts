@@ -3,7 +3,9 @@ import { validateSurgeRule } from './surge-rule.validation';
 
 describe('validateSurgeRule (T-4811)', () => {
   it('приймає коректне правило', () => {
-    expect(validateSurgeRule({ dayOfWeek: 4, fromMinute: 1080, toMinute: 1260, multiplierBp: 12_500 })).toEqual({
+    expect(
+      validateSurgeRule({ dayOfWeek: 4, fromMinute: 1080, toMinute: 1260, multiplierBp: 12_500 })
+    ).toEqual({
       ok: true,
     });
   });

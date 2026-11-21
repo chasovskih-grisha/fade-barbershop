@@ -2,6 +2,7 @@
 // RedisRateLimiter, інакше in-memory (dev/test, як у геокодера ADR 0050).
 // Порушення рахує RateLimitMetrics (експозиція /metrics, T-4204).
 import { Module, type Provider } from '@nestjs/common';
+import { createRequire } from 'node:module';
 import { RedisRateLimiter, type RedisLike } from './redis.rate-limiter';
 import { InMemoryRateLimiter } from './in-memory.rate-limiter';
 import { RateLimitMetrics } from './rate-limit.metrics';
@@ -29,8 +30,7 @@ export function getPolicy(env: NodeJS.ProcessEnv, prefix: string): RateLimitPoli
 function buildLimiter(policy: RateLimitPolicy, env: NodeJS.ProcessEnv): RateLimiter {
   if (env.REDIS_URL) {
     // Ледачий ioredis: імпорт тут, щоб dev/test без Redis не тягнув пакет.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const Redis = require('ioredis');
+    const Redis = createRequire(__filename)('ioredis') as new (url: string) => RedisLike;
     return new RedisRateLimiter(new Redis(env.REDIS_URL) as unknown as RedisLike, policy);
   }
   return new InMemoryRateLimiter(policy);

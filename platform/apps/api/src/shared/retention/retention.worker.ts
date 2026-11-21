@@ -2,7 +2,12 @@
 // дефолт 24 год, 0 — вимкнути). У тестах не стартує; ручний запуск — через
 // PurgeExpiredData.execute(). Помилка проходу не вбиває процес: наступний тік
 // незалежний, а частковий прогін лишає слід в аудиті.
-import { Injectable, Logger, type OnApplicationBootstrap, type OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  type OnApplicationBootstrap,
+  type OnModuleDestroy,
+} from '@nestjs/common';
 import { PurgeExpiredData } from './purge-expired-data';
 
 const DEFAULT_INTERVAL_MS = 24 * 60 * 60 * 1000;

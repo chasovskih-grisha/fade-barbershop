@@ -28,7 +28,7 @@ describe('SmartBufferPacingOptimizer Advanced Suite', () => {
           endTime: '19:15',
           serviceType: 'Full Styling',
           isVip: true,
-          clientHistoricalNoShowRate: 0.50,
+          clientHistoricalNoShowRate: 0.5,
         },
       ],
       peakHours: [{ startHour: 17, endHour: 21 }],

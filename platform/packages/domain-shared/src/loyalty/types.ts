@@ -77,4 +77,3 @@ export interface MembershipUpgradeResult {
   upgraded: boolean;
   message: string;
 }
-

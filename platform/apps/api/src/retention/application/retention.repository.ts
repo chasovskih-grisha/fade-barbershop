@@ -1,4 +1,9 @@
-import { ReactivationFlowEntity, ClientOnboardingSequenceEntity, RetentionIncentiveEntity, MilestoneRewardEntity } from '../domain/retention.entity';
+import {
+  ReactivationFlowEntity,
+  ClientOnboardingSequenceEntity,
+  RetentionIncentiveEntity,
+  MilestoneRewardEntity,
+} from '../domain/retention.entity';
 
 export interface RetentionRepository {
   saveReactivationFlow(flow: ReactivationFlowEntity): Promise<void>;
@@ -14,4 +19,3 @@ export interface RetentionRepository {
   saveMilestoneReward(reward: MilestoneRewardEntity): Promise<void>;
   findMilestoneRewardsByClient(clientId: string): Promise<MilestoneRewardEntity[]>;
 }
-

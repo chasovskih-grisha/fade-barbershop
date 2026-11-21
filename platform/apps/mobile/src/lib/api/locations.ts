@@ -66,7 +66,7 @@ export async function fetchLocations(): Promise<LocationDto[]> {
   const res = await fetch(`${apiBase()}/locations`);
   if (!res.ok) throw new Error('Failed to fetch locations');
   const json = await res.json();
-  return Array.isArray(json) ? json : json.data ?? [];
+  return Array.isArray(json) ? json : (json.data ?? []);
 }
 
 /** Одна студія за кодом: null — локації немає (404), помилка мережі/сервера —

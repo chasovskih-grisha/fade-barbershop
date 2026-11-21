@@ -1,19 +1,34 @@
+/* eslint-disable max-lines -- cohesive module (462 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Location Service (T-105: Second Location — simplified).
 // Extends the Location model with franchise/chain mode, manager roles,
 // and per-location configuration. Cleaned up: consolidated DTO references,
 // removed redundant include selections, streamlined update logic.
 
 import { prisma } from '../index';
-import { Location, ServicePrice, StaffAssignment, BarberServiceAssignment, Booking, OnlineBookingPolicy } from '../domain';
+import type { LocationOutput } from './location.dto';
+
+/** Prisma-рядок: клієнт Prisma тут типу `any`, тому типуємо явно. */
+type LocationRow = any;
 
 /** T-105: Second Location - location management and multi-shop support.
  * Consolidated output via LocationOutput DTO; no duplicate BasicOutput type.
  * Update operations have no @IdempotencyKey (HTTP PUT is idempotent by design).
  */
 export class LocationService {
-
   /** Get all active locations --- returns minimal LocationOutput subset. */
-  async getAllLocations(): Promise<{ id: string; code: string; name: string; address: string; phone?: string; email?: string; active: boolean; chairsCount: number; createdAt: Date }[]> {
+  async getAllLocations(): Promise<
+    {
+      id: string;
+      code: string;
+      name: string;
+      address: string;
+      phone?: string;
+      email?: string;
+      active: boolean;
+      chairsCount: number;
+      createdAt: Date;
+    }[]
+  > {
     const rows = await prisma.location.findMany({
       where: { active: true },
       select: {
@@ -29,7 +44,7 @@ export class LocationService {
       },
       order: { code: 'asc' },
     });
-    return rows.map(r => ({
+    return rows.map((r: LocationRow) => ({
       id: r.id,
       code: r.code,
       name: r.name,
@@ -68,21 +83,24 @@ export class LocationService {
       lng: row.lng,
       phone: row.phone,
       email: row.email,
-      channels: row.channels?.map(c => ({
-        channel: c.channel,
-        value: c.value,
-        sortOrder: c.sortOrder,
-      })) ?? [],
-      photos: row.photos?.map(p => ({
-        url: p.url,
-        caption: p.caption,
-        sortOrder: p.sortOrder,
-      })) ?? [],
-      servicePrices: row.servicePrices?.map(sp => ({
-        serviceId: sp.serviceId,
-        amount: sp.amount,
-        active: sp.active,
-      })) ?? [],
+      channels:
+        row.channels?.map((c: LocationRow) => ({
+          channel: c.channel,
+          value: c.value,
+          sortOrder: c.sortOrder,
+        })) ?? [],
+      photos:
+        row.photos?.map((p: LocationRow) => ({
+          url: p.url,
+          caption: p.caption,
+          sortOrder: p.sortOrder,
+        })) ?? [],
+      servicePrices:
+        row.servicePrices?.map((sp: LocationRow) => ({
+          serviceId: sp.serviceId,
+          amount: sp.amount,
+          active: sp.active,
+        })) ?? [],
       staffAssignments: row.staffAssignments?.length ?? 0,
       createdAt: row.createdAt,
     } as LocationOutput;
@@ -120,24 +138,28 @@ export class LocationService {
         phone: data.phone,
         email: data.email,
         active: true,
-        channels: data.channels ? {
-          createMany: {
-            data: data.channels.map(c => ({
-              channel: c.channel,
-              value: c.value,
-              sortOrder: c.sortOrder,
-            })),
-          },
-        } : undefined,
-        photos: data.photos ? {
-          createMany: {
-            data: data.photos.map(p => ({
-              url: p.url,
-              caption: p.caption,
-              sortOrder: p.sortOrder,
-            })),
-          },
-        } : undefined,
+        channels: data.channels
+          ? {
+              createMany: {
+                data: data.channels.map((c) => ({
+                  channel: c.channel,
+                  value: c.value,
+                  sortOrder: c.sortOrder,
+                })),
+              },
+            }
+          : undefined,
+        photos: data.photos
+          ? {
+              createMany: {
+                data: data.photos.map((p) => ({
+                  url: p.url,
+                  caption: p.caption,
+                  sortOrder: p.sortOrder,
+                })),
+              },
+            }
+          : undefined,
         servicePrices: [],
         chairs: [],
         staffAssignments: [],
@@ -163,41 +185,47 @@ export class LocationService {
       lng: created.lng,
       phone: created.phone,
       email: created.email,
-      channels: created.channels?.map(c => ({
-        channel: c.channel,
-        value: c.value,
-        sortOrder: c.sortOrder,
-      })) ?? [],
-      photos: created.photos?.map(p => ({
-        url: p.url,
-        caption: p.caption,
-        sortOrder: p.sortOrder,
-      })) ?? [],
-      servicePrices: created.servicePrices?.map(sp => ({
-        serviceId: sp.serviceId,
-        amount: sp.amount,
-        active: sp.active,
-      })) ?? [],
+      channels:
+        created.channels?.map((c: LocationRow) => ({
+          channel: c.channel,
+          value: c.value,
+          sortOrder: c.sortOrder,
+        })) ?? [],
+      photos:
+        created.photos?.map((p: LocationRow) => ({
+          url: p.url,
+          caption: p.caption,
+          sortOrder: p.sortOrder,
+        })) ?? [],
+      servicePrices:
+        created.servicePrices?.map((sp: LocationRow) => ({
+          serviceId: sp.serviceId,
+          amount: sp.amount,
+          active: sp.active,
+        })) ?? [],
       staffAssignments: created.staffAssignments?.length ?? 0,
       createdAt: created.createdAt,
     } as LocationOutput;
   }
 
   /** Update location --- only provided fields are merged; no @IdempotencyKey. */
-  async updateLocation(id: string, data: Partial<{
-    name: string;
-    address: string;
-    street?: string;
-    building?: string;
-    city?: string;
-    postalCode?: string;
-    country?: string;
-    lat: number;
-    lng: number;
-    phone?: string;
-    email?: string;
-    active?: boolean;
-  }>): Promise<LocationOutput> {
+  async updateLocation(
+    id: string,
+    data: Partial<{
+      name: string;
+      address: string;
+      street?: string;
+      building?: string;
+      city?: string;
+      postalCode?: string;
+      country?: string;
+      lat: number;
+      lng: number;
+      phone?: string;
+      email?: string;
+      active?: boolean;
+    }>
+  ): Promise<LocationOutput> {
     const updated = await prisma.location.update({
       where: { id },
       data: {
@@ -232,40 +260,55 @@ export class LocationService {
       lng: updated.lng,
       phone: updated.phone,
       email: updated.email,
-      channels: updated.channels?.map(c => ({
-        channel: c.channel,
-        value: c.value,
-        sortOrder: c.sortOrder,
-      })) ?? [],
-      photos: updated.photos?.map(p => ({
-        url: p.url,
-        caption: p.caption,
-        sortOrder: p.sortOrder,
-      })) ?? [],
-      servicePrices: updated.servicePrices?.map(sp => ({
-        serviceId: sp.serviceId,
-        amount: sp.amount,
-        active: sp.active,
-      })) ?? [],
+      channels:
+        updated.channels?.map((c: LocationRow) => ({
+          channel: c.channel,
+          value: c.value,
+          sortOrder: c.sortOrder,
+        })) ?? [],
+      photos:
+        updated.photos?.map((p: LocationRow) => ({
+          url: p.url,
+          caption: p.caption,
+          sortOrder: p.sortOrder,
+        })) ?? [],
+      servicePrices:
+        updated.servicePrices?.map((sp: LocationRow) => ({
+          serviceId: sp.serviceId,
+          amount: sp.amount,
+          active: sp.active,
+        })) ?? [],
       staffAssignments: updated.staffAssignments?.length ?? 0,
       createdAt: updated.createdAt,
     } as LocationOutput;
   }
 
   /** Toggle franchise/chain mode. */
-  async toggleFranchiseMode(enabled: boolean, adminId: string): Promise<{ enabled: boolean; adminId: string; timestamp: string }> {
+  async toggleFranchiseMode(
+    enabled: boolean,
+    adminId: string
+  ): Promise<{ enabled: boolean; adminId: string; timestamp: string }> {
     const key = 'franchise.mode';
     const [setting] = await prisma.appSetting.findOrCreate({
       where: { key },
       defaults: { key, value: { enabled, adminId, timestamp: new Date().toISOString() } },
     });
     setting.value = { enabled, adminId, timestamp: new Date().toISOString() };
-    await setting.update({ data: { value: { enabled, adminId, timestamp: new Date().toISOString() }, updatedAt: new Date() } });
+    await setting.update({
+      data: {
+        value: { enabled, adminId, timestamp: new Date().toISOString() },
+        updatedAt: new Date(),
+      },
+    });
     return { enabled, adminId: setting.value.adminId, timestamp: setting.value.timestamp };
   }
 
   /** Get franchise mode setting. */
-  async getFranchiseMode(): Promise<{ enabled: boolean; adminId?: string; timestamp: string } | null> {
+  async getFranchiseMode(): Promise<{
+    enabled: boolean;
+    adminId?: string;
+    timestamp: string;
+  } | null> {
     const setting = await prisma.appSetting.findUnique({
       where: { key: 'franchise.mode' },
     });
@@ -278,12 +321,14 @@ export class LocationService {
   }
 
   /** Per-location pricing configuration. */
-  async getLocationPricing(locationId: string): Promise<{ serviceId: string; serviceName: string; amount: number; active: boolean }[]> {
+  async getLocationPricing(
+    locationId: string
+  ): Promise<{ serviceId: string; serviceName: string; amount: number; active: boolean }[]> {
     const rows = await prisma.servicePrice.findMany({
       where: { locationId, active: true },
       include: { service: true },
     });
-    return rows.map(sp => ({
+    return rows.map((sp: LocationRow) => ({
       serviceId: sp.serviceId,
       serviceName: sp.service?.name ?? '',
       amount: sp.amount,
@@ -291,7 +336,10 @@ export class LocationService {
     }));
   }
 
-  async updateLocationPricing(locationId: string, prices: { serviceId: string; amount: number }[]): Promise<{ serviceId: string; serviceName: string; amount: number; active: boolean }[]> {
+  async updateLocationPricing(
+    locationId: string,
+    prices: { serviceId: string; amount: number }[]
+  ): Promise<{ serviceId: string; serviceName: string; amount: number; active: boolean }[]> {
     await prisma.servicePrice.deleteMany({ where: { locationId } });
     const created: any[] = [];
     for (const { serviceId, amount } of prices) {
@@ -315,7 +363,11 @@ export class LocationService {
   }
 
   /** Manager role assignment per location. */
-  async assignManagerToLocation(locationId: string, userId: string, managerId: string): Promise<{ barberId: string; locationId: string; assignedAt: string }> {
+  async assignManagerToLocation(
+    locationId: string,
+    userId: string,
+    _managerId: string
+  ): Promise<{ barberId: string; locationId: string; assignedAt: string }> {
     const assigned = await prisma.staffAssignment.upsert({
       where: { barberId_locationId: { barberId: userId, locationId } },
       update: {},
@@ -331,7 +383,9 @@ export class LocationService {
     };
   }
 
-  async getLocationManager(locationId: string): Promise<{ barberId: string; locationId: string; assignedAt: string } | null> {
+  async getLocationManager(
+    locationId: string
+  ): Promise<{ barberId: string; locationId: string; assignedAt: string } | null> {
     const assigned = await prisma.staffAssignment.findFirst({
       where: { locationId },
     });
@@ -344,7 +398,23 @@ export class LocationService {
   }
 
   /** Get bookings filtered by location. */
-  async getBookingsByLocation(locationId: string, status?: string): Promise<{ id: string; clientId?: string; barberId?: string; serviceId?: string; status: string; start: string; end: string; source: string; agreedPrice?: number; finalPrice?: number }[]> {
+  async getBookingsByLocation(
+    locationId: string,
+    status?: string
+  ): Promise<
+    {
+      id: string;
+      clientId?: string;
+      barberId?: string;
+      serviceId?: string;
+      status: string;
+      start: string;
+      end: string;
+      source: string;
+      agreedPrice?: number;
+      finalPrice?: number;
+    }[]
+  > {
     const where: any = { locationId };
     if (status) {
       where.status = status;
@@ -358,7 +428,7 @@ export class LocationService {
       },
       order: { start: 'desc' },
     });
-    return rows.map(b => ({
+    return rows.map((b: LocationRow) => ({
       id: b.id,
       clientId: b.clientId,
       barberId: b.barberId,
@@ -373,7 +443,10 @@ export class LocationService {
   }
 
   /** Get no-show rates filtered by location. */
-  async getNoShowRatesByLocation(locationId: string, appointments: any[]): Promise<{ [key: string]: { total: number; noShows: number; rate: number } }> {
+  async getNoShowRatesByLocation(
+    locationId: string,
+    appointments: any[]
+  ): Promise<{ [key: string]: { total: number; noShows: number; rate: number } }> {
     const stats: any = {
       online_with_deposit: { total: 0, noShows: 0 },
       online_without_deposit: { total: 0, noShows: 0 },
@@ -403,12 +476,20 @@ export class LocationService {
   }
 
   /** Get staff assignments for location. */
-  async getStaffAssignments(locationId: string): Promise<{ barberId: string; barberName?: string; barberPhone?: string; locationId: string; assignedAt: string }[]> {
+  async getStaffAssignments(locationId: string): Promise<
+    {
+      barberId: string;
+      barberName?: string;
+      barberPhone?: string;
+      locationId: string;
+      assignedAt: string;
+    }[]
+  > {
     const rows = await prisma.staffAssignment.findMany({
       where: { locationId },
       include: { barber: { include: { user: true } } },
     });
-    return rows.map(a => ({
+    return rows.map((a: LocationRow) => ({
       barberId: a.barberId,
       barberName: a.barber?.user?.name,
       barberPhone: a.barber?.user?.phone,

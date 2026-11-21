@@ -21,14 +21,16 @@ describe('ClientPreferencesController', () => {
         loyaltyOptOut: false,
         reminderOptOut: false,
       }),
-      updatePreferences: jest.fn().mockImplementation((clientId, data) => Promise.resolve({
-        clientId,
-        smsEnabled: data.smsEnabled ?? true,
-        emailEnabled: data.emailEnabled ?? true,
-        pushEnabled: data.pushEnabled ?? true,
-        loyaltyOptOut: data.loyaltyOptOut ?? false,
-        reminderOptOut: data.reminderOptOut ?? false,
-      })),
+      updatePreferences: jest.fn().mockImplementation((clientId, data) =>
+        Promise.resolve({
+          clientId,
+          smsEnabled: data.smsEnabled ?? true,
+          emailEnabled: data.emailEnabled ?? true,
+          pushEnabled: data.pushEnabled ?? true,
+          loyaltyOptOut: data.loyaltyOptOut ?? false,
+          reminderOptOut: data.reminderOptOut ?? false,
+        })
+      ),
     };
 
     const moduleRef = await Test.createTestingModule({

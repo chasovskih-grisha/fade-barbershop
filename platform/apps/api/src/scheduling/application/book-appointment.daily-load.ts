@@ -1,7 +1,11 @@
 // Перевірка денного ліміту під час запису (T-4421). Тримаємо окремо від
 // use-case, щоб той лишався лінійним: ліміт — це ще одне правило доступу до
 // слота, як перевірка перекриття.
-import { exceedsDailyLoad, type DailyLoadPolicy, type DatedBooking } from '../domain/daily-load-limit';
+import {
+  exceedsDailyLoad,
+  type DailyLoadPolicy,
+  type DatedBooking,
+} from '../domain/daily-load-limit';
 
 export interface DailyLoadCheck {
   policy?: DailyLoadPolicy | undefined;

@@ -1,6 +1,10 @@
 import { GiftCertificate } from '../domain/gift-certificate.entity';
 import { GiftCertificateSold } from '../domain/gift-certificate.events';
-import { GiftCertificateRepository, CertificateCodeGenerator, GiftCertificateOutbox } from './ports';
+import {
+  GiftCertificateRepository,
+  CertificateCodeGenerator,
+  GiftCertificateOutbox,
+} from './ports';
 
 export interface CreateGiftCertificateInput {
   id: string;
@@ -19,7 +23,9 @@ export class CreateGiftCertificateHandler {
     private readonly outbox: GiftCertificateOutbox
   ) {}
 
-  async handle(input: CreateGiftCertificateInput): Promise<{ id: string; code: string; initialAmount: number; expiresAt: Date }> {
+  async handle(
+    input: CreateGiftCertificateInput
+  ): Promise<{ id: string; code: string; initialAmount: number; expiresAt: Date }> {
     const code = this.codeGen.generateCode();
     const cert = GiftCertificate.createNew({
       id: input.id,

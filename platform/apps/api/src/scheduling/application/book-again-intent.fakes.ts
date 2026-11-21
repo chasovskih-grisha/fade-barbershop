@@ -7,6 +7,7 @@ const BOOKING = {
   locationId: 'loc-1',
   serviceId: 'svc-1',
   status: 'completed',
+  partyId: null,
 };
 
 /** Значення з overrides[key], інакше default; дозволяє підставити null. */

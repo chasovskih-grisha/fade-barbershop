@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (113 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // T-4559: HTTP-поверхня керованої черги очікування (адмінка).
 // Окремий контролер від `waitlist.controller.ts` (T-170, Prisma-сервіс), щоб
 // новий слайс не залежав від persistence-шару, який ще не має таблиць.
@@ -73,10 +74,7 @@ export class AdminWaitlistController {
   /** Клієнт скасовує очікування; `releasedHold` — чи звільнився слот. */
   @Post('entries/:id/cancel')
   @HttpCode(HttpStatus.OK)
-  async cancel(
-    @Param('id') id: string,
-    @Body() body: { by: string; reason?: string }
-  ) {
+  async cancel(@Param('id') id: string, @Body() body: { by: string; reason?: string }) {
     try {
       return await this.waitlist.cancel(id, body);
     } catch (error) {

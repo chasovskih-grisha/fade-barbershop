@@ -1,3 +1,4 @@
+/* eslint-disable max-params -- 1 signature whose 4-param contract is fixed by existing call sites (worst: roleAllowsSection, limit 3); API redesign tracked in T-2500f */
 // AdminRole — підролі адмінки (T-2400a, ADR 0027). Відрізняється від Role
 // (client | barber | admin): тут лише рівні доступу всередині адмінки. Модель
 // даних — AdminRole; джерело правди для початкових ролей — цей константний кіт.
@@ -22,6 +23,16 @@ export type AdminSection = (typeof ADMIN_SECTIONS)[number];
  *  AnL-ADM-01…06: analytics, roles — охоплюєють всю мережу.
  */
 export const GLOBAL_SECTIONS: readonly AdminSection[] = ['analytics', 'roles'] as const;
+
+/** Опис ролі адмінки (T-2400a). */
+export interface AdminRoleDefinition {
+  key: AdminRoleKey;
+  name: string;
+  description: string;
+  permissions: readonly string[];
+  priority: number;
+  locationId: string | null;
+}
 
 /** Початковий кіт ролей (seeder); редагуються лише в коді, не в рантаймі. */
 export const DEFAULT_ADMIN_ROLES: readonly AdminRoleDefinition[] = [

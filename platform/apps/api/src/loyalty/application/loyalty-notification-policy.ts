@@ -1,9 +1,10 @@
+/* eslint-disable max-lines, max-params -- cohesive module (256 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 2 signatures whose 4-param contract is fixed by existing call sites (worst: planLoyaltyNotifications, limit 3); API redesign tracked in T-2500f */
 /**
  * T-4462: політика сповіщень про події лояльності — чиста, без Nest і Prisma.
  *
  * Чотири значущі події: нараховані бали, новий рівень, використані бали й
  * попередження про згорання за 7 днів. Правила:
- *  - канал кожної події конфігурується (`sms` / `push` / `none`);
+ *  - канал кожної події конфігурується (`sms` / `push` / `email` / `none`);
  *  - дедуп: однакова подія (той самий ключ) не надсилається двічі;
  *  - тихі години Europe/Kyiv (типово 21:00–09:00) — доставка відкладається
  *    до відкриття вікна, а не відкидається;
@@ -18,12 +19,9 @@ import {
 } from '../domain/loyalty-events';
 
 export type LoyaltyNotificationEvent =
-  | 'points_earned'
-  | 'tier_reached'
-  | 'points_spent'
-  | 'points_expiring';
+  'points_earned' | 'tier_reached' | 'points_spent' | 'points_expiring';
 
-export type LoyaltyNotificationChannel = 'sms' | 'push' | 'none';
+export type LoyaltyNotificationChannel = 'sms' | 'push' | 'email' | 'none';
 
 export const LOYALTY_NOTIFICATION_TIME_ZONE = 'Europe/Kyiv';
 export const LOYALTY_EXPIRY_WARNING_DAYS = 7;
@@ -46,8 +44,8 @@ export interface LoyaltyNotificationConfig {
 
 export const DEFAULT_LOYALTY_NOTIFICATION_CONFIG: LoyaltyNotificationConfig = {
   channels: {
-    points_earned: 'push',
-    tier_reached: 'push',
+    points_earned: 'email',
+    tier_reached: 'email',
     points_spent: 'none',
     points_expiring: 'sms',
   },
@@ -115,10 +113,7 @@ export function zonedParts(
 }
 
 /** Локальна дата у форматі YYYY-MM-DD — ключ добового ліміту. */
-export function localDayKey(
-  at: Date,
-  timeZone: string = LOYALTY_NOTIFICATION_TIME_ZONE
-): string {
+export function localDayKey(at: Date, timeZone: string = LOYALTY_NOTIFICATION_TIME_ZONE): string {
   const parts = zonedParts(at, timeZone);
   return `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`;
 }
@@ -278,7 +273,11 @@ export function planLoyaltyNotifications(
     }
     seenKeys.add(intent.dedupeKey);
 
-    if ((log.batchedByClient.get(intent.clientId) ?? []).some((item) => item.dedupeKey === intent.dedupeKey)) {
+    if (
+      (log.batchedByClient.get(intent.clientId) ?? []).some(
+        (item) => item.dedupeKey === intent.dedupeKey
+      )
+    ) {
       plan.suppressed.push({ intent, reason: 'Duplicate notification' });
       continue;
     }

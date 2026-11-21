@@ -2,13 +2,24 @@
 // той самий appointmentId; валідації нового слота; барбер не може переносити;
 // завершені/скасовані — заборонено; тривалість незмінна. Mover мокається —
 // атомарність перевіряє race-e2e на Postgres.
-import { RescheduleAppointment, type AppointmentTimeMover } from './reschedule-appointment.use-case';
+import {
+  RescheduleAppointment,
+  type AppointmentTimeMover,
+} from './reschedule-appointment.use-case';
 import { Appointment, InvalidTransitionError } from '../domain/appointment.aggregate';
 import { AppointmentNotFoundError } from './appointment-lifecycle.use-case';
 import { BarberSchedule } from '../domain/availability';
 import { InvalidSlotError } from '../domain/slot-validator';
 import { BookingConflictError } from '../domain/booking';
-import { T0, booked, cmd, fakeRepo, okLocation, okMover, setup } from './reschedule-appointment.fakes';
+import {
+  T0,
+  booked,
+  cmd,
+  fakeRepo,
+  okLocation,
+  okMover,
+  setup,
+} from './reschedule-appointment.fakes';
 
 describe('RescheduleAppointment (T-4533)', () => {
   it('переносить живий запис: той самий id, mover викликається з новим слотом', async () => {
@@ -48,8 +59,8 @@ describe('RescheduleAppointment (T-4533)', () => {
   it('пише лише rescheduled: жодного AppointmentCancelled (не скасування)', async () => {
     const { useCase, moves } = setup(booked());
     await useCase.handle(cmd());
-    expect(moves[0]?.event.type).toBe('scheduling.appointment.rescheduled');
-    expect(moves[0]?.event.payload).not.toHaveProperty('reason');
+    expect(moves[0]?.event?.type).toBe('scheduling.appointment.rescheduled');
+    expect(moves[0]?.event?.payload).not.toHaveProperty('reason');
   });
 
   it('зміна тривалості заборонена', async () => {

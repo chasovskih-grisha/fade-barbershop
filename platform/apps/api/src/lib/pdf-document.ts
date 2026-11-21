@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-params -- cohesive module (122 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 signature whose 4-param contract is fixed by existing call sites (worst: line, limit 3); API redesign tracked in T-2500f */
 // Мінімальний генератор PDF (PDF 1.4, Helvetica) для звітів адмінки.
 //
 // Навіщо свій: pdfkit — важка нативна залежність, якої немає в дереві
@@ -34,7 +35,9 @@ export class PdfDocument {
 
   constructor(options: PdfDocumentOptions = {}) {
     this.margin = options.margin ?? 50;
-    this.page = PAGE_SIZES[(options.size ?? 'A4').toUpperCase()] ?? PAGE_SIZES.A4;
+    this.page =
+      PAGE_SIZES[(options.size ?? 'A4').toUpperCase()] ??
+      ({ width: 595.28, height: 841.89 } as PageSize);
     this.y = this.page.height - this.margin;
   }
 
@@ -45,7 +48,10 @@ export class PdfDocument {
   }
 
   /** Рядок тексту; `align: 'center'` центрує по ширині сторінки. */
-  text(value: string, options: { align?: 'left' | 'center' | 'right'; underline?: boolean } = {}): this {
+  text(
+    value: string,
+    options: { align?: 'left' | 'center' | 'right'; underline?: boolean } = {}
+  ): this {
     const lines = String(value ?? '').split('\n');
     for (const line of lines) {
       this.ensureRoom(this.size * 1.4);
@@ -82,9 +88,7 @@ export class PdfDocument {
   }
 
   line(x1: number, y1: number, x2: number, y2: number): this {
-    this.ops.push(
-      `${x1.toFixed(2)} ${y1.toFixed(2)} m ${x2.toFixed(2)} ${y2.toFixed(2)} l S`
-    );
+    this.ops.push(`${x1.toFixed(2)} ${y1.toFixed(2)} m ${x2.toFixed(2)} ${y2.toFixed(2)} l S`);
     return this;
   }
 

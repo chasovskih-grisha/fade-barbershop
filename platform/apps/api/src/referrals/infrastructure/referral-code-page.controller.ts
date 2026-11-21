@@ -4,13 +4,8 @@
 // перевірки ліміту на конкретну дату без очікування календаря.
 import { BadRequestException, Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import {
-  ReferralCodePageService,
-} from '../application/referral-code-page.service';
-import {
-  ReferralCodePageError,
-  type ReferralCodePageView,
-} from '../domain/referral-code-page';
+import { ReferralCodePageService } from '../application/referral-code-page.service';
+import { ReferralCodePageError, type ReferralCodePageView } from '../domain/referral-code-page';
 
 @ApiTags('referrals')
 @Controller('referrals')

@@ -23,9 +23,9 @@ The hint promises the barber will see the text. The spec never shows which text.
 
 ## Done
 
-- [ ] §2 describes the quote and the empty sentence
-- [ ] §5 points at §2
-- [ ] `pnpm docs:validate` reports no new error from these files
+- [x] §2 describes the quote and the empty sentence
+- [x] §5 points at §2
+- [x] `pnpm docs:validate` reports no new error from these files (7 pre-existing errors unchanged: 6× status «qa», 1× unescaped `|` in m5)
 
 ## Risks
 

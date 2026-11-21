@@ -5,21 +5,31 @@ import { PrismaClientProfileRepository } from './infrastructure/prisma-client-pr
 import { PrismaOutboxPublisher } from './prisma-outbox-publisher';
 import { SystemClock } from './system-clock';
 import { UuidIdGenerator } from './uuid-id-generator';
-import { AdminClientsController, ADMIN_CLIENTS_HANDLERS } from './infrastructure/admin-clients.controller';
-import { AdminClientNotesController } from './infrastructure/admin-client-notes.controller';
-import { AdminClientFiltersController } from './infrastructure/admin-client-filters.controller';
 import {
-  InMemorySavedClientFilterRepository,
-  SAVED_CLIENT_FILTER_REPOSITORY,
-  SavedClientFilterService,
-} from './application/saved-client-filter.service';
+  AdminClientsController,
+  ADMIN_CLIENTS_HANDLERS,
+} from './infrastructure/admin-clients.controller';
+import { AdminClientNotesController } from './infrastructure/admin-client-notes.controller';
 import { AdminClientList, CLIENT_LIST_CLOCK } from './application/admin-client-list';
 import { PrismaClientListReader } from './infrastructure/prisma-client-list.reader';
 import { CLIENT_LIST_READER } from './application/client-list-reader';
 import { RecordVisitHandler } from './application/record-visit.use-case';
 import { PrismaVisitRepository } from './infrastructure/prisma-visit.repository';
 import { PrismaVisitClientLookup } from './infrastructure/prisma-visit-client.lookup';
-import { UpdateClientProfileHandler, UpdateBirthdayHandler, UpdatePreferencesHandler, AddNoteHandler, RemoveNoteHandler, SetVipDiscountHandler, SetLoyaltyVisitsHandler, GetClientProfileHandler, GetClientProfileByUserIdHandler, GetClientProfileByPhoneHandler, ListClientsHandler } from './application/crm-handlers';
+import {
+  UpdateClientProfileHandler,
+  UpdateBirthdayHandler,
+  UpdatePreferencesHandler,
+  AddNoteHandler,
+  RemoveNoteHandler,
+  SetVipDiscountHandler,
+  SetLoyaltyVisitsHandler,
+  GetClientProfileHandler,
+  GetClientProfileByUserIdHandler,
+  GetClientProfileByPhoneHandler,
+  ListClientsHandler,
+} from './application/crm-handlers';
+import { PrismaSavedClientFilterRepository } from './infrastructure/prisma-saved-client-filter.repository';
 
 // Команди отримують спільний CrmCommandContext (bundle), запити — лише порт;
 // набір хендлерів контролера збирається однією фабрикою (гейт max-params).
@@ -57,7 +67,7 @@ const ADMIN_CLIENTS_HANDLERS_PROVIDER = {
 };
 
 @Module({
-  controllers: [AdminClientsController, AdminClientNotesController, AdminClientFiltersController],
+  controllers: [AdminClientsController, AdminClientNotesController],
   providers: [
     PrismaService,
     PrismaUnitOfWork,
@@ -65,15 +75,10 @@ const ADMIN_CLIENTS_HANDLERS_PROVIDER = {
     UuidIdGenerator,
     PrismaOutboxPublisher,
     PrismaClientProfileRepository,
+    PrismaSavedClientFilterRepository,
     ADMIN_CLIENTS_HANDLERS_PROVIDER,
     AdminClientList,
     { provide: CLIENT_LIST_READER, useClass: PrismaClientListReader },
-    // T-4461: збережені фільтри списку клієнтів — запит, не сегмент.
-    SavedClientFilterService,
-    {
-      provide: SAVED_CLIENT_FILTER_REPOSITORY,
-      useClass: InMemorySavedClientFilterRepository,
-    },
     // Вікно підсумків (T-4606b) рахує той самий годинник, що й команди crm.
     { provide: CLIENT_LIST_CLOCK, useExisting: SystemClock },
     // Проєкція історії візитів (T-061): подія scheduling → факт Visit.
@@ -87,7 +92,11 @@ const ADMIN_CLIENTS_HANDLERS_PROVIDER = {
     },
   ],
   // Токен експортуємо: ClientProfileController збирається в IdentityModule
-  // (окрема модульна мережа), тож без export'а він не резолвиться.
-  exports: [PrismaClientProfileRepository, ADMIN_CLIENTS_HANDLERS],
+  // (включа modul'на мережа), тож без export'а він не резолвиться.
+  exports: [
+    PrismaClientProfileRepository,
+    ADMIN_CLIENTS_HANDLERS,
+    PrismaSavedClientFilterRepository,
+  ],
 })
 export class CrmModule {}

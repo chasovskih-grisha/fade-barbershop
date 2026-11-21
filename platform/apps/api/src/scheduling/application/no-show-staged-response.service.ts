@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (137 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // T-4452: етапна реакція на no-show. Правила — у no-show-stage.policy,
 // тут порт сховища й послідовність кроків + журнал для аудиту.
 //

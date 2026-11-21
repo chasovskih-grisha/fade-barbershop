@@ -1,4 +1,7 @@
-import { AmbassadorProfileEntity, AmbassadorBoosterEngine } from '../domain/ambassador-booster.entity';
+import {
+  AmbassadorProfileEntity,
+  AmbassadorBoosterEngine,
+} from '../domain/ambassador-booster.entity';
 import { ReferralRepository } from './referral.repository';
 
 export class ProcessAmbassadorReferralMilestoneUseCase {

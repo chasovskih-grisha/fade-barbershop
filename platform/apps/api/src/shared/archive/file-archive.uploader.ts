@@ -15,7 +15,8 @@ export class FileArchiveUploader implements ArchiveUploader {
 
   private pathFor(key: string): string {
     const path = resolve(join(this.baseDir, key));
-    if (!path.startsWith(this.baseDir)) throw new RangeError(`archive key escapes base dir: ${key}`);
+    if (!path.startsWith(this.baseDir))
+      throw new RangeError(`archive key escapes base dir: ${key}`);
     return path;
   }
 

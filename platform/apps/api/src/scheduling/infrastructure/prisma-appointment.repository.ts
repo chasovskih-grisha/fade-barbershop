@@ -12,7 +12,11 @@ import { currentDb } from '../../shared/prisma/prisma-context';
 import { Appointment, type AppointmentStatus } from '../domain/appointment.aggregate';
 import type { AppointmentRepository } from '../domain/appointment-repository';
 import { injectOutboxTrace, withSpan, TRACING } from '../../shared/tracing/tracing';
-import { cancelReasonOf, restoreAppointment, type BookingRow } from './prisma-appointment.repository.row';
+import {
+  cancelReasonOf,
+  restoreAppointment,
+  type BookingRow,
+} from './prisma-appointment.repository.row';
 
 @Injectable()
 export class PrismaAppointmentRepository implements AppointmentRepository {

@@ -5,7 +5,7 @@ import { getPublishedArticles } from '@/lib/api/articles';
 // Секція без даних ховається — публічна сторінка не показує пусток.
 
 export async function BlogTeaser({ limit = 3 }: { limit?: number }) {
-  const articles = await getPublishedArticles(limit);
+  const articles = await getPublishedArticles({ limit });
   if (articles.state !== 'ok' || articles.data.length === 0) return null;
 
   return (

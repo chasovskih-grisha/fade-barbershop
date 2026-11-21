@@ -1,4 +1,5 @@
-export type ReactivationTriggerType = 'INACTIVE_30_DAYS' | 'INACTIVE_60_DAYS' | 'INACTIVE_90_DAYS' | 'POST_CANCELLATION';
+export type ReactivationTriggerType =
+  'INACTIVE_30_DAYS' | 'INACTIVE_60_DAYS' | 'INACTIVE_90_DAYS' | 'POST_CANCELLATION';
 
 export interface ReactivationFlowEntity {
   id: string;
@@ -47,4 +48,3 @@ export interface MilestoneRewardEntity {
   unlockedPerk: string;
   awardedAt: string;
 }
-

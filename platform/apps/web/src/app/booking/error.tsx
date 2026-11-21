@@ -42,18 +42,22 @@ export default function BookingErrorBoundary({
             ⚠️
           </div>
           <div>
-            <Badge tone="danger" className="mb-1">Збій оформлення</Badge>
+            <Badge tone="danger" className="mb-1">
+              Збій оформлення
+            </Badge>
             <h2 className="text-xl font-bold text-fg">Помилка оформлення запису</h2>
           </div>
         </div>
 
         <p className="text-sm text-fg-secondary leading-relaxed">
-          На жаль, сталася помилка під час обробки запису або перевірки доступності слота ({error.message || 'невідома помилка'}). Можливо, обраний час щойно зайняли.
+          На жаль, сталася помилка під час обробки запису або перевірки доступності слота (
+          {error.message || 'невідома помилка'}). Можливо, обраний час щойно зайняли.
         </p>
 
         {ticketSubmitted ? (
           <AlertBanner tone="success" title={`Екстрений тікет створено: ${ticketCode}`}>
-            Адміністратор FADE Hub отримав деталі помилки разом із вашим номером. Ми передзвонимо вам протягом 5 хвилин!
+            Адміністратор FADE Hub отримав деталі помилки разом із вашим номером. Ми передзвонимо
+            вам протягом 5 хвилин!
           </AlertBanner>
         ) : (
           <form onSubmit={handleQuickTicketSubmit} className="space-y-3 pt-2 border-t border-line">
@@ -76,13 +80,9 @@ export default function BookingErrorBoundary({
             </div>
           </form>
         )}
-        
+
         <div className="pt-2 flex flex-col gap-2.5">
-          <Button
-            type="button"
-            onClick={() => reset()}
-            className="w-full"
-          >
+          <Button type="button" onClick={() => reset()} className="w-full">
             Спробувати знову / Обрати інший час
           </Button>
 

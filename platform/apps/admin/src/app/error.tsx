@@ -23,9 +23,7 @@ export default function AdminErrorBoundary({
   return (
     <div className="min-h-[50vh] flex flex-col items-center justify-center p-6 text-center">
       <div className="max-w-md space-y-4">
-        <h2 className="text-2xl font-bold">
-          Помилка адміністративної панелі / Admin Panel Error
-        </h2>
+        <h2 className="text-2xl font-bold">Помилка адміністративної панелі / Admin Panel Error</h2>
         <p className="text-sm opacity-75">
           Система логування зафіксувала помилку у модулі керування.
         </p>

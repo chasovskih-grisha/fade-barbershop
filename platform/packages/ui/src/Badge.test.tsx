@@ -12,8 +12,19 @@ describe('Badge', () => {
     expect(screen.getByText('Нове').className).toContain('text-fg-secondary');
   });
 
+  it('показує фокус-стан через focus-visible, не через focus', () => {
+    render(<Badge>Фокус</Badge>);
+    const className = screen.getByText('Фокус').className;
+    expect(className).toContain('focus-visible:ring-2');
+    expect(className).not.toMatch(/(^|\s)focus:ring/);
+  });
+
   it('підтримує доступність (aria-label та role)', () => {
-    render(<Badge aria-label="VIP статус" role="status">VIP</Badge>);
+    render(
+      <Badge aria-label="VIP статус" role="status">
+        VIP
+      </Badge>
+    );
     const badge = screen.getByText('VIP');
     expect(badge.getAttribute('role')).toBe('status');
     expect(badge.getAttribute('aria-label')).toBe('VIP статус');

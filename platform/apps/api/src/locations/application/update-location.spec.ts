@@ -42,8 +42,8 @@ describe('UpdateLocationHandler', () => {
       ],
     });
     const location = await seed.locations.findById('loc-1');
-    expect(location?.hours.days[6]?.open).toBe('10:00');
-    expect(location?.chairs[1]?.active).toBe(false);
+    expect(location?.hours?.days?.[6]?.open).toBe('10:00');
+    expect(location?.chairs?.[1]?.active).toBe(false);
     // prettier-ignore
     expect(seed.outbox.events.map((e) => e.type)).toEqual(['locations.location.opened', 'locations.location.chair_added', 'locations.location.chair_added', 'locations.location.hours_changed', 'locations.location.chair_updated', 'locations.location.chair_updated']);
   });

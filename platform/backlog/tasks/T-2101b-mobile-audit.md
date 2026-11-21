@@ -19,6 +19,6 @@ Mobile app is the primary channel for clients. Native UX is critical for retenti
 
 ## Done
 
-- [ ] Audit completed
-- [ ] Prioritized report
-- [ ] Fix mockups
+- [x] Audit completed — `docs/mobile-audit.md`
+- [x] Prioritized report — P0/P1/P2 з посиланням на файл і рядок
+- [x] Fix mockups — план ремедіації, 7 слайсів у `docs/mobile-audit.md`

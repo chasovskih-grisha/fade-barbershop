@@ -14,14 +14,30 @@ export interface OnboardingProps {
 export class ClientOnboarding {
   constructor(private props: OnboardingProps) {}
 
-  get id(): string { return this.props.id; }
-  get clientId(): string { return this.props.clientId; }
-  get isFirstVisit(): boolean { return this.props.isFirstVisit; }
-  get status(): OnboardingStatus { return this.props.status; }
-  get welcomeDiscountCode(): string { return this.props.welcomeDiscountCode; }
-  get discountPercent(): number { return this.props.discountPercent; }
-  get createdAt(): Date { return this.props.createdAt; }
-  get completedAt(): Date | null { return this.props.completedAt ?? null; }
+  get id(): string {
+    return this.props.id;
+  }
+  get clientId(): string {
+    return this.props.clientId;
+  }
+  get isFirstVisit(): boolean {
+    return this.props.isFirstVisit;
+  }
+  get status(): OnboardingStatus {
+    return this.props.status;
+  }
+  get welcomeDiscountCode(): string {
+    return this.props.welcomeDiscountCode;
+  }
+  get discountPercent(): number {
+    return this.props.discountPercent;
+  }
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
+  get completedAt(): Date | null {
+    return this.props.completedAt ?? null;
+  }
 
   markViewed(): void {
     if (this.props.status === 'PENDING') {

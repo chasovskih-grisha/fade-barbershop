@@ -29,14 +29,14 @@ describe('upstreamFetch', () => {
     const res = await upstreamFetch('http://localhost:13000/test', {
       method: 'PATCH',
       body: { name: 'New Name' },
-      headers: { 'Authorization': 'Bearer token' },
+      headers: { Authorization: 'Bearer token' },
     });
 
     expect(res.status).toBe(200);
     const callArgs = fetchMock.mock.calls[0];
     expect(callArgs[1].method).toBe('PATCH');
     expect(callArgs[1].body).toBe(JSON.stringify({ name: 'New Name' }));
-    expect(callArgs[1].headers).toEqual({ 'Authorization': 'Bearer token' });
+    expect(callArgs[1].headers).toEqual({ Authorization: 'Bearer token' });
   });
 
   it('throws timeout error on AbortError', async () => {
@@ -44,9 +44,9 @@ describe('upstreamFetch', () => {
     abortError.name = 'AbortError';
     fetchMock.mockRejectedValue(abortError);
 
-    await expect(
-      upstreamFetch('http://localhost:13000/slow', { timeoutMs: 50 })
-    ).rejects.toThrow('Upstream request timeout after 50ms');
+    await expect(upstreamFetch('http://localhost:13000/slow', { timeoutMs: 50 })).rejects.toThrow(
+      'Upstream request timeout after 50ms'
+    );
   });
 
   it('propagates other errors directly', async () => {

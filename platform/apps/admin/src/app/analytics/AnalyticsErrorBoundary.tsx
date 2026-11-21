@@ -43,7 +43,8 @@ export class AnalyticsErrorBoundary extends Component<Props, State> {
               Помилка завантаження аналітики / Analytics Dashboard Error
             </h3>
             <p className="text-sm text-fg-muted">
-              Система телеметрії FADE зафіксувала збій під час рендерингу аналітичних показників. Дані кешу та зрізи метрології збережено.
+              Система телеметрії FADE зафіксувала збій під час рендерингу аналітичних показників.
+              Дані кешу та зрізи метрології збережено.
             </p>
             {this.state.error?.message && (
               <div className="p-3 bg-surface-sunken rounded text-xs font-mono text-left overflow-x-auto">

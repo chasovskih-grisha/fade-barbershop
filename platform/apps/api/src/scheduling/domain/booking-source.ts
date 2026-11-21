@@ -45,7 +45,10 @@ export function isKnownBookingSource(raw: string): boolean {
  */
 export function bookingSourceFilter(raw: string): string[] {
   const out = new Set<string>();
-  for (const token of raw.split(',').map((item) => item.trim()).filter(Boolean)) {
+  for (const token of raw
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)) {
     const canonical = normalizeBookingSource(token);
     if (!canonical) continue;
     out.add(canonical);

@@ -36,5 +36,4 @@ export const testId = (): string => uuidv7();
  * у `@fade/contracts`). Локальна копія — бо jest резолвить пакет у застарілі
  * скомпільовані `src/*.js`, які перекривають TS-джерело при runtime-імпорті.
  */
-export const UUID_V7_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export const UUID_V7_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

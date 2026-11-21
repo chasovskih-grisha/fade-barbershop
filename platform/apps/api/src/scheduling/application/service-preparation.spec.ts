@@ -29,11 +29,19 @@ describe('service-preparation (T-041, спільна валідація ката
     const ok = await prepareService(repo({ amount: 600 }, { duration: 50, parallelDuration: 45 }), { locationId: 'loc-1', serviceId: 'svc-1' });
     expect(ok).toEqual({
       duration: 50,
-      snapshot: { serviceId: 'svc-1', agreedPrice: 600, agreedDuration: 50, fulfillmentMode: 'sequential' },
+      snapshot: {
+        serviceId: 'svc-1',
+        agreedPrice: 600,
+        agreedDuration: 50,
+        fulfillmentMode: 'sequential',
+      },
     });
     // prettier-ignore
     const par = await prepareService(repo({ amount: 900 }, { duration: 90, parallelDuration: 50 }), { locationId: 'loc-1', serviceId: 'svc-2', fulfillmentMode: 'parallel' });
-    expect(par).toMatchObject({ duration: 50, snapshot: { fulfillmentMode: 'parallel', agreedDuration: 50 } });
+    expect(par).toMatchObject({
+      duration: 50,
+      snapshot: { fulfillmentMode: 'parallel', agreedDuration: 50 },
+    });
   });
 
   it('неактивна ціна або послуга → HttpException 404; parallel без тривалості → 400', async () => {

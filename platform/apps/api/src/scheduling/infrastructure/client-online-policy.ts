@@ -1,6 +1,9 @@
 // Клієнтський шлях запису: перевірка політики онлайн-букінгу до резервації
 // слота (T-4542). Окремим файлом — контролер тримає лише HTTP-логіку.
-import { OnlineBookingBlockedError, type EvaluateOnlineBooking } from '../../booking/policy/evaluate-online-booking';
+import {
+  OnlineBookingBlockedError,
+  type EvaluateOnlineBooking,
+} from '../../booking/policy/evaluate-online-booking';
 import type { ClientBookingDto } from '../dto/client-booking.dto';
 
 export async function assertOnlinePolicyAllowed(

@@ -1,4 +1,7 @@
-import { optimizeSlotLeaseConcurrency, DEFAULT_SLOT_LEASE_CONFIG } from './slot-lock-concurrency-lease-optimizer';
+import {
+  optimizeSlotLeaseConcurrency,
+  DEFAULT_SLOT_LEASE_CONFIG,
+} from './slot-lock-concurrency-lease-optimizer';
 
 describe('SlotLockConcurrencyLeaseOptimizer', () => {
   it('should keep valid active leases untouched', () => {
@@ -19,10 +22,10 @@ describe('SlotLockConcurrencyLeaseOptimizer', () => {
     ]);
 
     expect(results).toHaveLength(1);
-    const lease0 = results[0]!;
-    expect(lease0.status).toBe('ACTIVE');
-    expect(lease0.actionRequired).toBe('PROCEED_CHECKOUT');
-    expect(lease0.newVersion).toBe(1);
+    const lease0 = results[0];
+    expect(lease0?.status).toBe('ACTIVE');
+    expect(lease0?.actionRequired).toBe('PROCEED_CHECKOUT');
+    expect(lease0?.newVersion).toBe(1);
   });
 
   it('should renew leases expiring soon with active heartbeats', () => {
@@ -43,11 +46,11 @@ describe('SlotLockConcurrencyLeaseOptimizer', () => {
     ]);
 
     expect(results).toHaveLength(1);
-    const lease1 = results[0]!;
-    expect(lease1.status).toBe('RENEWED');
-    expect(lease1.actionRequired).toBe('REQUEST_HEARTBEAT');
-    expect(lease1.newVersion).toBe(3);
-    expect(lease1.newExpiresAtTimestamp).toBe(now + DEFAULT_SLOT_LEASE_CONFIG.defaultLeaseTtlMs);
+    const lease1 = results[0];
+    expect(lease1?.status).toBe('RENEWED');
+    expect(lease1?.actionRequired).toBe('REQUEST_HEARTBEAT');
+    expect(lease1?.newVersion).toBe(3);
+    expect(lease1?.newExpiresAtTimestamp).toBe(now + DEFAULT_SLOT_LEASE_CONFIG.defaultLeaseTtlMs);
   });
 
   it('should expire leases whose TTL has passed', () => {
@@ -68,9 +71,9 @@ describe('SlotLockConcurrencyLeaseOptimizer', () => {
     ]);
 
     expect(results).toHaveLength(1);
-    const lease2 = results[0]!;
-    expect(lease2.status).toBe('EXPIRED');
-    expect(lease2.actionRequired).toBe('RELEASE_AND_RETRY');
+    const lease2 = results[0];
+    expect(lease2?.status).toBe('EXPIRED');
+    expect(lease2?.actionRequired).toBe('RELEASE_AND_RETRY');
   });
 
   it('should evict leases under critical contention score', () => {
@@ -91,8 +94,8 @@ describe('SlotLockConcurrencyLeaseOptimizer', () => {
     ]);
 
     expect(results).toHaveLength(1);
-    const lease3 = results[0]!;
-    expect(lease3.status).toBe('EVICTED_HIGH_CONTENTION');
-    expect(lease3.actionRequired).toBe('FORCE_EVICT');
+    const lease3 = results[0];
+    expect(lease3?.status).toBe('EVICTED_HIGH_CONTENTION');
+    expect(lease3?.actionRequired).toBe('FORCE_EVICT');
   });
 });

@@ -15,8 +15,14 @@ export interface SurgeRuleInput {
 
 export type ValidationResult = { ok: true } | { ok: false; message: string };
 
+export const MULTIPLIER_BP_RANGE = { min: 10_000, max: 50_000 } as const;
+
 function checkDayOfWeek(dayOfWeek: number | null | undefined): ValidationResult {
-  if (dayOfWeek !== null && dayOfWeek !== undefined && (!Number.isInteger(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6)) {
+  if (
+    dayOfWeek !== null &&
+    dayOfWeek !== undefined &&
+    (!Number.isInteger(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6)
+  ) {
     return { ok: false, message: 'dayOfWeek must be an integer 0..6' };
   }
   return { ok: true };
@@ -32,12 +38,40 @@ function checkWindowFromto(fromMinute: number, toMinute: number): ValidationResu
   return { ok: true };
 }
 
-function checkWindowValidation(fromMinute: number | null, toMinute: number | null): ValidationResult {
+function checkWindowValidation(
+  fromMinute: number | null,
+  toMinute: number | null
+): ValidationResult {
   const hasFrom = fromMinute !== null && fromMinute !== undefined;
   const hasTo = toMinute !== null && toMinute !== undefined;
-  if (hasFrom !== hasTo) return { ok: false, message: 'fromMinute and toMinute must be set together' };
+  if (hasFrom !== hasTo)
+    return { ok: false, message: 'fromMinute and toMinute must be set together' };
   if (hasFrom && hasTo) {
     return checkWindowFromto(fromMinute, toMinute);
+  }
+  return { ok: true };
+}
+
+function checkSeniorityTier(seniorityTier: string | null | undefined): ValidationResult {
+  if (seniorityTier !== null && seniorityTier !== undefined) {
+    if (!SENIORITY_TIERS.includes(seniorityTier as SeniorityTier)) {
+      return { ok: false, message: `seniorityTier must be one of ${SENIORITY_TIERS.join('|')}` };
+    }
+  }
+  return { ok: true };
+}
+
+function checkMultiplierBp(multiplierBp: number | undefined): ValidationResult {
+  if (multiplierBp !== undefined) {
+    if (!Number.isInteger(multiplierBp)) {
+      return { ok: false, message: 'multiplierBp must be an integer' };
+    }
+    if (multiplierBp < MULTIPLIER_BP_RANGE.min || multiplierBp > MULTIPLIER_BP_RANGE.max) {
+      return {
+        ok: false,
+        message: `multiplierBp must be ${MULTIPLIER_BP_RANGE.min}..${MULTIPLIER_BP_RANGE.max}`,
+      };
+    }
   }
   return { ok: true };
 }
@@ -46,7 +80,7 @@ export function validateSurgeRule(input: SurgeRuleInput): ValidationResult {
   const { dayOfWeek, fromMinute, toMinute, seniorityTier, multiplierBp } = input;
   const d = checkDayOfWeek(dayOfWeek);
   if (!d.ok) return d;
-  const w = checkWindowValidation(fromMinute, toMinute);
+  const w = checkWindowValidation(fromMinute ?? null, toMinute ?? null);
   if (!w.ok) return w;
   const s = checkSeniorityTier(seniorityTier);
   if (!s.ok) return s;

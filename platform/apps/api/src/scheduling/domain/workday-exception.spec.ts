@@ -1,5 +1,11 @@
 import { OpeningHours } from '../../locations/domain/opening-hours';
-import { InvalidWorkdayExceptionError, createWorkdayException, effectiveDayWindow, hasWorkdayExceptionOverlap, type WorkdayExceptionData } from './workday-exception';
+import {
+  InvalidWorkdayExceptionError,
+  createWorkdayException,
+  effectiveDayWindow,
+  hasWorkdayExceptionOverlap,
+  type WorkdayExceptionData,
+} from './workday-exception';
 
 const exception = (over: Partial<WorkdayExceptionData> = {}): WorkdayExceptionData => ({
   id: '0190f1c2-0000-7000-8000-0000000000e1',

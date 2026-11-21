@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (251 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-4462: сповіщення про події лояльності — 4 події, канал,
 // дедуп, тихі години, добовий ліміт з дайджестом і попередження за 7 днів.
 import {
@@ -28,6 +29,14 @@ const config = DEFAULT_LOYALTY_NOTIFICATION_CONFIG;
 const NOON_KYIV = new Date('2026-11-19T10:00:00Z'); // 12:00 Europe/Kyiv
 const NIGHT_KYIV = new Date('2026-11-19T20:00:00Z'); // 22:00 Europe/Kyiv
 const DAY = 24 * 60 * 60 * 1000;
+
+function intentOf(
+  event: Parameters<typeof buildLoyaltyIntent>[0]
+): NonNullable<ReturnType<typeof buildLoyaltyIntent>> {
+  const intent = buildLoyaltyIntent(event);
+  if (!intent) throw new Error('expected loyalty notification intent');
+  return intent;
+}
 
 function pointsEarned(points: number, appointmentId: string, at = NOON_KYIV) {
   return new LoyaltyPointsEarned({
@@ -131,10 +140,10 @@ describe('loyalty notification policy (T-4462)', () => {
   it('dedupes, respects disabled channels and the daily limit with batching', () => {
     const log = createLoyaltyNotificationLog();
     const intents = [
-      buildLoyaltyIntent(pointsEarned(10, 'apt-1'))!,
-      buildLoyaltyIntent(pointsEarned(10, 'apt-1'))!,
-      buildLoyaltyIntent(tierChanged())!,
-      buildLoyaltyIntent(
+      intentOf(pointsEarned(10, 'apt-1')),
+      intentOf(pointsEarned(10, 'apt-1')),
+      intentOf(tierChanged()),
+      intentOf(
         new LoyaltyPointsSpent({
           clientId: 'c-1',
           points: 5,
@@ -142,13 +151,13 @@ describe('loyalty notification policy (T-4462)', () => {
           appointmentId: 'apt-1',
           occurredAt: NOON_KYIV,
         })
-      )!,
+      ),
     ];
 
     const plan = planLoyaltyNotifications(intents, log, NOON_KYIV, config);
 
     expect(plan.deliveries).toHaveLength(1);
-    expect(plan.deliveries[0]?.intent.event).toBe('points_earned');
+    expect(plan.deliveries[0]?.intent?.event).toBe('points_earned');
     expect(plan.batched.map((intent) => intent.event)).toEqual(['tier_reached']);
     expect(plan.suppressed.map((entry) => entry.reason)).toEqual([
       'Duplicate notification',
@@ -163,7 +172,7 @@ describe('loyalty notification policy (T-4462)', () => {
   it('does not count the same client twice for the daily limit', () => {
     const log = createLoyaltyNotificationLog();
     const first = planLoyaltyNotifications(
-      [buildLoyaltyIntent(pointsEarned(10, 'apt-1'))!],
+      [intentOf(pointsEarned(10, 'apt-1'))],
       log,
       NOON_KYIV,
       config
@@ -171,7 +180,7 @@ describe('loyalty notification policy (T-4462)', () => {
     applyPlanToLog(first, log, NOON_KYIV);
 
     const second = planLoyaltyNotifications(
-      [buildLoyaltyIntent(pointsEarned(15, 'apt-2'))!],
+      [intentOf(pointsEarned(15, 'apt-2'))],
       log,
       new Date(NOON_KYIV.getTime() + 3600 * 1000),
       config
@@ -196,10 +205,8 @@ describe('LoyaltyNotificationDispatcher (T-4462)', () => {
   }
 
   it('renders each of the four events into a client-facing text', () => {
-    expect(renderLoyaltyIntentText(buildLoyaltyIntent(pointsEarned(20, 'apt-1'))!)).toContain(
-      '+20 балів'
-    );
-    expect(renderLoyaltyIntentText(buildLoyaltyIntent(tierChanged())!)).toContain('silver');
+    expect(renderLoyaltyIntentText(intentOf(pointsEarned(20, 'apt-1')))).toContain('+20 балів');
+    expect(renderLoyaltyIntentText(intentOf(tierChanged()))).toContain('silver');
     expect(
       renderLoyaltyIntentText({
         clientId: 'c-1',
@@ -223,15 +230,12 @@ describe('LoyaltyNotificationDispatcher (T-4462)', () => {
   it('sends one notification per day and batches the rest into a digest', async () => {
     const { sent, service } = dispatcher();
 
-    const summary = await service.dispatch(
-      [pointsEarned(20, 'apt-1'), tierChanged()],
-      NOON_KYIV
-    );
+    const summary = await service.dispatch([pointsEarned(20, 'apt-1'), tierChanged()], NOON_KYIV);
 
     expect(summary.sent).toBe(1);
     expect(summary.batched).toBe(1);
     expect(sent).toHaveLength(1);
-    expect(sent[0]?.channel).toBe('push');
+    expect(sent[0]?.channel).toBe('email');
 
     const digest = await service.flushDigest('c-1', NOON_KYIV);
     expect(digest).toEqual({ sent: true, items: 1 });

@@ -14,7 +14,9 @@ export class RedeemGiftCertificateHandler {
     private readonly outbox: GiftCertificateOutbox
   ) {}
 
-  async handle(input: RedeemGiftCertificateInput): Promise<{ redeemedAmount: number; remainingBalance: number; status: string }> {
+  async handle(
+    input: RedeemGiftCertificateInput
+  ): Promise<{ redeemedAmount: number; remainingBalance: number; status: string }> {
     const cert = await this.repo.findByCode(input.code);
     if (!cert) {
       throw new Error(`Gift certificate not found with code: ${input.code}`);

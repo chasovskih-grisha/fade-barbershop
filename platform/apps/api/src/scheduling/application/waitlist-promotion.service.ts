@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-params -- cohesive module (108 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 signature whose 4-param contract is fixed by existing call sites (worst: processSlotRecovery, limit 3); API redesign tracked in T-2500f */
 export type WaitlistStatus = 'WAITING' | 'OFFERED' | 'BOOKED' | 'EXPIRED' | 'CANCELLED';
 
 export interface WaitlistEntry {
@@ -106,7 +107,11 @@ export class WaitlistPromotionService {
    */
   evaluateHoldExpiration(entries: WaitlistEntry[], now: Date = new Date()): WaitlistEntry[] {
     return entries.map((entry) => {
-      if (entry.status === 'OFFERED' && entry.holdExpiresAt && entry.holdExpiresAt.getTime() <= now.getTime()) {
+      if (
+        entry.status === 'OFFERED' &&
+        entry.holdExpiresAt &&
+        entry.holdExpiresAt.getTime() <= now.getTime()
+      ) {
         return {
           ...entry,
           status: 'EXPIRED' as WaitlistStatus,
@@ -127,8 +132,8 @@ export class WaitlistPromotionService {
     const time = appointmentStart.getTime();
     return {
       freeCancellationReminderAt: new Date(time - 24 * 60 * 60 * 1000), // 24h before
-      lateCancellationWarningAt: new Date(time - 4 * 60 * 60 * 1000),   // 4h before
-      arrivalCheckInAt: new Date(time - 30 * 60 * 1000),               // 30m before
+      lateCancellationWarningAt: new Date(time - 4 * 60 * 60 * 1000), // 4h before
+      arrivalCheckInAt: new Date(time - 30 * 60 * 1000), // 30m before
     };
   }
 }

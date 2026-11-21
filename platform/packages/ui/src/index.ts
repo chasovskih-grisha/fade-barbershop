@@ -66,4 +66,8 @@ export { StatusPill } from './StatusPill';
 export type { StatusPillProps, StatusTone, VisitStatus } from './StatusPill';
 export { PriceBreakdown } from './PriceBreakdown';
 export type { PriceBreakdownProps, PriceLine } from './PriceBreakdown';
+export { CardGrid } from './CardGrid';
+export type { CardGridProps } from './CardGrid';
+export { ReferenceScreenPreview } from './ReferenceScreenPreview';
+export type { ReferenceScreenPreviewProps } from './ReferenceScreenPreview';
 export { prefersReducedMotion, useReducedMotion } from './useReducedMotion';

@@ -13,7 +13,7 @@ describe('FADE Barber Turnover Analytics Report (T-4623)', () => {
         {
           barberId: 'barber-1',
           name: 'Alex Fade',
-          baseCommissionRate: 0.50,
+          baseCommissionRate: 0.5,
           appointments: [
             { start: at(9, 0), end: at(12, 0), revenue: 300, serviceName: 'Fade & Beard' },
             { start: at(13, 0), end: at(17, 0), revenue: 500, serviceName: 'Executive Grooming' },
@@ -38,7 +38,7 @@ describe('FADE Barber Turnover Analytics Report (T-4623)', () => {
     expect(report.totalRevenue).toBe(1150);
     expect(report.averageRevenuePerChairHour).toBeCloseTo(1150 / 16, 2); // 16 chair-hours
     expect(report.barberPerformance.length).toBe(2);
-    expect(report.barberPerformance[0]!.barberId).toBe('barber-1');
-    expect(report.barberPerformance[1]!.barberId).toBe('barber-2');
+    expect(report?.barberPerformance?.[0]?.barberId).toBe('barber-1');
+    expect(report?.barberPerformance?.[1]?.barberId).toBe('barber-2');
   });
 });

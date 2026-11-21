@@ -5,7 +5,13 @@
 import { CreateLocationHandler } from './create-location';
 import { UpdateLocationHandler } from './update-location';
 import { InvalidLocationInputError } from './locations-errors';
-import { FakeClock, FakeLocationRepository, FakeOutbox, SeqIds, passthroughUow } from './ports.fakes';
+import {
+  FakeClock,
+  FakeLocationRepository,
+  FakeOutbox,
+  SeqIds,
+  passthroughUow,
+} from './ports.fakes';
 import { T0, baseInput, weekDays } from '../test-helpers.fakes';
 import { hydrateLocation } from '../infrastructure/location-row';
 
@@ -41,9 +47,7 @@ describe('Location structured address (T-4405)', () => {
     const { create, locations } = setup();
     await create.handle({ ...baseInput(), address: 'ignored', addressParts: parts });
     const location = await locations.findById('loc-1');
-    expect(location?.addressParts?.formatted()).toBe(
-      'вул. Верхній Вал, 28, Київ, 04071, Україна'
-    );
+    expect(location?.addressParts?.formatted()).toBe('вул. Верхній Вал, 28, Київ, 04071, Україна');
     expect(location?.address).toBe('вул. Верхній Вал, 28, Київ, 04071, Україна');
   });
 

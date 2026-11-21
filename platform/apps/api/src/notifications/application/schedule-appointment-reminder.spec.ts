@@ -32,10 +32,10 @@ describe('ScheduleAppointmentReminder: планування', () => {
     expect(await runPlanner(fakes)).toEqual({ handled: true, reason: 'sent' });
     expect(fakes.scheduled[0]?.appointmentId).toBe('apt-1');
     // 2026-10-02T10:00 − 120 хв
-    expect(fakes.scheduled[0]?.fireAt.toISOString()).toBe('2026-10-02T08:00:00.000Z');
+    expect(fakes.scheduled[0]?.fireAt?.toISOString()).toBe('2026-10-02T08:00:00.000Z');
     expect(fakes.scheduled[0]?.payload).toEqual({
       appointmentId: 'apt-1',
-      fireAt: fakes.scheduled[0]?.fireAt.toISOString(),
+      fireAt: fakes.scheduled[0]?.fireAt?.toISOString(),
       start: VISIT_START,
       locationId: 'loc-1',
       serviceId: 'svc-1',
@@ -59,7 +59,7 @@ describe('ScheduleAppointmentReminder: планування', () => {
 
     expect(outcome).toEqual({ handled: true, reason: 'sent' });
     expect(fakes.cancelled).toEqual(['apt-1']);
-    expect(fakes.scheduled[0]?.payload.start).toBe(VISIT_START);
+    expect(fakes.scheduled[0]?.payload?.start).toBe(VISIT_START);
   });
 
   it('журнал планувальника іменований — не колізує з eventId підтвердження', async () => {

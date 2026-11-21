@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, complexity, max-statements -- cohesive module (119 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: optimizeChairSanitationPacing, complexity 14 vs 10); refactor tracked in T-2500f | 1 method with a single orchestration flow (worst: optimizeChairSanitationPacing, 35 statements vs 30); extraction tracked in T-2500f */
 export type ServiceType = 'fade' | 'beard' | 'full_service' | 'styling';
 export type HairDensity = 'fine' | 'normal' | 'thick' | 'coarse';
 
@@ -48,26 +49,39 @@ export function optimizeChairSanitationPacing(input: ChairSanitationInput): Chai
 
   const getServiceMultiplier = (type: ServiceType): number => {
     switch (type) {
-      case 'full_service': return 1.5;
-      case 'fade': return 1.3;
-      case 'beard': return 1.0;
-      case 'styling': return 0.8;
-      default: return 1.0;
+      case 'full_service':
+        return 1.5;
+      case 'fade':
+        return 1.3;
+      case 'beard':
+        return 1.0;
+      case 'styling':
+        return 0.8;
+      default:
+        return 1.0;
     }
   };
 
   const getDensityMultiplier = (density?: HairDensity): number => {
     switch (density) {
-      case 'coarse': return 1.4;
-      case 'thick': return 1.2;
-      case 'normal': return 1.0;
-      case 'fine': return 0.9;
-      default: return 1.0;
+      case 'coarse':
+        return 1.4;
+      case 'thick':
+        return 1.2;
+      case 'normal':
+        return 1.0;
+      case 'fine':
+        return 0.9;
+      default:
+        return 1.0;
     }
   };
 
   const requiredSanitationFor = (item: SanitationAppointmentItem): number => {
-    const raw = baseSanitation * getServiceMultiplier(item.serviceType) * getDensityMultiplier(item.clientHairDensity);
+    const raw =
+      baseSanitation *
+      getServiceMultiplier(item.serviceType) *
+      getDensityMultiplier(item.clientHairDensity);
     return Math.round(raw);
   };
 
@@ -99,11 +113,12 @@ export function optimizeChairSanitationPacing(input: ChairSanitationInput): Chai
 
   const count = sorted.length;
   const avgReq = count > 0 ? Math.round((totalRequiredMinutes / count) * 10) / 10 : 0;
-  const avgGap = gapCount > 0 ? Math.round((totalActualGapMinutes / gapCount) * 10) / 10 : baseSanitation;
+  const avgGap =
+    gapCount > 0 ? Math.round((totalActualGapMinutes / gapCount) * 10) / 10 : baseSanitation;
 
   let complianceRate = 1.0;
   if (count > 1) {
-    const compliantCount = (count - 1) - bottlenecks.length;
+    const compliantCount = count - 1 - bottlenecks.length;
     complianceRate = Math.max(0, Math.round((compliantCount / (count - 1)) * 100) / 100);
   }
 

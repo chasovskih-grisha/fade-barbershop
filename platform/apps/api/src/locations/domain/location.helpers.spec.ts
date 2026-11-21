@@ -1,4 +1,10 @@
-import { defaultChairs, normalizeCode, normalizeRequired, optionalTrimmed, optionalValue } from './location.helpers';
+import {
+  defaultChairs,
+  normalizeCode,
+  normalizeRequired,
+  optionalTrimmed,
+  optionalValue,
+} from './location.helpers';
 
 describe('location.helpers', () => {
   it('defaultChairs повертає 2 активні крісла', () => {

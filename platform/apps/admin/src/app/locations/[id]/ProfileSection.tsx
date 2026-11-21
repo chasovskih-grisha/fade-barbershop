@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { AlertBanner, Button, TextField } from '@fade/ui';
 import LocationMapPicker from '../LocationMapPicker';
 import type { AddressPartsValue } from '../location-geocode-client';
+import ProfileAddressFields from './profile-address-fields';
 
 export interface ProfileValues {
   name: string;
@@ -44,12 +45,22 @@ export default function ProfileSection({
     }
   };
 
-  const parts = values.addressParts;
   return (
-    <section aria-label="Профіль локації" className="flex flex-col gap-3 rounded-card border border-line p-4">
+    <section
+      aria-label="Профіль локації"
+      className="flex flex-col gap-3 rounded-card border border-line p-4"
+    >
       <h2 className="font-display text-h4">Профіль і адреса</h2>
-      {error && <AlertBanner tone="error" title="Помилка">{error}</AlertBanner>}
-      {notice && <p role="status" className="text-body text-semantic-success">{notice}</p>}
+      {error && (
+        <AlertBanner tone="error" title="Помилка">
+          {error}
+        </AlertBanner>
+      )}
+      {notice && (
+        <p role="status" className="text-body text-semantic-success">
+          {notice}
+        </p>
+      )}
 
       <TextField
         label="Назва"
@@ -64,32 +75,7 @@ export default function ProfileSection({
         onAddressParts={patchParts}
         disabled={saving}
       />
-      <div className="grid grid-cols-2 gap-3">
-        <TextField
-          label="Вулиця"
-          value={parts.street}
-          onChange={(event) => patchParts({ street: event.target.value })}
-          disabled={saving}
-        />
-        <TextField
-          label="Будинок"
-          value={parts.building}
-          onChange={(event) => patchParts({ building: event.target.value })}
-          disabled={saving}
-        />
-        <TextField
-          label="Місто"
-          value={parts.city}
-          onChange={(event) => patchParts({ city: event.target.value })}
-          disabled={saving}
-        />
-        <TextField
-          label="Індекс (необов’язково)"
-          value={parts.postalCode ?? ''}
-          onChange={(event) => patchParts({ postalCode: event.target.value })}
-          disabled={saving}
-        />
-      </div>
+      <ProfileAddressFields parts={values.addressParts} onChange={patchParts} disabled={saving} />
       <div>
         <Button onClick={() => void save()} disabled={saving}>
           {saving ? 'Збереження…' : 'Зберегти профіль'}

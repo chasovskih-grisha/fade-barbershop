@@ -1,7 +1,11 @@
 // Канали доставки підтверджень (T-4608, MNG-ADM-18): email → локація, sms →
 // клієнт, both → обидва, none → свідома вимкнена доставка. Skip при
 // відсутності одержувача і ретрай — send-booking-confirmation-skip.spec.ts.
-import { SendBookingConfirmation, confirmationEvent, makeConfirmationDeps } from './send-booking-confirmation.fakes';
+import {
+  SendBookingConfirmation,
+  confirmationEvent,
+  makeConfirmationDeps,
+} from './send-booking-confirmation.fakes';
 
 describe('SendBookingConfirmation: канал email (дефолт)', () => {
   it('лист на email локації, SMS немає; час у Europe/Kyiv', async () => {

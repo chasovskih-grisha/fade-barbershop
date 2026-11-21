@@ -2,7 +2,12 @@
 // сюїти спрощуються до override-ів поверх нього (DRY з create-appointment-party-test.fakes).
 import { AppointmentPartyCreated } from '../domain/appointment-party.events';
 import { CreateAppointmentParty } from './create-appointment-party.use-case';
-import { InMemoryAppointmentPartyRepository, baseInput, sequentialInput, parallelInput } from './create-appointment-party-test.fakes';
+import {
+  InMemoryAppointmentPartyRepository,
+  baseInput,
+  sequentialInput,
+  parallelInput,
+} from './create-appointment-party-test.fakes';
 
 describe('CreateAppointmentParty: створення party', () => {
   const repo = new InMemoryAppointmentPartyRepository();
@@ -19,7 +24,7 @@ describe('CreateAppointmentParty: створення party', () => {
     const stored = await repo.findById(result.appointmentParty.id);
     expect(stored?.mode).toBe('sequential');
     expect(stored?.slots).toHaveLength(1);
-    expect(stored?.slots[0]?.durationMinutes).toBe(90);
+    expect(stored?.slots?.[0]?.durationMinutes).toBe(90);
   });
 
   it('parallel: два слоти зі спільним стартом і різними барберами', async () => {
@@ -40,8 +45,8 @@ describe('CreateAppointmentParty: створення party', () => {
     expect(result).toBeInstanceOf(AppointmentPartyCreated);
     const stored = await repo.findById(result.appointmentParty.id);
     expect(stored?.mode).toBe('parallel');
-    expect(stored?.slots.map((s) => s.durationMinutes)).toEqual([50, 45]);
-    expect(stored?.slots[0]?.start.getTime()).toBe(stored?.slots[1]?.start.getTime());
+    expect(stored?.slots?.map((s) => s.durationMinutes)).toEqual([50, 45]);
+    expect(stored?.slots?.[0]?.start?.getTime()).toBe(stored?.slots?.[1]?.start?.getTime());
   });
 });
 

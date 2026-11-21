@@ -4,7 +4,9 @@ import { RevenuePricingManager } from './RevenuePricingManager';
 describe('RevenuePricingManager', () => {
   it('renders revenue pricing manager with active strategies and metrics', () => {
     render(<RevenuePricingManager />);
-    expect(screen.getByText(/FADE — Управління доходом та оптимізація ціноутворення/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/FADE — Управління доходом та оптимізація ціноутворення/i)
+    ).toBeInTheDocument();
     expect(screen.getByText(/Вечірній піковий коефіцієнт/i)).toBeInTheDocument();
     expect(screen.getByText(/Прогнозований приріст AOV/i)).toBeInTheDocument();
   });

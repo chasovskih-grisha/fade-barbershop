@@ -17,7 +17,9 @@ export function HomeAromatherapyRitualPromo() {
             Елітний ароматерапевтичний ритуал гарячого рушника та ефірних олій
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Пориньте у стан глибокого релаксу перед початком стрижки. Традиційні компреси з натуральними екстрактами евкаліпту та кедра знімають напругу та підготують шкіру до ідеального гоління.
+            Пориньте у стан глибокого релаксу перед початком стрижки. Традиційні компреси з
+            натуральними екстрактами евкаліпту та кедра знімають напругу та підготують шкіру до
+            ідеального гоління.
           </p>
         </div>
 
@@ -27,7 +29,9 @@ export function HomeAromatherapyRitualPromo() {
             className="inline-flex h-13 w-full sm:w-auto items-center justify-center rounded-input bg-accent px-8 text-body font-semibold text-accent-fg hover:opacity-95 transition-all duration-300 shadow-xl hover:scale-[1.02] active:scale-[0.98]"
           >
             <span>Записатися на ритуал</span>
-            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+              &rarr;
+            </span>
           </Link>
           <Link
             href="/services"

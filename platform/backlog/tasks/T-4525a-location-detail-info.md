@@ -1,6 +1,6 @@
 # T-4525a · Location info blocks (5/13)
 
-- **Stage**: M3 (phase 14) · **Tags**: frontend, design · **Complexity**: middle · **Dependencies**: T-021, T-4406, T-4507
+- **Stage**: M3 (phase 14) · **Tags**: frontend · **Complexity**: middle · **Dependencies**: T-021, T-4406, T-4507
 - **StoryPoints**: 5
 
 ## What

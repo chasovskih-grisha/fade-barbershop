@@ -1,6 +1,6 @@
 # Dev image for the platform apps (ADR 0018) with pnpm fetch caching optimization.
 # Build context is the platform root (see infra/docker-compose.yml: context: ..).
-FROM node:20-alpine
+FROM node:20-alpine AS dev
 
 RUN apk add --no-cache libc6-compat
 RUN corepack enable
@@ -39,3 +39,23 @@ COPY vendor ./vendor
 
 # Install dependencies offline from the fetched pnpm store
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --offline --frozen-lockfile
+
+# ── Production image (T-4614a) ──────────────────────────────────────────────
+# Explicit stage: the VPS (ADR 0051) builds `--target prod`, so it can never
+# fall through to the dev recipe above. No host sources, no watch, next build.
+FROM dev AS build
+
+RUN pnpm -r --filter "./packages/*" build \
+ && pnpm --filter @fade/web build
+
+FROM node:20-alpine AS prod
+
+RUN apk add --no-cache libc6-compat
+ENV NODE_ENV=production
+WORKDIR /app
+
+COPY --from=build /app ./
+
+WORKDIR /app/apps/web
+EXPOSE 13001
+CMD ["node", "node_modules/next/dist/bin/next", "start", "-p", "13001"]

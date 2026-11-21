@@ -34,7 +34,9 @@ export class BarberTurnoverPacingOptimizer {
     const turnoverRatePerHour = Number((context.completedAppointmentsCount / hours).toFixed(2));
 
     // Fatigue index scales with consecutive working hours without break (peaks at 4+ hours)
-    const fatigueIndex = Number(Math.min(1.0, context.consecutiveWorkingHoursWithoutBreak / 4.0).toFixed(2));
+    const fatigueIndex = Number(
+      Math.min(1.0, context.consecutiveWorkingHoursWithoutBreak / 4.0).toFixed(2)
+    );
 
     let recommendedPacingAdjustmentMinutes = 0;
     let requiresMicroBreak = false;
@@ -49,7 +51,7 @@ export class BarberTurnoverPacingOptimizer {
     }
 
     // Adjust for punctuality
-    if (context.punctualityScore < 0.80) {
+    if (context.punctualityScore < 0.8) {
       recommendedPacingAdjustmentMinutes += 2;
     }
 

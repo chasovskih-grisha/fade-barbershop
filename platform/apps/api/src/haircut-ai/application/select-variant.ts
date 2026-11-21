@@ -3,7 +3,11 @@
 // VariantSelected: споживач (scheduling) створює HaircutReference на запис.
 // Обраний варіант повертається з підписаним URL — ним клієнт ділиться в чаті.
 
-import { SuggestionNotFoundError, InvalidGenerationStatusError, VariantNotFoundError } from './haircut-errors';
+import {
+  SuggestionNotFoundError,
+  InvalidGenerationStatusError,
+  VariantNotFoundError,
+} from './haircut-errors';
 import { toVariantViews, type AiVariantView } from './ai-read-model';
 import { VariantSelected } from '../domain/events';
 import type {

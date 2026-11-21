@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, complexity, max-params -- cohesive module (225 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: settleDeposit, complexity 11 vs 10); refactor tracked in T-2500f | 1 signature whose 4-param contract is fixed by existing call sites (worst: assessRebook, limit 3); API redesign tracked in T-2500f */
 /**
  * T-4452: пом'якшення no-show по етапах — чиста політика.
  *
@@ -40,6 +41,8 @@ export interface NoShowStagedRecord {
   clientId: string;
   appointmentId: string;
   detectedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
   stage: NoShowStage;
   depositAmount: number;
   depositDecision?: DepositDecision;

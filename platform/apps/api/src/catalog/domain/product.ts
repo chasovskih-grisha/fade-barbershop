@@ -24,7 +24,10 @@ export class Product {
   }
 
   static create(
-    props: Omit<ProductProps, 'id' | 'createdAt' | 'updatedAt' | 'active'> & { id?: string; active?: boolean }
+    props: Omit<ProductProps, 'id' | 'createdAt' | 'updatedAt' | 'active'> & {
+      id?: string;
+      active?: boolean;
+    }
   ): Product {
     return new Product({
       id: props.id ?? uuidv7(),
@@ -39,14 +42,30 @@ export class Product {
     });
   }
 
-  get id(): string { return this.props.id; }
-  get name(): string { return this.props.name; }
-  get description(): string | null { return this.props.description; }
-  get brand(): string | null { return this.props.brand; }
-  get category(): string | null { return this.props.category; }
-  get photoUrl(): string | null { return this.props.photoUrl; }
-  get active(): boolean { return this.props.active; }
-  get propsSnapshot(): ProductProps { return { ...this.props }; }
+  get id(): string {
+    return this.props.id;
+  }
+  get name(): string {
+    return this.props.name;
+  }
+  get description(): string | null {
+    return this.props.description;
+  }
+  get brand(): string | null {
+    return this.props.brand;
+  }
+  get category(): string | null {
+    return this.props.category;
+  }
+  get photoUrl(): string | null {
+    return this.props.photoUrl;
+  }
+  get active(): boolean {
+    return this.props.active;
+  }
+  get propsSnapshot(): ProductProps {
+    return { ...this.props };
+  }
 
   setActive(active: boolean): void {
     this.props.active = active;

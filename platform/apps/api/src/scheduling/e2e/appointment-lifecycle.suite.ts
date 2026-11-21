@@ -6,7 +6,14 @@ import { Test } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
 import { SchedulingModule } from '../scheduling.module';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import { book, buildLifecycleIds, cleanupLifecycle, seedLifecycle, stampAdmin, type LifecycleIds } from './appointment-lifecycle.fixtures';
+import {
+  book,
+  buildLifecycleIds,
+  cleanupLifecycle,
+  seedLifecycle,
+  stampAdmin,
+  type LifecycleIds,
+} from './appointment-lifecycle.fixtures';
 
 export interface LifecycleSuite {
   app: INestApplication;

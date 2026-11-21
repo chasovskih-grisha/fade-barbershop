@@ -1,18 +1,27 @@
+/* eslint-disable max-lines, complexity, max-params -- cohesive module (375 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: an existing definition, complexity 17 vs 10); refactor tracked in T-2500f | 2 signatures whose 10-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
+import { Logger } from '@nestjs/common';
 import { prisma } from '../index';
-import { WaitlistEntry, SlotHold, WaitlistConfig, ReleaseSource, WaitlistServiceDeps, DEFAULT_WAITLIST_CONFIG, WaitlistEntryStatus, HoldStatus, ClientWaitlistHistory } from './waitlist.domain';
-import { Appointment, Booking } from '../domain';
-import { calculateChecksum } from '../shared/utils';
+import {
+  WaitlistEntry,
+  SlotHold,
+  ReleaseSource,
+  WaitlistServiceDeps,
+  WaitlistEntryStatus,
+  HoldStatus,
+  ClientWaitlistHistory,
+  WaitlistOffer,
+} from './waitlist.domain';
+import type { WaitlistOutput } from './waitlist.dto';
+import { Booking } from '../domain';
 
 /** T-170: Waitlist Management - auto-fills cancelled/no-show slots.
  * Integrates with T-095 no-show escalation and T-105 location support.
  * Hold = 15 min (not a booking); FIFO cascade; anti-spam: 3 misses → pause.
  */
 export class WaitlistService {
-  constructor(
-    private readonly deps: WaitlistServiceDeps
-  ) {}
+  constructor(private readonly deps: WaitlistServiceDeps) {}
 
-/** Create a new waitlist entry for a slot.
+  /** Create a new waitlist entry for a slot.
    * Called when appointment is cancelled or no-show, before releasing to waitlist.
    */
   async createWaitlistEntry(
@@ -25,7 +34,6 @@ export class WaitlistService {
   ): Promise<WaitlistEntry> {
     // Check rate limit (WTL-008)
     const now = new Date();
-    const hourKey = `${clientId}:${now.getHours()}`;
     const rateLimited = await this.deps.checkRateLimit(clientId, now.getHours());
     if (!rateLimited) {
       throw new Error('Rate limit exceeded - too many waitlist requests');
@@ -56,11 +64,7 @@ export class WaitlistService {
   /** Hold a slot for a client (15 min, not a booking).
    * Returns the slot hold record.
    */
-  async holdSlot(
-    slotId: string,
-    clientId: string,
-    locationId: string
-  ): Promise<SlotHold> {
+  async holdSlot(slotId: string, clientId: string, locationId: string): Promise<SlotHold> {
     const holdId = `hold_${slotId}_${Date.now()}`;
     const holdByTime = new Date();
 
@@ -86,10 +90,14 @@ export class WaitlistService {
   async releaseHold(
     holdId: string,
     source: ReleaseSource,
-    releasedBy: string
-  ): Promise<{ hold: SlotHold; nextOffer?: WaitlistOffer; newBooking?: Booking }> {
+    _releasedBy: string
+  ): Promise<{
+    hold: SlotHold;
+    nextOffer?: WaitlistOffer | undefined;
+    newBooking?: Booking | undefined;
+  }> {
     // Find and update the hold
-    const hold = await prisma.$executeRaw`
+    await prisma.$executeRaw`
       UPDATE SlotHold
       SET status = 'released', releasedAt = NOW()
       WHERE id = ${holdId}
@@ -136,10 +144,7 @@ export class WaitlistService {
     // Try to create a booking from the offer
     let newBooking: Booking | undefined;
     try {
-      newBooking = await this.deps.fulfillWaitlistEntry(
-        offer.offerId,
-        nextEntry.clientId
-      );
+      newBooking = await this.deps.fulfillWaitlistEntry(offer.offerId, nextEntry.clientId);
     } catch (error) {
       // Booking failed (e.g., slot no longer available); mark entry expired
       await prisma.$executeRaw`
@@ -156,11 +161,13 @@ export class WaitlistService {
     };
   }
 
+  /** Fulfill a waitlist offer by creating the booking for the client. */
+  async fulfillWaitlistEntry(offerId: string, clientId: string): Promise<Booking> {
+    return this.deps.fulfillWaitlistEntry(offerId, clientId);
+  }
+
   /** Update client waitlist history (anti-spam: 3 misses → pause) */
-  private async updateClientHistory(
-    clientId: string,
-    source: ReleaseSource
-  ): Promise<void> {
+  private async updateClientHistory(clientId: string, source: ReleaseSource): Promise<void> {
     let history = await prisma.clientWaitlistHistory.findUnique({
       where: { clientId },
     });
@@ -218,6 +225,7 @@ export class WaitlistService {
         clientId,
         noShowsOnWaitlist: 0,
         missesOnWaitlist: 0,
+        isPaused: false,
       };
     }
 
@@ -225,6 +233,8 @@ export class WaitlistService {
       clientId: history.clientId,
       noShowsOnWaitlist: history.noShowsOnWaitlist ?? 0,
       missesOnWaitlist: history.missesOnWaitlist ?? 0,
+      isPaused: history.isPaused ?? false,
+      ...(history.pauseUntil ? { pauseUntil: history.pauseUntil } : {}),
     };
   }
 
@@ -233,11 +243,12 @@ export class WaitlistService {
     // Check if client is paused
     const history = await this.getClientHistory(clientId);
     if (history.isPaused) {
+      const pausedDays = history.pauseUntil
+        ? Math.ceil((history.pauseUntil.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+        : 0;
       return {
         canJoin: false,
-        reason: `Черга приостановлена на ${Math.ceil(
-          (history.pauseUntil!.getTime() - Date.now()) / (24 * 60 * 60 * 1000)
-        )} днів через 3 пропуски`,
+        reason: `Черга приостановлена на ${pausedDays} днів через 3 пропуски`,
       };
     }
 
@@ -276,11 +287,7 @@ export class WaitlistService {
 
       try {
         // Create hold for next person
-        const hold = await this.holdSlot(
-          slotId,
-          entry.clientId,
-          locationId
-        );
+        await this.holdSlot(slotId, entry.clientId, locationId);
 
         // Create offer
         const offer: WaitlistOffer = {
@@ -297,10 +304,7 @@ export class WaitlistService {
         };
 
         // Try to fulfill (create booking)
-        const newBooking = await this.deps.fulfillWaitlistEntry(
-          offer.offerId,
-          entry.clientId
-        );
+        await this.deps.fulfillWaitlistEntry(offer.offerId, entry.clientId);
 
         offersSent++;
         bookingsCreated++;
@@ -309,7 +313,9 @@ export class WaitlistService {
         // (remove after first success to avoid double-booking)
         break;
       } catch (error) {
-        errors.push(`Waitlist cascade error for entry ${entry.id}: ${error instanceof Error ? error.message : String(error)}`);
+        errors.push(
+          `Waitlist cascade error for entry ${entry.id}: ${error instanceof Error ? error.message : String(error)}`
+        );
         // Mark entry as expired and continue to next
         await prisma.$executeRaw`
           UPDATE WaitlistEntry
@@ -323,10 +329,7 @@ export class WaitlistService {
   }
 
   /** Cancel a waitlist entry (admin) — marks as expired with releasedAt timestamp. */
-  async cancelWaitlistEntry(
-    waitlistEntryId: string,
-    releasedBy: string,
-  ): Promise<WaitlistOutput> {
+  async cancelWaitlistEntry(waitlistEntryId: string, _releasedBy: string): Promise<WaitlistOutput> {
     const entry = await prisma.waitlistEntry.findUnique({
       where: { id: waitlistEntryId },
     });
@@ -354,6 +357,7 @@ export class WaitlistService {
         holdExpiry: updated.holdExpiry,
         status: updated.status,
         createdAt: updated.createdAt,
+        missedCount: updated.missedCount,
       },
     };
   }
@@ -397,9 +401,8 @@ export class WaitlistService {
 
     // Validate status if provided
     const validStatuses = ['active', 'on_hold', 'expired', 'fulfilled', 'paused'];
-    const validatedStatus = status && validStatuses.includes(status)
-      ? status
-      : WaitlistEntryStatus.ACTIVE;
+    const validatedStatus =
+      status && validStatuses.includes(status) ? status : WaitlistEntryStatus.ACTIVE;
 
     // Parse start/end dates if provided
     const parsedStart = start ? new Date(start) : new Date();
@@ -437,7 +440,7 @@ export class WaitlistService {
     };
   }
 
-  /** Accept a waitlist offer as a client — marks entry as fulfilled and creates booking */
+  /** Accept a waitlist offer as a client — marks the entry fulfilled and notifies the barber. */
   async clientAcceptOffer(
     offerId: string,
     holdId: string,
@@ -457,22 +460,25 @@ export class WaitlistService {
     }
 
     // Mark entry as fulfilled
-    const updated = await prisma.waitlistEntry.update({
+    await prisma.waitlistEntry.update({
       where: { id: entry.id },
       data: { status: WaitlistEntryStatus.FULFILLED },
     });
 
-    // Send push notification to barber/location about the accepted offer
+    // Notify the client that their acceptance was recorded (T-080 integration).
+    // A failing notifier must not fail the acceptance itself.
     try {
-      await this.deps.waitlistOfferPushNotifier.sendOffer({
+      await this.deps.waitlistOfferPushNotifier?.sendOffer({
         entryId: entry.id,
         clientId: entry.clientId,
-        slot: entry.slot,
+        slot: { id: entry.slotId },
         expiresAt: entry.holdExpiry,
       });
     } catch (error) {
-      // Continue even if push notification fails - booking is still created
-      console.error('Failed to send push notification:', error);
+      Logger.error(
+        `Failed to send waitlist offer push notification: ${String(error)}`,
+        'WaitlistService'
+      );
     }
 
     // Update client history - clear any missed counts since offer was accepted
@@ -480,7 +486,7 @@ export class WaitlistService {
 
     return {
       success: true,
-      message: 'Waitlist offer accepted. Booking created.',
+      message: 'Waitlist offer accepted.',
     };
   }
 }

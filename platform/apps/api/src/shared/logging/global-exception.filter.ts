@@ -1,4 +1,12 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common';
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: catch, complexity 16 vs 10); refactor tracked in T-2500f */
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ErrorTrackerService } from './error-tracker.service';
 
@@ -14,22 +22,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 
     const message =
       exception instanceof HttpException
         ? exception.message
         : exception instanceof Error
-        ? exception.message
-        : String(exception);
+          ? exception.message
+          : String(exception);
 
-    const stack =
-      exception instanceof Error ? exception.stack : undefined;
+    const stack = exception instanceof Error ? exception.stack : undefined;
 
     if (status >= 500) {
-      this.logger.error(`[HTTP ${status}] ${request?.method ?? 'GET'} ${request?.url ?? ''} - ${message}`, stack);
+      this.logger.error(
+        `[HTTP ${status}] ${request?.method ?? 'GET'} ${request?.url ?? ''} - ${message}`,
+        stack
+      );
     }
 
     if (this.errorTracker) {
@@ -37,7 +45,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         `HTTP ${request?.method ?? 'GET'} ${request?.url ?? ''}`,
         message,
         stack,
-        status,
+        status
       );
     }
 

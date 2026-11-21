@@ -1,3 +1,4 @@
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: an existing definition, complexity 12 vs 10); refactor tracked in T-2500f */
 import { PaymentCommandContext } from '../domain/ports';
 import { FiscalGateway } from '../domain/fiscal.gateway.interface';
 import { ReceiptIssued } from '../domain/receipt-events';
@@ -26,11 +27,13 @@ export class IssueFiscalReceiptHandler {
 
   async handle(input: IssueFiscalReceiptInput): Promise<IssueFiscalReceiptResult> {
     if (input.amount <= 0) {
-      throw new Error('ComplimentaryVisit or zero amount: receipt not issued per PAY-003 / LYL-007');
+      throw new Error(
+        'ComplimentaryVisit or zero amount: receipt not issued per PAY-003 / LYL-007'
+      );
     }
 
     const shift = await this.ctx.fiscalGateway.checkShiftOpen({
-      cashRegisterId: input.cashRegisterId,
+      ...(input.cashRegisterId ? { cashRegisterId: input.cashRegisterId } : {}),
       traceId: input.traceId,
     });
     if (!shift.isOpen || shift.isTooLong) {
@@ -43,9 +46,9 @@ export class IssueFiscalReceiptHandler {
       amount: input.amount,
       type: input.type,
       items: input.items,
-      cashRegisterId: input.cashRegisterId,
+      ...(input.cashRegisterId ? { cashRegisterId: input.cashRegisterId } : {}),
       traceId: input.traceId,
-      customRelationId: input.customRelationId,
+      ...(input.customRelationId ? { customRelationId: input.customRelationId } : {}),
     });
 
     const now = this.ctx.clock.now();

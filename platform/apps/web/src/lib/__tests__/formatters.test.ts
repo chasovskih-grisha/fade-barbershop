@@ -1,4 +1,10 @@
-import { formatCurrency, formatDate, formatTime, formatDateTime, formatRelativeTime } from '../formatters';
+import {
+  formatCurrency,
+  formatDate,
+  formatTime,
+  formatDateTime,
+  formatRelativeTime,
+} from '../formatters';
 
 describe('Localization Formatters', () => {
   describe('formatCurrency', () => {

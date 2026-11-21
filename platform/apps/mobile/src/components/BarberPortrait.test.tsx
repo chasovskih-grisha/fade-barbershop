@@ -33,9 +33,7 @@ describe('BarberPortrait (T-4871b)', () => {
   });
 
   it('uses the same portrait on the barber screen', () => {
-    const { getByTestId } = render(
-      <BarberPortrait name="Максим" photo={photo} variant="screen" />
-    );
+    const { getByTestId } = render(<BarberPortrait name="Максим" photo={photo} variant="screen" />);
 
     expect(getByTestId('barber-portrait-screen')).toBeTruthy();
     expect(getByTestId('barber-portrait-photo').props.source.uri).toBe(

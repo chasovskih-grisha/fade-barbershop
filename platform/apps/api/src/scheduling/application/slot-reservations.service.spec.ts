@@ -6,7 +6,11 @@ import { InMemorySlotLock } from '../infrastructure/in-memory-slot-lock';
 import { SLOT_RESERVATION_TTL_MS, SlotLockedError } from '../domain/slot-reservation';
 
 const NOW = new Date('2026-11-20T10:00:00.000Z');
-const TARGET = { locationId: 'loc-1', barberId: 'barber-1', start: new Date('2026-11-20T12:00:00Z') };
+const TARGET = {
+  locationId: 'loc-1',
+  barberId: 'barber-1',
+  start: new Date('2026-11-20T12:00:00Z'),
+};
 
 class RecordingAudit implements SlotLockAudit {
   readonly events: SlotLockAuditEvent[] = [];
@@ -31,7 +35,9 @@ describe('SlotReservations (T-4802)', () => {
   });
 
   it('після звільнення слот вільний для наступного клієнта', async () => {
-    const service = new SlotReservations(new InMemorySlotLock(), new RecordingAudit(), { sleep: noSleep });
+    const service = new SlotReservations(new InMemorySlotLock(), new RecordingAudit(), {
+      sleep: noSleep,
+    });
     const first = await service.reserve(TARGET, NOW);
 
     expect(await service.release(first)).toBe(true);
@@ -40,7 +46,9 @@ describe('SlotReservations (T-4802)', () => {
   });
 
   it('чужий або застарілий токен не проходить перевірку', async () => {
-    const service = new SlotReservations(new InMemorySlotLock(), new RecordingAudit(), { sleep: noSleep });
+    const service = new SlotReservations(new InMemorySlotLock(), new RecordingAudit(), {
+      sleep: noSleep,
+    });
     const reservation = await service.reserve(TARGET, NOW);
 
     await expect(service.assertHeldBy(reservation.key, 'someone-else')).rejects.toThrow(
@@ -72,9 +80,7 @@ describe('SlotReservations (T-4802)', () => {
     const service = new SlotReservations(store, audit, { sleep: noSleep });
 
     await expect(service.reserve(TARGET, NOW)).rejects.toBeInstanceOf(SlotLockedError);
-    expect(audit.events).toEqual([
-      expect.objectContaining({ type: 'timeout', attempts: 3 }),
-    ]);
+    expect(audit.events).toEqual([expect.objectContaining({ type: 'timeout', attempts: 3 })]);
   });
 
   it('збій звільнення не кидає помилку, але лишає аудит', async () => {

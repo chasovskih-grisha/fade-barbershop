@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (102 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import { Module } from '@nestjs/common';
 import { BookingController } from './infrastructure/booking.controller';
 import { BookingReader } from './infrastructure/booking.reader';
@@ -18,6 +19,13 @@ import { SystemClock } from '../locations/infrastructure/system-clock';
 import { PrismaLocationRepository } from '../locations/infrastructure/prisma-location.repository';
 import { PrismaStaffAssignmentRepository } from '../locations/infrastructure/prisma-staff-assignment.repository';
 import { PrismaServiceRepository } from '../catalog/infrastructure/prisma-service.repository';
+import { PrismaAppointmentRepository } from '../scheduling/infrastructure/prisma-appointment.repository';
+import { PrismaDepositPolicySettings } from '../scheduling/infrastructure/prisma-deposit-policy-settings';
+import { ClientBookingsController } from '../scheduling/infrastructure/client-bookings.controller';
+import { clientBookingsProvider } from '../scheduling/infrastructure/client-bookings.providers';
+import { slotLockProviders } from '../scheduling/infrastructure/slot-lock.providers';
+import { BookingPolicyModule } from '../booking/policy/booking-policy.module';
+import { PricingModule } from '../pricing/pricing.module';
 
 const bookingReader = {
   provide: BookingReader,
@@ -68,15 +76,33 @@ const availableSlots = {
 };
 
 @Module({
-  imports: [SchedulingModule, LocationsModule, ServicesModule, IdentityModule],
+  imports: [
+    SchedulingModule,
+    LocationsModule,
+    ServicesModule,
+    IdentityModule,
+    BookingPolicyModule,
+    PricingModule,
+  ],
   providers: [
     PrismaService,
     PrismaUserRepository,
     PrismaStaffAssignmentRepository,
+    // Ці адаптери не експортуються сусідніми модулями, але потрібні обом
+    // фабрикам нижче — реєструємо їх явно, щоб граф BookingModule був повним.
+    PrismaBarberServiceAssignmentRepository,
+    PrismaBookingRepository,
+    PrismaAvailabilityRepository,
+    PrismaSlotPolicyRepository,
+    PrismaAppointmentRepository,
+    PrismaDepositPolicySettings,
+    SystemClock,
     S3PublicMediaStorage,
+    clientBookingsProvider,
+    ...slotLockProviders,
     bookingReader,
     availableSlots,
   ],
-  controllers: [BookingController],
+  controllers: [BookingController, ClientBookingsController],
 })
 export class BookingModule {}

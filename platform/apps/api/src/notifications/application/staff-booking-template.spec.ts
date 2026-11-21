@@ -1,4 +1,10 @@
-import { renderStaffBookingSubject, renderStaffBookingText, renderStaffBookingHtml, staffBookingLines, StaffBookingLetterData } from './staff-booking-template';
+import {
+  renderStaffBookingSubject,
+  renderStaffBookingText,
+  renderStaffBookingHtml,
+  staffBookingLines,
+  StaffBookingLetterData,
+} from './staff-booking-template';
 
 describe('StaffBookingTemplate', () => {
   const sampleData: StaffBookingLetterData = {

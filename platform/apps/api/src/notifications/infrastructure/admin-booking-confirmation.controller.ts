@@ -5,7 +5,11 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Put } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { PrismaBookingConfirmationSettings } from './prisma-booking-confirmation-settings';
-import { parseBookingConfirmationSettings, type BookingConfirmationSettings, type ConfirmationChannel } from '../domain/booking-confirmation-settings';
+import {
+  parseBookingConfirmationSettings,
+  type BookingConfirmationSettings,
+  type ConfirmationChannel,
+} from '../domain/booking-confirmation-settings';
 
 const CHANNELS: readonly ConfirmationChannel[] = ['email', 'sms', 'both', 'none'];
 

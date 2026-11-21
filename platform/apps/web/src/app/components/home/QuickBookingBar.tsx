@@ -12,14 +12,18 @@ export function QuickBookingBar() {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 relative z-10">
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2.5 rounded-pill bg-accent-blue/15 border border-accent-blue/30 px-3.5 py-1.5 text-caption font-semibold uppercase text-accent-blue tracking-wider shadow-sm">
-            <span className="h-2 w-2 rounded-full bg-accent-blue animate-pulse" aria-hidden="true" />
+            <span
+              className="h-2 w-2 rounded-full bg-accent-blue animate-pulse"
+              aria-hidden="true"
+            />
             ⚡ Швидкий запис • 3 вікна на сьогодні
           </div>
           <h3 className="text-h3 md:text-h2 font-display font-bold text-fg tracking-wider">
             Оберіть послугу та забронюйте вікно
           </h3>
           <p className="text-bodyLg text-fg-secondary max-w-xl">
-            Перший візит зі знижкою 100 ₴. Вхід за телефоном та SMS OTP без зайвих акаунтів і паролів за 60 секунд.
+            Перший візит зі знижкою 100 ₴. Вхід за телефоном та SMS OTP без зайвих акаунтів і
+            паролів за 60 секунд.
           </p>
         </div>
 
@@ -45,7 +49,9 @@ export function QuickBookingBar() {
           >
             <span className="relative z-10 flex items-center gap-1.5">
               <span>Обрати час</span>
-              <span className="transition-transform duration-300 group-hover/cta:translate-x-1">&rarr;</span>
+              <span className="transition-transform duration-300 group-hover/cta:translate-x-1">
+                &rarr;
+              </span>
             </span>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/cta:translate-x-full transition-transform duration-700" />
           </Link>

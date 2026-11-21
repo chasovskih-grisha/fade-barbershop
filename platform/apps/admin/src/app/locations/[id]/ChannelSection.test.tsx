@@ -50,13 +50,7 @@ describe('ChannelSection', () => {
   });
 
   it('disables buttons while saving is in flight', () => {
-    render(
-      <ChannelSection
-        initialChannels={[]}
-        onSave={jest.fn()}
-        saving={true}
-      />
-    );
+    render(<ChannelSection initialChannels={[]} onSave={jest.fn()} saving={true} />);
 
     expect(screen.getByRole('button', { name: /збереження…/i })).toBeDisabled();
     expect(screen.getByRole('button', { name: /додати канал/i })).toBeDisabled();

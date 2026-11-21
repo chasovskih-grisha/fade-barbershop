@@ -32,9 +32,10 @@ export default function ServicesErrorBoundary({
         </div>
         <h2 className="text-xl font-bold text-fg">Помилка завантаження каталогів послуг</h2>
         <p className="text-sm text-fg-secondary leading-relaxed">
-          На жаль, не вдалося завантажити прайс-лист та актуальні послуги FADE. Наша служба моніторингу вже сповіщена про інцидент.
+          На жаль, не вдалося завантажити прайс-лист та актуальні послуги FADE. Наша служба
+          моніторингу вже сповіщена про інцидент.
         </p>
-        
+
         <div className="pt-2 flex flex-col gap-2.5">
           <button
             type="button"

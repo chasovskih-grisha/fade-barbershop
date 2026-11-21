@@ -1,5 +1,14 @@
 // T-4587: мапа подій, санітизація PII, детермінований insert_id, ретраї.
-import { AMPLITUDE_EVENT_MAP, FORWARDED_EVENT_TYPES, amplitudeEventName, insertId, retryAt, sanitizePayload, toAmplitudeEvent, type DomainEventRecord } from './amplitude-events';
+import {
+  AMPLITUDE_EVENT_MAP,
+  FORWARDED_EVENT_TYPES,
+  amplitudeEventName,
+  insertId,
+  retryAt,
+  sanitizePayload,
+  toAmplitudeEvent,
+  type DomainEventRecord,
+} from './amplitude-events';
 
 const AT = new Date('2026-11-17T10:00:00Z');
 const record = (over: Partial<DomainEventRecord> = {}): DomainEventRecord => ({
@@ -40,7 +49,9 @@ describe('amplitude events (T-4587)', () => {
   });
 
   it('невідомий тип не перетворюється у подію', () => {
-    expect(toAmplitudeEvent(record({ type: 'scheduling.appointment.reference_changed' }))).toBeNull();
+    expect(
+      toAmplitudeEvent(record({ type: 'scheduling.appointment.reference_changed' }))
+    ).toBeNull();
   });
 
   it('санітизація вирізає PII-ключі та схожі на контакти рядки', () => {

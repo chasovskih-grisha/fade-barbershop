@@ -1,6 +1,11 @@
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: an existing definition, complexity 14 vs 10); refactor tracked in T-2500f */
 import { ClientLoyaltyState } from '../domain/client-loyalty-state';
 import type { LoyaltyCommandContext } from '../domain/ports';
-import { determineLoyaltyTier, DEFAULT_LOYALTY_TIERS, LoyaltyTierConfig } from '../domain/loyalty-tier';
+import {
+  determineLoyaltyTier,
+  DEFAULT_LOYALTY_TIERS,
+  LoyaltyTierConfig,
+} from '../domain/loyalty-tier';
 
 export interface EvaluateMembershipPerksInput {
   clientId: string;
@@ -33,7 +38,8 @@ export class EvaluateMembershipPerksHandler {
     const totalVisits = state.counter + (state.hasFreeVisit ? 6 : 0);
     const tierConfig: LoyaltyTierConfig = determineLoyaltyTier(totalVisits, DEFAULT_LOYALTY_TIERS);
     const currentTierName = state.tier || tierConfig.level;
-    const resolvedTier = DEFAULT_LOYALTY_TIERS.find((t) => t.level === currentTierName) || tierConfig;
+    const resolvedTier =
+      DEFAULT_LOYALTY_TIERS.find((t) => t.level === currentTierName) || tierConfig;
 
     let multiplier = 1.0;
     if (resolvedTier.level === 'SILVER') multiplier = 1.25;
@@ -51,7 +57,9 @@ export class EvaluateMembershipPerksHandler {
     const finalPointsEarnable = Math.max(1, Math.round(input.basePointsEarnable * multiplier));
     const appliedPerks = [...resolvedTier.perks];
     if (input.hasActiveMembership) {
-      appliedPerks.push(`Active Membership Perk: ${input.membershipPlanName ?? 'VIP Membership'} (+0.5x points boost, priority booking)`);
+      appliedPerks.push(
+        `Active Membership Perk: ${input.membershipPlanName ?? 'VIP Membership'} (+0.5x points boost, priority booking)`
+      );
     }
     if (input.isAnniversaryOrBirthday) {
       appliedPerks.push('Birthday/Anniversary Bonus: 2x Points Multiplier Active');

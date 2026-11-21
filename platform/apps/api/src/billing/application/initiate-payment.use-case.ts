@@ -26,7 +26,9 @@ export interface InitiatePaymentResult {
 }
 
 export class InitiatePaymentHandler {
-  constructor(private readonly ctx: PaymentCommandContext & { acquiringGateway: AcquiringGateway }) {}
+  constructor(
+    private readonly ctx: PaymentCommandContext & { acquiringGateway: AcquiringGateway }
+  ) {}
 
   async handle(input: InitiatePaymentInput): Promise<InitiatePaymentResult> {
     const existing = await this.ctx.payments.findById(input.paymentId);

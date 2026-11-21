@@ -5,7 +5,13 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import { DEFAULT_BOOKING_CONFIRMATION, SETTING_KEY, parseBookingConfirmationSettings, type BookingConfirmationSettings, type BookingConfirmationSettingsPort } from '../domain/booking-confirmation-settings';
+import {
+  DEFAULT_BOOKING_CONFIRMATION,
+  SETTING_KEY,
+  parseBookingConfirmationSettings,
+  type BookingConfirmationSettings,
+  type BookingConfirmationSettingsPort,
+} from '../domain/booking-confirmation-settings';
 
 const READ_CACHE_MS = 1000;
 

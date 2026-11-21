@@ -6,7 +6,13 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import { DEFAULT_GEOCODER_SETTINGS, SETTING_KEY, parseGeocoderSettings, type GeocoderSettings, type GeocoderSettingsPort } from '../domain/geocoder-settings';
+import {
+  DEFAULT_GEOCODER_SETTINGS,
+  SETTING_KEY,
+  parseGeocoderSettings,
+  type GeocoderSettings,
+  type GeocoderSettingsPort,
+} from '../domain/geocoder-settings';
 
 const READ_CACHE_MS = 1000;
 

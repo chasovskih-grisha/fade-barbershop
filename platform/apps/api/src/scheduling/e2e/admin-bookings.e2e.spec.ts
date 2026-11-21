@@ -4,7 +4,14 @@ import { Test } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import { SchedulingModule } from '../scheduling.module';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import { assignBarber, cleanupTestLocation, postWithRetry, seedBarberUser, seedRawBooking, seedTestLocation } from '@fade/test-utils';
+import {
+  assignBarber,
+  cleanupTestLocation,
+  postWithRetry,
+  seedBarberUser,
+  seedRawBooking,
+  seedTestLocation,
+} from '@fade/test-utils';
 
 const DATE = '2026-10-05'; // Monday in the admin's Monday-first week model.
 
@@ -42,7 +49,7 @@ describe('AdminBookingsController (e2e)', () => {
     // за контрактом клієнта в спільному хелпері @fade/test-utils.
     const response = await postWithRetry((b: object) => post(b), payload);
     const saved = await prisma.booking.findUnique({ where: { id: response.body.id } });
-    expect(saved?.start.toISOString()).toBe(`${DATE}T11:15:00.000Z`);
+    expect(saved?.start?.toISOString()).toBe(`${DATE}T11:15:00.000Z`);
   });
 
   test('returns 400 when the requested time is outside opening hours', async () => {

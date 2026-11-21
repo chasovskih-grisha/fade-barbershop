@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (104 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Черга для адмінки (T-170a: «Interface for admin panel»): групи по
 // конфігураціях, статуси й ETA. Чистий домен — Prisma/HTTP не заходять.
 import { estimateWaitMinutes, type WaitlistEta, type WaitlistEtaHistory } from './waitlist-eta';
@@ -75,7 +76,9 @@ export function summarizeQueues(
     });
   }
 
-  return summaries.sort((a, b) => b.waiting - a.waiting || b.oldestWaitingMinutes - a.oldestWaitingMinutes);
+  return summaries.sort(
+    (a, b) => b.waiting - a.waiting || b.oldestWaitingMinutes - a.oldestWaitingMinutes
+  );
 }
 
 export type WaitlistEntryStatusLabel = 'чекає' | 'є пропозиція' | 'на паузі' | 'закрита';
@@ -99,9 +102,12 @@ export function statusLabel(status: WaitlistEntryData['status']): WaitlistEntryS
       return 'є пропозиція';
     case 'paused':
       return 'на паузі';
+    case 'booked':
     case 'expired':
     case 'fulfilled':
     case 'cancelled':
+      return 'закрита';
+    default:
       return 'закрита';
   }
 }

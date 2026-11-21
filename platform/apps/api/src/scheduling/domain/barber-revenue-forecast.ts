@@ -1,4 +1,7 @@
-import { calculateBarberCommissionAndPayout, CommissionCalculationResult } from './barber-commission-tier';
+import {
+  calculateBarberCommissionAndPayout,
+  CommissionCalculationResult,
+} from './barber-commission-tier';
 import { ChairUtilizationResult, calculateChairUtilizationMetrics } from './chair-utilization';
 
 export interface BarberRevenueForecastInput {
@@ -30,7 +33,9 @@ export interface BarberRevenueForecastResult {
  * Forecasts barber revenue, occupancy-based commission tiers, and shop net return
  * to maximize chair utilization and productivity.
  */
-export function forecastBarberRevenue(input: BarberRevenueForecastInput): BarberRevenueForecastResult {
+export function forecastBarberRevenue(
+  input: BarberRevenueForecastInput
+): BarberRevenueForecastResult {
   const utilization = calculateChairUtilizationMetrics({
     operatingStart: input.operatingStart,
     operatingEnd: input.operatingEnd,
@@ -40,10 +45,16 @@ export function forecastBarberRevenue(input: BarberRevenueForecastInput): Barber
 
   // Estimate number of bookings based on occupied minutes (assuming avg 45 min per booking)
   const averageServiceDurationMinutes = 45;
-  const projectedBookingsCount = Math.round(utilization.occupiedMinutes / averageServiceDurationMinutes);
+  const projectedBookingsCount = Math.round(
+    utilization.occupiedMinutes / averageServiceDurationMinutes
+  );
 
-  const projectedServiceRevenue = Number((projectedBookingsCount * input.averageServicePrice).toFixed(2));
-  const projectedProductRevenue = Number((projectedBookingsCount * input.averageProductSalesPerBooking).toFixed(2));
+  const projectedServiceRevenue = Number(
+    (projectedBookingsCount * input.averageServicePrice).toFixed(2)
+  );
+  const projectedProductRevenue = Number(
+    (projectedBookingsCount * input.averageProductSalesPerBooking).toFixed(2)
+  );
   const totalGrossRevenue = Number((projectedServiceRevenue + projectedProductRevenue).toFixed(2));
 
   const commissionReport = calculateBarberCommissionAndPayout({
@@ -51,21 +62,26 @@ export function forecastBarberRevenue(input: BarberRevenueForecastInput): Barber
     baseServiceRevenue: projectedServiceRevenue,
     productSalesRevenue: projectedProductRevenue,
     occupancyRate: utilization.occupancyRate,
-    ...(input.baseCommissionRate !== undefined ? { customBaseCommissionRate: input.baseCommissionRate } : {}),
+    ...(input.baseCommissionRate !== undefined
+      ? { customBaseCommissionRate: input.baseCommissionRate }
+      : {}),
   });
 
   const netBarberEarnings = commissionReport.totalPayoutAmount;
   const shopNetRevenue = Number((totalGrossRevenue - netBarberEarnings).toFixed(2));
 
   let efficiencyRating: 'optimal' | 'moderate' | 'underutilized' = 'underutilized';
-  let optimizationRecommendation = 'Occupancy is low: activate waitlist promotion and flash discount slots.';
+  let optimizationRecommendation =
+    'Occupancy is low: activate waitlist promotion and flash discount slots.';
 
   if (utilization.occupancyRate >= 0.75) {
     efficiencyRating = 'optimal';
-    optimizationRecommendation = 'High chair utilization: maintain peak service pacing and incentivize retail attach rates.';
-  } else if (utilization.occupancyRate >= 0.50) {
+    optimizationRecommendation =
+      'High chair utilization: maintain peak service pacing and incentivize retail attach rates.';
+  } else if (utilization.occupancyRate >= 0.5) {
     efficiencyRating = 'moderate';
-    optimizationRecommendation = 'Stable utilization: fill mid-day gaps with targeted loyalty re-bookings.';
+    optimizationRecommendation =
+      'Stable utilization: fill mid-day gaps with targeted loyalty re-bookings.';
   }
 
   return {

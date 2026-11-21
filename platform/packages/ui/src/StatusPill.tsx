@@ -15,13 +15,7 @@ const TONES = {
 export type StatusTone = keyof typeof TONES;
 
 export type VisitStatus =
-  | 'booked'
-  | 'confirmed'
-  | 'in_progress'
-  | 'completed'
-  | 'cancelled'
-  | 'no_show'
-  | 'waitlist_hold';
+  'booked' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | 'waitlist_hold';
 
 const LABELS: Record<VisitStatus, string> = {
   booked: 'Заброньовано',
@@ -47,7 +41,7 @@ export function StatusPill({ status, label, className, role, ...rest }: StatusPi
     <span
       role={role ?? 'status'}
       className={cn(
-        'inline-flex items-center rounded-pill px-2.5 py-0.5 text-caption font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-accent-blue/50 border border-transparent',
+        'inline-flex items-center rounded-pill px-2.5 py-0.5 text-caption font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue/50 border border-transparent',
         TONES[tone],
         className
       )}

@@ -13,7 +13,7 @@ describe('variantCount (AI-WEB-04)', () => {
   it('за замовчуванням — 4 варіанти', async () => {
     const { suggestions, handler } = buildLimitFixture();
     const { suggestionId } = await handler.handle({ sourcePhotoId: 'photo-1', ownerId: 'user-1' });
-    expect(suggestions.rows.get(suggestionId)?.propsData.variantCount).toBe(4);
+    expect(suggestions.rows.get(suggestionId)?.propsData?.variantCount).toBe(4);
   });
 
   it('явні 3 варіанти проходять', async () => {
@@ -23,6 +23,6 @@ describe('variantCount (AI-WEB-04)', () => {
       ownerId: 'user-1',
       variantCount: 3,
     });
-    expect(suggestions.rows.get(suggestionId)?.propsData.variantCount).toBe(3);
+    expect(suggestions.rows.get(suggestionId)?.propsData?.variantCount).toBe(3);
   });
 });

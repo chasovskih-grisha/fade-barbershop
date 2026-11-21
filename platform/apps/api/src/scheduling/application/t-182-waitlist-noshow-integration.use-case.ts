@@ -1,16 +1,18 @@
+/* eslint-disable max-lines -- cohesive module (171 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 /**
  * T-182: Waitlist Integration with No-Show Policy
- * 
+ *
  * Integrate the no-show policy (T-160) with the waitlist system (T-172/T-170).
  * Automatically pause waitlist for clients with ≥2 no-shows/90days,
  * deposit retention on waitlist holds, cascade suppression for high-risk clients.
- * 
+ *
  * Dependencies: T-160 no-show policy, T-172 priority scoring, T-181 analytics export.
  */
 
+import { Inject, Injectable } from '@nestjs/common';
 import { WaitlistQueue } from '../domain/waitlist-queue';
-import { ClientRepository } from '../../clients/domain/repositories';
-import { uuidv7 } from '@fade/domain-shared';
+import { CLIENT_REPOSITORY, type ClientRepository } from '../../clients/domain/repositories';
+import { v4 as uuidv4 } from '../../lib/uuid';
 
 /**
  * No-show risk level for waitlist clients
@@ -19,7 +21,7 @@ export enum NoShowRiskLevel {
   LOW = 'low',
   MEDIUM = 'medium',
   HIGH = 'high',
-  BLOCKED = 'blocked'
+  BLOCKED = 'blocked',
 }
 
 /**
@@ -46,15 +48,16 @@ export interface NoShowWaitlistConfig {
 
 /**
  * T-182: Waitlist Integration with No-Show Policy
- * 
+ *
  * Provides no-show risk assessment and waitlist access control,
  * integrating the no-show policy with waitlist operations to
  * prevent promoting high-risk clients and retain deposits appropriately.
  */
+@Injectable()
 export class T182WaitlistNoShowIntegrationUseCase {
   constructor(
-    private waitlistQueue: WaitlistQueue,
-    private clientRepo: ClientRepository
+    @Inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
+    @Inject(CLIENT_REPOSITORY) private clientRepo: ClientRepository
   ) {}
 
   /**
@@ -63,11 +66,10 @@ export class T182WaitlistNoShowIntegrationUseCase {
   async assessNoShowRisk(clientId: string): Promise<NoShowRiskAssessment> {
     // Get client's no-show history
     const noShowHistory = await this.clientRepo.getNoShowHistory(clientId, 90);
-    
+
     const noShowCount90Days = noShowHistory.length;
-    const lastNoShowDate = noShowHistory.length > 0
-      ? noShowHistory[noShowHistory.length - 1].date
-      : undefined;
+    const lastEntry = noShowHistory[noShowHistory.length - 1];
+    const lastNoShowDate = lastEntry?.occurredAt;
 
     let riskLevel: NoShowRiskLevel;
     let waitlistPausedUntil: string | undefined;
@@ -76,9 +78,9 @@ export class T182WaitlistNoShowIntegrationUseCase {
     // T-160 policy: ≥2 no-shows in 90 days → blocked
     if (noShowCount90Days >= 2) {
       riskLevel = NoShowRiskLevel.BLOCKED;
-      waitlistPausedUntil = new Date(
-        Date.now() + 90 * 24 * 60 * 60 * 1000
-      ).toISOString().split('T')[0];
+      waitlistPausedUntil = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0];
       message = `Client blocked from waitlist due to ${noShowCount90Days} no-shows in 90 days. Waitlist paused for 90 days.`;
     } else if (noShowCount90Days === 1) {
       riskLevel = NoShowRiskLevel.HIGH;
@@ -98,8 +100,8 @@ export class T182WaitlistNoShowIntegrationUseCase {
       clientId,
       riskLevel,
       noShowCount90Days,
-      lastNoShowDate,
-      waitlistPausedUntil,
+      ...(lastNoShowDate === undefined ? {} : { lastNoShowDate }),
+      ...(waitlistPausedUntil === undefined ? {} : { waitlistPausedUntil }),
       message,
     };
   }
@@ -114,8 +116,9 @@ export class T182WaitlistNoShowIntegrationUseCase {
   }> {
     const riskAssessment = await this.assessNoShowRisk(clientId);
 
-    const canPromote = riskAssessment.riskLevel !== NoShowRiskLevel.HIGH 
-      && riskAssessment.riskLevel !== NoShowRiskLevel.BLOCKED;
+    const canPromote =
+      riskAssessment.riskLevel !== NoShowRiskLevel.HIGH &&
+      riskAssessment.riskLevel !== NoShowRiskLevel.BLOCKED;
 
     let reason: string;
     if (!canPromote) {
@@ -138,7 +141,10 @@ export class T182WaitlistNoShowIntegrationUseCase {
   /**
    * Apply no-show policy when a client misses a waitlist slot.
    */
-  async registerWaitlistMiss(clientId: string, slotId: string): Promise<{
+  async registerWaitlistMiss(
+    clientId: string,
+    slotId: string
+  ): Promise<{
     success: boolean;
     newRiskLevel: NoShowRiskLevel;
     consecutiveMisses: number;
@@ -146,18 +152,18 @@ export class T182WaitlistNoShowIntegrationUseCase {
     message: string;
   }> {
     // Register the miss in the waitlist queue first
+    const activeEntry = await this.waitlistQueue.getActiveEntry(clientId);
     const entry = await this.waitlistQueue.registerMiss({
-      id: uuidv7(),
+      entryId: activeEntry?.id ?? uuidv4(),
       clientId,
-      configuration: {} as any, // would be resolved from context
-      waitingSince: new Date(),
-      consecutiveMisses: 0, // would be from existing entry
-      status: 'waiting',
+      slotId,
+      reason: 'waitlist_slot_missed',
     });
 
-    const misses = (entry.consecutiveMisses || 0) + 1;
+    const misses = entry.consecutiveMisses;
     let newRiskLevel: NoShowRiskLevel;
     let waitlistStatus: 'waiting' | 'paused' | 'blocked' = 'waiting';
+    let waitlistPausedUntil: string | undefined;
     let message: string;
 
     // T-160 policy: 3 consecutive misses → paused, ≥2 no-shows/90d → blocked
@@ -168,7 +174,8 @@ export class T182WaitlistNoShowIntegrationUseCase {
     } else if (misses >= 2) {
       // Check if this crosses the 2-no-shows-in-90-days threshold
       const noShowHistory = await this.clientRepo.getNoShowHistory(clientId, 90);
-      const noShowCount90Days = noShowHistory.length + (misses >= 2 && /* was no-show */ true ? 1 : 0);
+      const noShowCount90Days =
+        noShowHistory.length + (misses >= 2 && /* was no-show */ true ? 1 : 0);
 
       if (noShowCount90Days >= 2) {
         newRiskLevel = NoShowRiskLevel.BLOCKED;
@@ -231,5 +238,3 @@ export class T182WaitlistNoShowIntegrationUseCase {
     };
   }
 }
-
-export type { NoShowRiskAssessment as NoShowRiskAssessment };

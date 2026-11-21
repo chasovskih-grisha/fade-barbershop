@@ -46,9 +46,12 @@ export class WinBackEngine {
     return WIN_BACK_RULES.RECENT_LAPSE;
   }
 
-  static generateMessage(clientName: string, inactiveDays: number): { rule: WinBackRule; message: string } {
+  static generateMessage(
+    clientName: string,
+    inactiveDays: number
+  ): { rule: WinBackRule; message: string } {
     const rule = this.evaluateDormancy(inactiveDays);
-    let perkText = rule.complimentaryPerk ? ` plus a ${rule.complimentaryPerk}` : '';
+    const perkText = rule.complimentaryPerk ? ` plus a ${rule.complimentaryPerk}` : '';
     const message = `Hey ${clientName}, we miss you at FADE! It's been ${inactiveDays} days since your last fresh cut. Book your next visit within 7 days and enjoy ${rule.reactivationDiscountPercentage}% off${perkText}. See you in the chair!`;
     return { rule, message };
   }

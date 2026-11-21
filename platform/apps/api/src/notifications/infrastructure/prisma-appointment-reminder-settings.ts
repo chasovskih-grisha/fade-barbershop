@@ -5,7 +5,12 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import { DEFAULT_APPOINTMENT_REMINDER, REMINDER_SETTING_KEY, parseAppointmentReminderSettings, type AppointmentReminderSettings } from '../domain/appointment-reminder-settings';
+import {
+  DEFAULT_APPOINTMENT_REMINDER,
+  REMINDER_SETTING_KEY,
+  parseAppointmentReminderSettings,
+  type AppointmentReminderSettings,
+} from '../domain/appointment-reminder-settings';
 
 const READ_CACHE_MS = 1000;
 

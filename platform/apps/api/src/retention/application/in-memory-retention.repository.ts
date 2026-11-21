@@ -1,5 +1,10 @@
 import { RetentionRepository } from './retention.repository';
-import { ReactivationFlowEntity, ClientOnboardingSequenceEntity, RetentionIncentiveEntity, MilestoneRewardEntity } from '../domain/retention.entity';
+import {
+  ReactivationFlowEntity,
+  ClientOnboardingSequenceEntity,
+  RetentionIncentiveEntity,
+  MilestoneRewardEntity,
+} from '../domain/retention.entity';
 
 export class InMemoryRetentionRepository implements RetentionRepository {
   private reactivationFlows = new Map<string, ReactivationFlowEntity>();
@@ -16,14 +21,16 @@ export class InMemoryRetentionRepository implements RetentionRepository {
   }
 
   async findReactivationFlowsByClient(clientId: string): Promise<ReactivationFlowEntity[]> {
-    return Array.from(this.reactivationFlows.values()).filter(f => f.clientId === clientId);
+    return Array.from(this.reactivationFlows.values()).filter((f) => f.clientId === clientId);
   }
 
   async saveOnboardingSequence(sequence: ClientOnboardingSequenceEntity): Promise<void> {
     this.onboardingSequences.set(sequence.clientId, sequence);
   }
 
-  async findOnboardingSequenceByClient(clientId: string): Promise<ClientOnboardingSequenceEntity | null> {
+  async findOnboardingSequenceByClient(
+    clientId: string
+  ): Promise<ClientOnboardingSequenceEntity | null> {
     return this.onboardingSequences.get(clientId) || null;
   }
 
@@ -44,4 +51,3 @@ export class InMemoryRetentionRepository implements RetentionRepository {
     return this.milestoneRewards.get(clientId) || [];
   }
 }
-

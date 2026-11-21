@@ -1,5 +1,8 @@
 /** Цивільні дата і час візиту в IANA часовому поясі (T-4488), не UTC-зріз ISO. */
-export function kyivStamp(start: Date, timeZone: string = 'Europe/Kyiv'): { date: string; time: string } {
+export function kyivStamp(
+  start: Date,
+  timeZone: string = 'Europe/Kyiv'
+): { date: string; time: string } {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone,
     year: 'numeric',

@@ -20,4 +20,3 @@ export function trackAppointmentCancelled(bookingId: string) {
 export function trackReferenceUpdated(bookingId: string) {
   clientCabinetAnalytics.referenceUpdated(bookingId);
 }
-

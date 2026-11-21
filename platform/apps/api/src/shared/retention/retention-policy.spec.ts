@@ -13,7 +13,10 @@ describe('retention policy (T-4490)', () => {
   });
 
   it('персональні журнали тримаються 90 днів', () => {
-    expect(ruleFor('notification_records')).toMatchObject({ ttlDays: 90, classification: 'personal' });
+    expect(ruleFor('notification_records')).toMatchObject({
+      ttlDays: 90,
+      classification: 'personal',
+    });
     expect(ruleFor('otp_challenges')?.ttlDays).toBe(7);
   });
 
@@ -24,7 +27,9 @@ describe('retention policy (T-4490)', () => {
   });
 
   it('legal hold читається з env і не чіпає інші набори', () => {
-    const holds = legalHolds({ RETENTION_LEGAL_HOLD: 'sessions, notification_records' } as NodeJS.ProcessEnv);
+    const holds = legalHolds({
+      RETENTION_LEGAL_HOLD: 'sessions, notification_records',
+    } as NodeJS.ProcessEnv);
     expect(holds.has('sessions')).toBe(true);
     expect(holds.has('notification_records')).toBe(true);
     expect(holds.has('otp_challenges')).toBe(false);

@@ -18,9 +18,36 @@ describe('AnalyzeReviewSentimentAlertUseCase', () => {
 
   it('triggers sentiment alert when negative reviews >= 2', async () => {
     const reviews: ReviewItem[] = [
-      { id: '1', locationId: 'loc-1', clientId: 'c1', rating: 1, comment: 'Bad fade', sentimentScore: -0.8, source: 'INTERNAL_APP', createdAt: new Date() },
-      { id: '2', locationId: 'loc-1', clientId: 'c2', rating: 2, comment: 'Uneven trim', sentimentScore: -0.4, source: 'INTERNAL_APP', createdAt: new Date() },
-      { id: '3', locationId: 'loc-1', clientId: 'c3', rating: 5, comment: 'Great', sentimentScore: 0.9, source: 'INTERNAL_APP', createdAt: new Date() },
+      {
+        id: '1',
+        locationId: 'loc-1',
+        clientId: 'c1',
+        rating: 1,
+        comment: 'Bad fade',
+        sentimentScore: -0.8,
+        source: 'INTERNAL_APP',
+        createdAt: new Date(),
+      },
+      {
+        id: '2',
+        locationId: 'loc-1',
+        clientId: 'c2',
+        rating: 2,
+        comment: 'Uneven trim',
+        sentimentScore: -0.4,
+        source: 'INTERNAL_APP',
+        createdAt: new Date(),
+      },
+      {
+        id: '3',
+        locationId: 'loc-1',
+        clientId: 'c3',
+        rating: 5,
+        comment: 'Great',
+        sentimentScore: 0.9,
+        source: 'INTERNAL_APP',
+        createdAt: new Date(),
+      },
     ];
     mockRepo.listReviewsForLocation.mockResolvedValue(reviews);
 
@@ -32,7 +59,16 @@ describe('AnalyzeReviewSentimentAlertUseCase', () => {
 
   it('does not trigger sentiment alert when negative reviews < 2', async () => {
     const reviews: ReviewItem[] = [
-      { id: '1', locationId: 'loc-1', clientId: 'c1', rating: 5, comment: 'Excellent', sentimentScore: 0.9, source: 'INTERNAL_APP', createdAt: new Date() },
+      {
+        id: '1',
+        locationId: 'loc-1',
+        clientId: 'c1',
+        rating: 5,
+        comment: 'Excellent',
+        sentimentScore: 0.9,
+        source: 'INTERNAL_APP',
+        createdAt: new Date(),
+      },
     ];
     mockRepo.listReviewsForLocation.mockResolvedValue(reviews);
 

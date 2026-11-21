@@ -18,7 +18,8 @@ export class ClientMilestoneEngine {
         rewardDiscountPercentage: 35,
         bonusLoyaltyPoints: 2000,
         exclusivePerk: 'Legendary FADE Gold Card & Free Premium Grooming Kit',
-        celebrationMessageTemplate: 'Incredible milestone! 50 visits with FADE. Enjoy 35% off, 2,000 bonus points, and our exclusive Gold Card grooming kit.',
+        celebrationMessageTemplate:
+          'Incredible milestone! 50 visits with FADE. Enjoy 35% off, 2,000 bonus points, and our exclusive Gold Card grooming kit.',
       };
     }
     if (visitCount === 25) {
@@ -28,7 +29,8 @@ export class ClientMilestoneEngine {
         rewardDiscountPercentage: 25,
         bonusLoyaltyPoints: 1000,
         exclusivePerk: 'Complimentary Luxury Shave & Styling Paste',
-        celebrationMessageTemplate: 'Quarter-century of fresh cuts! 25 visits milestone unlocked: 25% off and a free luxury shave.',
+        celebrationMessageTemplate:
+          'Quarter-century of fresh cuts! 25 visits milestone unlocked: 25% off and a free luxury shave.',
       };
     }
     if (visitCount === 10) {
@@ -38,7 +40,8 @@ export class ClientMilestoneEngine {
         rewardDiscountPercentage: 20,
         bonusLoyaltyPoints: 500,
         exclusivePerk: 'Free Beard Trim or Hair Wash Upgrade',
-        celebrationMessageTemplate: 'Double digits! 10 visits with FADE. Enjoy 20% off your next visit and 500 loyalty points.',
+        celebrationMessageTemplate:
+          'Double digits! 10 visits with FADE. Enjoy 20% off your next visit and 500 loyalty points.',
       };
     }
     if (visitCount === 5) {
@@ -48,7 +51,8 @@ export class ClientMilestoneEngine {
         rewardDiscountPercentage: 15,
         bonusLoyaltyPoints: 250,
         exclusivePerk: 'Complimentary Beverage & Scalp Massage',
-        celebrationMessageTemplate: 'High five! You have completed 5 visits at FADE. Here is 15% off and 250 bonus points.',
+        celebrationMessageTemplate:
+          'High five! You have completed 5 visits at FADE. Here is 15% off and 250 bonus points.',
       };
     }
     return null;
@@ -73,7 +77,8 @@ export class ClientMilestoneEngine {
       rewardDiscountPercentage: 30,
       bonusLoyaltyPoints: 1000,
       exclusivePerk: 'Birthday Special Cut & Hot Towel Experience',
-      celebrationMessageTemplate: 'Happy Birthday from the FADE team! Celebrate your special day with 30% off any service and 1,000 bonus points.',
+      celebrationMessageTemplate:
+        'Happy Birthday from the FADE team! Celebrate your special day with 30% off any service and 1,000 bonus points.',
     };
   }
 }

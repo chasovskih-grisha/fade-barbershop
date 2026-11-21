@@ -17,7 +17,7 @@ export async function seedAdminRoles(prisma: PrismaService): Promise<string> {
       update: {
         name: role.name,
         description: role.description,
-        permissions: role.permissions,
+        permissions: [...role.permissions],
         priority: role.priority,
       },
       create: {
@@ -25,7 +25,7 @@ export async function seedAdminRoles(prisma: PrismaService): Promise<string> {
         key: role.key,
         name: role.name,
         description: role.description,
-        permissions: role.permissions,
+        permissions: [...role.permissions],
         priority: role.priority,
       },
     });

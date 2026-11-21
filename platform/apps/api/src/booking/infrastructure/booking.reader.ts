@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-params -- cohesive module (142 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 signature whose 4-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 // BookingReader — короткі read‑запити флоу запису (BookingController):
 // активні локації, послуги локації та активні барбери з опцією «Будь-який барбер».
 // Розрахунок вільних слотів — у AvailableSlots.

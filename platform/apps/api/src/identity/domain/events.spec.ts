@@ -1,4 +1,14 @@
-import { DomainEvent, OtpRequested, UserRegistered, SessionStarted, SessionRevoked, BarberRegistered, BarberUpdated, BarberDeactivated, BarberActivated } from './events';
+import {
+  DomainEvent,
+  OtpRequested,
+  UserRegistered,
+  SessionStarted,
+  SessionRevoked,
+  BarberRegistered,
+  BarberUpdated,
+  BarberDeactivated,
+  BarberActivated,
+} from './events';
 import { SESSION_1, USER_1 } from '../application/test-ids';
 import { uuidv7 } from '@fade/domain-shared';
 

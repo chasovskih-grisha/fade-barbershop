@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (106 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // T-4456: HTTP-поверхня погашення сертифіката барбером.
 // Скан/ввід коду → перевірка балансу/терміну → списання частини або повної
 // суми → чек із джерелом `gift_certificate`. Подвійний скан захищений

@@ -6,7 +6,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { kyivStamp } from './kyiv-stamp';
 import { toClientDeposit } from './client-appointment-deposit';
-import { CABINET_STATUS, type BookingRow, type ClientAppointmentView } from './client-appointments.view';
+import {
+  CABINET_STATUS,
+  type BookingRow,
+  type ClientAppointmentView,
+} from './client-appointments.view';
 
 export type { CabinetStatus, ClientAppointmentView } from './client-appointments.view';
 
@@ -68,6 +72,7 @@ function toView(
     referenceId: row.haircutReferenceId,
     referenceComment: row.appointmentComment ?? '',
     canEditReference: domainStatus === 'booked',
+    canBookAgain: row.partyId === null,
     // Депозит із снепшота візиту (PAY-ADM-09); діалог скасування читає лише його.
     deposit: toClientDeposit(row),
   };

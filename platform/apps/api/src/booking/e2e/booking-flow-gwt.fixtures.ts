@@ -5,7 +5,14 @@
 // Спільні фікстури — @fade/test-utils (ADR 0019): локації, барбери, послуги.
 import { uuidv7 } from '@fade/domain-shared';
 import type { PrismaService } from '../../shared/prisma/prisma.service';
-import { assignBarber, cleanupTestLocation, seedBarberUser, seedRawBooking, seedServiceWithPrices, seedTestLocation } from '@fade/test-utils';
+import {
+  assignBarber,
+  cleanupTestLocation,
+  seedBarberUser,
+  seedRawBooking,
+  seedServiceWithPrices,
+  seedTestLocation,
+} from '@fade/test-utils';
 
 export const GWT_DATE = '2026-11-03'; // вівторок (dayOfWeek 1 у конвенції коду)
 

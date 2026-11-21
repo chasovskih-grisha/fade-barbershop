@@ -33,11 +33,11 @@ name: fade-platform
 # pnpm 11+ ignores minimum-release-age in .npmrc and defaults it to one day,
 # which rejects a frozen lockfile that already pins a package published today.
 x-pnpm-env: &pnpm-env
-  pnpm_config_minimum_release_age: "0"
-  pnpm_config_minimum_release_age_strict: "false"
-  pnpm_config_fetch_timeout: "600000"
-  pnpm_config_fetch_retries: "5"
-  pnpm_config_network_concurrency: "4"
+  pnpm_config_minimum_release_age: '0'
+  pnpm_config_minimum_release_age_strict: 'false'
+  pnpm_config_fetch_timeout: '600000'
+  pnpm_config_fetch_retries: '5'
+  pnpm_config_network_concurrency: '4'
 
 x-dev-mounts: &dev-mounts
   - ..:/app
@@ -303,6 +303,8 @@ services:
     build:
       context: ..
       dockerfile: infra/api.Dockerfile
+      # Dev recipe is the first stage (T-4614a); prod lives in `--target prod`.
+      target: dev
     container_name: fade-platform-db-seed
     profiles: [deps, apps]
     depends_on:
@@ -329,6 +331,8 @@ services:
     build:
       context: ..
       dockerfile: infra/api.Dockerfile
+      # Dev recipe is the first stage (T-4614a); prod lives in `--target prod`.
+      target: dev
     container_name: fade-platform-api
     profiles: [apps]
     # Живий запуск через власний супервізор (scripts/dev-watch.mjs), а не
@@ -405,6 +409,8 @@ services:
     build:
       context: ..
       dockerfile: infra/web.Dockerfile
+      # Dev recipe is the first stage (T-4614a); prod lives in `--target prod`.
+      target: dev
     container_name: fade-platform-web
     profiles: [apps]
     command: sh /app/infra/dev-sync.sh pnpm --filter @fade/web dev
@@ -437,6 +443,8 @@ services:
     build:
       context: ..
       dockerfile: infra/admin.Dockerfile
+      # Dev recipe is the first stage (T-4614a); prod lives in `--target prod`.
+      target: dev
     container_name: fade-platform-admin
     profiles: [apps]
     command: sh /app/infra/dev-sync.sh pnpm --filter @fade/admin dev

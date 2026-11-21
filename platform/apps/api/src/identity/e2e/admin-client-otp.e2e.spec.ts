@@ -4,7 +4,13 @@ import request from 'supertest';
 import { PhoneNumber } from '../domain/phone-number';
 import { User } from '../domain/user';
 import { CapturingSender, MemUsers } from './admin-client-otp.fakes';
-import { CLIENT_ID, CLIENT_OTP_COOKIE, CLIENT_OTP_NOW, CLIENT_OTP_PHONE, createAdminClientOtpApp } from './admin-client-otp.e2e.harness';
+import {
+  CLIENT_ID,
+  CLIENT_OTP_COOKIE,
+  CLIENT_OTP_NOW,
+  CLIENT_OTP_PHONE,
+  createAdminClientOtpApp,
+} from './admin-client-otp.e2e.harness';
 
 describe('Admin client OTP (e2e, T-4409)', () => {
   let app: INestApplication;

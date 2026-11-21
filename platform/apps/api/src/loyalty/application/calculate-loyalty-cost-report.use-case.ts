@@ -19,7 +19,10 @@ export interface LoyaltyCostReportResult {
 }
 
 export class CalculateLoyaltyCostReportHandler {
-  constructor(private readonly defaultPointValueUah: number = 1.0, private readonly defaultFreeVisitValueUah: number = 800.0) {}
+  constructor(
+    private readonly defaultPointValueUah: number = 1.0,
+    private readonly defaultFreeVisitValueUah: number = 800.0
+  ) {}
 
   handle(input: LoyaltyCostReportInput): LoyaltyCostReportResult {
     const freeVisitValue = input.freeVisitEquivalentUah ?? this.defaultFreeVisitValueUah;

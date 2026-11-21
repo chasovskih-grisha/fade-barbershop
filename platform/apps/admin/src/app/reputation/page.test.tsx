@@ -29,7 +29,9 @@ describe('ReputationDashboard', () => {
     const replyButtons = screen.getAllByRole('button', { name: 'Reply & Resolve' });
     fireEvent.click(replyButtons[0]!);
 
-    const textarea = screen.getByPlaceholderText(/Write a professional response or click AI Auto-Reply Assistant.../i);
+    const textarea = screen.getByPlaceholderText(
+      /Write a professional response or click AI Auto-Reply Assistant.../i
+    );
     expect(textarea).toBeInTheDocument();
 
     fireEvent.change(textarea, { target: { value: 'Thank you for your feedback!' } });
@@ -51,7 +53,9 @@ describe('ReputationDashboard', () => {
 
     fireEvent.click(aiButton);
 
-    const textarea = screen.getByPlaceholderText(/Write a professional response or click AI Auto-Reply Assistant.../i) as HTMLTextAreaElement;
+    const textarea = screen.getByPlaceholderText(
+      /Write a professional response or click AI Auto-Reply Assistant.../i
+    ) as HTMLTextAreaElement;
     expect(textarea.value.length).toBeGreaterThan(10);
   });
 

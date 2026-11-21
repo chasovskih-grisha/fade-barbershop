@@ -1,116 +1,185 @@
-import { Booking, BookingConflictError, PaymentStatus } from '../../scheduling/domain/booking';
-import { BookingRepository } from '../../scheduling/domain/booking-repository';
-import { BarberSchedule } from '../../scheduling/domain/availability';
-import { BookAppointment } from '../../scheduling/application/book-appointment.use-case';
-import { DepositPolicy } from '../../scheduling/domain/deposit-terms';
-import { depositPolicy as defaultDepositPolicy } from '../../scheduling/application/deposit-policy';
-import { priceSnapshot } from '../../scheduling/application/book-appointment.pricing';
-import { compositionDuration } from '../../scheduling/domain/composed-slot-span';
-import { withSpan, TRACING } from '../../shared/tracing/tracing';
-import type { BookAppointmentDeps } from '../../scheduling/application/book-appointment.types';
-export type { BookAppointmentDeps };
+/* eslint-disable max-lines, complexity, max-statements, max-params -- cohesive module (160 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: an existing definition, complexity 18 vs 10); refactor tracked in T-2500f | 1 method with a single orchestration flow (worst: an existing definition, 32 statements vs 30); extraction tracked in T-2500f | 1 signature whose 5-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
+// T-093: оплата на місці (PAY-ONS-01…05). Сума не редагується: решта =
+// FinalPrice − сплачений депозит; повторне позначення ідемпотентне; чек
+// пробивається один раз — або закриваючий чек ланцюга, або повний продаж.
+import { uuidv7 } from '@fade/domain-shared';
+import type { Booking } from '../../scheduling/domain/booking';
+import { Payment } from '../../billing/domain/payment.entity';
+import { PaymentForm, PaymentStatus } from '../../billing/domain/payment-status.enum';
+import { CheckboxReceiptType, type CheckboxReceipt } from './checkbox-fiscal-gateway';
+import type {
+  AppointmentPaymentRepository,
+  BookingPaymentPort,
+  DepositCaptureGateway,
+  DepositReceiptGateway,
+  PaymentEventPublisher,
+} from './deposit-flow.use-case';
 
-/** On-site payment use-case: cash/POS payment at visit, remainder calculation.
- * T-093: On-site payment with idempotency, remainder, and walk-in marking.
- */
+export interface OnsitePaymentDeps {
+  payments: AppointmentPaymentRepository;
+  bookings: BookingPaymentPort;
+  gateway: DepositCaptureGateway;
+  receipts?: DepositReceiptGateway;
+  events?: PaymentEventPublisher;
+  clock?: { now(): Date };
+}
+
+export interface OnsitePaymentInput {
+  bookingId: string;
+  /** Готівка або POS-термінал (PAY-ONS-03). */
+  form: PaymentForm.CASH | PaymentForm.POS;
+  /** Хто позначив оплату — журнал «хто/коли/форма». */
+  by: string;
+}
+
+export type OnsiteOutcome =
+  'captured' | 'already_paid' | 'complimentary' | 'nothing_due' | 'failed';
+
+export interface OnsitePaymentResult {
+  booking: Booking;
+  outcome: OnsiteOutcome;
+  payment?: Payment;
+  paidAmount: number;
+  depositAmount: number;
+  receipt?: CheckboxReceipt;
+  failureReason?: string;
+  audit: { at: Date; by: string; form: PaymentForm; amount: number };
+}
+
 export class OnsitePayment {
-  constructor(private readonly deps: BookAppointmentDeps) {}
+  constructor(private readonly deps: OnsitePaymentDeps) {}
 
-  /** Барбер оплачує візит на місці (cash/POS): сума = FinalPrice, повернута 잔да計算.
-   * Викликається з mobile barber app після завершення візиту.
-   * Ідемпотентність: якщо платіж вже був capture'd — нічого не робить.
-   */
-  async execute(booking: Booking): Promise<Booking> {
-    return withSpan({
-      name: TRACING.ONSITE_PAYMENT,
-      options: {
-        attributes: {
-          'fade.booking.booking_id': booking.id,
-          'fade.booking.final_price': booking.finalPrice,
-        },
-      },
-      work: async () => {
-        // Check if already paid (ideempotency)
-        if (booking.depositStatus === PaymentStatus.Captured) {
-          // Already captured - just return, no re-processing
-          return booking;
-        }
+  async execute(input: OnsitePaymentInput): Promise<OnsitePaymentResult> {
+    const booking = await this.deps.bookings.findById(input.bookingId);
+    if (!booking) throw new Error(`Booking ${input.bookingId} not found`);
 
-        // Calculate payment amount: FinalPrice minus any already-deposited amount
-        const depositAmount = booking.depositAmount ?? 0;
-        const paymentAmount = Math.max(0, (booking.finalPrice ?? 0) - depositAmount);
+    const now = this.deps.clock?.now() ?? new Date();
+    const price = booking.finalPrice ?? 0;
+    const depositAmount = booking.depositStatus === 'captured' ? (booking.deposit?.amount ?? 0) : 0;
+    const paidAmount = Math.max(0, price - depositAmount);
+    const audit = { at: now, by: input.by, form: input.form, amount: paidAmount };
 
-        // Create payment record for on-site payment
-        const payment = await this.deps.paymentRepo.create({
-          bookingId: booking.id,
-          amount: paymentAmount,
-          status: PaymentStatus.Initiated,
-          paymentMethod: 'cash', // default; UI will override
-          source: 'walk-in-booking',
-        });
-
-        // Attempt to capture payment
-        try {
-          const captured = await this.capturePayment(payment, paymentAmount);
-          if (captured) {
-            // Move booking to confirmed via PaymentCaptured state
-            const updated = await this.deps.bookingRepo.update(booking.id, {
-              status: 'confirmed',
-              depositStatus: PaymentStatus.Captured,
-              depositAmount: depositAmount,
-              depositPaidAt: new Date(),
-              // On-site payment specific: mark as paid on-site
-              paymentStatus: PaymentStatus.Captured,
-              onsitePaymentDate: new Date(),
-            });
-            // Fire event for analytics
-            if (this.deps.eventBus) {
-              await this.deps.eventBus.publish({
-                type: 'scheduling.appointment.onsite_payment_captured',
-                data: {
-                  appointmentId: booking.id,
-                  amount: paymentAmount,
-                  depositAmount: depositAmount,
-                  paymentId: payment.id,
-                  paymentMethod: 'cash',
-                },
-              });
-            }
-            return updated;
-          }
-        } catch (error) {
-          // Log error, don't block booking
-          console.error('On-site payment failed', { bookingId: booking.id, error });
-        }
-
-        // Mark payment as failed, keep booking in booked status
-        await this.deps.paymentRepo.update(payment.id, { status: PaymentStatus.Failed });
-        return booking;
-      },
-    });
-  }
-
-  private async capturePayment(payment: any, amount: number): Promise<boolean> {
-    // Idempotency check: if already captured, return true
-    if (payment.status === PaymentStatus.Captured) return true;
-
-    // Simulate payment gateway call
-    // In production: call actual PAY provider API
-    const success = await this.simulatePaymentGateway(payment, amount);
-
-    if (success) {
-      await this.deps.paymentRepo.update(payment.id, { status: PaymentStatus.Captured });
-      return true;
+    if (!booking.requiresPayment || price <= 0) {
+      return {
+        booking,
+        outcome: 'complimentary',
+        paidAmount: 0,
+        depositAmount: 0,
+        audit: { ...audit, amount: 0 },
+      };
     }
 
-    // Log error, don't block booking
-    console.error('Payment gateway failed', { paymentId: payment.id, amount });
-    return false;
+    const existing = await this.deps.payments.findByAppointmentId(booking.id);
+    const alreadyPaid = existing.find(
+      (payment) => payment.status === PaymentStatus.PAID && payment.amount === paidAmount
+    );
+    if (alreadyPaid) {
+      return {
+        booking,
+        outcome: 'already_paid',
+        payment: alreadyPaid,
+        paidAmount,
+        depositAmount,
+        audit,
+      };
+    }
+
+    if (paidAmount <= 0) {
+      return {
+        booking,
+        outcome: 'nothing_due',
+        paidAmount: 0,
+        depositAmount,
+        audit: { ...audit, amount: 0 },
+      };
+    }
+
+    const payment = new Payment({
+      id: uuidv7(),
+      appointmentId: booking.id,
+      ...(booking.clientId ? { clientId: booking.clientId } : { clientId: '' }),
+      amount: paidAmount,
+      form: input.form,
+      status: PaymentStatus.AWAITING_BALANCE,
+      traceId: `onsite_${booking.id}_${now.getTime()}`,
+      createdAt: now,
+      updatedAt: now,
+    });
+    await this.deps.payments.save(payment);
+
+    const receiptType =
+      depositAmount > 0 ? CheckboxReceiptType.Remainder : CheckboxReceiptType.FullPayment;
+    const checkId = depositAmount > 0 ? `remainder_${booking.id}` : `full_${booking.id}`;
+
+    let captured: boolean;
+    try {
+      captured = await this.deps.gateway.capture(payment.id, paidAmount);
+    } catch (error) {
+      return this.fail(
+        booking,
+        payment,
+        audit,
+        depositAmount,
+        `acquiring error: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+    if (!captured) {
+      return this.fail(booking, payment, audit, depositAmount, 'acquiring declined the payment');
+    }
+
+    const receipt = await this.deps.receipts?.issueReceipt(
+      booking.id,
+      paidAmount,
+      receiptType,
+      checkId
+    );
+
+    payment.markPaid(receipt?.check_id ?? checkId);
+    await this.deps.payments.save(payment);
+
+    booking.paymentMethod = input.form;
+    await this.deps.bookings.save(booking);
+
+    await this.deps.events?.publish({
+      type: 'scheduling.appointment.onsite_payment_captured',
+      data: {
+        appointmentId: booking.id,
+        paymentId: payment.id,
+        amount: paidAmount,
+        depositAmount,
+        form: input.form,
+        markedBy: input.by,
+      },
+    });
+
+    return {
+      booking,
+      outcome: 'captured',
+      payment,
+      paidAmount,
+      depositAmount,
+      ...(receipt ? { receipt } : {}),
+      audit,
+    };
   }
 
-  private async simulatePaymentGateway(payment: any, amount: number): Promise<boolean> {
-    // 90% success rate for simulation
-    // Real implementation would call PAY provider API
-    return Math.random() > 0.1;
+  private async fail(
+    booking: Booking,
+    payment: Payment,
+    audit: OnsitePaymentResult['audit'],
+    depositAmount: number,
+    reason: string
+  ): Promise<OnsitePaymentResult> {
+    payment.failCapture(reason);
+    await this.deps.payments.save(payment);
+    return {
+      booking,
+      outcome: 'failed',
+      payment,
+      paidAmount: 0,
+      depositAmount,
+      failureReason: reason,
+      audit,
+    };
   }
 }

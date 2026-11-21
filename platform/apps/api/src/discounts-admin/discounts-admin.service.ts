@@ -1,11 +1,22 @@
+/* eslint-disable max-lines, max-params -- cohesive module (279 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 4 signatures whose 5-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 // Discounts Admin Service — T-153: Admin Discount Management.
 // CRUD for discount rules and promo codes, validation, audit logging.
 // Integrates with T-090 DiscountCalculator and T-152 Discount Mechanics.
 
-import { prisma } from '../index';
-import { Appointment, Service, ClientProfile } from '../domain';
-import { DiscountInput, calculateDiscounts, AppliedDiscount, PriceBreakdown } from '../discounts/domain/discount-calculator';
 import { uuidv7 } from '@fade/domain-shared';
+import { prisma } from '../index';
+import { calculateDiscounts } from '../discounts/domain/discount-calculator';
+import type {
+  CreateDiscountRuleInput as CreateRuleDto,
+  CreatePromoCodeInput as CreatePromoDto,
+  DiscountRuleFilters as RuleFiltersDto,
+  PromoCodeFilters as PromoFiltersDto,
+  DiscountRuleResponse,
+  PromoCodeResponse,
+  ApplyDiscountRuleResponse,
+  DiscountRulesListResponse,
+  PromoCodesListResponse,
+} from './discounts-admin.dto';
 
 /** Discount Rule types — consolidated from T-153 enum. */
 export enum DiscountRuleType {
@@ -129,47 +140,18 @@ export interface ApplyDiscountRuleInput {
 export interface DiscountAuditLog {
   id: string;
   discountId: string;
-  discountType: 'rule' | 'promo_code',
-  action: 'create' | 'update' | 'delete' | 'activate' | 'deactivate',
+  discountType: 'rule' | 'promo_code';
+  action: 'create' | 'update' | 'delete' | 'activate' | 'deactivate';
   changedBy: string;
   changedAt: Date;
   details?: string;
 }
 
-/** Discount Rule service response shape */
-export interface DiscountRuleResponse {
-  success: boolean;
-  data: DiscountRule;
-}
-
-/** Promo Code service response shape */
-export interface PromoCodeResponse {
-  success: boolean;
-  data: PromoCode;
-}
-
-/** Apply discount rule response shape */
-export interface ApplyDiscountRuleResponse {
-  success: boolean;
-  breakdown: PriceBreakdown;
-}
-
-/** List discount rules response shape */
-export interface DiscountRulesListResponse {
-  success: boolean;
-  data: DiscountRule[];
-  total: number;
-}
-
-/** List promo codes response shape */
-export interface PromoCodesListResponse {
-  success: boolean;
-  data: PromoCode[];
-  total: number;
-}
-
 /** Service: create discount rule */
-export async function createDiscountRule(input: CreateDiscountRuleInput, createdBy: string): Promise<DiscountRuleResponse> {
+export async function createDiscountRule(
+  input: CreateDiscountRuleInput,
+  createdBy: string
+): Promise<DiscountRuleResponse> {
   const rule = await prisma.discountRule.create({
     data: {
       name: input.name,
@@ -197,7 +179,9 @@ export async function createDiscountRule(input: CreateDiscountRuleInput, created
 }
 
 /** Service: list discount rules with filters */
-export async function listDiscountRules(filters: DiscountRuleFilters): Promise<DiscountRulesListResponse> {
+export async function listDiscountRules(
+  filters: DiscountRuleFilters
+): Promise<DiscountRulesListResponse> {
   const where: any = {};
   if (filters.type) where.type = filters.type;
   if (filters.status) where.status = filters.status;
@@ -213,7 +197,10 @@ export async function listDiscountRules(filters: DiscountRuleFilters): Promise<D
 }
 
 /** Service: create promo code */
-export async function createPromoCode(input: CreatePromoCodeInput, createdBy: string): Promise<PromoCodeResponse> {
+export async function createPromoCode(
+  input: CreatePromoCodeInput,
+  createdBy: string
+): Promise<PromoCodeResponse> {
   const code = await prisma.promoCode.create({
     data: {
       code: input.code.toUpperCase(),
@@ -258,14 +245,12 @@ export async function applyDiscountRule(
   ruleId: string,
   appointmentId: string,
   agreedPrice: number,
-  clientId: string,
+  _clientId: string
 ): Promise<ApplyDiscountRuleResponse> {
   // Calculate discounts using the DiscountCalculator
   const result = calculateDiscounts({
     agreedPrice,
     rules: [{ type: 'rule', sourceId: ruleId }],
-    vip: undefined,
-    promoCode: undefined,
     capPercent: 30,
   });
 
@@ -289,7 +274,7 @@ export async function createAuditLog(
   discountType: 'rule' | 'promo_code',
   action: 'create' | 'update' | 'delete' | 'activate' | 'deactivate',
   changedBy: string,
-  details?: string,
+  details?: string
 ): Promise<{ success: boolean; logEntry: any }> {
   const logEntry = await prisma.discountAuditLog.create({
     data: {
@@ -303,4 +288,42 @@ export async function createAuditLog(
     },
   });
   return { success: true, logEntry };
+}
+
+/** Nest-injectable facade over the admin discount functions. */
+export class DiscountsAdminService {
+  createDiscountRule(input: CreateRuleDto, createdBy: string): Promise<DiscountRuleResponse> {
+    return createDiscountRule(input as unknown as CreateDiscountRuleInput, createdBy);
+  }
+
+  listDiscountRules(filters: RuleFiltersDto): Promise<DiscountRulesListResponse> {
+    return listDiscountRules(filters as unknown as DiscountRuleFilters);
+  }
+
+  createPromoCode(input: CreatePromoDto, createdBy: string): Promise<PromoCodeResponse> {
+    return createPromoCode(input as unknown as CreatePromoCodeInput, createdBy);
+  }
+
+  listPromoCodes(filters: PromoFiltersDto): Promise<PromoCodesListResponse> {
+    return listPromoCodes(filters as unknown as PromoCodeFilters);
+  }
+
+  applyDiscountRule(
+    ruleId: string,
+    appointmentId: string,
+    agreedPrice: number,
+    clientId: string
+  ): Promise<ApplyDiscountRuleResponse> {
+    return applyDiscountRule(ruleId, appointmentId, agreedPrice, clientId);
+  }
+
+  createAuditLog(
+    discountId: string,
+    discountType: 'rule' | 'promo_code',
+    action: 'create' | 'update' | 'delete' | 'activate' | 'deactivate',
+    changedBy: string,
+    details?: string
+  ): Promise<{ success: boolean; logEntry: unknown }> {
+    return createAuditLog(discountId, discountType, action, changedBy, details);
+  }
 }

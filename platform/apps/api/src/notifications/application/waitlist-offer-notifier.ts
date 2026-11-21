@@ -1,18 +1,27 @@
+/* eslint-disable max-params -- 1 signature whose 6-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 // SMS-адаптер пропозицій черги (T-4453): домен вирішує, кому запропонувати,
 // а канал лише доставляє текст. Використовує наявні сендери
 // (SendWaitlistOfferSms зі своїм sendExpired), тож окремих шаблонів не плодимо.
 // Тепер також відправляє push-повіщення клієнтам, що мають зареєстровані пристрої.
 
-import type { WaitlistOfferNotifier } from './waitlist-offer-notifier';
+import { Injectable } from '@nestjs/common';
+import type { WaitlistOfferNotifier } from '../../scheduling/application/waitlist-offer.use-case';
 import { SendWaitlistOfferSms } from './send-sms.use-case';
 import { ExpoPushSender } from '../infrastructure/expo-push-sender';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { PrismaDevicePushTokens } from '../infrastructure/device-push-tokens';
 import { PrismaJournal } from '../infrastructure/journal';
 
+/** Порт довідника телефонів клієнта (реалізація — CRM/identity). */
+export interface WaitlistClientPhones {
+  findPhone(clientId: string): Promise<string | null>;
+}
+
 const PUSH_TITLE = 'Ваше місце у черзі';
-const PUSH_BODY_OFFER = 'Для вас з\'явився свободний слот! Будь ласка, підтвердіть у течение 10 хвилин.';
-const PUSH_BODY_EXPIRED = 'Ваша пропозиція у черзі прострочилася. Нова пропозиція буде надіслана першому в черзі.';
+const PUSH_BODY_OFFER =
+  "Для вас з'явився свободний слот! Будь ласка, підтвердіть у течение 10 хвилин.";
+const PUSH_BODY_EXPIRED =
+  'Ваша пропозиція у черзі прострочилася. Нова пропозиція буде надіслана першому в черзі.';
 
 /** SMS-адаптер пропозицій черги з поддержкою push. */
 @Injectable()
@@ -20,11 +29,18 @@ export class SmsWaitlistOfferNotifier implements WaitlistOfferNotifier {
   constructor(
     private readonly sms: SendWaitlistOfferSms,
     private readonly phones: WaitlistClientPhones,
-    private readonly prisma: PrismaService,
-    private readonly pushSender: ExpoPushSender,
-    private readonly deviceTokens: PrismaDevicePushTokens,
-    private readonly journal: PrismaJournal,
+    private readonly prisma?: PrismaService,
+    private readonly pushSender?: ExpoPushSender,
+    private readonly deviceTokens?: PrismaDevicePushTokens,
+    private readonly journal?: PrismaJournal
   ) {}
+
+  /** Push доступний лише коли всі залежності каналу налаштовані. */
+  private pushEnabled(): boolean {
+    return (
+      this.deviceTokens !== undefined && this.pushSender !== undefined && this.journal !== undefined
+    );
+  }
 
   async sendOffer(input: {
     entryId: string;
@@ -41,10 +57,12 @@ export class SmsWaitlistOfferNotifier implements WaitlistOfferNotifier {
       });
     }
 
+    if (!this.pushEnabled()) return;
+
     // Send push notification
-    const tokens = await this.deviceTokens.findTokensByUserId(input.clientId);
+    const tokens = (await this.deviceTokens?.findTokensByUserId(input.clientId)) ?? [];
     if (tokens.length > 0) {
-      await this.pushSender.send(
+      await this.pushSender?.send(
         tokens.map((token) => ({
           token,
           title: PUSH_TITLE,
@@ -52,7 +70,7 @@ export class SmsWaitlistOfferNotifier implements WaitlistOfferNotifier {
         }))
       );
 
-      await this.journal.markSent({
+      await this.journal?.markSent({
         eventId: input.entryId,
         type: 'scheduling.waitlist.entry_created',
         channel: 'push',
@@ -69,10 +87,12 @@ export class SmsWaitlistOfferNotifier implements WaitlistOfferNotifier {
       await this.sms.sendExpired(phone);
     }
 
+    if (!this.pushEnabled()) return;
+
     // Send push notification
-    const tokens = await this.deviceTokens.findTokensByUserId(input.clientId);
+    const tokens = (await this.deviceTokens?.findTokensByUserId(input.clientId)) ?? [];
     if (tokens.length > 0) {
-      await this.pushSender.send(
+      await this.pushSender?.send(
         tokens.map((token) => ({
           token,
           title: PUSH_TITLE,
@@ -80,7 +100,7 @@ export class SmsWaitlistOfferNotifier implements WaitlistOfferNotifier {
         }))
       );
 
-      await this.journal.markSent({
+      await this.journal?.markSent({
         eventId: input.entryId,
         type: 'scheduling.waitlist.entry_created',
         channel: 'push',

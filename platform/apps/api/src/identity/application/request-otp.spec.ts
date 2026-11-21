@@ -1,5 +1,12 @@
 import { RequestOtpHandler } from './request-otp';
-import { FakeClock, FakeOtpChallengeRepository, FakeOtpSender, FakeOutbox, UuidIds, passthroughUow } from './ports.fakes';
+import {
+  FakeClock,
+  FakeOtpChallengeRepository,
+  FakeOtpSender,
+  FakeOutbox,
+  UuidIds,
+  passthroughUow,
+} from './ports.fakes';
 import { InvalidPhoneError, OtpResendTooSoonError } from './identity-errors';
 import { otpMatches } from '../domain/otp-code';
 

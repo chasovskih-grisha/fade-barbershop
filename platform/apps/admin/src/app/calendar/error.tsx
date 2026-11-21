@@ -30,7 +30,8 @@ export default function CalendarErrorBoundary({
         </div>
         <h2 className="text-xl font-bold text-fg">Помилка завантаження календаря</h2>
         <p className="text-sm text-fg-secondary leading-relaxed">
-          Не вдалося завантажити дані розкладу або мережевих візитів. Телеметрія зафіксувала збій в модулі адміністрування.
+          Не вдалося завантажити дані розкладу або мережевих візитів. Телеметрія зафіксувала збій в
+          модулі адміністрування.
         </p>
 
         <div className="pt-2 flex flex-col gap-2.5">

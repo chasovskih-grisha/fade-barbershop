@@ -40,7 +40,10 @@ export const RETENTION_VELOCITY_POLICIES: Record<VelocityRiskLevel, RetentionVel
 };
 
 export class ClientRetentionVelocityBooster {
-  static evaluateVelocity(averageCadenceDays: number, daysSinceLastVisit: number): {
+  static evaluateVelocity(
+    averageCadenceDays: number,
+    daysSinceLastVisit: number
+  ): {
     riskLevel: VelocityRiskLevel;
     cadenceRatio: number;
     policy: RetentionVelocityPolicy;

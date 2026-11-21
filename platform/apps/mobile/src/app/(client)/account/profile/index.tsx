@@ -5,8 +5,11 @@ import { styles } from './profile-styles';
 import { tokens } from '@fade/design-tokens';
 import { BirthdayCard } from './birthday-card';
 import { PushSection } from './push-section';
+import { useVisitCount } from './use-visit-count';
+import { formatVisitCount } from './visit-count';
 
 export function ProfileScreen() {
+  const visits = useVisitCount();
   const [name, setName] = useState('');
   const [birthday, setBirthday] = useState<Birthday | null>(null);
   const [saving, setSaving] = useState(false);
@@ -52,6 +55,11 @@ export function ProfileScreen() {
 
       <View style={[styles.card, { marginBottom: 16 }]}>
         <Text style={styles.label}>Ім’я</Text>
+        {visits === null ? null : (
+          <Text style={styles.visitCount} testID="profile-visit-count">
+            {formatVisitCount(visits)}
+          </Text>
+        )}
         <TextInput
           testID="profile-name-input"
           style={styles.input}

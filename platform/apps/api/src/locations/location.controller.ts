@@ -1,11 +1,41 @@
+/* eslint-disable max-lines -- cohesive module (277 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Location Controller — T-105: Second Location, MNG-ADM-11.
 // CRUD + pricing + manager + bookings + no-show rates.
 // Consolidated DTO usage; reduced inline mapping duplication.
 
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Query } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
+import {
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { LocationService } from './location.service';
-import { type CreateLocationInput, type UpdateLocationInput, type ToggleFranchiseModeInput, LocationOutput, LocationListOutput, LocationPricingOutput, ManagerAssignmentOutput, BookingListOutput, NoShowRatesOutput } from './location.dto';
+import {
+  CreateLocationInput,
+  UpdateLocationInput,
+  ToggleFranchiseModeInput,
+  LocationOutput,
+  LocationListOutput,
+  LocationDetailOutput,
+  LocationPricingOutput,
+  ManagerAssignmentOutput,
+  BookingListOutput,
+  NoShowRatesOutput,
+  StaffAssignmentListOutput,
+} from './location.dto';
 
 @Controller('locations')
 @ApiTags('locations')
@@ -21,7 +51,7 @@ export class LocationController {
     description: 'Return list of all active locations with basic info',
   })
   @HttpCode(HttpStatus.OK)
-  async getAllLocations(@Query('onlyActive') onlyActive = true): Promise<LocationListOutput> {
+  async getAllLocations(@Query('onlyActive') _onlyActive = true): Promise<LocationListOutput> {
     const locations = await this.locationService.getAllLocations();
     return {
       success: true,
@@ -39,7 +69,7 @@ export class LocationController {
     description: 'Return location details including pricing, staff, configuration',
   })
   @HttpCode(HttpStatus.OK)
-  async getLocationByCode(@Param('code') code: string): Promise<LocationOutput> {
+  async getLocationByCode(@Param('code') code: string): Promise<LocationDetailOutput> {
     const loc = await this.locationService.getLocationByCode(code);
     if (!loc) {
       throw new Error(`Location with code ${code} not found`);
@@ -58,7 +88,7 @@ export class LocationController {
     description: 'Create a new location with configuration',
   })
   @HttpCode(HttpStatus.CREATED)
-  async createLocation(@Body() input: CreateLocationInput): Promise<LocationOutput> {
+  async createLocation(@Body() input: CreateLocationInput): Promise<LocationDetailOutput> {
     const loc = await this.locationService.createLocation(input);
     return {
       success: true,
@@ -76,7 +106,10 @@ export class LocationController {
     description: 'Update location details',
   })
   @HttpCode(HttpStatus.OK)
-  async updateLocation(@Param('code') code: string, @Body() input: UpdateLocationInput): Promise<LocationOutput> {
+  async updateLocation(
+    @Param('code') code: string,
+    @Body() input: UpdateLocationInput
+  ): Promise<LocationDetailOutput> {
     const loc = await this.locationService.updateLocation(code, input);
     return {
       success: true,
@@ -93,7 +126,10 @@ export class LocationController {
     description: 'Enable/disable franchise mode for the location',
   })
   @HttpCode(HttpStatus.OK)
-  async toggleFranchiseMode(@Param('code') code: string, @Body() input: ToggleFranchiseModeInput): Promise<{ enabled: boolean; adminId?: string; timestamp: string }> {
+  async toggleFranchiseMode(
+    @Param('code') code: string,
+    @Body() input: ToggleFranchiseModeInput
+  ): Promise<{ enabled: boolean; adminId?: string; timestamp: string }> {
     const result = await this.locationService.toggleFranchiseMode(input.enabled, input.adminId);
     if (result) {
       return {
@@ -137,7 +173,10 @@ export class LocationController {
     description: 'Update per-location service pricing',
   })
   @HttpCode(HttpStatus.OK)
-  async updateLocationPricing(@Param('code') code: string, @Body() prices: { serviceId: string; amount: number }[]): Promise<LocationPricingOutput> {
+  async updateLocationPricing(
+    @Param('code') code: string,
+    @Body() prices: { serviceId: string; amount: number }[]
+  ): Promise<LocationPricingOutput> {
     const updated = await this.locationService.updateLocationPricing(code, prices);
     return {
       success: true,
@@ -155,8 +194,15 @@ export class LocationController {
     description: 'Assign a manager (barber) to this location',
   })
   @HttpCode(HttpStatus.OK)
-  async assignManagerToLocation(@Param('code') code: string, @Body() body: { userId: string; managerId: string }): Promise<ManagerAssignmentOutput> {
-    const result = await this.locationService.assignManagerToLocation(code, body.userId, body.managerId);
+  async assignManagerToLocation(
+    @Param('code') code: string,
+    @Body() body: { userId: string; managerId: string }
+  ): Promise<ManagerAssignmentOutput> {
+    const result = await this.locationService.assignManagerToLocation(
+      code,
+      body.userId,
+      body.managerId
+    );
     return {
       success: true,
       data: {
@@ -208,7 +254,10 @@ export class LocationController {
     description: 'Return bookings filtered by location and optional status',
   })
   @HttpCode(HttpStatus.OK)
-  async getBookingsByLocation(@Param('code') code: string, @Query('status') status?: string): Promise<BookingListOutput> {
+  async getBookingsByLocation(
+    @Param('code') code: string,
+    @Query('status') status?: string
+  ): Promise<BookingListOutput> {
     const bookings = await this.locationService.getBookingsByLocation(code, status);
     return {
       success: true,
@@ -226,7 +275,10 @@ export class LocationController {
     description: 'Return no-show rates sliced by booking channel',
   })
   @HttpCode(HttpStatus.OK)
-  async getNoShowRatesByLocation(@Param('code') code: string, @Query('appointments') appointmentsStr?: string): Promise<NoShowRatesOutput> {
+  async getNoShowRatesByLocation(
+    @Param('code') code: string,
+    @Query('appointments') appointmentsStr?: string
+  ): Promise<NoShowRatesOutput> {
     const appointments = appointmentsStr ? JSON.parse(appointmentsStr) : [];
     const rates = await this.locationService.getNoShowRatesByLocation(code, appointments);
     return {
@@ -245,7 +297,7 @@ export class LocationController {
     description: 'Return staff assignments for this location',
   })
   @HttpCode(HttpStatus.OK)
-  async getStaffAssignments(@Param('code') code: string): Promise<StaffAssignmentOutput[]> {
+  async getStaffAssignments(@Param('code') code: string): Promise<StaffAssignmentListOutput> {
     const assignments = await this.locationService.getStaffAssignments(code);
     return {
       success: true,

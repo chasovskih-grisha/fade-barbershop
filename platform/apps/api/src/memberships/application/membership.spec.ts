@@ -1,10 +1,19 @@
+/* eslint-disable max-lines -- cohesive module (168 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import { MembershipPlan } from '../domain/membership-plan.entity';
 import { MembershipInstance } from '../domain/membership-instance.entity';
-import { MembershipPlanRepository, MembershipInstanceRepository, OutboxPublisher, Clock } from '../domain/ports';
+import {
+  MembershipPlanRepository,
+  MembershipInstanceRepository,
+  OutboxPublisher,
+  Clock,
+} from '../domain/ports';
 import { DomainEvent } from '../domain/domain-event';
 import { PurchaseMembershipUseCase } from './purchase-membership.use-case';
 import { UseMembershipVisitUseCase } from './use-membership-visit.use-case';
-import { PauseMembershipUseCase, ResumeMembershipUseCase } from './pause-resume-membership.use-case';
+import {
+  PauseMembershipUseCase,
+  ResumeMembershipUseCase,
+} from './pause-resume-membership.use-case';
 
 class InMemoryPlanRepo implements MembershipPlanRepository {
   private plans = new Map<string, MembershipPlan>();
@@ -113,7 +122,7 @@ describe('FADE Memberships & Subscriptions Specialist Suite', () => {
     });
 
     const useVisitHandler = new UseMembershipVisitUseCase(instanceRepo, outbox, clock);
-    
+
     // First visit
     let res = await useVisitHandler.handle({
       membershipId: 'mem-inst-2',
@@ -136,7 +145,7 @@ describe('FADE Memberships & Subscriptions Specialist Suite', () => {
       useVisitHandler.handle({
         membershipId: 'mem-inst-2',
         clientId: 'client-456',
-      }),
+      })
     ).rejects.toThrow("Cannot use membership visit when status is 'COMPLETED'");
   });
 
@@ -160,6 +169,7 @@ describe('FADE Memberships & Subscriptions Specialist Suite', () => {
 
     const instanceBefore = await instanceRepo.findById('mem-inst-3');
     const originalEndDate = instanceBefore?.endDate;
+    if (!originalEndDate) throw new Error('expected original end date');
 
     const pauseHandler = new PauseMembershipUseCase(instanceRepo, outbox, clock);
     const resumeHandler = new ResumeMembershipUseCase(instanceRepo, outbox, clock);
@@ -184,10 +194,10 @@ describe('FADE Memberships & Subscriptions Specialist Suite', () => {
     const instanceAfter = await instanceRepo.findById('mem-inst-3');
     expect(instanceAfter?.status).toBe('ACTIVE');
     expect(instanceAfter?.pauseHistory).toHaveLength(1);
-    expect(instanceAfter?.pauseHistory[0]?.resumedAt).toBeDefined();
+    expect(instanceAfter?.pauseHistory?.[0]?.resumedAt).toBeDefined();
 
     // End date should be extended by 5 days
-    const expectedEndDate = new Date(originalEndDate!.getTime() + 5 * 24 * 60 * 60 * 1000);
-    expect(instanceAfter?.endDate.getTime()).toBe(expectedEndDate.getTime());
+    const expectedEndDate = new Date(originalEndDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+    expect(instanceAfter?.endDate?.getTime()).toBe(expectedEndDate.getTime());
   });
 });

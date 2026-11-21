@@ -25,9 +25,12 @@ describe('GET /api/account/bookings', () => {
   });
 
   it('returns 400 when query parameters are invalid', async () => {
-    const req = new NextRequest('http://localhost:3000/api/account/bookings?status=invalid_status', {
-      headers: { Authorization: 'Bearer token-123' },
-    });
+    const req = new NextRequest(
+      'http://localhost:3000/api/account/bookings?status=invalid_status',
+      {
+        headers: { Authorization: 'Bearer token-123' },
+      }
+    );
     const res = await GET(req);
     expect(res.status).toBe(400);
     const body = await res.json();
@@ -41,9 +44,12 @@ describe('GET /api/account/bookings', () => {
       json: async () => mockAppointments,
     });
 
-    const req = new NextRequest('http://localhost:3000/api/account/bookings?status=upcoming&limit=10', {
-      headers: { Cookie: 'session=abc' },
-    });
+    const req = new NextRequest(
+      'http://localhost:3000/api/account/bookings?status=upcoming&limit=10',
+      {
+        headers: { Cookie: 'session=abc' },
+      }
+    );
     const res = await GET(req);
     expect(res.status).toBe(200);
     const body = await res.json();

@@ -2,184 +2,91 @@
 
 import { useState } from 'react';
 import { Card, Button } from '@fade/ui';
+import PricingRuleCard from './PricingRuleCard';
+import PricingImpactBanner from './PricingImpactBanner';
+import { INITIAL_RULES, type PricingRule } from './pricing-rules-data';
 
-export interface PricingRule {
-  id: string;
-  name: string;
-  type: 'peak_surcharge' | 'off_peak_discount' | 'bundle_package';
-  multiplierOrDiscount: number; // e.g. 1.15 for +15%, 0.90 for -10%
-  description: string;
-  active: boolean;
-  targetAttachRate?: number; // percentage e.g. 35 for bundles
-}
+export type { PricingRule } from './pricing-rules-data';
 
 export function RevenuePricingManager({
   onSaveRule,
 }: {
   onSaveRule?: (rule: PricingRule) => void;
 }) {
-  const [rules, setRules] = useState<PricingRule[]>([
-    {
-      id: 'rule-1',
-      name: 'Вечірній піковий коефіцієнт (16:00 - 21:00)',
-      type: 'peak_surcharge',
-      multiplierOrDiscount: 1.15,
-      description: '+15% до ціни послуг у пікові вечірні години для максимізації доходу.',
-      active: true,
-    },
-    {
-      id: 'rule-2',
-      name: 'Ранкова знижка щасливих годин (09:00 - 12:00)',
-      type: 'off_peak_discount',
-      multiplierOrDiscount: 0.90,
-      description: '-10% знижка для стимулювання заповнення ранкових порожніх слотів.',
-      active: true,
-    },
-    {
-      id: 'rule-3',
-      name: 'Комплексний пакет "Executive Grooming" (Стрижка + Борода + Догляд)',
-      type: 'bundle_package',
-      multiplierOrDiscount: 0.85, // 15% bundle savings
-      description: 'Знижка 15% при купівлі комплексу послуг. Підвищує AOV та attach rate.',
-      active: true,
-      targetAttachRate: 40,
-    },
-  ]);
-
+  const [rules, setRules] = useState<PricingRule[]>(INITIAL_RULES);
   const [newRuleName, setNewRuleName] = useState('');
-  const [newRuleDesc, setNewRuleDesc] = useState('');
-  const [newRuleMultiplier, setNewRuleMultiplier] = useState('1.10');
+  const [newRuleValue, setNewRuleValue] = useState('1.10');
+  const [newRuleDescription, setNewRuleDescription] = useState('');
 
-  const toggleRule = (id: string) => {
-    setRules((prev) =>
-      prev.map((r) => {
-        if (r.id === id) {
-          const updated = { ...r, active: !r.active };
-          onSaveRule?.(updated);
-          return updated;
-        }
-        return r;
-      })
+  const toggle = (id: string): void => {
+    setRules((current) =>
+      current.map((rule) => (rule.id === id ? { ...rule, active: !rule.active } : rule))
     );
   };
 
-  const addRule = (e: React.FormEvent) => {
-    e.preventDefault();
+  const addRule = (): void => {
     if (!newRuleName.trim()) return;
     const rule: PricingRule = {
       id: `rule-${Date.now()}`,
-      name: newRuleName,
+      name: newRuleName.trim(),
       type: 'peak_surcharge',
-      multiplierOrDiscount: parseFloat(newRuleMultiplier) || 1.1,
-      description: newRuleDesc || 'Користувацьке правило ціноутворення',
+      multiplierOrDiscount: Number(newRuleValue) || 1,
+      description: newRuleDescription.trim(),
       active: true,
     };
-    setRules([...rules, rule]);
+    setRules((current) => [...current, rule]);
     onSaveRule?.(rule);
     setNewRuleName('');
-    setNewRuleDesc('');
+    setNewRuleValue('1.10');
+    setNewRuleDescription('');
   };
 
-  // Projected AOV lift & revenue impact calculation
-  const activeRulesCount = rules.filter((r) => r.active).length;
-  const projectedAovLift = activeRulesCount * 14.5; // estimated % AOV lift
-  const estimatedMonthlyRevenueUpside = activeRulesCount * 38500; // UAH upside
+  const activeCount = rules.filter((rule) => rule.active).length;
 
   return (
-    <Card className="p-6 flex flex-col gap-6 mt-6 border border-line bg-surface">
-      <div className="flex flex-col gap-1">
-        <h3 className="font-display text-h4 font-bold text-fg">
-          FADE — Управління доходом та оптимізація ціноутворення (Revenue & Pricing Specialist)
-        </h3>
-        <p className="text-body text-fg-muted">
-          Динамічне керування піковими націнками, ранковими знижками та пакетними бандлами для оптимізації AOV та завантаженості крісел.
+    <Card className="p-6 space-y-6">
+      <div>
+        <h2 className="font-display text-h2 text-fg">
+          FADE — Управління доходом та оптимізація ціноутворення
+        </h2>
+        <p className="text-body-sm text-fg-muted">
+          Динамічні правила націнок, знижок та пакетів для максимізації виручки та AOV.
         </p>
       </div>
-
-      {/* KPI Impact Banner */}
-      <div className="grid gap-4 sm:grid-cols-3 rounded-input bg-surface-sunken p-4 border border-line">
-        <div className="flex flex-col">
-          <span className="text-caption text-fg-muted">Активних правил оптимізації</span>
-          <span className="font-display text-h3 font-bold text-fg">{activeRulesCount} / {rules.length}</span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-caption text-fg-muted">Прогнозований приріст AOV</span>
-          <span className="font-display text-h3 font-bold text-semantic-success">+{projectedAovLift.toFixed(1)}%</span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-caption text-fg-muted">Орієнтовний додатковий місячний дохід</span>
-          <span className="font-display text-h3 font-bold text-fg">+{estimatedMonthlyRevenueUpside.toLocaleString()} ₴</span>
-        </div>
+      <PricingImpactBanner active={activeCount} total={rules.length} />
+      <div className="space-y-3">
+        {rules.map((rule) => (
+          <PricingRuleCard key={rule.id} rule={rule} onToggle={toggle} />
+        ))}
       </div>
-
-      {/* Rules list */}
-      <div className="flex flex-col gap-3">
-        <h4 className="font-display text-body font-semibold text-fg">Активні стратегії та правила</h4>
-        <div className="grid gap-3">
-          {rules.map((rule) => (
-            <div
-              key={rule.id}
-              className={`flex items-center justify-between p-4 rounded-input border transition-colors ${
-                rule.active ? 'border-accent-blue bg-surface-muted/50' : 'border-line bg-surface opacity-60'
-              }`}
-            >
-              <div className="flex flex-col gap-1 max-w-xl">
-                <div className="flex items-center gap-2">
-                  <span className="font-display text-body font-bold text-fg">{rule.name}</span>
-                  <span className="text-caption px-2 py-0.5 rounded bg-surface border border-line font-mono">
-                    {rule.type === 'peak_surcharge' && `Коефіцієнт: ×${rule.multiplierOrDiscount}`}
-                    {rule.type === 'off_peak_discount' && `Знижка: -${Math.round((1 - rule.multiplierOrDiscount) * 100)}%`}
-                    {rule.type === 'bundle_package' && `Пакетна економія: ${Math.round((1 - rule.multiplierOrDiscount) * 100)}%`}
-                  </span>
-                </div>
-                <p className="text-caption text-fg-muted">{rule.description}</p>
-                {rule.targetAttachRate && (
-                  <span className="text-caption text-accent-blue font-medium">
-                    Цільовий attach rate: {rule.targetAttachRate}%
-                  </span>
-                )}
-              </div>
-              <Button
-                variant={rule.active ? 'secondary' : 'primary'}
-                onClick={() => toggleRule(rule.id)}
-              >
-                {rule.active ? 'Вимкнути' : 'Увімкнути'}
-              </Button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Add new rule form */}
-      <form onSubmit={addRule} className="flex flex-col gap-3 pt-4 border-t border-line">
-        <h4 className="font-display text-body font-semibold text-fg">Додати нове правило оптимізації ціни</h4>
-        <div className="grid gap-3 sm:grid-cols-3">
+      <div className="border-t border-line pt-4 space-y-3">
+        <h3 className="font-display text-h3 text-fg">Додати нове правило</h3>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <input
-            type="text"
-            placeholder="Назва правила (напр. VIP-субота)"
+            aria-label="Назва правила"
+            placeholder="Назва правила"
+            className="rounded-input border border-line bg-surface px-3 py-2 text-fg"
             value={newRuleName}
-            onChange={(e) => setNewRuleName(e.target.value)}
-            className="rounded-input border border-line bg-surface px-3 py-2 text-body text-fg"
+            onChange={(event) => setNewRuleName(event.target.value)}
           />
           <input
-            type="text"
-            placeholder="Опис ефекту"
-            value={newRuleDesc}
-            onChange={(e) => setNewRuleDesc(e.target.value)}
-            className="rounded-input border border-line bg-surface px-3 py-2 text-body text-fg"
+            aria-label="Коефіцієнт або знижка"
+            type="number"
+            step="0.01"
+            className="rounded-input border border-line bg-surface px-3 py-2 text-fg"
+            value={newRuleValue}
+            onChange={(event) => setNewRuleValue(event.target.value)}
           />
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Множник (напр. 1.12)"
-              value={newRuleMultiplier}
-              onChange={(e) => setNewRuleMultiplier(e.target.value)}
-              className="rounded-input border border-line bg-surface px-3 py-2 text-body text-fg w-28"
-            />
-            <Button type="submit" variant="primary">Додати</Button>
-          </div>
+          <input
+            aria-label="Опис правила"
+            placeholder="Опис ефекту"
+            className="rounded-input border border-line bg-surface px-3 py-2 text-fg"
+            value={newRuleDescription}
+            onChange={(event) => setNewRuleDescription(event.target.value)}
+          />
         </div>
-      </form>
+        <Button onClick={addRule}>Додати правило</Button>
+      </div>
     </Card>
   );
 }

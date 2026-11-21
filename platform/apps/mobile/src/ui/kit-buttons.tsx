@@ -3,7 +3,19 @@ import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { tokens } from '@fade/design-tokens';
 import { styles } from './kit-styles';
 
-export function MobileButton({ title, onPress, disabled, loading, testID }: { title: string; onPress: () => void; disabled?: boolean; loading?: boolean; testID?: string }) {
+export function MobileButton({
+  title,
+  onPress,
+  disabled,
+  loading,
+  testID,
+}: {
+  title: string;
+  onPress: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+  testID?: string;
+}) {
   return (
     <Pressable
       testID={testID}
@@ -26,7 +38,7 @@ export function MobileCard({ children }: { children: React.ReactNode }) {
 
 export function MobileSkeleton({ testID }: { testID?: string }) {
   return (
-    <View testID={testID || "loading-skeleton"} style={styles.skeleton}>
+    <View testID={testID || 'loading-skeleton'} style={styles.skeleton}>
       <Text style={styles.skeletonText}>Завантаження...</Text>
     </View>
   );

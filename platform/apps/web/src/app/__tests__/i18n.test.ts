@@ -7,7 +7,7 @@ import commonUk from '../../../messages/uk/common.json';
 describe('i18n ICU pluralization and localization enhancement (FADE I18n Specialist)', () => {
   it('correctly formats Ukrainian plural forms for 1, 2, and 5 visits', () => {
     const template = bookingMessagesUk.visits;
-    
+
     const formatter1 = new IntlMessageFormat(template, 'uk');
     expect(formatter1.format({ count: 1 })).toBe('1 візит');
 
@@ -20,7 +20,7 @@ describe('i18n ICU pluralization and localization enhancement (FADE I18n Special
 
   it('correctly formats Spanish plural forms for 1 and multiple visits', () => {
     const template = bookingMessagesEs.visits;
-    
+
     const formatter1 = new IntlMessageFormat(template, 'es');
     expect(formatter1.format({ count: 1 })).toBe('1 visita');
 
@@ -30,7 +30,7 @@ describe('i18n ICU pluralization and localization enhancement (FADE I18n Special
 
   it('correctly formats English plural forms for 1 and multiple visits', () => {
     const template = bookingMessagesEn.visits;
-    
+
     const formatter1 = new IntlMessageFormat(template, 'en');
     expect(formatter1.format({ count: 1 })).toBe('1 visit');
 

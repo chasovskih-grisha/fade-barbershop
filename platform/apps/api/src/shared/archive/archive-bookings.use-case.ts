@@ -33,7 +33,15 @@ export function monthsAgo(now: Date, months: number): Date {
   const lastDay = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
   const day = Math.min(now.getUTCDate(), lastDay);
   return new Date(
-    Date.UTC(year, monthIndex, day, now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds())
+    Date.UTC(
+      year,
+      monthIndex,
+      day,
+      now.getUTCHours(),
+      now.getUTCMinutes(),
+      now.getUTCSeconds(),
+      now.getUTCMilliseconds()
+    )
   );
 }
 
@@ -71,7 +79,13 @@ export class ArchiveBookings {
       if (rows.length < this.batchSize) break;
     }
     const remaining = await this.deps.store.countExpired(cutoff);
-    const record: ArchiveRunRecord = { cutoff: cutoff.toISOString(), archived, remaining, keys, checksums };
+    const record: ArchiveRunRecord = {
+      cutoff: cutoff.toISOString(),
+      archived,
+      remaining,
+      keys,
+      checksums,
+    };
     await this.deps.store.recordRun(record, now);
     this.deps.audit?.(record);
     return { archived, remaining, keys };

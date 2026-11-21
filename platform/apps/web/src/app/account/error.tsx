@@ -29,7 +29,8 @@ export default function AccountErrorBoundary({
         </div>
         <h2 className="text-xl font-bold text-fg">Помилка кабінету клієнта</h2>
         <p className="text-sm text-fg-secondary leading-relaxed">
-          Не вдалося завантажити дані облікового запису або налаштування профілю. Будь ласка, спробуйте оновити сторінку або увійти знову.
+          Не вдалося завантажити дані облікового запису або налаштування профілю. Будь ласка,
+          спробуйте оновити сторінку або увійти знову.
         </p>
 
         <div className="pt-2 flex flex-col gap-2.5">

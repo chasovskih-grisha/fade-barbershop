@@ -4,11 +4,19 @@ import type { OnboardingRepository } from './onboarding.repository';
 export class GetOrCreateClientOnboardingUseCase {
   constructor(private readonly onboardingRepo: OnboardingRepository) {}
 
-  async execute(input: { clientId: string; isFirstVisit: boolean; discountPercent?: number }): Promise<ClientOnboarding> {
-    let existing = await this.onboardingRepo.findByClientId(input.clientId);
+  async execute(input: {
+    clientId: string;
+    isFirstVisit: boolean;
+    discountPercent?: number;
+  }): Promise<ClientOnboarding> {
+    const existing = await this.onboardingRepo.findByClientId(input.clientId);
     if (existing) return existing;
 
-    const onboarding = ClientOnboarding.create(input.clientId, input.isFirstVisit, input.discountPercent ?? 15);
+    const onboarding = ClientOnboarding.create(
+      input.clientId,
+      input.isFirstVisit,
+      input.discountPercent ?? 15
+    );
     await this.onboardingRepo.save(onboarding);
     return onboarding;
   }

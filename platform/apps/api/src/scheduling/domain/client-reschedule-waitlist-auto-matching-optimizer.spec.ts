@@ -1,4 +1,8 @@
-import { optimizeWaitlistAutoMatching, WaitlistCandidate, SlotAvailabilityOpening } from './client-reschedule-waitlist-auto-matching-optimizer';
+import {
+  optimizeWaitlistAutoMatching,
+  WaitlistCandidate,
+  SlotAvailabilityOpening,
+} from './client-reschedule-waitlist-auto-matching-optimizer';
 
 describe('ClientRescheduleWaitlistAutoMatchingOptimizer', () => {
   const opening: SlotAvailabilityOpening = {

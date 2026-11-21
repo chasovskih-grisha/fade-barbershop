@@ -1,4 +1,9 @@
-import { BOOKED_EVENT_TYPE, SendBookingConfirmation, confirmationEvent, makeConfirmationDeps } from './send-booking-confirmation.fakes';
+import {
+  BOOKED_EVENT_TYPE,
+  SendBookingConfirmation,
+  confirmationEvent,
+  makeConfirmationDeps,
+} from './send-booking-confirmation.fakes';
 
 // Skip-семантика розширення каналу: skipped = «одержувача вибраного каналу
 // не існує» (свідома відмова, журнал займає eventId). Вимкнений канал —

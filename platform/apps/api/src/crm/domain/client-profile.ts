@@ -36,9 +36,9 @@ export class ClientProfile {
   // prettier-ignore
   get notes(): Note[] { return [...this.props.notes]; }
   // prettier-ignore
-  get inviteCode(): string { return this.props.inviteCode; }
+  get inviteCode(): string { return this.props.inviteCode ?? ''; }
   // prettier-ignore
-  get referredBy(): string | null { return this.props.referredBy; }
+  get referredBy(): string | null { return this.props.referredBy ?? null; }
   // prettier-ignore
   get vipDiscountPercent(): number | null { return this.props.vipDiscountPercent; }
   // prettier-ignore

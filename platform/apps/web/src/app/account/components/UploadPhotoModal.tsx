@@ -54,7 +54,11 @@ export function UploadPhotoModal({ open, onClose, onComplete }: UploadPhotoModal
       }
     >
       <div className="flex flex-col gap-3">
-        {error && <div className="text-danger text-body-s" role="alert">{error}</div>}
+        {error && (
+          <div className="text-danger text-body-s" role="alert">
+            {error}
+          </div>
+        )}
         <input
           type="file"
           aria-label="Виберіть фото для завантаження"

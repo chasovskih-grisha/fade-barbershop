@@ -11,7 +11,7 @@ describe('BarberCommissionTier', () => {
     });
 
     expect(result.commissionTier).toBe('standard');
-    expect(result.appliedCommissionRate).toBe(0.40);
+    expect(result.appliedCommissionRate).toBe(0.4);
     expect(result.serviceCommissionAmount).toBe(400); // 1000 * 0.40
     expect(result.productCommissionAmount).toBe(30); // 200 * 0.15
     expect(result.bonusMultiplier).toBe(1.0);
@@ -26,7 +26,7 @@ describe('BarberCommissionTier', () => {
       baseServiceRevenue: 1000,
       productSalesRevenue: 0,
       tipsAmount: 50,
-      occupancyRate: 0.60,
+      occupancyRate: 0.6,
     });
 
     expect(result.commissionTier).toBe('bronze');
@@ -50,10 +50,10 @@ describe('BarberCommissionTier', () => {
     expect(result.appliedCommissionRate).toBe(0.45);
     expect(result.serviceCommissionAmount).toBe(900); // 2000 * 0.45
     expect(result.productCommissionAmount).toBe(75); // 500 * 0.15
-    expect(result.bonusMultiplier).toBe(1.10);
+    expect(result.bonusMultiplier).toBe(1.1);
     // subtotal = 975, bonus = 975 * 0.10 = 97.50
-    expect(result.bonusPayoutAmount).toBe(97.50);
-    expect(result.totalPayoutAmount).toBe(1222.50); // 975 + 97.50 + 150
+    expect(result.bonusPayoutAmount).toBe(97.5);
+    expect(result.totalPayoutAmount).toBe(1222.5); // 975 + 97.50 + 150
   });
 
   it('calculates gold tier commission for occupancy >= 85%', () => {
@@ -62,14 +62,14 @@ describe('BarberCommissionTier', () => {
       baseServiceRevenue: 3000,
       productSalesRevenue: 1000,
       tipsAmount: 300,
-      occupancyRate: 0.90,
+      occupancyRate: 0.9,
     });
 
     expect(result.commissionTier).toBe('gold');
-    expect(result.appliedCommissionRate).toBe(0.50);
+    expect(result.appliedCommissionRate).toBe(0.5);
     expect(result.serviceCommissionAmount).toBe(1500); // 3000 * 0.50
     expect(result.productCommissionAmount).toBe(150); // 1000 * 0.15
-    expect(result.bonusMultiplier).toBe(1.20);
+    expect(result.bonusMultiplier).toBe(1.2);
     // subtotal = 1650, bonus = 1650 * 0.20 = 330
     expect(result.bonusPayoutAmount).toBe(330);
     expect(result.totalPayoutAmount).toBe(2280); // 1650 + 330 + 300

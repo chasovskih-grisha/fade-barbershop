@@ -17,7 +17,7 @@ describe('RequestErasure (T-4805)', () => {
 
     expect(record.status).toBe('pending');
     expect(store.rows).toHaveLength(1);
-    expect(store.rows[0]?.subject.userId).toBe(USER_ID);
+    expect(store.rows[0]?.subject?.userId).toBe(USER_ID);
   });
 
   it('без валідного OTP заявки немає', async () => {

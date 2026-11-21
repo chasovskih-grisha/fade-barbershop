@@ -1,6 +1,23 @@
+/* eslint-disable max-lines, max-params -- cohesive module (121 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 signature whose 4-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 // Admin barbers CRUD — MNG-ADM-05. Барбер = User з роллю `barber`.
 
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Inject, Param, Patch, Post, Put, Req, UploadedFile, UseFilters, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Req,
+  UploadedFile,
+  UseFilters,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { CreateBarberHandler, type CreateBarberInput } from '../application/create-barber';
@@ -12,7 +29,13 @@ import { DeleteBarberPhotoHandler } from '../application/delete-barber-photo';
 import { type BarberPhotoRepository } from '../domain/ports.barber-photo';
 import { type PublicMediaStorage } from '../../shared/media/public-media-storage';
 import { IdentityExceptionFilter } from './identity.exception-filter';
-import { toBarberDto, type BarberDto, type CreateBarberDto, type UpdateBarberDto, type BarberPhotoDto } from './admin-barbers.dto';
+import {
+  toBarberDto,
+  type BarberDto,
+  type CreateBarberDto,
+  type UpdateBarberDto,
+  type BarberPhotoDto,
+} from './admin-barbers.dto';
 import { InvalidBarberInputError } from '../application/barber-errors';
 
 export type { BarberDto, CreateBarberDto, UpdateBarberDto, BarberPhotoDto };
@@ -39,9 +62,7 @@ export class AdminBarbersController {
   @Get()
   async listAll(): Promise<BarberDto[]> {
     const barbers = await this.deps.list.list();
-    const photos = await Promise.all(
-      barbers.map((b) => this.deps.photos.findByUserId(b.id))
-    );
+    const photos = await Promise.all(barbers.map((b) => this.deps.photos.findByUserId(b.id)));
     return barbers.map((b, i) => toBarberDto(b, photos[i], this.deps.media));
   }
 

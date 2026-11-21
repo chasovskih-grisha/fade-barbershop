@@ -9,7 +9,10 @@ import { IdentityModule } from '../infrastructure/identity.module';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { PrismaClientProfileRepository } from '../../crm/infrastructure/prisma-client-profile.repository';
 import { MemProfiles } from '../../crm/e2e/admin-clients.fakes';
-import { PrismaOtpChallengeRepository, PrismaUserRepository } from '../infrastructure/prisma-adapters';
+import {
+  PrismaOtpChallengeRepository,
+  PrismaUserRepository,
+} from '../infrastructure/prisma-adapters';
 import { PrismaSessionRepository } from '../infrastructure/prisma-session-repository';
 import { PrismaOutboxPublisher } from '../infrastructure/prisma-outbox-publisher';
 import { PrismaLoginAudit } from '../infrastructure/prisma-login-audit';

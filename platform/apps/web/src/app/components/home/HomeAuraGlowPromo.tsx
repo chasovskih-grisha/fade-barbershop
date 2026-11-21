@@ -17,7 +17,9 @@ export function HomeAuraGlowPromo() {
             Комплексний догляд «Aura Glow»: бездоганна форма та відновлення обличчя
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Поєднання преміальної стрижки волосся чи бороди з індивідуальним стайлінгом, глибоким очищенням шкіри та нашим фірмовим масажем голови. Створіть свій бездоганний імідж у затишній атмосфері приватної студії.
+            Поєднання преміальної стрижки волосся чи бороди з індивідуальним стайлінгом, глибоким
+            очищенням шкіри та нашим фірмовим масажем голови. Створіть свій бездоганний імідж у
+            затишній атмосфері приватної студії.
           </p>
           <div className="flex flex-wrap items-center gap-6 pt-2 text-sm text-fg-secondary">
             <span className="flex items-center gap-2 font-medium text-fg">
@@ -38,7 +40,9 @@ export function HomeAuraGlowPromo() {
             className="inline-flex h-13 w-full sm:w-auto items-center justify-center rounded-input bg-accent px-8 text-body font-semibold text-accent-fg hover:opacity-95 transition-all duration-300 shadow-xl hover:scale-[1.02] active:scale-[0.98]"
           >
             <span>Записатися на Aura Glow</span>
-            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+              &rarr;
+            </span>
           </Link>
           <Link
             href="/services"

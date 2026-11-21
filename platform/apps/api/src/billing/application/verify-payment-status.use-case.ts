@@ -1,3 +1,4 @@
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: an existing definition, complexity 12 vs 10); refactor tracked in T-2500f */
 import { PaymentCommandContext } from '../domain/ports';
 import { AcquiringGateway } from '../domain/acquiring.gateway.interface';
 import { PaymentCaptured, PaymentFailed } from '../domain/payment-events';
@@ -15,7 +16,9 @@ export interface VerifyPaymentStatusResult {
 }
 
 export class VerifyPaymentStatusHandler {
-  constructor(private readonly ctx: PaymentCommandContext & { acquiringGateway: AcquiringGateway }) {}
+  constructor(
+    private readonly ctx: PaymentCommandContext & { acquiringGateway: AcquiringGateway }
+  ) {}
 
   async handle(input: VerifyPaymentStatusInput): Promise<VerifyPaymentStatusResult> {
     const payment = await this.ctx.payments.findById(input.paymentId);
@@ -31,7 +34,11 @@ export class VerifyPaymentStatusHandler {
 
     const now = this.ctx.clock.now();
 
-    if (verification.status === 'succeeded' && payment.status !== PaymentStatus.PAID && payment.status !== PaymentStatus.DEPOSIT_PAID) {
+    if (
+      verification.status === 'succeeded' &&
+      payment.status !== PaymentStatus.PAID &&
+      payment.status !== PaymentStatus.DEPOSIT_PAID
+    ) {
       const receiptId = `rcpt_verify_${payment.id}_${now.getTime()}`;
       if (payment.status === PaymentStatus.AWAITING_DEPOSIT) {
         payment.markDepositPaid(receiptId);
@@ -42,8 +49,11 @@ export class VerifyPaymentStatusHandler {
       await this.ctx.outbox.append([
         new PaymentCaptured({
           paymentId: payment.id,
-          appointmentId: payment.appointmentId,
-          amount: verification.amountReceived !== undefined ? verification.amountReceived : payment.amount,
+          ...(payment.appointmentId ? { appointmentId: payment.appointmentId } : {}),
+          amount:
+            verification.amountReceived !== undefined
+              ? verification.amountReceived
+              : payment.amount,
           receiptId,
           traceId: input.traceId,
           occurredAt: now,
@@ -54,7 +64,7 @@ export class VerifyPaymentStatusHandler {
       await this.ctx.outbox.append([
         new PaymentFailed({
           paymentId: payment.id,
-          appointmentId: payment.appointmentId,
+          ...(payment.appointmentId ? { appointmentId: payment.appointmentId } : {}),
           reason: 'Verified as failed via status API recovery',
           traceId: input.traceId,
           occurredAt: now,
@@ -65,7 +75,9 @@ export class VerifyPaymentStatusHandler {
     return {
       paymentId: payment.id,
       status: verification.status,
-      ...(verification.amountReceived !== undefined ? { amountReceived: verification.amountReceived } : {}),
+      ...(verification.amountReceived !== undefined
+        ? { amountReceived: verification.amountReceived }
+        : {}),
     };
   }
 }

@@ -3,6 +3,14 @@
 
 import { Article, type ArticleProps } from '../domain/article';
 import type { DomainEvent } from '../domain/article.events';
+import {
+  feedQuery,
+  isAfterCursor,
+  matchesSearch,
+  matchesTag,
+  newestFirst,
+  type ArticleFeedQuery,
+} from './article-feed';
 import type { ArticleRepository, Clock, IdGenerator, Outbox, UnitOfWork } from '../domain/ports';
 
 export class FakeClock implements Clock {
@@ -60,11 +68,15 @@ export class FakeArticleRepository implements ArticleRepository {
     return [...this.store.values()].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
-  async listPublished(limit = 20): Promise<Article[]> {
-    return (await this.list())
+  async listPublished(raw: ArticleFeedQuery = {}): Promise<Article[]> {
+    const query = feedQuery(raw);
+    return [...this.store.values()]
       .filter((a) => a.isPublished)
-      .sort((a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0))
-      .slice(0, limit);
+      .filter((a) => matchesTag(a, query.tag))
+      .filter((a) => matchesSearch(a, query.q))
+      .filter((a) => isAfterCursor(a, query.cursor))
+      .sort(newestFirst)
+      .slice(0, query.limit);
   }
 }
 

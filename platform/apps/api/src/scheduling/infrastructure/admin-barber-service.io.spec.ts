@@ -74,6 +74,10 @@ describe('admin slot policy IO (T-4522)', () => {
       lastMinuteMinutes: 1440,
       timeZone: 'Europe/Warsaw',
     });
-    expect(result).toMatchObject({ stepMinutes: 45, bufferMinutes: 120, timeZone: 'Europe/Warsaw' });
+    expect(result).toMatchObject({
+      stepMinutes: 45,
+      bufferMinutes: 120,
+      timeZone: 'Europe/Warsaw',
+    });
   });
 });

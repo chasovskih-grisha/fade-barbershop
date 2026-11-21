@@ -6,7 +6,9 @@ describe('AnalyzeReviewFeedbackUseCase', () => {
   it('should analyze review sentiment and compute net promoter score', async () => {
     const reviewsStore: ReviewItem[] = [];
     const repo: ReputationRepository = {
-      saveReview: async (r) => { reviewsStore.push(r); },
+      saveReview: async (r) => {
+        reviewsStore.push(r);
+      },
       listReviewsForLocation: async () => reviewsStore,
       getCompetitorBenchmarks: async () => [],
       saveCompetitorBenchmark: async () => {},

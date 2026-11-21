@@ -6,6 +6,8 @@ import { PrismaSurgeRuleStore } from './infrastructure/prisma-surge-rule.store';
 import { SurgeRulesController } from './infrastructure/surge-rules.controller';
 import { SURGE_RULE_STORE, SurgePricing } from './application/surge-quote';
 
+export { SurgePricing } from './application/surge-quote';
+
 @Module({
   controllers: [SurgeRulesController],
   providers: [

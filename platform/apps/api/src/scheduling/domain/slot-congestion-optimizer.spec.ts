@@ -10,20 +10,20 @@ describe('SlotCongestionOptimizer', () => {
 
     const results = optimizeSlotCongestion(records);
 
-    const r0 = results[0]!;
-    const r1 = results[1]!;
-    const r2 = results[2]!;
+    const r0 = results[0];
+    const r1 = results[1];
+    const r2 = results[2];
 
-    expect(r0.tier).toBe('PEAK');
-    expect(r0.pricingMultiplier).toBe(1.2);
-    expect(r0.recommendedAlternativeHour).toBe(18);
+    expect(r0?.tier).toBe('PEAK');
+    expect(r0?.pricingMultiplier).toBe(1.2);
+    expect(r0?.recommendedAlternativeHour).toBe(18);
 
-    expect(r1.tier).toBe('NORMAL');
-    expect(r1.pricingMultiplier).toBe(1.0);
-    expect(r1.recommendedAlternativeHour).toBeUndefined();
+    expect(r1?.tier).toBe('NORMAL');
+    expect(r1?.pricingMultiplier).toBe(1.0);
+    expect(r1?.recommendedAlternativeHour).toBeUndefined();
 
-    expect(r2.tier).toBe('OFF_PEAK');
-    expect(r2.pricingMultiplier).toBe(0.9);
+    expect(r2?.tier).toBe('OFF_PEAK');
+    expect(r2?.pricingMultiplier).toBe(0.9);
   });
 
   it('handles edge case capacities and empty records gracefully', () => {
@@ -32,8 +32,8 @@ describe('SlotCongestionOptimizer', () => {
     ];
 
     const results = optimizeSlotCongestion(records);
-    const r0 = results[0]!;
-    expect(r0.congestionRate).toBe(0);
-    expect(r0.tier).toBe('OFF_PEAK');
+    const r0 = results[0];
+    expect(r0?.congestionRate).toBe(0);
+    expect(r0?.tier).toBe('OFF_PEAK');
   });
 });

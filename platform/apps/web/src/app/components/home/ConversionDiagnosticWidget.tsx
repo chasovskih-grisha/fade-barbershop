@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
 import Link from 'next/link';
-import { conversionIntelligence, conversionHealthAnalytics, trackEvent } from '@/lib/analytics';
+import { useConversionDiagnostic } from './useConversionDiagnostic';
+import { ConversionMetrics } from './ConversionMetrics';
 
 interface ConversionDiagnosticWidgetProps {
   initialStartedCount?: number;
@@ -13,28 +13,14 @@ export function ConversionDiagnosticWidget({
   initialStartedCount = 1250,
   initialCompletedCount = 890,
 }: ConversionDiagnosticWidgetProps) {
-  const [startedCount] = useState(initialStartedCount);
-  const [completedCount] = useState(initialCompletedCount);
-  const [isSimulating, setIsSimulating] = useState(false);
-
-  const healthScore = conversionHealthAnalytics.calculateFunnelHealthScore(completedCount, startedCount);
-
-  const handleSimulateDropoffRisk = () => {
-    setIsSimulating(true);
-    conversionIntelligence.trackDropOffRisk('slot_selection_step', 'User lingering over fully booked slots during peak evening hours');
-    trackEvent('conversion_diagnostic_simulated', { action: 'drop_off_risk', health_score: healthScore });
-    setTimeout(() => setIsSimulating(false), 1200);
-  };
-
-  const handleRunAudit = () => {
-    trackEvent('conversion_audit_executed', {
-      started_count: startedCount,
-      completed_count: completedCount,
-      health_score: healthScore,
-      timestamp: Date.now(),
-    });
-    alert(`[FADE Analytics] Аудит конверсійної воронки успішно виконано!\nПоказник здоров'я воронки (Funnel Health Score): ${healthScore}%\nСтатус: Оптимізовано для високої конверсії (P1).`);
-  };
+  const {
+    startedCount,
+    completedCount,
+    healthScore,
+    isSimulating,
+    handleSimulateDropoffRisk,
+    handleRunAudit,
+  } = useConversionDiagnostic(initialStartedCount, initialCompletedCount);
 
   return (
     <section className="relative overflow-hidden rounded-[var(--radius-card)] bg-gradient-to-br from-surface-raised via-surface to-surface-sunken border border-accent/30 p-6 md:p-8 shadow-xl">
@@ -47,51 +33,34 @@ export function ConversionDiagnosticWidget({
               <span>📊 FADE Conversion Intelligence • P1 Diagnostics</span>
             </div>
             <h2 className="text-h4 md:text-h3 font-display font-bold text-fg">
-              Аналітика конверсії та здоров'я воронки запису
+              Аналітика конверсії та здоров&apos;я воронки запису
             </h2>
             <p className="text-body text-fg-secondary mt-1">
-              Моніторинг кроків запису в реальному часі, виявлення зон ризику відмов (drop-off) та оптимізація шляху клієнта.
+              Моніторинг кроків запису в реальному часі, виявлення зон ризику відмов (drop-off) та
+              оптимізація шляху клієнта.
             </p>
           </div>
 
           <div className="flex items-center gap-3 bg-surface-sunken border border-line rounded-[var(--radius-card)] px-5 py-3 shadow-inner shrink-0">
             <div className="flex flex-col">
-              <span className="text-xs text-fg-secondary uppercase tracking-wider font-medium">Funnel Health</span>
+              <span className="text-xs text-fg-secondary uppercase tracking-wider font-medium">
+                Funnel Health
+              </span>
               <span className="text-2xl font-bold font-display text-accent">{healthScore}%</span>
             </div>
             <div className="h-8 w-px bg-line mx-1" />
             <div className="flex flex-col">
-              <span className="text-xs text-fg-secondary uppercase tracking-wider font-medium">Конверсія</span>
-              <span className="text-sm font-semibold text-fg">{(completedCount / Math.max(1, startedCount) * 100).toFixed(1)}%</span>
+              <span className="text-xs text-fg-secondary uppercase tracking-wider font-medium">
+                Конверсія
+              </span>
+              <span className="text-sm font-semibold text-fg">
+                {((completedCount / Math.max(1, startedCount)) * 100).toFixed(1)}%
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-surface border border-line rounded-[var(--radius-card)] p-4 flex flex-col justify-between shadow-sm">
-            <span className="text-xs font-medium text-fg-secondary uppercase tracking-wider">Старти воронки (БХ-1)</span>
-            <div className="flex items-baseline justify-between mt-2">
-              <span className="text-xl font-bold font-display text-fg">{startedCount}</span>
-              <span className="text-xs text-accent font-medium">+12.4% за тиждень</span>
-            </div>
-          </div>
-
-          <div className="bg-surface border border-line rounded-[var(--radius-card)] p-4 flex flex-col justify-between shadow-sm">
-            <span className="text-xs font-medium text-fg-secondary uppercase tracking-wider">Успішні записи (БХ-6)</span>
-            <div className="flex items-baseline justify-between mt-2">
-              <span className="text-xl font-bold font-display text-fg">{completedCount}</span>
-              <span className="text-xs text-accent font-medium">Високий retention</span>
-            </div>
-          </div>
-
-          <div className="bg-surface border border-line rounded-[var(--radius-card)] p-4 flex flex-col justify-between shadow-sm">
-            <span className="text-xs font-medium text-fg-secondary uppercase tracking-wider">Середній час кроку</span>
-            <div className="flex items-baseline justify-between mt-2">
-              <span className="text-xl font-bold font-display text-fg">38 сек</span>
-              <span className="text-xs text-fg-secondary font-medium">Оптимально (&lt;45с)</span>
-            </div>
-          </div>
-        </div>
+        <ConversionMetrics startedCount={startedCount} completedCount={completedCount} />
 
         <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
           <div className="flex items-center gap-3">

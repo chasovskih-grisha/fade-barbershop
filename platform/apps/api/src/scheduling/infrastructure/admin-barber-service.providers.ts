@@ -7,7 +7,13 @@ import { PrismaSlotPolicyRepository } from './prisma-slot-policy.repository';
 import type { BarberServiceAssignmentRepository } from '../domain/ports.barber-service-assignment';
 import type { SlotPolicyRepository } from '../domain/ports.slot-policy';
 import { ADMIN_BARBER_SERVICE_IO, type AdminBarberServiceDeps } from './admin-barber-service.dto';
-import { getSlotPolicy, listForBarberAndLocation, listForServiceAndLocation, saveSlotPolicy, setAssignment } from './admin-barber-service.io';
+import {
+  getSlotPolicy,
+  listForBarberAndLocation,
+  listForServiceAndLocation,
+  saveSlotPolicy,
+  setAssignment,
+} from './admin-barber-service.io';
 
 const ADMIN_MATRIX_IO = Symbol('ADMIN_MATRIX_IO');
 const ADMIN_SLOT_POLICY_IO = Symbol('ADMIN_SLOT_POLICY_IO');

@@ -2,7 +2,18 @@
 // No hex; range validation via number/slice; policy change = info banner
 // "for new bookings only" (already-generated slots are not rewritten).
 
-import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Patch, Post, UseFilters } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  UseFilters,
+} from '@nestjs/common';
 import { SchedulingExceptionFilter } from './scheduling.exception-filter';
 import { ADMIN_BARBER_SERVICE_IO, type AdminBarberServiceDeps } from './admin-barber-service.dto';
 import type {
@@ -14,7 +25,14 @@ import type {
 } from './admin-barber-service.dto';
 
 export { ADMIN_BARBER_SERVICE_IO } from './admin-barber-service.dto';
-export type { BarberServiceAssignmentForBarberDto, BarberServiceAssignmentsForLocationDto, CreateOrActivateAssignmentDto, SlotPolicyDto, UpdateSlotPolicyDto, AdminBarberServiceDeps };
+export type {
+  BarberServiceAssignmentForBarberDto,
+  BarberServiceAssignmentsForLocationDto,
+  CreateOrActivateAssignmentDto,
+  SlotPolicyDto,
+  UpdateSlotPolicyDto,
+  AdminBarberServiceDeps,
+};
 
 @Controller('admin/barber-service')
 @UseFilters(SchedulingExceptionFilter)

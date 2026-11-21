@@ -18,9 +18,9 @@ The field is already on the card. The quote is the missing line under the hint.
 
 ## Done
 
-- [ ] Typing does not change the quote
-- [ ] A successful save does
-- [ ] Empty saved note shows the empty sentence
+- [x] Typing does not change the quote
+- [x] A successful save does
+- [x] Empty saved note shows the empty sentence
 
 ## Risks
 

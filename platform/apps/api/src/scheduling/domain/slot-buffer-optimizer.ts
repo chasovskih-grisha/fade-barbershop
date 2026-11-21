@@ -50,6 +50,9 @@ export class SlotBufferOptimizer {
     });
 
     // Conflict occurs if optimizedA.totalEndMinutes > optimizedB.startMinutes && optimizedB.totalEndMinutes > optimizedA.startMinutes
-    return optimizedA.totalEndMinutes > optimizedB.startMinutes && optimizedB.totalEndMinutes > optimizedA.startMinutes;
+    return (
+      optimizedA.totalEndMinutes > optimizedB.startMinutes &&
+      optimizedB.totalEndMinutes > optimizedA.startMinutes
+    );
   }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (107 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // DTO контрактів T-151 Feedback Surfaces.
 // T-4463: повторна оцінка, закриття циклу й модерація вітрини.
 import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';

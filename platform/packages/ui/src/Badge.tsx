@@ -25,7 +25,7 @@ export function Badge({ tone = 'neutral', children, className, role, ...rest }: 
     <span
       role={role ?? (rest['aria-label'] || rest['aria-labelledby'] ? 'status' : undefined)}
       className={cn(
-        'inline-flex items-center rounded-pill px-2.5 py-0.5 text-caption font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-accent-blue/50 border',
+        'inline-flex items-center rounded-pill px-2.5 py-0.5 text-caption font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue/50 border',
         TONES[tone],
         className
       )}

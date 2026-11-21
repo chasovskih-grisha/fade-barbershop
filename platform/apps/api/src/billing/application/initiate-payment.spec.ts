@@ -52,7 +52,10 @@ class MockAcquiringGateway implements AcquiringGateway {
     return { refundId: 're_123' };
   }
 
-  async verifyPaymentStatus(): Promise<{ status: 'succeeded' | 'pending' | 'failed'; amountReceived?: number }> {
+  async verifyPaymentStatus(): Promise<{
+    status: 'succeeded' | 'pending' | 'failed';
+    amountReceived?: number;
+  }> {
     return { status: 'succeeded' };
   }
 }
@@ -90,7 +93,7 @@ describe('InitiatePaymentHandler', () => {
     expect(result.paymentId).toBe('pay-init-1');
     expect(result.checkoutUrl).toContain('cs_test_pay-init-1');
     expect(outbox.events.length).toBe(1);
-    expect(outbox.events[0]!.type).toBe('billing.payment.initiated');
+    expect(outbox?.events?.[0]?.type).toBe('billing.payment.initiated');
   });
 
   it('prevents duplicate payment creation on double click / existing payment ID', async () => {
@@ -107,8 +110,6 @@ describe('InitiatePaymentHandler', () => {
 
     await handler.handle(input);
 
-    await expect(handler.handle(input)).rejects.toThrow(
-      /Payment with ID pay-dup-1 already exists/
-    );
+    await expect(handler.handle(input)).rejects.toThrow(/Payment with ID pay-dup-1 already exists/);
   });
 });

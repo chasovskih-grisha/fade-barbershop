@@ -1,3 +1,4 @@
+/* eslint-disable max-params -- 1 signature whose 8-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 export type ReferralStatus = 'pending' | 'completed' | 'rewarded' | 'revoked';
 
 export interface ReferralRecord {

@@ -17,7 +17,13 @@ const PADDINGS = {
   lg: 'p-6',
 } as const;
 
-export function Card({ interactive = false, padding = 'md', className, children, ...rest }: CardProps) {
+export function Card({
+  interactive = false,
+  padding = 'md',
+  className,
+  children,
+  ...rest
+}: CardProps) {
   return (
     <div
       role={interactive ? 'button' : undefined}

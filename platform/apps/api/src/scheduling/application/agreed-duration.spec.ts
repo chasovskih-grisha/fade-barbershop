@@ -1,6 +1,11 @@
 import { BarberSchedule } from '../domain/availability';
 import { BookAppointment } from './book-appointment.use-case';
-import { FakeBookingRepository, FakeScheduleRepo, makeOpeningHours, slotOf } from './book-appointment.fakes';
+import {
+  FakeBookingRepository,
+  FakeScheduleRepo,
+  makeOpeningHours,
+  slotOf,
+} from './book-appointment.fakes';
 
 describe('T-4618a Agreed Duration on Visit', () => {
   const opening = makeOpeningHours(0, '08:00', '20:00');
@@ -17,7 +22,12 @@ describe('T-4618a Agreed Duration on Visit', () => {
       scheduleRepo: new FakeScheduleRepo([schedule]),
       openingHours: opening,
       serviceDuration: 30,
-      serviceSnapshot: { serviceId: 'svc-1', agreedPrice: 500, agreedDuration: 30, fulfillmentMode: 'sequential' },
+      serviceSnapshot: {
+        serviceId: 'svc-1',
+        agreedPrice: 500,
+        agreedDuration: 30,
+        fulfillmentMode: 'sequential',
+      },
     });
 
     const b1 = await useCase.execute('barber-1', 'loc-1', slotOf('10:00', '10:30'));

@@ -23,7 +23,11 @@ export const VIP_TIER_RULES: Record<VipTier, VipTierRule> = {
     minLifetimeSpendUah: 7500,
     minCompletedVisits: 12,
     discountPercentage: 10,
-    complimentaryPerks: ['Complimentary Styling Product', 'Free Beard Trim Upgrade / Year', 'Priority Booking'],
+    complimentaryPerks: [
+      'Complimentary Styling Product',
+      'Free Beard Trim Upgrade / Year',
+      'Priority Booking',
+    ],
     priorityBookingWindowHours: 48,
   },
   PLATINUM: {
@@ -31,7 +35,11 @@ export const VIP_TIER_RULES: Record<VipTier, VipTierRule> = {
     minLifetimeSpendUah: 15000,
     minCompletedVisits: 25,
     discountPercentage: 15,
-    complimentaryPerks: ['Free Haircut Upgrade', 'Complimentary Premium Pomade', 'VIP Lounge Access'],
+    complimentaryPerks: [
+      'Free Haircut Upgrade',
+      'Complimentary Premium Pomade',
+      'VIP Lounge Access',
+    ],
     priorityBookingWindowHours: 72,
   },
   BLACK: {
@@ -39,7 +47,11 @@ export const VIP_TIER_RULES: Record<VipTier, VipTierRule> = {
     minLifetimeSpendUah: 30000,
     minCompletedVisits: 50,
     discountPercentage: 20,
-    complimentaryPerks: ['Unlimited Hot Towel Shaves', 'Concierge Booking', 'Exclusive Member Events'],
+    complimentaryPerks: [
+      'Unlimited Hot Towel Shaves',
+      'Concierge Booking',
+      'Exclusive Member Events',
+    ],
     priorityBookingWindowHours: 168,
   },
 };
@@ -58,7 +70,11 @@ export class VipAnniversaryBooster {
     return VIP_TIER_RULES.SILVER;
   }
 
-  static generateAnniversaryMessage(clientName: string, yearsActive: number, tier: VipTier): { discountPercentage: number; message: string } {
+  static generateAnniversaryMessage(
+    clientName: string,
+    yearsActive: number,
+    tier: VipTier
+  ): { discountPercentage: number; message: string } {
     const tierRule = VIP_TIER_RULES[tier];
     const discount = tierRule.discountPercentage + 5; // Anniversary bonus boost
     const perksText = tierRule.complimentaryPerks.join(', ');

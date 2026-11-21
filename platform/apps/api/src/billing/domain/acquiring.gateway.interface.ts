@@ -18,7 +18,12 @@ export interface AcquiringGateway {
     cancelUrl: string;
     automaticCapture?: boolean;
     customerVatId?: string;
-  }): Promise<{ checkoutUrl: string; providerSessionId: string; captureStatus?: 'automatic' | 'manual'; invoice?: InvoiceDetails }>;
+  }): Promise<{
+    checkoutUrl: string;
+    providerSessionId: string;
+    captureStatus?: 'automatic' | 'manual';
+    invoice?: InvoiceDetails;
+  }>;
 
   refundPayment(params: {
     providerSessionId: string;
@@ -32,5 +37,9 @@ export interface AcquiringGateway {
     paymentId: string;
     providerSessionId: string;
     traceId: string;
-  }): Promise<{ status: 'succeeded' | 'pending' | 'failed'; amountReceived?: number; invoice?: InvoiceDetails }>;
+  }): Promise<{
+    status: 'succeeded' | 'pending' | 'failed';
+    amountReceived?: number;
+    invoice?: InvoiceDetails;
+  }>;
 }

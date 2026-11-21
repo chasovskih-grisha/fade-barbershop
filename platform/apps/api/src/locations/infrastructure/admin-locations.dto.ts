@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (111 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import type { Location } from '../domain/location';
 import type { LocationLogo } from '../domain/location-logo';
 import type { PublicMediaStorage } from '../../shared/media/public-media-storage';

@@ -14,10 +14,13 @@ export function HomeBespokeGroomingConciergePromo() {
             <span>💎 Елітний сервіс • FADE Bespoke Grooming Concierge</span>
           </div>
           <h2 className="text-h3 md:text-h2 font-display font-bold text-fg leading-tight">
-            «Bespoke Grooming Concierge»: індивідуальне курування іміджу та виїзний сервіс вищого рівня
+            «Bespoke Grooming Concierge»: індивідуальне курування іміджу та виїзний сервіс вищого
+            рівня
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Персональний консьєрж-сервіс для лідерів думок, топ-менеджерів та публічних осіб. Комплексний догляд, підбір стилю під важливі події, консультації з трихології та можливість замовлення майстра додому, в офіс або готель.
+            Персональний консьєрж-сервіс для лідерів думок, топ-менеджерів та публічних осіб.
+            Комплексний догляд, підбір стилю під важливі події, консультації з трихології та
+            можливість замовлення майстра додому, в офіс або готель.
           </p>
           <div className="flex flex-wrap items-center gap-6 pt-2 text-sm text-fg-secondary">
             <span className="flex items-center gap-2 font-medium text-fg">
@@ -38,7 +41,9 @@ export function HomeBespokeGroomingConciergePromo() {
             className="inline-flex h-13 w-full sm:w-auto items-center justify-center rounded-input bg-accent px-8 text-body font-semibold text-accent-fg hover:opacity-95 transition-all duration-300 shadow-xl hover:scale-[1.02] active:scale-[0.98]"
           >
             <span>Замовити Concierge</span>
-            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+              &rarr;
+            </span>
           </Link>
           <Link
             href="/services"

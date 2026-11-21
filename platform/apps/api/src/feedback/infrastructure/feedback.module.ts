@@ -34,7 +34,7 @@ class InMemoryCompetitorBenchmarkRepository implements CompetitorBenchmarkReposi
         }),
       ]);
     }
-    return this.benchmarks.get(locationId)!;
+    return this.benchmarks.get(locationId) ?? [];
   }
 
   async save(benchmark: CompetitorBenchmark): Promise<void> {

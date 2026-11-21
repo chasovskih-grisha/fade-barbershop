@@ -1,13 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { getOrCreateCorrelationId } from '@/lib/api/correlation';
+import {
+  errorResponse,
+  hasCredentials,
+  parseJsonBody,
+  proxyHeaders,
+  successResponse,
+  upstreamError,
+  validationError,
+} from '@/lib/api/route-proxy';
 
 const API_BASE = process.env.WEB_API_URL ?? process.env.API_ORIGIN ?? 'http://localhost:13000';
 
 const rescheduleSchema = z.object({
   action: z.literal('reschedule'),
   newSlotId: z.string().min(1, 'New slot ID is required'),
-  newDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)').optional(),
+  newDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
+    .optional(),
 });
 
 const cancelSchema = z.object({
@@ -17,86 +29,56 @@ const cancelSchema = z.object({
 
 const patchSchema = z.discriminatedUnion('action', [rescheduleSchema, cancelSchema]);
 
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+type ActionPayload = z.infer<typeof patchSchema>;
+type UpstreamRequest = { url: string; method: string; body: unknown };
+
+function toUpstreamRequest(payload: ActionPayload, bookingId: string): UpstreamRequest {
+  const baseUrl = `${API_BASE}/identity/appointments/${bookingId}`;
+  if (payload.action === 'cancel') {
+    return {
+      url: `${baseUrl}/cancel`,
+      method: 'POST',
+      body: { reason: payload.reason },
+    };
+  }
+  return {
+    url: `${baseUrl}/reschedule`,
+    method: 'POST',
+    body: { slotId: payload.newSlotId, date: payload.newDate },
+  };
+}
+
+export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const correlationId = getOrCreateCorrelationId(request);
   const { id: bookingId } = await context.params;
 
   try {
-    const authHeader = request.headers.get('Authorization');
-    const cookieHeader = request.headers.get('Cookie');
-
-    if (!authHeader && !cookieHeader) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401, headers: { 'X-Correlation-ID': correlationId } }
-      );
+    if (!hasCredentials(request)) {
+      return errorResponse('Unauthorized', 401, correlationId);
     }
 
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { error: 'Invalid JSON body' },
-        { status: 400, headers: { 'X-Correlation-ID': correlationId } }
-      );
+    const parsed = await parseJsonBody(request, correlationId);
+    if ('response' in parsed) return parsed.response;
+
+    const result = patchSchema.safeParse(parsed.body);
+    if (!result.success) {
+      return validationError(result.error.issues, 'Invalid request payload', correlationId);
     }
 
-    const parseResult = patchSchema.safeParse(body);
-    if (!parseResult.success) {
-      const errorMessage = parseResult.error.issues[0]?.message ?? 'Invalid request payload';
-      return NextResponse.json(
-        { error: errorMessage },
-        { status: 400, headers: { 'X-Correlation-ID': correlationId } }
-      );
-    }
-
-    const payload = parseResult.data;
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'X-Correlation-ID': correlationId,
-    };
-    if (authHeader) headers['Authorization'] = authHeader;
-    if (cookieHeader) headers['Cookie'] = cookieHeader;
-
-    let upstreamEndpoint = `${API_BASE}/identity/appointments/${bookingId}`;
-    let upstreamMethod = 'PATCH';
-    let upstreamBody: any = payload;
-
-    if (payload.action === 'cancel') {
-      upstreamEndpoint = `${API_BASE}/identity/appointments/${bookingId}/cancel`;
-      upstreamMethod = 'POST';
-      upstreamBody = { reason: payload.reason };
-    } else if (payload.action === 'reschedule') {
-      upstreamEndpoint = `${API_BASE}/identity/appointments/${bookingId}/reschedule`;
-      upstreamMethod = 'POST';
-      upstreamBody = { slotId: payload.newSlotId, date: payload.newDate };
-    }
-
-    const res = await fetch(upstreamEndpoint, {
-      method: upstreamMethod,
-      headers,
-      body: JSON.stringify(upstreamBody),
+    const upstream = toUpstreamRequest(result.data, bookingId);
+    const res = await fetch(upstream.url, {
+      method: upstream.method,
+      headers: proxyHeaders(request, correlationId),
+      body: JSON.stringify(upstream.body),
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: 'Failed to process appointment action' }));
-      return NextResponse.json(
-        { error: err.message },
-        { status: res.status, headers: { 'X-Correlation-ID': correlationId } }
-      );
+      return upstreamError(res, 'Failed to process appointment action', correlationId);
     }
 
-    const data = await res.json().catch(() => ({ success: true }));
-    return NextResponse.json(data, { headers: { 'X-Correlation-ID': correlationId } });
+    return successResponse(await res.json().catch(() => ({ success: true })), correlationId);
   } catch (err) {
     console.error('Booking patch/action API error:', err);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500, headers: { 'X-Correlation-ID': correlationId } }
-    );
+    return errorResponse('Internal server error', 500, correlationId);
   }
 }

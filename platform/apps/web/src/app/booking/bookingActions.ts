@@ -1,39 +1,11 @@
 'use client';
 
-import type { Dispatch, SetStateAction } from 'react';
 import { submitBooking } from './submitBooking';
-import type { ReferenceSource } from './submitBooking';
-import type { AvailableSlotDto, LocationDto, ServiceDto } from './types';
 import { bookingAnalytics } from '@/lib/analytics';
+import type { BookingActionState, Setters } from './bookingActions.types';
+import type { AvailableSlotDto, LocationDto, ServiceDto } from './types';
 
-type Setters = {
-  setStep: Dispatch<SetStateAction<number>>;
-  setLocation: Dispatch<SetStateAction<LocationDto | null>>;
-  setService: Dispatch<SetStateAction<ServiceDto | null>>;
-  setBarberId: Dispatch<SetStateAction<string>>;
-  setDate: Dispatch<SetStateAction<string>>;
-  setSlot: Dispatch<SetStateAction<AvailableSlotDto | null>>;
-  setReferenceSource: Dispatch<SetStateAction<ReferenceSource>>;
-  setSelectedVariantObjectKey: Dispatch<SetStateAction<string | null>>;
-  setUploadedPhoto: Dispatch<SetStateAction<string | null>>;
-  setBookingId: Dispatch<SetStateAction<string>>;
-  setSubmitting: Dispatch<SetStateAction<boolean>>;
-  setError: Dispatch<SetStateAction<string>>;
-};
-
-export function bookingActions(
-  state: {
-    location: LocationDto | null;
-    service: ServiceDto | null;
-    slot: AvailableSlotDto | null;
-    date: string;
-    barberId: string;
-    comment: string;
-    referenceSource: ReferenceSource;
-    selectedVariantObjectKey: string | null;
-  },
-  setters: Setters
-) {
+export function bookingActions(state: BookingActionState, setters: Setters) {
   return {
     confirm: async () => {
       if (!state.location || !state.service || !state.slot) return;
@@ -62,7 +34,7 @@ export function bookingActions(
         setters.setSubmitting(false);
       }
     },
-    chooseLocation: (loc: LocationDto) => {
+    chooseLocation: (loc: LocationDto & { code?: string }) => {
       setters.setLocation(loc);
       setters.setService(null);
       setters.setSlot(null);
@@ -70,7 +42,7 @@ export function bookingActions(
       setters.setReferenceSource('none');
       setters.setSelectedVariantObjectKey(null);
       setters.setUploadedPhoto(null);
-      bookingAnalytics.locationSelected((loc as any).code || loc.id);
+      bookingAnalytics.locationSelected(loc.code || loc.id);
       setters.setStep(1);
     },
     chooseDate: (d: string) => {
@@ -80,11 +52,7 @@ export function bookingActions(
     chooseService: (svc: ServiceDto) => {
       setters.setService(svc);
       setters.setSlot(null);
-      bookingAnalytics.serviceSelected({
-        id: svc.id,
-        name: svc.name,
-        price: svc.price,
-      });
+      bookingAnalytics.serviceSelected({ id: svc.id, name: svc.name, price: svc.price });
       setters.setStep(2);
     },
     chooseBarber: (id: string) => {

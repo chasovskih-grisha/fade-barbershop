@@ -14,12 +14,12 @@ export interface SurgePricingResult {
 export class PeakSurgePricingOptimizer {
   public static calculateSurgePrice(config: SlotSurgeConfig): SurgePricingResult {
     const { basePrice, demandFactor, isPeakHour, vipPriorityMultiplier } = config;
-    
+
     let multiplier = 1.0;
     if (isPeakHour) {
       multiplier += 0.25;
     }
-    
+
     // Add demand factor influence
     multiplier += Math.max(0, demandFactor * 0.5);
 

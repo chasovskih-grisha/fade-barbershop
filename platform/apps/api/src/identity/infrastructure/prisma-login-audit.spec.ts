@@ -66,8 +66,8 @@ describe('PrismaLoginAudit', () => {
 
     const all = await audit.list(USER_1, 999);
     expect(all).toHaveLength(50);
-    expect(all[0]?.ts.toISOString()).toBe('2026-09-28T08:54:00.000Z'); // новіший перший
-    expect(all[49]?.ts.toISOString()).toBe('2026-09-28T08:05:00.000Z'); // 5 найстаріших витіснено
+    expect(all[0]?.ts?.toISOString()).toBe('2026-09-28T08:54:00.000Z'); // новіший перший
+    expect(all[49]?.ts?.toISOString()).toBe('2026-09-28T08:05:00.000Z'); // 5 найстаріших витіснено
   });
 
   it('різні userId мають незалежні журнали', async () => {

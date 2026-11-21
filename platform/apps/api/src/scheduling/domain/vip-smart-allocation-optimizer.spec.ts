@@ -10,7 +10,7 @@ describe('VipSmartAllocationOptimizer', () => {
       serviceId: 'service-fade-deluxe',
       serviceBasePriceCents: 6500,
       barberId: 'barber-1',
-      barberUtilizationScore: 0.90,
+      barberUtilizationScore: 0.9,
       requestedSlotTimestamp: '2026-11-15T14:00:00Z',
       isPeakHour: true,
     });
@@ -18,7 +18,7 @@ describe('VipSmartAllocationOptimizer', () => {
     expect(result.allocationScore).toBeGreaterThanOrEqual(0.85);
     expect(result.reservedHoldWindowMinutes).toBeGreaterThan(10);
     expect(result.autoAssignedPriorityQueue).toBe(true);
-    expect(result.recommendedSurgeMultiplier).toBeGreaterThanOrEqual(1.10);
+    expect(result.recommendedSurgeMultiplier).toBeGreaterThanOrEqual(1.1);
   });
 
   it('should handle standard non-VIP clients correctly during off-peak hours', () => {
@@ -30,12 +30,12 @@ describe('VipSmartAllocationOptimizer', () => {
       serviceId: 'service-classic-cut',
       serviceBasePriceCents: 4000,
       barberId: 'barber-2',
-      barberUtilizationScore: 0.40,
+      barberUtilizationScore: 0.4,
       requestedSlotTimestamp: '2026-11-15T10:00:00Z',
       isPeakHour: false,
     });
 
-    expect(result.allocationScore).toBeLessThan(0.40);
+    expect(result.allocationScore).toBeLessThan(0.4);
     expect(result.reservedHoldWindowMinutes).toBe(10);
     expect(result.autoAssignedPriorityQueue).toBe(false);
     expect(result.recommendedSurgeMultiplier).toBe(1.0);

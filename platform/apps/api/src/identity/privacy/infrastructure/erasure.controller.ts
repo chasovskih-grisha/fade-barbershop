@@ -56,16 +56,16 @@ export class AccountErasureReportController {
       take: 20,
       select: { id: true, status: true, completedAt: true, report: true },
     });
-    const byStatus = Object.fromEntries(
-      grouped.map((group) => [group.status, group._count._all])
-    );
+    const byStatus = Object.fromEntries(grouped.map((group) => [group.status, group._count._all]));
     return {
       byStatus,
       recent: rows.map((row) => ({
         id: row.id,
         status: row.status,
         completedAt: row.completedAt?.toISOString() ?? null,
-        objectsDeleted: Number((row.report as { objectsDeleted?: number } | null)?.objectsDeleted ?? 0),
+        objectsDeleted: Number(
+          (row.report as { objectsDeleted?: number } | null)?.objectsDeleted ?? 0
+        ),
       })),
     };
   }

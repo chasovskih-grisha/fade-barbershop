@@ -17,7 +17,14 @@ describe('RevenueOptimizationController', () => {
   });
 
   it('should get dynamic price quote', () => {
-    const result = controller.getDynamicPriceQuote('1000', '2026-11-14T14:00:00', 'loc-1', undefined, 'standard', 'false');
+    const result = controller.getDynamicPriceQuote(
+      '1000',
+      '2026-11-14T14:00:00',
+      'loc-1',
+      undefined,
+      'standard',
+      'false'
+    );
     expect(result.pricingTier).toBe('peak');
     expect(result.finalPrice).toBe(1150);
   });
@@ -58,9 +65,7 @@ describe('RevenueOptimizationController', () => {
         includedVisitsPerMonth: 2,
         discountOnAdditionalServices: 10,
       },
-      expectedMonthlyUsage: [
-        { serviceId: 'service-haircut', basePrice: 1000, visits: 3 },
-      ],
+      expectedMonthlyUsage: [{ serviceId: 'service-haircut', basePrice: 1000, visits: 3 }],
     });
     expect(result.isPassEconomicalForClient).toBe(true);
     expect(result.passName).toBe('VIP Pass');

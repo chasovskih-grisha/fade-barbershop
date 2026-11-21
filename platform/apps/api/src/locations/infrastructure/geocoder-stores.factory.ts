@@ -9,8 +9,18 @@ import type {
   GeocoderRateLimitStore,
   GeocoderTombstoneStore,
 } from '../domain/geocoder-stores';
-import { LocalGeocoderCacheStore, LocalGeocoderRateLimitStore, LocalGeocoderTombstoneStore } from './local-geocoder-stores';
-import { RedisGeocoderCacheStore, RedisGeocoderRateLimitStore, RedisGeocoderTombstoneStore, getRedisClient, type RedisLike } from './redis-geocoder-stores';
+import {
+  LocalGeocoderCacheStore,
+  LocalGeocoderRateLimitStore,
+  LocalGeocoderTombstoneStore,
+} from './local-geocoder-stores';
+import {
+  RedisGeocoderCacheStore,
+  RedisGeocoderRateLimitStore,
+  RedisGeocoderTombstoneStore,
+  getRedisClient,
+  type RedisLike,
+} from './redis-geocoder-stores';
 
 export type GeocoderStoreMode = 'local' | 'redis';
 

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (338 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-4459: авто-кампанія «День народження» — вікно, згода,
 // підтверджена дата, ліміт «раз на рік», 29 лютого й аудит ручної зміни.
 import { BadRequestException, NotFoundException } from '@nestjs/common';
@@ -117,9 +118,7 @@ describe('birthday campaign policy (T-4459)', () => {
     );
     expect(() => normalizeBirthdayCampaignConfig({ validDays: 0 })).toThrow('validDays');
     expect(() => normalizeBirthdayCampaignConfig({ channels: [] })).toThrow('channel');
-    expect(() => normalizeBirthdayCampaignConfig({ channels: ['sms', 'sms'] })).toThrow(
-      'unique'
-    );
+    expect(() => normalizeBirthdayCampaignConfig({ channels: ['sms', 'sms'] })).toThrow('unique');
     expect(() => normalizeBirthdayCampaignConfig({ maxPerClientPerYear: 0 })).toThrow(
       'maxPerClientPerYear'
     );
@@ -130,19 +129,20 @@ describe('birthday campaign policy (T-4459)', () => {
 
     expect(plan.suppressed).toEqual([]);
     expect(plan.offers).toHaveLength(1);
-    const offer = plan.offers[0]!;
-    expect(offer.clientId).toBe('c-1');
-    expect(offer.daysUntil).toBe(5);
-    expect(offer.occurrenceYear).toBe(2026);
-    expect(offer.fingerprint).toBe('birthday:c-1:2026');
-    expect(offer.discountPercent).toBe(15);
-    expect(offer.channels).toEqual(['sms']);
-    expect(offer.validUntil).toEqual({ year: 2026, month: 12, day: 8 });
-    expect(offer.text).toBe(
+    const offer = plan.offers[0];
+    if (!offer) throw new Error('expected birthday offer');
+    expect(offer?.clientId).toBe('c-1');
+    expect(offer?.daysUntil).toBe(5);
+    expect(offer?.occurrenceYear).toBe(2026);
+    expect(offer?.fingerprint).toBe('birthday:c-1:2026');
+    expect(offer?.discountPercent).toBe(15);
+    expect(offer?.channels).toEqual(['sms']);
+    expect(offer?.validUntil).toEqual({ year: 2026, month: 12, day: 8 });
+    expect(offer?.text).toBe(
       renderBirthdayOffer({ discountPercent: 15, validUntil: offer.validUntil })
     );
-    expect(offer.text).toContain('15%');
-    expect(offer.text).toContain('08.12.2026');
+    expect(offer?.text).toContain('15%');
+    expect(offer?.text).toContain('08.12.2026');
   });
 
   it('suppresses clients outside the window, without consent or with an unconfirmed date', () => {
@@ -169,7 +169,7 @@ describe('birthday campaign policy (T-4459)', () => {
 
   it('sends one offer per client per year and allows the next year', () => {
     const first = planBirthdayCampaign({ clients: [client()], now: NOW });
-    const fingerprint = first.offers[0]!.fingerprint;
+    const fingerprint = first.offers[0]?.fingerprint ?? '';
 
     const repeat = planBirthdayCampaign({
       clients: [client()],
@@ -184,7 +184,7 @@ describe('birthday campaign policy (T-4459)', () => {
       now: new Date('2027-11-19T09:00:00Z'),
       offeredFingerprints: new Set([fingerprint]),
     });
-    expect(nextYear.offers[0]!.fingerprint).toBe('birthday:c-1:2027');
+    expect(nextYear?.offers?.[0]?.fingerprint).toBe('birthday:c-1:2027');
   });
 
   it('respects a disabled campaign and a custom lead window', () => {
@@ -209,8 +209,8 @@ describe('birthday campaign policy (T-4459)', () => {
       clients: [client({ birthday: { day: 29, month: 2 } })],
       now: new Date('2027-02-25T09:00:00Z'),
     });
-    expect(plan.offers[0]!.daysUntil).toBe(3);
-    expect(plan.offers[0]!.validUntil).toEqual({ year: 2027, month: 3, day: 14 });
+    expect(plan?.offers?.[0]?.daysUntil).toBe(3);
+    expect(plan?.offers?.[0]?.validUntil).toEqual({ year: 2027, month: 3, day: 14 });
   });
 
   it('records an audited date change and rejects invalid authors or dates', () => {
@@ -277,7 +277,7 @@ describe('BirthdayCampaignService (T-4459)', () => {
       {
         clientId: 'c-1',
         channels: ['sms'],
-        text: preview.offers[0]!.text,
+        text: preview?.offers?.[0]?.text,
         occurrenceYear: 2026,
       },
     ]);
@@ -305,9 +305,9 @@ describe('BirthdayCampaignService (T-4459)', () => {
 
     const history = service.history();
     expect(history.deliveries).toHaveLength(1);
-    expect(history.deliveries[0]!.year).toBe(2026);
+    expect(history?.deliveries?.[0]?.year).toBe(2026);
     expect(history.audits).toHaveLength(1);
-    expect(history.audits[0]!.from).toEqual({ day: 24, month: 11 });
+    expect(history?.audits?.[0]?.from).toEqual({ day: 24, month: 11 });
     expect(history.config.leadDays).toBe(7);
   });
 

@@ -3,7 +3,12 @@
 import { Booking } from '../domain/booking';
 import { BarberSchedule } from '../domain/availability';
 import { BookAppointment } from './book-appointment.use-case';
-import { FakeBookingRepository, FakeScheduleRepo, makeOpeningHours, slotOf } from './book-appointment.fakes';
+import {
+  FakeBookingRepository,
+  FakeScheduleRepo,
+  makeOpeningHours,
+  slotOf,
+} from './book-appointment.fakes';
 
 const date = '2026-10-05';
 const schedule = BarberSchedule.create({

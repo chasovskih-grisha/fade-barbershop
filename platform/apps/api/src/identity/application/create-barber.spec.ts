@@ -27,7 +27,9 @@ describe('CreateBarberHandler', () => {
     const { handler, users, outbox } = setup();
     const result = await handler.handle({ name: '  Іван  ', phone: '+380501234567' });
     // T-4300e: id генерує UuidIds (uuidv7) — перевіряємо формат, не порядок вставки.
-    expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(result.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+    );
 
     const barber = await users.findById(result.id);
     expect(barber).not.toBeNull();

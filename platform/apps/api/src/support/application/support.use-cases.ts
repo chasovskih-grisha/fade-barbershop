@@ -1,5 +1,11 @@
 import { SupportTicketRepository } from './support.repository';
-import { SupportTicketEntity, InteractiveFaqEntity, ErrorRecoverySuggestionEntity, SupportTicketCategory, SupportTicketPriority } from '../domain/support.entity';
+import {
+  SupportTicketEntity,
+  InteractiveFaqEntity,
+  ErrorRecoverySuggestionEntity,
+  SupportTicketCategory,
+  SupportTicketPriority,
+} from '../domain/support.entity';
 
 export class CreateSupportTicketUseCase {
   constructor(private readonly supportRepository: SupportTicketRepository) {}

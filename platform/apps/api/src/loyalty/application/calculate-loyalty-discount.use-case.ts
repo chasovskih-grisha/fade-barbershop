@@ -1,5 +1,10 @@
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: an existing definition, complexity 11 vs 10); refactor tracked in T-2500f */
 import { ClientLoyaltyState } from '../domain/client-loyalty-state';
-import { determineLoyaltyTier, DEFAULT_LOYALTY_TIERS, LoyaltyTierConfig } from '../domain/loyalty-tier';
+import {
+  determineLoyaltyTier,
+  DEFAULT_LOYALTY_TIERS,
+  LoyaltyTierConfig,
+} from '../domain/loyalty-tier';
 import type { LoyaltyCommandContext } from '../domain/ports';
 import { FreeVisitApplied } from '../domain/loyalty-events';
 
@@ -39,7 +44,8 @@ export class CalculateLoyaltyDiscountHandler {
 
     // Override tier if stored on state
     const currentTierName = state.tier || tierConfig.level;
-    const resolvedTier = DEFAULT_LOYALTY_TIERS.find((t) => t.level === currentTierName) || tierConfig;
+    const resolvedTier =
+      DEFAULT_LOYALTY_TIERS.find((t) => t.level === currentTierName) || tierConfig;
 
     const originalTotal = Object.values(input.servicePrices).reduce((sum, p) => sum + p, 0);
     let discountedTotal = originalTotal;

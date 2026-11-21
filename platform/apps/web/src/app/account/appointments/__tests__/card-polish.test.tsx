@@ -16,6 +16,7 @@ describe('AppointmentCard Polish (ACC-01)', () => {
     referenceId: null,
     referenceComment: '',
     canEditReference: true,
+    canBookAgain: true,
   };
 
   it('renders refined card details and price correctly', () => {
@@ -34,5 +35,19 @@ describe('AppointmentCard Polish (ACC-01)', () => {
     expect(screen.getByText('Мужська стрижка • Олександр')).toBeInTheDocument();
     expect(screen.getByText('850 ₴')).toBeInTheDocument();
     expect(screen.getByText('Підтверджено')).toBeInTheDocument();
+  });
+
+  it('не показує «Записатися знову» на завершеному візиті в партії (T-4617)', () => {
+    render(
+      <AppointmentCard
+        app={{ ...mockApp, status: 'completed', canBookAgain: false }}
+        processingAction={null}
+        onReschedule={() => {}}
+        onCancel={() => {}}
+        onEditReference={() => {}}
+      />
+    );
+
+    expect(screen.queryByRole('button', { name: 'Записатися знову' })).toBeNull();
   });
 });

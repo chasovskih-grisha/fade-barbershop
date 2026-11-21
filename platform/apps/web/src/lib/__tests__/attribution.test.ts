@@ -1,4 +1,8 @@
-import { recordTouchpoint, getJourneyTouchpoints, calculateAttributionWeights } from '../attribution';
+import {
+  recordTouchpoint,
+  getJourneyTouchpoints,
+  calculateAttributionWeights,
+} from '../attribution';
 
 describe('FADE Attribution & Journey Intelligence', () => {
   beforeEach(() => {

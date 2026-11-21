@@ -6,3 +6,6 @@ import { DEFAULT_DEPOSIT_POLICY, type DepositPolicy } from '../domain/deposit-te
 export type { DepositPolicy };
 
 export const depositPolicy: DepositPolicy = DEFAULT_DEPOSIT_POLICY;
+
+/** Ім'я для провайдерів, які очікують «політику за замовчуванням». */
+export const defaultDepositPolicy: DepositPolicy = DEFAULT_DEPOSIT_POLICY;

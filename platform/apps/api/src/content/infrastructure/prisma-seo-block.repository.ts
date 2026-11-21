@@ -27,7 +27,9 @@ export class PrismaSeoBlockRepository implements SeoBlockRepository {
 
   async save(seoBlock: SeoBlock): Promise<void> {
     await this.prisma.seoBlockRecord.upsert({
-      where: { entityType_entityId: { entityType: seoBlock.entityType, entityId: seoBlock.entityId } },
+      where: {
+        entityType_entityId: { entityType: seoBlock.entityType, entityId: seoBlock.entityId },
+      },
       create: {
         id: seoBlock.id,
         entityType: seoBlock.entityType,

@@ -27,6 +27,7 @@ describe('картка акаунта (T-4720b)', () => {
       <AccountProfileCard
         name="Олександр"
         phone="+380991234567"
+        visitCount={null}
         saving={false}
         canSave={false}
         onNameChange={jest.fn()}
@@ -45,6 +46,7 @@ describe('картка акаунта (T-4720b)', () => {
       <AccountProfileCard
         name="Олександр"
         phone="+380991234567"
+        visitCount={null}
         saving={false}
         canSave={false}
         onNameChange={jest.fn()}

@@ -1,4 +1,4 @@
-import { VipAnniversaryBooster, VIP_TIER_RULES } from './domain/vip-anniversary-booster.entity';
+import { VipAnniversaryBooster } from './domain/vip-anniversary-booster.entity';
 
 describe('VipAnniversaryBooster', () => {
   it('should evaluate correct VIP tier based on spend and visits', () => {

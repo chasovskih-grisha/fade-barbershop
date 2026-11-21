@@ -77,7 +77,8 @@ export class NoShowEscrowSettlementService {
       depositAmount: deposit,
       servicePrice: input.servicePrice,
       appointmentStatus: input.appointmentStatus,
-      cancellationPolicyApplied: input.policyApplied as 'FREE' | 'LATE_FEE' | 'NO_SHOW_FORFEIT' | 'EXCUSED',
+      cancellationPolicyApplied: input.policyApplied as
+        'FREE' | 'LATE_FEE' | 'NO_SHOW_FORFEIT' | 'EXCUSED',
       feeAmount: fee,
       refundAmount,
       escrowStatus,

@@ -5,6 +5,9 @@
 import { OutboxNotificationsDispatcher } from './outbox-dispatcher';
 import type { OutboxConsumers } from './outbox-routing';
 
+const timerOf = (dispatcher: OutboxNotificationsDispatcher): unknown =>
+  (dispatcher as unknown as { timer?: unknown }).timer;
+
 const quiet = () => ({ handled: false, reason: 'ignored' as const });
 
 const makeDispatcher = (consumers?: Partial<OutboxConsumers>) => {
@@ -36,18 +39,15 @@ describe('OutboxNotificationsDispatcher: таймер (T-4608)', () => {
     const { dispatcher } = makeDispatcher();
     expect(() => dispatcher.onApplicationBootstrap()).not.toThrow();
     dispatcher.start(0);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((dispatcher as any).timer).toBeUndefined();
+    expect(timerOf(dispatcher)).toBeUndefined();
   });
 
   it('start/stop керують таймером; зупинка onModuleDestroy', () => {
     const { dispatcher } = makeDispatcher();
     dispatcher.start(60_000);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((dispatcher as any).timer).toBeDefined();
+    expect(timerOf(dispatcher)).toBeDefined();
     dispatcher.onModuleDestroy();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((dispatcher as any).timer).toBeUndefined();
+    expect(timerOf(dispatcher)).toBeUndefined();
   });
 
   it('помилка тіка не вбиває цикл: наступний тік планується', async () => {

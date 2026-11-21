@@ -78,7 +78,9 @@ describe('LocationDetailPage — og:image (T-4841)', () => {
     const { container } = render(
       await LocationDetailPage({ params: Promise.resolve({ code: 'LVI-01' }) })
     );
-    const json = JSON.parse(container.querySelector('script[type="application/ld+json"]')!.textContent!);
+    const json = JSON.parse(
+      container.querySelector('script[type="application/ld+json"]')!.textContent!
+    );
     expect(json.logo).toBe('https://media.test/logo-light.svg');
   });
 });

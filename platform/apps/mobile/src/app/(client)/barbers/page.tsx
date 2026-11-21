@@ -41,7 +41,9 @@ export default function BarbersDirectoryScreen() {
   if (loading) {
     return (
       <View style={[styles.content, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text testID="loading-skeleton" style={styles.cardMuted}>Завантаження...</Text>
+        <Text testID="loading-skeleton" style={styles.cardMuted}>
+          Завантаження...
+        </Text>
       </View>
     );
   }
@@ -50,11 +52,7 @@ export default function BarbersDirectoryScreen() {
     return (
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.hero}>Не вдалося завантажити майстрів</Text>
-        <Pressable
-          accessibilityRole="button"
-          style={styles.cta}
-          onPress={() => router.push('/')}
-        >
+        <Pressable accessibilityRole="button" style={styles.cta} onPress={() => router.push('/')}>
           <Text style={styles.ctaLabel}>На головну</Text>
         </Pressable>
       </ScrollView>
@@ -68,15 +66,21 @@ export default function BarbersDirectoryScreen() {
         style={{ marginBottom: 16 }}
         onPress={() => router.push('/')}
       >
-        <Text style={styles.cardMuted} testID="back-home">← На головну</Text>
+        <Text style={styles.cardMuted} testID="back-home">
+          ← На головну
+        </Text>
       </Pressable>
 
-      <Text style={styles.hero} testID="directory-title">Наші майстри</Text>
+      <Text style={styles.hero} testID="directory-title">
+        Наші майстри
+      </Text>
       <Text style={styles.heroSub}>Оберіть барбера для запису</Text>
 
       <View style={{ marginTop: 16 }}>
         {barbers.length === 0 ? (
-          <Text style={styles.cardMuted} testID="no-barbers">Майстрів наразі немає</Text>
+          <Text style={styles.cardMuted} testID="no-barbers">
+            Майстрів наразі немає
+          </Text>
         ) : (
           barbers.map((b) => (
             <BarberCard

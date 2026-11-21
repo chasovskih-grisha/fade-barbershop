@@ -1,15 +1,16 @@
+/* eslint-disable max-lines -- cohesive module (109 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 /**
  * T-180: Admin Waitlist Management Dashboard
- * 
+ *
  * Implement a comprehensive admin waitlist management dashboard with
  * real-time monitoring, waitlist configuration, and management tools
  * for shop operators, building on the waitlist infrastructure from
  * T-170/T-171/T-172/T-173/T-174/T-175/T-176/T-177/W-178/W-179.
  */
 
+import { Inject, Injectable } from '@nestjs/common';
 import { WaitlistQueue } from '../domain/waitlist-queue';
-import { ClientRepository } from '../../clients/domain/repositories';
-import { randomUUID } from 'node:crypto';
+import { CLIENT_REPOSITORY, type ClientRepository } from '../../clients/domain/repositories';
 
 /**
  * Interface for waitlist configuration input
@@ -34,15 +35,16 @@ export interface WaitlistConfigurationResult {
 
 /**
  * T-180: Admin Waitlist Management Dashboard
- * 
+ *
  * Provides admin tools for managing waitlist configuration,
  * real-time monitoring, and control over waitlist operations
  * across all shop locations.
  */
+@Injectable()
 export class T180AdminWaitlistDashboardUseCase {
   constructor(
-    private waitlistQueue: WaitlistQueue,
-    private clientRepo: ClientRepository
+    @Inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
+    @Inject(CLIENT_REPOSITORY) private clientRepo: ClientRepository
   ) {}
 
   /**
@@ -69,7 +71,9 @@ export class T180AdminWaitlistDashboardUseCase {
   /**
    * Update waitlist configuration.
    */
-  async updateConfiguration(input: WaitlistConfigurationInput): Promise<WaitlistConfigurationResult> {
+  async updateConfiguration(
+    input: WaitlistConfigurationInput
+  ): Promise<WaitlistConfigurationResult> {
     // In a real implementation, this would save to config/DB
     return {
       success: true,
@@ -96,21 +100,20 @@ export class T180AdminWaitlistDashboardUseCase {
     const holds24h = await this.waitlistQueue.getHoldHistory(24);
 
     const totalWaiting = activeEntries;
-    const averageWaitTime = holds24h.length > 0
-      ? holds24h.reduce((sum, h) => sum + (h.estimatedWaitTime ?? 0), 0) / holds24h.length
-      : 0;
+    const averageWaitTime =
+      holds24h.length > 0
+        ? holds24h.reduce((sum, h) => sum + (h.estimatedWaitTime ?? 0), 0) / holds24h.length
+        : 0;
 
     // Top services from waitlist entries
-    const serviceCounts: Record<string, number> = {};
     // In real implementation, would get from waitlist entries
 
-    const cascadeTriggers = holds24h.filter(h => h.triggerType === 'cascade').length;
-    const cascadeActivationRate = holds24h.length > 0
-      ? (cascadeTriggers / holds24h.length) * 100
-      : 0;
+    const cascadeTriggers = holds24h.filter((h) => h.triggerType === 'cascade').length;
+    const cascadeActivationRate =
+      holds24h.length > 0 ? (cascadeTriggers / holds24h.length) * 100 : 0;
 
     // Promotion rate - clients who moved from waitlist to booked
-    const promoted = holds24h.filter(h => h.status === 'booked').length;
+    const promoted = holds24h.filter((h) => h.status === 'booked').length;
     const promotionRate = holds24h.length > 0 ? (promoted / holds24h.length) * 100 : 0;
 
     return {
@@ -126,7 +129,10 @@ export class T180AdminWaitlistDashboardUseCase {
   /**
    * Manual cascade trigger - admin can trigger waitlist cascade for a specific slot.
    */
-  async triggerCascade(slotId: string, reason: string): Promise<{
+  async triggerCascade(
+    slotId: string,
+    reason: string
+  ): Promise<{
     success: boolean;
     clientsNotified: number;
     newBookings: number;
@@ -146,7 +152,11 @@ export class T180AdminWaitlistDashboardUseCase {
   /**
    * Admin-adjust priority score for a specific client.
    */
-  async adjustPriority(clientId: string, adjustment: number, reason: string): Promise<{
+  async adjustPriority(
+    clientId: string,
+    adjustment: number,
+    reason: string
+  ): Promise<{
     success: boolean;
     newPriorityScore: number;
     message: string;
@@ -163,4 +173,3 @@ export class T180AdminWaitlistDashboardUseCase {
     };
   }
 }
-

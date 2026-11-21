@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (181 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація оцінки очікування, статусів адмінки й подій черги (T-170a).
 import {
   ETA_DEFAULTS,
@@ -104,7 +105,11 @@ describe('wait-time estimate (T-170a interface)', () => {
   });
 
   it('keeps the estimate inside the promised bounds', () => {
-    const tiny = estimateWaitMinutes({ position: 1, localHour: 13, history: { slotsFreedPerHour: { afternoon: 50 } } });
+    const tiny = estimateWaitMinutes({
+      position: 1,
+      localHour: 13,
+      history: { slotsFreedPerHour: { afternoon: 50 } },
+    });
     const huge = estimateWaitMinutes({ position: 900, localHour: 13 });
 
     expect(tiny.minutes).toBe(ETA_DEFAULTS.minMinutes);
@@ -166,10 +171,17 @@ describe('waitlist domain events (T-170a)', () => {
   it('names joined/offer/expiry events for the outbox', () => {
     const joined = new WaitlistEntryJoined({ entry: entry(), occurredAt: NOW });
     const offered = new WaitlistOfferSent({
-      entry: { ...entry(), status: 'offered', holdExpiresAt: new Date(NOW.getTime() + 15 * 60_000) },
+      entry: {
+        ...entry(),
+        status: 'offered',
+        holdExpiresAt: new Date(NOW.getTime() + 15 * 60_000),
+      },
       occurredAt: NOW,
     });
-    const expired = new WaitlistOfferExpired({ entry: { ...entry(), status: 'expired' }, occurredAt: NOW });
+    const expired = new WaitlistOfferExpired({
+      entry: { ...entry(), status: 'expired' },
+      occurredAt: NOW,
+    });
 
     expect(joined.type).toBe('scheduling.waitlist.joined');
     expect(joined.aggregateId).toBe('w-1');

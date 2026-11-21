@@ -37,7 +37,8 @@ export function HomeExecutiveAuraElitePromo() {
             The Ultimate Gentleman Experience & Priority Privilege
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Secure private lounge access, master stylist allocation, complimentary bourbon & hot towel ritual, and zero-wait priority booking for your next executive appointment.
+            Secure private lounge access, master stylist allocation, complimentary bourbon & hot
+            towel ritual, and zero-wait priority booking for your next executive appointment.
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">

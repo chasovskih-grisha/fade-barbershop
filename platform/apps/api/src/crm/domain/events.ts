@@ -86,6 +86,10 @@ export class CampaignSentEvent extends DomainEvent {
 
   constructor(params: { clientId: string; campaignId: string; sentAt: Date }) {
     super({ occurredAt: params.sentAt, aggregateId: params.clientId });
-    this.payload = { clientId: params.clientId, campaignId: params.campaignId, sentAt: params.sentAt };
+    this.payload = {
+      clientId: params.clientId,
+      campaignId: params.campaignId,
+      sentAt: params.sentAt,
+    };
   }
 }

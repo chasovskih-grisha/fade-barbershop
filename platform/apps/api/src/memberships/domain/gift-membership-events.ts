@@ -12,7 +12,7 @@ export class GiftMembershipPurchasedEvent extends DomainEvent {
       recipientEmail?: string;
       expiresAt: Date;
     },
-    occurredAt?: Date,
+    occurredAt?: Date
   ) {
     super({
       occurredAt: occurredAt ?? new Date(),
@@ -32,7 +32,7 @@ export class GiftMembershipRedeemedEvent extends DomainEvent {
       redeemedByClientId: string;
       membershipInstanceId: string;
     },
-    occurredAt?: Date,
+    occurredAt?: Date
   ) {
     super({
       occurredAt: occurredAt ?? new Date(),

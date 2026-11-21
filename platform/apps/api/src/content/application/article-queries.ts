@@ -4,6 +4,7 @@
 
 import type { Article } from '../domain/article';
 import type { ArticleRepository } from '../domain/ports';
+import { feedQuery, type ArticleFeedQuery } from './article-feed';
 import { ArticleNotFoundError } from './content-errors';
 
 export class ListArticlesHandler {
@@ -27,8 +28,8 @@ export class GetArticleHandler {
 export class ListPublishedArticlesHandler {
   constructor(private readonly articles: ArticleRepository) {}
 
-  async handle(limit = 20): Promise<Article[]> {
-    return this.articles.listPublished(limit);
+  async handle(raw: ArticleFeedQuery = {}): Promise<Article[]> {
+    return this.articles.listPublished(feedQuery(raw));
   }
 }
 

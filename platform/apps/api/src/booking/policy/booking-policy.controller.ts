@@ -5,7 +5,11 @@
 // /admin/* охороняє глобальний AdminSessionGuard, як і решта адмін-налаштувань.
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { EvaluateOnlineBooking, OnlineBookingBlockedError, type BookingAction } from './evaluate-online-booking';
+import {
+  EvaluateOnlineBooking,
+  OnlineBookingBlockedError,
+  type BookingAction,
+} from './evaluate-online-booking';
 import { isValidPolicy, mergePolicy, type OnlineBookingPolicy } from './online-booking-policy';
 import { ONLINE_BOOKING_STORE } from './booking-policy.ports';
 import type { OnlineBookingStore } from './booking-policy.ports';
@@ -47,7 +51,8 @@ export class BookingPolicyController {
       throw new HttpException('locationId and start are required', HttpStatus.BAD_REQUEST);
     }
     const start = new Date(body.start);
-    if (!Number.isFinite(start.getTime())) throw new HttpException('Invalid start', HttpStatus.BAD_REQUEST);
+    if (!Number.isFinite(start.getTime()))
+      throw new HttpException('Invalid start', HttpStatus.BAD_REQUEST);
     try {
       const result = await this.evaluate.execute({
         locationId: body.locationId,
@@ -59,7 +64,10 @@ export class BookingPolicyController {
       return { allowed: result.allowed, policy: result.policy, blocks: result.blocks };
     } catch (error) {
       if (error instanceof OnlineBookingBlockedError) {
-        throw new HttpException({ code: 'BOOKING_BLOCKED', blocks: error.blocks }, HttpStatus.CONFLICT);
+        throw new HttpException(
+          { code: 'BOOKING_BLOCKED', blocks: error.blocks },
+          HttpStatus.CONFLICT
+        );
       }
       throw error;
     }
@@ -74,7 +82,10 @@ export class AdminOnlineBookingPolicyController {
   @Put()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Змінити політику онлайн-букінгу локації або глобальну' })
-  async update(@Query('locationId') locationId?: string, @Body() body?: Partial<OnlineBookingPolicy>): Promise<{ policy: OnlineBookingPolicy }> {
+  async update(
+    @Query('locationId') locationId?: string,
+    @Body() body?: Partial<OnlineBookingPolicy>
+  ): Promise<{ policy: OnlineBookingPolicy }> {
     const policy = mergePolicy(body ?? {});
     if (!isValidPolicy(policy)) {
       throw new HttpException('Invalid online booking policy', HttpStatus.BAD_REQUEST);

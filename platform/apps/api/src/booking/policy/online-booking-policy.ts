@@ -36,7 +36,9 @@ export const DEFAULT_ONLINE_BOOKING_POLICY: OnlineBookingPolicy = {
 };
 
 /** Рядок БД (уже без null) або null → ефективна політика. */
-export function mergePolicy(row: Partial<OnlineBookingPolicy> | null | undefined): OnlineBookingPolicy {
+export function mergePolicy(
+  row: Partial<OnlineBookingPolicy> | null | undefined
+): OnlineBookingPolicy {
   if (!row) return DEFAULT_ONLINE_BOOKING_POLICY;
   return {
     minLeadMinutes: row.minLeadMinutes ?? DEFAULT_ONLINE_BOOKING_POLICY.minLeadMinutes,

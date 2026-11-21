@@ -1,3 +1,4 @@
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: an existing definition, complexity 12 vs 10); refactor tracked in T-2500f */
 // Споживач відкладеної події нагадування (T-080): «notification.reminder.due»,
 // яку релей бачить лише після availableAt → SMS клієнту (Booking.clientId →
 // User.phone) з часом, місцем і послугою візиту. Канал — адмін-налаштування
@@ -8,7 +9,15 @@ import { REMINDER_DUE_EVENT_TYPE, type ReminderDuePayload } from './appointment-
 import { renderReminderSms } from './appointment-reminder-sms';
 import type { SmsSender } from './booking-confirmation-sms';
 import type { HandleOutcome } from './send-booking-confirmation';
-import { buildConfirmationLetterData, type ClientContacts, type LocationContacts, type NotificationEvent, type NotificationJournal, type NotificationRecordInput, type ServiceCatalog } from './booking-confirmation-ports';
+import {
+  buildConfirmationLetterData,
+  type ClientContacts,
+  type LocationContacts,
+  type NotificationEvent,
+  type NotificationJournal,
+  type NotificationRecordInput,
+  type ServiceCatalog,
+} from './booking-confirmation-ports';
 import type { AppointmentReminderSettingsPort } from '../domain/appointment-reminder-settings';
 
 export interface SendAppointmentReminderDeps {

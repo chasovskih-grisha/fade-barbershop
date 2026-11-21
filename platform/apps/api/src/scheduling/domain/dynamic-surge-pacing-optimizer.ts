@@ -33,7 +33,7 @@ export class DynamicSurgePacingOptimizer {
 
     // High historical fill rate surge
     if (historicalFillRate > 0.8) {
-      multiplier += 0.30;
+      multiplier += 0.3;
     } else if (historicalFillRate > 0.6) {
       multiplier += 0.15;
     }
@@ -42,7 +42,7 @@ export class DynamicSurgePacingOptimizer {
     if (weatherCondition === 'rain' || weatherCondition === 'snow') {
       multiplier -= 0.05; // slight dampening during bad weather
     } else if (weatherCondition === 'extreme') {
-      multiplier -= 0.10;
+      multiplier -= 0.1;
     }
 
     // Local event factor

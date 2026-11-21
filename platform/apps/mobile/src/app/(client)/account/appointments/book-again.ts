@@ -3,7 +3,7 @@
 // форму слота — він відкриває той самий флоу запису з передзаповненням.
 // Нечинне поле у параметри не потрапляє: флоу відкриється на кроці вибору.
 
-import type { BookAgainIntent, BookAgainRef } from '../../lib/api/book-again';
+import type { BookAgainIntent, BookAgainRef } from '../../../../lib/api/book-again';
 
 export type StaleField = 'location' | 'service' | 'barber';
 

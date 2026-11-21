@@ -6,9 +6,21 @@ import type { AnalyticsMetrics } from './analytics-types';
 export function AnalyticsSummaryCards({ metrics }: { metrics: AnalyticsMetrics }) {
   const cards = [
     { title: 'Всього записів', value: metrics.totalVisits, desc: 'За обраний період' },
-    { title: 'Завершено візитів', value: metrics.completedVisits, desc: `Виконано (${metrics.completionRate}%)` },
-    { title: 'Загальна виручка', value: `${metrics.totalRevenue} ₴`, desc: 'Сума з виконаних записів' },
-    { title: 'Завантаженість (Occupancy)', value: `${metrics.occupancyRate}%`, desc: 'Коефіцієнт зайнятості крісел' },
+    {
+      title: 'Завершено візитів',
+      value: metrics.completedVisits,
+      desc: `Виконано (${metrics.completionRate}%)`,
+    },
+    {
+      title: 'Загальна виручка',
+      value: `${metrics.totalRevenue} ₴`,
+      desc: 'Сума з виконаних записів',
+    },
+    {
+      title: 'Завантаженість (Occupancy)',
+      value: `${metrics.occupancyRate}%`,
+      desc: 'Коефіцієнт зайнятості крісел',
+    },
   ];
 
   return (

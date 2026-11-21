@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (126 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-177: клієнт не отримує другу чергу, а історія візитів
 // впливає на пріоритет. Порты — in-memory, без Prisma.
 import type { ClientRepository } from '../../clients/domain/repositories';
@@ -10,10 +11,10 @@ function entry(overrides: Partial<WaitlistEntry> = {}): WaitlistEntry {
     id: 'entry-1',
     clientId: 'client-1',
     serviceId: 'service-cut',
-    addedAt: '2026-11-18T09:00:00.000Z',
+    addedAt: new Date('2026-11-18T09:00:00.000Z'),
     status: 'active',
     ...overrides,
-  } as WaitlistEntry;
+  };
 }
 
 function booking(status: string): AppointmentRecord {
@@ -30,7 +31,9 @@ function booking(status: string): AppointmentRecord {
   };
 }
 
-function harness(options: { activeEntry?: WaitlistEntry | null; bookings?: AppointmentRecord[] } = {}) {
+function harness(
+  options: { activeEntry?: WaitlistEntry | null; bookings?: AppointmentRecord[] } = {}
+) {
   const added: unknown[] = [];
   const moved: string[] = [];
   const removed: string[] = [];
@@ -73,18 +76,26 @@ describe('T177WaitlistDeduplicationUseCase', () => {
   it('treats a client with no queue entry and no recent visit as new', async () => {
     const { useCase, appointmentRepo } = harness();
 
-    const result = await useCase.checkDeduplication({ clientId: 'client-1', serviceId: 'service-cut' });
+    const result = await useCase.checkDeduplication({
+      clientId: 'client-1',
+      serviceId: 'service-cut',
+    });
 
     expect(result).toEqual({ isDuplicate: false, existingEntry: undefined, shouldPromote: true });
     expect(appointmentRepo.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: expect.objectContaining({ clientId: 'client-1', status: 'completed' }) })
+      expect.objectContaining({
+        where: expect.objectContaining({ clientId: 'client-1', status: 'completed' }),
+      })
     );
   });
 
   it('returns the existing entry when the client is already queued', async () => {
     const { useCase } = harness({ activeEntry: entry() });
 
-    const result = await useCase.checkDeduplication({ clientId: 'client-1', serviceId: 'service-cut' });
+    const result = await useCase.checkDeduplication({
+      clientId: 'client-1',
+      serviceId: 'service-cut',
+    });
 
     expect(result.isDuplicate).toBe(true);
     expect(result.existingEntry).toEqual({
@@ -98,7 +109,10 @@ describe('T177WaitlistDeduplicationUseCase', () => {
   it('promotes a returning client who completed a visit in the window', async () => {
     const { useCase } = harness({ bookings: [booking('completed')] });
 
-    const result = await useCase.checkDeduplication({ clientId: 'client-1', serviceId: 'service-cut' });
+    const result = await useCase.checkDeduplication({
+      clientId: 'client-1',
+      serviceId: 'service-cut',
+    });
 
     expect(result.isDuplicate).toBe(true);
     expect(result.shouldPromote).toBe(true);
@@ -112,7 +126,11 @@ describe('T177WaitlistDeduplicationUseCase', () => {
     expect(result.duplicate).toBe(false);
     expect(result.success).toBe(true);
     expect(added).toHaveLength(1);
-    expect(added[0]).toMatchObject({ clientId: 'client-1', serviceId: 'service-cut', status: 'active' });
+    expect(added[0]).toMatchObject({
+      clientId: 'client-1',
+      serviceId: 'service-cut',
+      status: 'active',
+    });
     expect(moved).toHaveLength(0);
   });
 

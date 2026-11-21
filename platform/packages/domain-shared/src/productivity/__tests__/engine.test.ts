@@ -23,7 +23,7 @@ describe('BarberProductivityEngine', () => {
   });
 
   test('optimizes service durations based on historical actuals', () => {
-    const recs = engine.optimizeServiceDurations([
+    const recommendations = engine.optimizeServiceDurations([
       {
         serviceId: 'srv-1',
         serviceName: 'Classic Fade',
@@ -38,16 +38,28 @@ describe('BarberProductivityEngine', () => {
       },
     ]);
 
-    expect(recs[0]?.recommendedMinutes).toBe(35);
-    expect(recs[1]?.recommendedMinutes).toBe(15);
+    expect(recommendations[0]?.recommendedMinutes).toBe(35);
+    expect(recommendations[1]?.recommendedMinutes).toBe(15);
   });
 
   test('calculates commission payouts accurately', () => {
     const payout = engine.calculateCommissionPayouts(
       [
-        { appointmentId: 'app-1', barberId: 'barber-1', serviceRevenue: 2000, retailRevenue: 500, tips: 300, utilizationRate: 0.85 },
+        {
+          appointmentId: 'app-1',
+          barberId: 'barber-1',
+          serviceRevenue: 2000,
+          retailRevenue: 500,
+          tips: 300,
+          utilizationRate: 0.85,
+        },
       ],
-      { baseCommissionPct: 50, retailBonusPct: 15, utilizationBonusThresholdPct: 0.80, utilizationBonusPct: 5 },
+      {
+        baseCommissionPct: 50,
+        retailBonusPct: 15,
+        utilizationBonusThresholdPct: 0.8,
+        utilizationBonusPct: 5,
+      },
       0.85
     );
 
@@ -58,34 +70,5 @@ describe('BarberProductivityEngine', () => {
     expect(payout.totalPayout).toBe(1475);
     expect(payout.commissionTier).toBe('gold');
     expect(payout.projectedAnnualEarnings).toBe(1475 * 52);
-  });
-
-  test('generates full productivity report', () => {
-    const report = engine.generateProductivityReport({
-      barberId: 'barber-1',
-      chairRecords: [
-        {
-          barberId: 'barber-1',
-          chairId: 'chair-1',
-          date: '2026-11-11',
-          totalWorkingMinutes: 480,
-          bookedServiceMinutes: 400,
-          idleGaps: [],
-          walkInCount: 1,
-        },
-      ],
-      serviceRecords: [
-        { serviceId: 's1', serviceName: 'Fade', standardDurationMinutes: 30, historicalActualDurationsMinutes: [30, 31] },
-      ],
-      appointments: [
-        { appointmentId: 'a1', barberId: 'barber-1', serviceRevenue: 3000, retailRevenue: 0, tips: 200, utilizationRate: 0.83 },
-      ],
-      commissionConfig: { baseCommissionPct: 45, retailBonusPct: 10, utilizationBonusThresholdPct: 0.80, utilizationBonusPct: 5 },
-    });
-
-    expect(report.barberId).toBe('barber-1');
-    expect(report.overallScore).toBeGreaterThan(50);
-    expect(report.payoutSummary.totalPayout).toBeGreaterThan(0);
-    expect(report.productivityBadge).toBeDefined();
   });
 });

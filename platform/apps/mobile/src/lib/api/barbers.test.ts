@@ -11,7 +11,13 @@ describe('barbers api client', () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => [
-        { id: 'b1', name: 'Alex', any: false, photo: { url: 'https://example.com/alex.jpg', alt: 'Alex', width: 100, height: 100 }, locationName: 'Central' },
+        {
+          id: 'b1',
+          name: 'Alex',
+          any: false,
+          photo: { url: 'https://example.com/alex.jpg', alt: 'Alex', width: 100, height: 100 },
+          locationName: 'Central',
+        },
         { id: 'any', name: 'Any barber', any: true },
         { id: 'b2', name: 'Max', photo: null, locationName: 'Central' },
       ],
@@ -28,9 +34,7 @@ describe('barbers api client', () => {
   it('finds barber by id or returns null when not found', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => [
-        { id: 'b1', name: 'Alex', any: false },
-      ],
+      json: async () => [{ id: 'b1', name: 'Alex', any: false }],
     });
 
     const found = await fetchBarberById('loc-1', 'b1');
@@ -38,9 +42,7 @@ describe('barbers api client', () => {
 
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => [
-        { id: 'b1', name: 'Alex', any: false },
-      ],
+      json: async () => [{ id: 'b1', name: 'Alex', any: false }],
     });
     const missing = await fetchBarberById('loc-1', 'unknown');
     expect(missing).toBeNull();

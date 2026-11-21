@@ -16,6 +16,7 @@ const nextVisit: ExtendedAppointment = {
   referenceId: null,
   referenceComment: '',
   canEditReference: true,
+  canBookAgain: true,
   deposit: null,
 };
 

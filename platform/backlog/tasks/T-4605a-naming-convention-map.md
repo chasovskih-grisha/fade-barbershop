@@ -70,3 +70,21 @@ Renaming affects four applications and five packages. If each context decides in
 ## Risks
 
 - [ ] **Scope creep**: turning naming rules into a refactoring of business logic itself.
+
+## Implementation plan
+
+Deliverables (no mechanical rename — that is T-4605b…e):
+
+- `docs/adr/0055-dto-naming-convention.md` — the three-suffix rule, the `Payload`
+  boundary, and decisions on all 6 open questions.
+- `docs/dto-rename-map.md` — the complete old→new table (48 names in `apps/api`,
+  10 in `apps/web`, 31 in `packages/contracts`) plus the commit plan.
+- `scripts/validate-docs/check-rename-map.mjs` — contradiction gate for the table.
+- `scripts/validate-docs/test/check-rename-map.test.mjs` — its unit tests.
+- `docs/ubiquitous-language.md` — the forbidden synonyms; `docs/review-checklist.md` —
+  the review item; `docs/adr/README.md` — the ADR row.
+
+Checks:
+- `node --test scripts/validate-docs/test/check-rename-map.test.mjs`
+- `pnpm docs:validate`
+- `pnpm docs:test`

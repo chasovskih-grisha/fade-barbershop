@@ -4,10 +4,23 @@
 // CRM-експешн-фільтр перекладає ClientProfileNotFoundError на 404.
 // Валідація вводу — class-validator DTO + ValidationPipe.
 
-import { Controller, Get, Patch, Body, UseGuards, UseFilters, Inject, Req, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Body,
+  UseGuards,
+  UseFilters,
+  Inject,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ClientSessionGuard, clientSessionOf, type ClientSession } from './client-session.guard';
 import { CrmExceptionFilter } from '../../crm/infrastructure/crm.exception-filter';
-import { ADMIN_CLIENTS_HANDLERS, type AdminClientsHandlers } from '../../crm/infrastructure/admin-clients-handlers';
+import {
+  ADMIN_CLIENTS_HANDLERS,
+  type AdminClientsHandlers,
+} from '../../crm/infrastructure/admin-clients-handlers';
 import { toProfileResult } from './client-profile.mapper';
 import type { ClientProfileResult, PatchProfilePreferencesResult } from '@fade/contracts';
 import { PatchProfileNameInputDto, PatchProfilePreferencesInputDto } from './profile-dto.input';

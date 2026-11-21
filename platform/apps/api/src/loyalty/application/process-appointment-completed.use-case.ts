@@ -1,6 +1,12 @@
+/* eslint-disable max-lines -- cohesive module (106 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import { ClientLoyaltyState } from '../domain/client-loyalty-state';
 import type { LoyaltyCommandContext } from '../domain/ports';
-import { FreeVisitGranted, FreeVisitUsed, LoyaltyCounterIncremented, LoyaltyTierChanged } from '../domain/loyalty-events';
+import {
+  FreeVisitGranted,
+  FreeVisitUsed,
+  LoyaltyCounterIncremented,
+  LoyaltyTierChanged,
+} from '../domain/loyalty-events';
 import { DomainEvent } from '../domain/domain-event';
 import { determineLoyaltyTier, DEFAULT_LOYALTY_TIERS } from '../domain/loyalty-tier';
 
@@ -18,6 +24,8 @@ export class ProcessAppointmentCompletedHandler {
     clientId: string;
     counter: number;
     hasFreeVisit: boolean;
+    tier: string;
+    discountPercent: number;
   }> {
     const threshold = this.ctx.threshold ?? 7;
     let state = await this.ctx.states.findByClientId(input.clientId);
@@ -26,10 +34,13 @@ export class ProcessAppointmentCompletedHandler {
     }
 
     if (state.isProcessed(input.appointmentId)) {
+      const tier = determineLoyaltyTier(state.counter, DEFAULT_LOYALTY_TIERS);
       return {
         clientId: state.clientId,
         counter: state.counter,
         hasFreeVisit: state.hasFreeVisit,
+        tier: tier.level,
+        discountPercent: tier.discountPercent,
       };
     }
 

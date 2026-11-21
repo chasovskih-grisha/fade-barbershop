@@ -1,4 +1,5 @@
-export type SupportTicketCategory = 'BOOKING_ISSUE' | 'PAYMENT_REFUND' | 'SERVICE_FEEDBACK' | 'CANCELLATION' | 'GENERAL_INQUIRY';
+export type SupportTicketCategory =
+  'BOOKING_ISSUE' | 'PAYMENT_REFUND' | 'SERVICE_FEEDBACK' | 'CANCELLATION' | 'GENERAL_INQUIRY';
 export type SupportTicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export type SupportTicketStatus = 'OPEN' | 'ASSIGNED' | 'WAITING_CUSTOMER' | 'RESOLVED' | 'CLOSED';
 

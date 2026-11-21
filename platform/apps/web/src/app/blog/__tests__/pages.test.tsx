@@ -1,6 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import * as mockReact from 'react';
-import BlogPage from '../page';
 import ArticlePage from '../[slug]/page';
 
 // GWT-сценарії T-031: стрічка показує лише опубліковане, помилка API не
@@ -48,38 +47,13 @@ jest.mock('next/navigation', () => ({
 }));
 
 // prettier-ignore
-const { getPublishedArticles, getPublishedArticle } = jest.requireMock('@/lib/api/articles') as { getPublishedArticles: jest.Mock; getPublishedArticle: jest.Mock };
+const { getPublishedArticle } = jest.requireMock('@/lib/api/articles') as { getPublishedArticles: jest.Mock; getPublishedArticle: jest.Mock };
 
-const article = {
-  id: 'a1',
-  slug: 'strizhka',
-  title: 'Стрижка по-київськи',
-  excerpt: 'Коротко про стиль.',
-  body: 'Перший абзац.\n\nДругий абзац.',
-  coverUrl: null,
-  authorName: 'Команда Fade',
-  tags: ['стиль'],
-  // prettier-ignore
-  status: 'published',
-  publishedAt: '2026-09-20T09:00:00Z',
-  createdAt: '2026-09-20T09:00:00Z',
-  updatedAt: '2026-09-20T09:00:00Z',
-};
+import { article, resetArticleMocks, renderBlog, renderArticle } from '../blog-test-fixtures';
 
 beforeEach(() => {
-  getPublishedArticles.mockReset();
-  getPublishedArticle.mockReset();
+  resetArticleMocks();
 });
-/** Сід моку + рендер BlogPage (DRY для трьох станів). */
-const renderBlog = async (mock: unknown) => {
-  getPublishedArticles.mockResolvedValue(mock);
-  render(await BlogPage({ searchParams: Promise.resolve({}) }));
-};
-/** Сід моку + рендер ArticlePage (DRY для чотирьох станів). */
-const renderArticle = async (mock: unknown) => {
-  getPublishedArticle.mockResolvedValue(mock);
-  render(await ArticlePage({ params: Promise.resolve({ slug: 'strizhka' }) }));
-};
 
 describe('/blog', () => {
   it('показує опубліковані статті з анонсом і датою', async () => {
@@ -124,18 +98,12 @@ describe('/blog/[slug]', () => {
   });
   it('HTML із CMS не виконується: текст рендериться як текст', async () => {
     // prettier-ignore
-    getPublishedArticle.mockResolvedValue({ state: 'ok', data: { ...article, body: '<img src=x onerror="alert(1)">' } });
-    const { container } = render(
-      await ArticlePage({ params: Promise.resolve({ slug: 'strizhka' }) })
-    );
+    const { container } = await renderArticle({ state: 'ok', data: { ...article, body: '<img src=x onerror="alert(1)">' } });
     expect(container.querySelector('img')).toBeNull();
     expect(screen.getByText('<img src=x onerror="alert(1)">')).toBeTruthy();
   });
   it('включає structured data JSON-LD (BlogPosting та BreadcrumbList)', async () => {
-    getPublishedArticle.mockResolvedValue({ state: 'ok', data: article });
-    const { container } = render(
-      await ArticlePage({ params: Promise.resolve({ slug: 'strizhka' }) })
-    );
+    const { container } = await renderArticle({ state: 'ok', data: article });
     const scriptTag = container.querySelector('script[type="application/ld+json"]');
     expect(scriptTag).toBeTruthy();
     const jsonLd = JSON.parse(scriptTag?.textContent || '{}');

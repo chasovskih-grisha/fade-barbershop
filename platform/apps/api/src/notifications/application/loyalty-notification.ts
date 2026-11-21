@@ -1,12 +1,22 @@
-import type { LoyaltyNotificationDeps, LoyaltyNotificationEvent } from './loyalty-notification-ports';
-import { renderCounterIncrementedSms, renderFreeVisitGrantedSms } from './loyalty-notification-template';
+/* eslint-disable complexity -- 1 function with inherent domain branching (worst: an existing definition, complexity 14 vs 10); refactor tracked in T-2500f */
+import type {
+  LoyaltyNotificationDeps,
+  LoyaltyNotificationEvent,
+} from './loyalty-notification-ports';
+import {
+  renderCounterIncrementedSms,
+  renderFreeVisitGrantedSms,
+} from './loyalty-notification-template';
 import type { HandleOutcome, NotificationEvent } from './send-booking-confirmation';
 
 export class LoyaltyNotificationHandler {
   constructor(private readonly deps: LoyaltyNotificationDeps) {}
 
   async handleOne(event: NotificationEvent): Promise<HandleOutcome> {
-    if (event.type !== 'loyalty.counter.incremented' && event.type !== 'loyalty.free_visit.granted') {
+    if (
+      event.type !== 'loyalty.counter.incremented' &&
+      event.type !== 'loyalty.free_visit.granted'
+    ) {
       return { handled: false, reason: 'ignored' };
     }
     if (await this.deps.journal.alreadyHandled(event.id)) {

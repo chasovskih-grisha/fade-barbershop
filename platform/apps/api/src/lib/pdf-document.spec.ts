@@ -59,7 +59,10 @@ describe('PdfDocument', () => {
   it('centres and draws rules without breaking the stream', () => {
     const doc = new PdfDocument();
     doc.fontSize(20).text('Centered', { align: 'center' });
-    doc.moveTo(50, doc.page.height - 50).lineTo(doc.page.width - 50, doc.page.height - 50).stroke();
+    doc
+      .moveTo(50, doc.page.height - 50)
+      .lineTo(doc.page.width - 50, doc.page.height - 50)
+      .stroke();
     const pdf = doc.toBuffer().toString('latin1');
 
     expect(pdf).toContain('(Centered) Tj');

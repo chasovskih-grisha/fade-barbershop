@@ -30,7 +30,10 @@ export class ForwardAnalyticsEvents {
     if (pending.length === 0) return { enqueued, sent: 0, failed: 0 };
     try {
       await transport.send(pending.map((row) => row.event));
-      await store.markSent(pending.map((row) => row.id), now);
+      await store.markSent(
+        pending.map((row) => row.id),
+        now
+      );
       this.deps.audit({ scope: 'amplitude', status: 'sent', count: pending.length });
       return { enqueued, sent: pending.length, failed: 0 };
     } catch (error) {

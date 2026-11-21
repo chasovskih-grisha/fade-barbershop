@@ -4,6 +4,13 @@
 import type { ExtendedAppointment } from '@/lib/api/appointments';
 
 const UPCOMING: ReadonlySet<ExtendedAppointment['status']> = new Set(['upcoming', 'confirmed']);
+// Та сама група «Минулі», що на сторінці візитів (T-4734b).
+const PAST: ReadonlySet<ExtendedAppointment['status']> = new Set(['completed', 'cancelled']);
+
+/** Кількість минулих візитів зі списку, який кабінет уже вантажить (T-4734). */
+export function countPastVisits(list: ExtendedAppointment[]): number {
+  return list.filter((visit) => PAST.has(visit.status)).length;
+}
 
 const startStamp = (visit: ExtendedAppointment) => `${visit.date} ${visit.startTime}`;
 

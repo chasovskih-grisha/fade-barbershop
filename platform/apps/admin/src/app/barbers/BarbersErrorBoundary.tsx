@@ -43,7 +43,8 @@ export class BarbersErrorBoundary extends Component<Props, State> {
               Помилка завантаження бази барберів / Barbers Directory Error
             </h3>
             <p className="text-sm text-fg-muted">
-              Система телеметрії FADE зафіксувала збій під час рендерингу команди барберів та графіків. Дані кешу та зрізи збережено.
+              Система телеметрії FADE зафіксувала збій під час рендерингу команди барберів та
+              графіків. Дані кешу та зрізи збережено.
             </p>
             {this.state.error?.message && (
               <div className="p-3 bg-surface-sunken rounded text-xs font-mono text-left overflow-x-auto">

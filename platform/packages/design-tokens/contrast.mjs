@@ -46,7 +46,12 @@ const emailPairs = [
   P('email.text.primary / email.bg', e.text.primary.value, e.bg.value, TEXT_MIN),
   P('email.text.secondary / email.bg', e.text.secondary.value, e.bg.value, TEXT_MIN),
   P('email.border / email.bg', e.border.value, e.bg.value, BORDER_MIN),
-  P('email.accent.onSolid / email.accent.solid (CTA)', e.accent.onSolid.value, e.accent.solid.value, TEXT_MIN),
+  P(
+    'email.accent.onSolid / email.accent.solid (CTA)',
+    e.accent.onSolid.value,
+    e.accent.solid.value,
+    TEXT_MIN
+  ),
 ];
 pairs.push(...emailPairs);
 

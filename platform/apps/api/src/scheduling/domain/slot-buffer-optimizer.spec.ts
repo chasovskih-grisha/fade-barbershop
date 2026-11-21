@@ -10,13 +10,13 @@ describe('SlotBufferOptimizer (Booking Engine Optimization Specialist)', () => {
   it('calculates service end and total end including buffer minutes', () => {
     const result = optimizer.optimizeInterval({
       startTimeMinutes: 600, // 10:00
-      durationMinutes: 30,   // 30 min haircut
-      bufferMinutes: 10,     // 10 min sanitation buffer
+      durationMinutes: 30, // 30 min haircut
+      bufferMinutes: 10, // 10 min sanitation buffer
     });
 
     expect(result.startMinutes).toBe(600);
     expect(result.serviceEndMinutes).toBe(630); // 10:30
-    expect(result.totalEndMinutes).toBe(640);   // 10:40 including 10m buffer
+    expect(result.totalEndMinutes).toBe(640); // 10:40 including 10m buffer
     expect(result.bufferMinutesApplied).toBe(10);
   });
 

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-params -- cohesive module (179 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 signature whose 4-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
 // T-4458: погодження зміни графіка — застосунковий шар.
 // Правила — у domain/schedule-change-request.ts; тут порт сховища, перевірка
 // зайнятості слота в момент згоди й подія перенесення (T-042).

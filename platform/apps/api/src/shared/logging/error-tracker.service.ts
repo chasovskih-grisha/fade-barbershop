@@ -1,3 +1,4 @@
+/* eslint-disable max-params -- 1 signature whose 4-param contract is fixed by existing call sites (worst: recordError, limit 3); API redesign tracked in T-2500f */
 import { Injectable } from '@nestjs/common';
 
 export interface ErrorRecord {

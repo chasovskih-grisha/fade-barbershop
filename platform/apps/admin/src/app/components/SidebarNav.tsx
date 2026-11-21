@@ -40,7 +40,16 @@ export default function SidebarNav() {
       return ['/', '/clients', '/visits'].includes(item.path);
     }
     if (role === 'manager' || role === 'location_manager') {
-      return ['/', '/locations', '/clients', '/analytics', '/visits', '/bookings/phone', '/services', '/barbers'].includes(item.path);
+      return [
+        '/',
+        '/locations',
+        '/clients',
+        '/analytics',
+        '/visits',
+        '/bookings/phone',
+        '/services',
+        '/barbers',
+      ].includes(item.path);
     }
     return true;
   });

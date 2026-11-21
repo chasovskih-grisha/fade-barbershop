@@ -4,7 +4,13 @@
 // локації/телефони/барбер-тріо/послуги — валідні номери, FK-cleanup.
 import { uuidv7 } from '@fade/domain-shared';
 import type { PrismaService } from '../../shared/prisma/prisma.service';
-import { assignBarber, cleanupTestLocation, seedBarberUser, seedServiceWithPrices, seedTestLocation } from '@fade/test-utils';
+import {
+  assignBarber,
+  cleanupTestLocation,
+  seedBarberUser,
+  seedServiceWithPrices,
+  seedTestLocation,
+} from '@fade/test-utils';
 
 export const DATE = '2026-11-02'; // Понеділок у моделі тижня (0 = Пн).
 const uid = () => uuidv7();

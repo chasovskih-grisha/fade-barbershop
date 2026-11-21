@@ -1,13 +1,13 @@
-import { AppointmentRecord, BookingChannel } from './no-show-penalty.service';
+/* eslint-disable max-lines, max-params -- cohesive module (150 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 2 signatures whose 4-param contract is fixed by existing call sites (worst: an existing definition, limit 3); API redesign tracked in T-2500f */
+import { AppointmentRecord, BookingChannel, NoShowPenaltyService } from './no-show-penalty.service';
 import { Booking, BookingRepository } from '../domain/booking';
 import { T094Refund } from '../../payment/application/refund.use-case';
-import { RefundEntity, RefundStatus, RefundReason } from '../../payment/domain/refund.entity';
-import type { ClientNoShowRecord } from './no-show-penalty.service';
-import type { RefundEntity } from '../../payment/domain/refund.entity';
+import { RefundEntity } from '../../payment/domain/refund.entity';
+import type { ClientNoShowRecord, NoShowAuditEntry } from './no-show-penalty.service';
 
 /** T-160: No-Show Policy - complete no-show workflow with admin settings,
  * deposit retention, threshold rules, and no-show rate dashboard.
- * 
+ *
  * Dependencies: T-094 (refund mechanics ✅), T-095 (escalation ✅), T-080 (push ✅)
  * Sources: NSH-001...007, NSH-ADM-01...03, NSH-005, NSH-006
  */
@@ -15,7 +15,8 @@ export class T160NoShowPolicy {
   constructor(
     private readonly bookingRepo: BookingRepository,
     private readonly noShowService: NoShowPenaltyService,
-    private readonly refundUseCase: T094Refund
+    private readonly refundUseCase: T094Refund,
+    private readonly now: () => Date = () => new Date()
   ) {}
 
   /** Auto-evaluate appointments for no-show status.
@@ -24,7 +25,16 @@ export class T160NoShowPolicy {
    */
   async evaluateAutoNoShow(appointments: AppointmentRecord[]): Promise<{
     updatedAppointments: AppointmentRecord[];
-    audits: { id: string; appointmentId: string; clientId: string; forfeitedDeposit: number; stage: string; executedBy: 'auto_system'; timestamp: Date; reason: string }[];
+    audits: Array<{
+      id: string;
+      appointmentId: string;
+      clientId: string;
+      forfeitedDeposit: number;
+      stage: string;
+      executedBy: 'auto_system' | 'barber' | 'admin';
+      timestamp: Date;
+      reason?: string;
+    }>;
   }> {
     return this.noShowService.evaluateAutoNoShow(appointments);
   }
@@ -39,7 +49,13 @@ export class T160NoShowPolicy {
     windowDays: number = 90,
     thresholdCount: number = 2
   ): Promise<{ requireFullPrepayment: boolean; recentNoShowCount: number; waiverActive: boolean }> {
-    return this.noShowService.checkRepeatBookingRequirement(clientId, historyRecords, windowDays, thresholdCount);
+    return this.noShowService.checkRepeatBookingRequirement(
+      clientId,
+      historyRecords,
+      new Date(),
+      windowDays,
+      thresholdCount
+    );
   }
 
   /** Admin action to clear restriction/waiver for a client.
@@ -62,57 +78,81 @@ export class T160NoShowPolicy {
    */
   async processNoShow(
     booking: Booking,
-    adminId?: string
+    adminId?: string,
+    reason?: string
   ): Promise<{
     booking: Booking;
-    auditEntry: { id: string; appointmentId: string; clientId: string; forfeitedDeposit: number; stage: string; executedBy: 'auto_system' | 'barber' | 'admin'; timestamp: Date; reason: string };
-    refundInitiated: boolean;
+    auditEntry: NoShowAuditEntry;
+    refundInitiated: false;
   }> {
-    const now = new Date();
+    const now = this.now();
 
-    // 1. Update booking status to no_show
-    booking.status = 'no_show' as const;
+    // NSH-003: no-show утримує депозит — перехід платежу не відбувається
+    // і refund тут не викликається (він можливий лише зняттям no-show).
+    booking.status = 'no_show';
     booking.noShowStatus = 'confirmed';
     booking.noShowEscalatedAt = now;
+    await this.bookingRepo.save(booking);
 
-    // 2. Determine deposit retention
-    // Per T-091: deposit retained when no-show (payment transition does not occur)
-    const depositAmount = booking.depositAmount ?? 0;
-    const finalPrice = booking.finalPrice ?? 0;
-    const remainder = Math.max(0, finalPrice - depositAmount);
-
-    // 3. Create audit log entry
-    const auditEntry = {
-      id: `audit-${booking.id}-${Date.now()}`,
+    const auditEntry: NoShowAuditEntry = {
+      id: `audit-${booking.id}-${now.getTime()}`,
       appointmentId: booking.id,
       clientId: booking.clientId ?? '',
-      forfeitedDeposit: depositAmount,
+      forfeitedDeposit: booking.deposit?.amount ?? 0,
       stage: 'deposit_retained',
       executedBy: adminId ? 'admin' : 'auto_system',
       timestamp: now,
-      reason: adminId
-        ? 'Admin-marked no-show per NSH-ADM-01...03'
-        : 'Auto-marked no-show 15min past slot start per NSH-001...003',
+      reason:
+        reason?.trim() ||
+        (adminId
+          ? 'Admin-marked no-show per NSH-ADM-01...03'
+          : 'Auto-marked no-show 15min past slot start per NSH-001...003'),
     };
 
-    // 4. If admin is processing, may trigger refund waiver
-    // Per NSH-ADM-01...03: manual removal → refund PAY-005b
-    let refundInitiated = false;
-    if (adminId && booking.depositAmount > 0) {
-      // Admin can waive the no-show and initiate refund
-      refundInitiated = true;
-      // Would call refundUseCase.initiateRefund here
-    }
+    return { booking, auditEntry, refundInitiated: false };
+  }
 
-    // 5. Push notification to client (neutral message)
-    // Per T-160: "push to client neutral"
-    // Would use push notification service with neutral wording
+  /**
+   * NSH-ADM-03 / PAY-005б: адмін знімає прапор no-show — депозит повертається
+   * через T-094 (лише захоплена сума, перший коміт виграє, видатковий чек).
+   * Без причини зняття немає: лог обов'язковий.
+   */
+  async removeNoShow(
+    booking: Booking,
+    input: { adminId: string; reason: string; at?: Date }
+  ): Promise<{
+    booking: Booking;
+    refund: RefundEntity;
+    isDuplicate: boolean;
+    auditEntry: NoShowAuditEntry;
+  }> {
+    const reason = input.reason?.trim();
+    if (!reason) throw new Error('Removal reason is required (NSH-ADM-03)');
+    if (!input.adminId) throw new Error('Admin id is required to remove a no-show');
 
-    return {
-      booking,
-      auditEntry,
-      refundInitiated,
+    const { refund, isDuplicate } = await this.refundUseCase.initiateRefund(
+      booking.id,
+      undefined,
+      'NSH-ADM-03',
+      `ns_remove_${booking.id}`
+    );
+
+    const now = input.at ?? this.now();
+    booking.noShowStatus = 'removed';
+    await this.bookingRepo.save(booking);
+
+    const auditEntry: NoShowAuditEntry = {
+      id: `audit-${booking.id}-${now.getTime()}`,
+      appointmentId: booking.id,
+      clientId: booking.clientId ?? '',
+      forfeitedDeposit: 0,
+      stage: 'no_show_removed',
+      executedBy: 'admin',
+      timestamp: now,
+      reason: `${reason}; refund ${refund.refundId} (${refund.status})`,
     };
+
+    return { booking, refund, isDuplicate, auditEntry };
   }
 
   /** Check if client has 2+ no-shows in 90 days and trigger full prepayment rule.
@@ -123,8 +163,13 @@ export class T160NoShowPolicy {
   async assessFullPrepaymentRequirement(
     clientId: string,
     noShowHistory: ClientNoShowRecord[]
-  ): Promise<{ requireFullPrepayment: boolean; recentNoShowCount: number; waiverActive: boolean; message: string }> {
-    const result = this.checkRepeatBookingRequirement(clientId, noShowHistory);
+  ): Promise<{
+    requireFullPrepayment: boolean;
+    recentNoShowCount: number;
+    waiverActive: boolean;
+    message: string;
+  }> {
+    const result = await this.checkRepeatBookingRequirement(clientId, noShowHistory);
 
     if (result.waiverActive) {
       return {
@@ -155,7 +200,9 @@ export class T160NoShowPolicy {
   /** Calculate no-show rates by booking channel (NSH-005).
    * Provides dashboard data broken down by: online_with_deposit, online_without_deposit, walk_in
    */
-  calculateChannelNoShowRates(appointments: AppointmentRecord[]): Record<BookingChannel, { total: number; noShows: number; rate: number }> {
+  calculateChannelNoShowRates(
+    appointments: AppointmentRecord[]
+  ): Record<BookingChannel, { total: number; noShows: number; rate: number }> {
     return this.noShowService.calculateChannelNoShowRates(appointments);
   }
 }

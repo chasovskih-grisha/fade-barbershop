@@ -17,14 +17,18 @@ export function HomeObsidianCrownGroomingPromo() {
             Ритуал «Obsidian Crown»: преміум стрижка, авторський стайлінг та догляд за обличчям
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Максимальний рівень сервісу для тих, хто цінує кожну хвилину і бездоганний зовнішній вигляд. Професійний підхід топ-майстра, преміальна чоловіча косметика та абсолютний спокій у приватному просторі FADE.
+            Максимальний рівень сервісу для тих, хто цінує кожну хвилину і бездоганний зовнішній
+            вигляд. Професійний підхід топ-майстра, преміальна чоловіча косметика та абсолютний
+            спокій у приватному просторі FADE.
           </p>
           <div className="flex flex-wrap items-center gap-6 pt-2 text-sm text-fg-secondary">
             <span className="flex items-center gap-2 font-medium text-fg">
-              <span className="text-semantic-warning text-base">✓</span> Індивідуальний консьєрж-сервіс
+              <span className="text-semantic-warning text-base">✓</span> Індивідуальний
+              консьєрж-сервіс
             </span>
             <span className="flex items-center gap-2 font-medium text-fg">
-              <span className="text-semantic-warning text-base">✓</span> Ароматерапія гарячими рушниками
+              <span className="text-semantic-warning text-base">✓</span> Ароматерапія гарячими
+              рушниками
             </span>
             <span className="flex items-center gap-2 font-medium text-fg">
               <span className="text-semantic-warning text-base">✓</span> Пріоритетне бронювання 24/7
@@ -38,7 +42,9 @@ export function HomeObsidianCrownGroomingPromo() {
             className="inline-flex h-13 w-full sm:w-auto items-center justify-center rounded-input bg-accent px-8 text-body font-semibold text-accent-fg hover:opacity-95 transition-all duration-300 shadow-xl hover:scale-[1.02] active:scale-[0.98]"
           >
             <span>Забронювати Obsidian Crown</span>
-            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+              &rarr;
+            </span>
           </Link>
           <Link
             href="/services"

@@ -20,7 +20,9 @@ describe('AdminControlCenterWidget', () => {
     const toggleBtn = screen.getByRole('button', { name: 'Увімкнути техобслуговування' });
     fireEvent.click(toggleBtn);
     expect(screen.getByRole('button', { name: 'Вимкнути техобслуговування' })).toBeDefined();
-    expect(screen.getByText('Увага: увімкнено технічний режим для клієнтського сайту.')).toBeDefined();
+    expect(
+      screen.getByText('Увага: увімкнено технічний режим для клієнтського сайту.')
+    ).toBeDefined();
   });
 
   test('shows pending outbox count and allows sync', async () => {

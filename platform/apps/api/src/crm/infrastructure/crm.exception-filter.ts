@@ -4,8 +4,6 @@ import {
   PreferenceNotFoundError,
   NoteNotFoundError,
   InvalidClientListQueryError,
-  SavedFilterNotFoundError,
-  SavedFilterConflictError,
 } from '../application/crm-errors';
 import { InvalidBirthdayError } from '../domain/birthday';
 
@@ -35,22 +33,6 @@ export class CrmExceptionFilter implements ExceptionFilter {
       return response.status(HttpStatus.NOT_FOUND).json({
         statusCode: HttpStatus.NOT_FOUND,
         error: 'Not Found',
-        message: exception.message,
-      });
-    }
-
-    if (exception instanceof SavedFilterNotFoundError) {
-      return response.status(HttpStatus.NOT_FOUND).json({
-        statusCode: HttpStatus.NOT_FOUND,
-        error: 'Not Found',
-        message: exception.message,
-      });
-    }
-
-    if (exception instanceof SavedFilterConflictError) {
-      return response.status(HttpStatus.CONFLICT).json({
-        statusCode: HttpStatus.CONFLICT,
-        error: 'Conflict',
         message: exception.message,
       });
     }

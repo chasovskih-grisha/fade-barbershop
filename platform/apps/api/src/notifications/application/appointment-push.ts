@@ -2,7 +2,11 @@
 // пристрої клієнта (findTokensByUserId). Відписка клієнта (pushEnabled=false у
 // кабінеті) поважається; журнал з унікальним eventId не дублює доставку, а
 // падіння send лишає подію pending (at-least-once). Тексти — appointment-push-messages.
-import { PUSH_EVENT_TYPES, type AppointmentPushDeps, type PushEventType } from './appointment-push-ports';
+import {
+  PUSH_EVENT_TYPES,
+  type AppointmentPushDeps,
+  type PushEventType,
+} from './appointment-push-ports';
 import { pushBody, pushTitle } from './appointment-push-messages';
 import type { HandleOutcome, NotificationEvent } from './send-booking-confirmation';
 

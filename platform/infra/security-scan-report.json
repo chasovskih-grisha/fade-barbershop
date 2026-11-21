@@ -10,9 +10,11 @@
       "status": "PASSED",
       "critical_vulnerabilities": 0,
       "high_vulnerabilities": 0,
-      "scanned_dockerfiles": [ infra/admin.Dockerfile
-infra/web.Dockerfile
-infra/api.Dockerfile ]
+      "scanned_dockerfiles": [
+        "infra/admin.Dockerfile",
+        "infra/web.Dockerfile",
+        "infra/api.Dockerfile"
+      ]
     }
   }
 }

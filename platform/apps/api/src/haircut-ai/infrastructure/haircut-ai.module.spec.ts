@@ -14,7 +14,16 @@ import { AiGenerationWorker } from './ai-generation.worker';
 import { FakeAiGenerationGateway } from './fake-ai-generation.gateway';
 import { GeminiAiGenerationGateway } from './gemini-ai-generation.gateway';
 import { S3PhotoStorage } from './s3-photo-storage';
-import { UploadPhoto, RequestSuggestionHandler, GetSuggestionStatusHandler, SelectVariantHandler, GiveConsentHandler, RevokeConsentHandler, DeletePhotoHandler, ListMyAiHandler } from '../application/haircut-ai-use-case.tokens';
+import {
+  UploadPhoto,
+  RequestSuggestionHandler,
+  GetSuggestionStatusHandler,
+  SelectVariantHandler,
+  GiveConsentHandler,
+  RevokeConsentHandler,
+  DeletePhotoHandler,
+  ListMyAiHandler,
+} from '../application/haircut-ai-use-case.tokens';
 
 describe('HaircutAiModule wiring', () => {
   it('резолвить use cases, воркер і контролери', async () => {

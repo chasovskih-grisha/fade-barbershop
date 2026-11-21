@@ -47,7 +47,13 @@ export async function openReminderRelay(): Promise<ReminderRelayHarness> {
     },
     appendVisitEvent: async ({ appointmentId, type, payload }) => {
       const row = await prisma.outboxMessage.create({
-        data: { id: uuidv7(), aggregateType: 'appointment', aggregateId: appointmentId, type, payload },
+        data: {
+          id: uuidv7(),
+          aggregateType: 'appointment',
+          aggregateId: appointmentId,
+          type,
+          payload,
+        },
       });
       return row.id;
     },

@@ -15,7 +15,21 @@ function getKeys(obj: any, prefix = ''): string[] {
 }
 
 describe('i18n Message Catalog Parity', () => {
-  const domains = ['common', 'shell', 'locations', 'services', 'barbers', 'blog', 'booking', 'account', 'login', 'states', 'errors', 'shop', 'support'];
+  const domains = [
+    'common',
+    'shell',
+    'locations',
+    'services',
+    'barbers',
+    'blog',
+    'booking',
+    'account',
+    'login',
+    'states',
+    'errors',
+    'shop',
+    'support',
+  ];
   const locales = ['en', 'es'] as const;
 
   for (const domain of domains) {

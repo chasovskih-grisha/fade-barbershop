@@ -1,5 +1,10 @@
 import { InMemoryReferralRepository } from './application/in-memory-referral.repository';
-import { GenerateReferralCodeUseCase, RegisterReferralUseCase, QualifyReferralUseCase, DefaultFraudCheckService } from './application/referral.use-cases';
+import {
+  GenerateReferralCodeUseCase,
+  RegisterReferralUseCase,
+  QualifyReferralUseCase,
+  DefaultFraudCheckService,
+} from './application/referral.use-cases';
 
 describe('Referral Engine & Program (T-4554)', () => {
   let repo: InMemoryReferralRepository;
@@ -27,7 +32,7 @@ describe('Referral Engine & Program (T-4554)', () => {
 
   it('should register a referral when a friend uses a valid code', async () => {
     const referrerCode = await generateCode.execute('client_referrer');
-    
+
     const referral = await registerRef.execute({
       referrerCode: referrerCode.code,
       referredClientId: 'client_friend',

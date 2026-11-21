@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (103 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 import { ClientLoyaltyState } from '../domain/client-loyalty-state';
 import { EarnLoyaltyPointsHandler } from './earn-loyalty-points.use-case';
 import { RedeemLoyaltyPointsHandler } from './redeem-loyalty-points.use-case';

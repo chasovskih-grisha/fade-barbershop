@@ -44,7 +44,10 @@ class MockAcquiringGateway implements AcquiringGateway {
     return { refundId: 're_test_1' };
   }
 
-  async verifyPaymentStatus(): Promise<{ status: 'succeeded' | 'pending' | 'failed'; amountReceived?: number }> {
+  async verifyPaymentStatus(): Promise<{
+    status: 'succeeded' | 'pending' | 'failed';
+    amountReceived?: number;
+  }> {
     return { status: this.gatewayStatus, amountReceived: 300 };
   }
 }
@@ -91,6 +94,6 @@ describe('VerifyPaymentStatusHandler', () => {
     expect(result.status).toBe('succeeded');
     expect(payment.status).toBe(PaymentStatus.DEPOSIT_PAID);
     expect(outbox.events.length).toBe(1);
-    expect(outbox.events[0]!.type).toBe('billing.payment.captured');
+    expect(outbox?.events?.[0]?.type).toBe('billing.payment.captured');
   });
 });

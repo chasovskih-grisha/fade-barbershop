@@ -8,6 +8,8 @@ import type { PrismaLocationRepository } from '../../locations/infrastructure/pr
 import type { PrismaServiceRepository } from '../../catalog/infrastructure/prisma-service.repository';
 import type { EvaluateOnlineBooking } from '../../booking/policy/evaluate-online-booking';
 import type { SurgePricing } from '../../pricing/application/surge-quote';
+import type { DepositHoldService } from '../application/deposit-hold.service';
+import type { DayOffRepository } from '../domain/day-off';
 
 export interface ClientBookingsDeps {
   bookingRepo: PrismaBookingRepository;
@@ -16,8 +18,12 @@ export interface ClientBookingsDeps {
   services: PrismaServiceRepository;
   appointmentRepo: PrismaAppointmentRepository;
   depositPolicy: PrismaDepositPolicySettings;
+  /** T-4447: вихідні барбера; за відсутності порту перевірки немає. */
+  dayOffs?: DayOffRepository;
   /** Політика онлайн-букінгу (T-4542); за відсутності — без обмежень. */
   onlineBooking?: EvaluateOnlineBooking;
   /** Surge-ціноутворення (T-4811); без нього ціна без множника. */
   surge?: SurgePricing;
+  /** T-4619a: утримання крісла під незаплачений депозит. */
+  depositHolds?: Pick<DepositHoldService, 'open'>;
 }

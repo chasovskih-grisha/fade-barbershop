@@ -1,7 +1,5 @@
 // Prisma-адаптер ArticleRepository (content, MNG-ADM-17). Агрегат — один рядок
-// Article: текст, анонс, обкладинка, автор, статус. Теги — масив рядків у
-// колонці (простий список із нормалізацією в домені; окрема таблиця знадобиться
-// лише разом із фільтром «статті за тегом» у пошуку).
+// Article; теги — масив рядків у колонці, нормалізація — в домені.
 
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
@@ -10,6 +8,8 @@ import type { ArticleRepository } from '../domain/ports';
 import { currentDb } from '../../shared/prisma/prisma-context';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { hydrateArticle } from './prisma-article-row';
+import { feedQuery, type ArticleFeedQuery } from '../application/article-feed';
+import { feedWhere } from './article-feed.where';
 
 @Injectable()
 export class PrismaArticleRepository implements ArticleRepository {
@@ -82,12 +82,13 @@ export class PrismaArticleRepository implements ArticleRepository {
     return rows.map(hydrateArticle);
   }
 
-  /** Публічна стрічка: лише published, нові за датою публікації. */
-  async listPublished(limit = 20): Promise<Article[]> {
+  /** Публічна стрічка: лише published, новіші спершу, з пошуком, тегом і курсором. */
+  async listPublished(raw: ArticleFeedQuery = {}): Promise<Article[]> {
+    const limit = feedQuery(raw).limit;
     const rows = await this.db().article.findMany({
-      where: { status: 'published' },
-      orderBy: [{ publishedAt: 'desc' }],
-      take: limit,
+      where: feedWhere(raw),
+      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
+      ...(limit !== undefined ? { take: limit } : {}),
     });
     return rows.map(hydrateArticle);
   }

@@ -1,6 +1,6 @@
 # Dev image for the platform apps (ADR 0018) with pnpm fetch caching optimization.
 # Build context is the platform root (see infra/docker-compose.yml: context: ..).
-FROM node:20-alpine
+FROM node:20-alpine AS dev
 
 RUN apk add --no-cache libc6-compat
 RUN corepack enable
@@ -45,3 +45,25 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --offli
 
 # Generate Prisma Client into the image
 RUN pnpm --filter @fade/api exec prisma generate
+
+# ── Production image (T-4614a) ──────────────────────────────────────────────
+# Explicit stage: the VPS (ADR 0051) builds `--target prod`, so it can never
+# fall through to the dev recipe above. No host sources, no watch, built process.
+FROM dev AS build
+
+RUN pnpm -r --filter "./packages/*" build \
+ && pnpm --filter @fade/api build
+
+FROM node:20-alpine AS prod
+
+RUN apk add --no-cache libc6-compat
+ENV NODE_ENV=production
+WORKDIR /app
+
+# The built tree carries the pnpm workspace links, so runtime resolution of
+# @fade/* packages and the generated Prisma client stays intact.
+COPY --from=build /app ./
+
+WORKDIR /app/apps/api
+EXPOSE 13000
+CMD ["node", "dist/main"]

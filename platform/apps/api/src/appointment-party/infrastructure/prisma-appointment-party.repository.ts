@@ -3,7 +3,13 @@ import { uuidv7 } from '@fade/domain-shared';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { AppointmentParty } from '../domain/appointment-party.entity';
 import type { AppointmentPartyRepository } from '../application/ports';
-import { assertLegsFree, assertPartyCapacity, legsOf, partyCreateData, partySpan } from './appointment-party-capacity';
+import {
+  assertLegsFree,
+  assertPartyCapacity,
+  legsOf,
+  partyCreateData,
+  partySpan,
+} from './appointment-party-capacity';
 import { restoreAppointmentParty } from './appointment-party-row';
 
 @Injectable()

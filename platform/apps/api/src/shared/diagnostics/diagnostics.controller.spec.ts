@@ -40,7 +40,9 @@ describe('DiagnosticsController (/diagnostics)', () => {
 
     const res = controller.check();
     expect(res.errorTracking?.totalRecorded).toBeGreaterThan(0);
-    expect(res.errorTracking?.recentErrors.some(e => e.message === 'Test failure message')).toBe(true);
+    expect(res.errorTracking?.recentErrors?.some((e) => e.message === 'Test failure message')).toBe(
+      true
+    );
 
     await app.close();
   });

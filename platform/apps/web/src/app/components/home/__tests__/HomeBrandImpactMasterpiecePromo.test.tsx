@@ -6,7 +6,9 @@ describe('HomeBrandImpactMasterpiecePromo', () => {
   it('renders correctly with title and action buttons', () => {
     render(<HomeBrandImpactMasterpiecePromo />);
 
-    expect(screen.getByText(/Колекційна серія стрижок та королівського гоління/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Колекційна серія стрижок та королівського гоління/i)
+    ).toBeInTheDocument();
     expect(screen.getByText(/Преміальний ритуал/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Забронювати досвід/i })).toHaveAttribute(
       'href',

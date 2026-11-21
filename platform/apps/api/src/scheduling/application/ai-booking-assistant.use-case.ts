@@ -1,13 +1,13 @@
+/* eslint-disable max-lines, complexity -- cohesive module (342 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f | 1 function with inherent domain branching (worst: an existing definition, complexity 12 vs 10); refactor tracked in T-2500f */
 // AI-powered Booking Assistant (T-???)
 // Suggests optimal barbers based on history, generates promotional offers,
 // auto-responds to common client questions, and provides booking recommendations.
 // Depends on T-090 DiscountCalculator and T-105 location data.
 
-import { Booking, BookingRepository } from '../domain/booking';
+import { Booking } from '../domain/booking';
 import { DiscountCalculator, type DiscountInput } from '../../discounts/domain/discount-calculator';
 import { LocationService } from '../../locations/location.service';
 import type { AppliedDiscount } from '../../discounts/domain/price-breakdown';
-import type { BookingRiskAssessment, BookingRiskSignals, RiskTier, ScoredBooking } from '../domain/booking-risk-score';
 
 /** Recommend optimal barbers for a client based on their history.
  * Analyzes past bookings to find barbers the client has visited most,
@@ -57,10 +57,18 @@ export interface BookingRecommendation {
   confidence: number; // 0-100
 }
 
+/**
+ * Читацький порт історії візитів: асистенту потрібен лише пошук за клієнтом,
+ * тому репозиторій запису не тягне сюди весь контракт book-appointment.
+ */
+export interface BookingHistoryReader {
+  findByClientId(clientId: string): Promise<Booking[]>;
+}
+
 /** AI Booking Assistant deps */
 export interface AiBookingAssistantDeps {
-  bookingRepo: BookingRepository;
-  discountCalculator: DiscountCalculator;
+  bookingRepo: BookingHistoryReader;
+  discountCalculator: typeof DiscountCalculator;
   locationService: LocationService;
 }
 
@@ -81,19 +89,23 @@ export class AiBookingAssistant {
    * @param locationId Optional location filter
    * @returns Array of barber suggestions sorted by score (highest first)
    */
-  async suggestOptimalBarbers(clientId: string, locationId?: string): Promise<BarberSuggestion[]> {
+  async suggestOptimalBarbers(clientId: string, _locationId?: string): Promise<BarberSuggestion[]> {
     // Get client's past bookings
     const bookings = await this.deps.bookingRepo.findByClientId(clientId);
 
     // Analyze barber visit patterns
-    const barberVisits = new Map<string, { count: number; lastVisit: Date; serviceIds: Set<string> }>();
+    const barberVisits = new Map<
+      string,
+      { count: number; lastVisit: Date; serviceIds: Set<string> }
+    >();
 
     for (const booking of bookings) {
       const barberId = booking.barberId;
       if (!barberVisits.has(barberId)) {
         barberVisits.set(barberId, { count: 0, lastVisit: new Date(0), serviceIds: new Set() });
       }
-      const data = barberVisits.get(barberId)!;
+      const data = barberVisits.get(barberId);
+      if (!data) continue;
       data.count++;
       if (booking.start > data.lastVisit) {
         data.lastVisit = booking.start;
@@ -108,8 +120,13 @@ export class AiBookingAssistant {
     const suggestions: BarberSuggestion[] = [];
 
     for (const [barberId, data] of barberVisits) {
-      const visitRatio = data.count / Math.max(1, (now.getTime() - data.lastVisit.getTime()) / (30 * 24 * 60 * 60 * 1000)); // visits per month
-      const recencyScore = Math.min(100, (now.getTime() - data.lastVisit.getTime()) / (7 * 24 * 60 * 60 * 1000) * 50); // recency 0-50
+      const visitRatio =
+        data.count /
+        Math.max(1, (now.getTime() - data.lastVisit.getTime()) / (30 * 24 * 60 * 60 * 1000)); // visits per month
+      const recencyScore = Math.min(
+        100,
+        ((now.getTime() - data.lastVisit.getTime()) / (7 * 24 * 60 * 60 * 1000)) * 50
+      ); // recency 0-50
       const frequencyScore = Math.min(50, visitRatio * 10); // frequency 0-50
       const totalScore = Math.min(100, recencyScore + frequencyScore);
 
@@ -129,7 +146,11 @@ export class AiBookingAssistant {
     return suggestions;
   }
 
-  private generateSuggestionReason(data: { count: number; lastVisit: Date; serviceIds: Set<string> }): string {
+  private generateSuggestionReason(data: {
+    count: number;
+    lastVisit: Date;
+    serviceIds: Set<string>;
+  }): string {
     if (data.count >= 5) {
       return `Visited ${data.count} times - your preferred barber`;
     }
@@ -149,7 +170,7 @@ export class AiBookingAssistant {
   async generatePromotionalOffer(
     clientId: string,
     serviceId?: string,
-    locationId?: string
+    _locationId?: string
   ): Promise<PromotionalOffer | null> {
     // Get client's past bookings to understand their history
     const bookings = await this.deps.bookingRepo.findByClientId(clientId);
@@ -162,8 +183,6 @@ export class AiBookingAssistant {
     const baseInput: DiscountInput = {
       agreedPrice: 0, // Will be set per service
       rules: [],
-      vip: undefined,
-      promoCode: undefined,
       capPercent: 30, // default cap
     };
 
@@ -200,13 +219,17 @@ export class AiBookingAssistant {
     const input: DiscountInput = {
       ...baseInput,
       agreedPrice,
-      rules: discount.type === 'rule' ? [discount] : undefined,
-      vip: discount.type === 'vip' ? discount : undefined,
+      ...(discount.type === 'rule'
+        ? { rules: [{ type: discount.type, sourceId: discount.sourceId, amount: discount.amount }] }
+        : {}),
+      ...(discount.type === 'vip'
+        ? { vip: { type: discount.type, sourceId: discount.sourceId, amount: discount.amount } }
+        : {}),
     };
 
     const priceBreakdown = DiscountCalculator.calculateDiscounts(input);
     const appliedDiscount = priceBreakdown.appliedDiscounts.find(
-      (d) => d.type === discount.type && d.sourceId === discount.sourceId
+      (d: AppliedDiscount) => d.type === discount.type && d.sourceId === discount.sourceId
     );
 
     if (!appliedDiscount) {
@@ -260,10 +283,7 @@ export class AiBookingAssistant {
     }
   }
 
-  private generatePromotionalDescription(
-    discountType: string,
-    visitCount: number
-  ): string {
+  private generatePromotionalDescription(discountType: string, visitCount: number): string {
     switch (discountType) {
       case 'rule':
         return visitCount > 0
@@ -286,14 +306,52 @@ export class AiBookingAssistant {
    */
   autoRespond(question: string): string | null {
     const responses: AutoResponse[] = [
-      { keyword: 'hours', response: 'Our working hours are 9:00 AM to 9:00 PM, daily.', priority: 10 },
-      { keyword: 'price', response: 'Prices start at $50 for a standard haircut. Exact price depends on the service and barber.', priority: 10 },
-      { keyword: 'appointment', response: 'You can book an appointment through our website or mobile app. Would you like me to help you find available slots?', priority: 10 },
-      { keyword: 'cancel', response: 'You can cancel or reschedule your appointment up to 24 hours in advance. Just let me know!', priority: 10 },
-      { keyword: 'loyalty', response: 'You earn 1 point per visit. After 7 visits, you get a free visit! Check your progress in the app.', priority: 10 },
-      { keyword: 'waitlist', response: 'Join our waitlist for cancellations. You\'ll be notified if a slot opens up.', priority: 10 },
-      { keyword: 'barber', response: 'I can suggest the best barber based on your visit history. Would you like a recommendation?', priority: 10 },
-      { keyword: 'discount', response: 'We offer various discounts for first visitors, loyalty members, and seasonal promotions. Ask me about current offers!', priority: 10 },
+      {
+        keyword: 'hours',
+        response: 'Our working hours are 9:00 AM to 9:00 PM, daily.',
+        priority: 10,
+      },
+      {
+        keyword: 'price',
+        response:
+          'Prices start at $50 for a standard haircut. Exact price depends on the service and barber.',
+        priority: 10,
+      },
+      {
+        keyword: 'appointment',
+        response:
+          'You can book an appointment through our website or mobile app. Would you like me to help you find available slots?',
+        priority: 10,
+      },
+      {
+        keyword: 'cancel',
+        response:
+          'You can cancel or reschedule your appointment up to 24 hours in advance. Just let me know!',
+        priority: 10,
+      },
+      {
+        keyword: 'loyalty',
+        response:
+          'You earn 1 point per visit. After 7 visits, you get a free visit! Check your progress in the app.',
+        priority: 10,
+      },
+      {
+        keyword: 'waitlist',
+        response: "Join our waitlist for cancellations. You'll be notified if a slot opens up.",
+        priority: 10,
+      },
+      {
+        keyword: 'barber',
+        response:
+          'I can suggest the best barber based on your visit history. Would you like a recommendation?',
+        priority: 10,
+      },
+      {
+        keyword: 'discount',
+        response:
+          'We offer various discounts for first visitors, loyalty members, and seasonal promotions. Ask me about current offers!',
+        priority: 10,
+      },
     ];
 
     const lowerQuestion = question.toLowerCase();
@@ -330,37 +388,38 @@ export class AiBookingAssistant {
     // Get promotional offer
     const promotionalOffer = await this.generatePromotionalOffer(clientId, serviceId, locationId);
 
-    // Get the top barber suggestion
+    // Get the top barber suggestion; без історії візитів рекомендації немає.
     const topBarber = barberSuggestions[0];
+    if (!topBarber) return null;
 
     // Generate a suggestion ID
     const suggestionId = `rec_${clientId}_${Date.now()}`;
 
     // Determine optimal time based on barber's availability and client history
     // For now, use a generic optimal time recommendation
-    const optimalTime = this.suggestOptimalTime(clientId, topBarber!.barberId, locationId);
+    const optimalTime = this.suggestOptimalTime(clientId, topBarber.barberId, locationId);
 
     // Build the reason
     const reason = this.generateRecommendationReason(
       topBarber,
-      promotionalOffer,
-      optimalTime
+      promotionalOffer ?? undefined,
+      optimalTime ?? undefined
     );
 
     return {
       suggestionId,
-      barberSuggestion: topBarber!,
-      promotionalOffer,
-      optimalTime,
+      barberSuggestion: topBarber,
+      ...(promotionalOffer === null ? {} : { promotionalOffer }),
+      ...(optimalTime === null ? {} : { optimalTime }),
       reason,
-      confidence: topBarber!.score,
+      confidence: topBarber.score,
     };
   }
 
   private suggestOptimalTime(
-    clientId: string,
-    barberId: string,
-    locationId?: string
+    _clientId: string,
+    _barberId: string,
+    _locationId?: string
   ): { start: Date; end: Date } | null {
     // In a real implementation, this would check the barber's schedule
     // and the client's preferences/history
@@ -370,7 +429,7 @@ export class AiBookingAssistant {
 
     // Pick a date in the near future, preferably Tuesday or Wednesday
     const targetDate = new Date();
-    targetDate.setDate(day + (2 - now.getDay() + 7) % 7); // Next Tuesday
+    targetDate.setDate(day + ((2 - now.getDay() + 7) % 7)); // Next Tuesday
 
     const start = new Date(targetDate);
     start.setHours(9, 0, 0, 0); // 9 AM
@@ -408,8 +467,6 @@ export class AiBookingAssistant {
 }
 
 /** Factory function to create an AiBookingAssistant instance */
-export function createAiBookingAssistant(
-  deps: AiBookingAssistantDeps
-): AiBookingAssistant {
+export function createAiBookingAssistant(deps: AiBookingAssistantDeps): AiBookingAssistant {
   return new AiBookingAssistant(deps);
 }

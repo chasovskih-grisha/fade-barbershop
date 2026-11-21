@@ -43,7 +43,7 @@ describe('GdprComplianceService', () => {
     expect(anonymized.phone).toBe('+00000000000');
     expect(anonymized.crmNotes.length).toBe(0);
     expect(anonymized.chatLogs.length).toBe(0);
-    expect(anonymized.appointments[0].amountPaid).toBe(300); // Financial accounting integrity preserved
+    expect(anonymized.appointments[0]?.amountPaid).toBe(300); // Financial accounting integrity preserved
   });
 
   it('purges expired records via daily retention policy background worker', () => {

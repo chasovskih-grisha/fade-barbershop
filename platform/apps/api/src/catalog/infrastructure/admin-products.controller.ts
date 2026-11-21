@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Patch, Body, Param, NotFoundException, BadRequestException } from '@nestjs/common';
+/* eslint-disable max-lines -- cohesive module (117 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { uuidv7 } from '@fade/domain-shared';
 import { PrismaProductRepository } from './prisma-product.repository';
 import { Product } from '../domain/product';
 import { PrismaService } from '../../shared/prisma/prisma.service';
@@ -17,15 +28,25 @@ export class AdminProductsController {
   }
 
   @Post()
-  async createProduct(@Body() body: { name: string; description?: string; brand?: string; category?: string; photoUrl?: string; active?: boolean }) {
+  async createProduct(
+    @Body()
+    body: {
+      name: string;
+      description?: string;
+      brand?: string;
+      category?: string;
+      photoUrl?: string;
+      active?: boolean;
+    }
+  ) {
     try {
       const product = Product.create({
         name: body.name,
-        description: body.description,
-        brand: body.brand,
-        category: body.category,
-        photoUrl: body.photoUrl,
-        active: body.active,
+        description: body.description ?? null,
+        brand: body.brand ?? null,
+        category: body.category ?? null,
+        photoUrl: body.photoUrl ?? null,
+        ...(body.active !== undefined ? { active: body.active } : {}),
       });
       await this.productRepo.save(product);
       return product.propsSnapshot;
@@ -37,7 +58,15 @@ export class AdminProductsController {
   @Patch(':id')
   async updateProduct(
     @Param('id') id: string,
-    @Body() body: { name?: string; description?: string; brand?: string; category?: string; photoUrl?: string; active?: boolean }
+    @Body()
+    body: {
+      name?: string;
+      description?: string;
+      brand?: string;
+      category?: string;
+      photoUrl?: string;
+      active?: boolean;
+    }
   ) {
     const product = await this.productRepo.findById(id);
     if (!product) throw new NotFoundException('Product not found');
@@ -60,6 +89,7 @@ export class AdminProductsController {
 
     const variant = await this.prisma.productVariant.create({
       data: {
+        id: uuidv7(),
         productId,
         name: body.name,
         sku: body.sku,
@@ -81,6 +111,7 @@ export class AdminProductsController {
         variantId_locationId: { variantId, locationId },
       },
       create: {
+        id: uuidv7(),
         variantId,
         locationId,
         quantity: body.quantity,

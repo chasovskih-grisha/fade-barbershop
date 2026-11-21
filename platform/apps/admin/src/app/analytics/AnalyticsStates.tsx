@@ -22,7 +22,10 @@ export function AnalyticsErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <main className="flex flex-col gap-6">
       <PageHeader title="Аналітика мережі" subtitle="Зведені звіти та операційні показники" />
-      <div role="alert" className="p-4 rounded-card border border-semantic-danger text-semantic-danger">
+      <div
+        role="alert"
+        className="p-4 rounded-card border border-semantic-danger text-semantic-danger"
+      >
         Не вдалося завантажити дані аналітики.{' '}
         <button type="button" onClick={onRetry} className="underline font-bold">
           Спробувати знову

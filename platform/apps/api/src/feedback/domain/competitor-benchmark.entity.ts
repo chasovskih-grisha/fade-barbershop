@@ -51,6 +51,8 @@ export class CompetitorBenchmark {
 
   priceDifferencePercent(ourAveragePrice: number): number {
     if (ourAveragePrice <= 0) return 0;
-    return Number((((this.averageHaircutPrice - ourAveragePrice) / ourAveragePrice) * 100).toFixed(2));
+    return Number(
+      (((this.averageHaircutPrice - ourAveragePrice) / ourAveragePrice) * 100).toFixed(2)
+    );
   }
 }

@@ -1,7 +1,7 @@
 export class FeedbackWindow {
   constructor(
     public readonly appointmentCompletedAt: Date,
-    public readonly windowDays: number = 30,
+    public readonly windowDays: number = 30
   ) {}
 
   get windowEndsAt(): Date {

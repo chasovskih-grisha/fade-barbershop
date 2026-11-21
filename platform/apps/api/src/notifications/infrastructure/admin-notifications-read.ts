@@ -15,7 +15,7 @@ export class AdminNotificationReadController {
   async listRecords(
     @Query('limit') limit?: string,
     @Query('status') status?: string,
-    @Query('type') type?: string,
+    @Query('type') type?: string
   ) {
     const take = limit ? parseInt(limit, 10) : 50;
     const where: { status?: string; type?: string } = {};

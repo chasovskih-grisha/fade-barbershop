@@ -19,21 +19,21 @@ describe('ServiceDurationOptimizationEngine', () => {
     const result = engine.optimizeDuration({
       baseServiceDurationMinutes: 45,
       baseBufferMinutes: 10,
-      barberPacingFactor: 0.90, // fast barber
+      barberPacingFactor: 0.9, // fast barber
       hairDensity: 'fine',
     });
 
     // 45 * 0.90 * 0.90 = 36.45 -> rounds to 35 mins
     expect(result.optimizedServiceDurationMinutes).toBe(35);
-    expect(result.pacingMultiplier).toBe(0.90);
-    expect(result.densityMultiplier).toBe(0.90);
+    expect(result.pacingMultiplier).toBe(0.9);
+    expect(result.densityMultiplier).toBe(0.9);
   });
 
   test('adjusts duration for meticulous barber, coarse hair, and first-time visit consultation', () => {
     const result = engine.optimizeDuration({
       baseServiceDurationMinutes: 45,
       baseBufferMinutes: 10,
-      barberPacingFactor: 1.10, // meticulous barber
+      barberPacingFactor: 1.1, // meticulous barber
       hairDensity: 'coarse',
       isFirstVisit: true,
     });

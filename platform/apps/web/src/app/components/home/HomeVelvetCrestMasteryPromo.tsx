@@ -17,14 +17,17 @@ export function HomeVelvetCrestMasteryPromo() {
             Комплекс «Velvet Crest»: преміальний догляд, стрижка бороди та масляний релакс-масаж
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Найвищий стандарт чоловічого догляду для тих, хто обирає неперевершену форму, мʼякий евкаліптовий компрес, індивідуальну роботу топ-барбера та повне занурення у затишок приватної студії на 2 крісла.
+            Найвищий стандарт чоловічого догляду для тих, хто обирає неперевершену форму, мʼякий
+            евкаліптовий компрес, індивідуальну роботу топ-барбера та повне занурення у затишок
+            приватної студії на 2 крісла.
           </p>
           <div className="flex flex-wrap items-center gap-6 pt-2 text-sm text-fg-secondary">
             <span className="flex items-center gap-2 font-medium text-fg">
               <span className="text-semantic-warning text-base">✓</span> Персональний топ-майстер
             </span>
             <span className="flex items-center gap-2 font-medium text-fg">
-              <span className="text-semantic-warning text-base">✓</span> Елітний бар та міцний еспресо
+              <span className="text-semantic-warning text-base">✓</span> Елітний бар та міцний
+              еспресо
             </span>
             <span className="flex items-center gap-2 font-medium text-fg">
               <span className="text-semantic-warning text-base">✓</span> Гарантія форми 30 днів
@@ -38,7 +41,9 @@ export function HomeVelvetCrestMasteryPromo() {
             className="inline-flex h-13 w-full sm:w-auto items-center justify-center rounded-input bg-accent px-8 text-body font-semibold text-accent-fg hover:opacity-95 transition-all duration-300 shadow-xl hover:scale-[1.02] active:scale-[0.98]"
           >
             <span>Записатися на Velvet Crest</span>
-            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+              &rarr;
+            </span>
           </Link>
           <Link
             href="/services"

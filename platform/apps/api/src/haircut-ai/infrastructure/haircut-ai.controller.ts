@@ -6,7 +6,18 @@
 // (T-041) дозволяє записатися гостю. Фото гостя не потрапляє в кабінет — воно
 // лише референс для барбера. ownerId з тіла запиту НЕ приймається (security).
 
-import { Controller, Get, HttpCode, HttpException, HttpStatus, Param, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+  Req,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { memoryStorage } from 'multer';

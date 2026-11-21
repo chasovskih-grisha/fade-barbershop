@@ -50,13 +50,7 @@ describe('PhotoSection', () => {
   });
 
   it('disables buttons while saving is in flight', () => {
-    render(
-      <PhotoSection
-        initialPhotos={[]}
-        onSave={jest.fn()}
-        saving={true}
-      />
-    );
+    render(<PhotoSection initialPhotos={[]} onSave={jest.fn()} saving={true} />);
 
     expect(screen.getByRole('button', { name: /збереження…/i })).toBeDisabled();
     expect(screen.getByRole('button', { name: /додати фото/i })).toBeDisabled();

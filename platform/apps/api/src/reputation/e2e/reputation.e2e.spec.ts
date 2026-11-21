@@ -75,9 +75,7 @@ describe('Reputation & Competitive Intelligence (e2e)', () => {
     expect(gapReport.body.strategicRecommendation).toBeDefined();
 
     // Fetch reputation health report
-    const health = await request(http)
-      .get('/admin/reputation/health/loc-podil')
-      .expect(200);
+    const health = await request(http).get('/admin/reputation/health/loc-podil').expect(200);
 
     expect(health.body.totalReviews).toBe(2);
     expect(health.body.averageRating).toBe(3.5);

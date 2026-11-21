@@ -1,7 +1,12 @@
 import { OpeningHours } from '../../locations/domain/opening-hours';
 import { weekDays } from '../../locations/test-helpers.fakes';
 import type { AvailabilityWindowData } from './availability';
-import { assertScheduleEditAllowed, assertWindowsWithinOpeningHours, ScheduleNotAllowedError, type ScheduleEditor } from './barber-self-service';
+import {
+  assertScheduleEditAllowed,
+  assertWindowsWithinOpeningHours,
+  ScheduleNotAllowedError,
+  type ScheduleEditor,
+} from './barber-self-service';
 
 const delegated: ScheduleEditor = {
   policy: { selfService: true, allowOutsideHours: false },

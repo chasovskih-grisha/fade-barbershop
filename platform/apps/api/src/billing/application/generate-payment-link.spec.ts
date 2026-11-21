@@ -25,14 +25,14 @@ describe('GeneratePaymentLinkHandler & Verification', () => {
 
     // Parse out data and sig from link
     const url = new URL(result.paymentLink);
-    const encodedData = url.searchParams.get('data')!;
-    const sig = url.searchParams.get('sig')!;
+    const encodedData = url.searchParams.get('data') ?? '';
+    const sig = url.searchParams.get('sig') ?? '';
 
     const verification = GeneratePaymentLinkHandler.verifyPaymentLink(
       encodedData,
       sig,
       secretKey,
-      new Date('2026-11-11T12:00:00Z'),
+      new Date('2026-11-11T12:00:00Z')
     );
 
     expect(verification.valid).toBe(true);
@@ -52,8 +52,8 @@ describe('GeneratePaymentLinkHandler & Verification', () => {
     });
 
     const url = new URL(result.paymentLink);
-    const encodedData = url.searchParams.get('data')!;
-    const sig = url.searchParams.get('sig')!;
+    const encodedData = url.searchParams.get('data') ?? '';
+    const sig = url.searchParams.get('sig') ?? '';
 
     // Tamper with data (e.g. changing amount in decoded payload and re-encoding)
     const tamperedData = JSON.parse(Buffer.from(encodedData, 'base64url').toString('utf8'));
@@ -64,7 +64,7 @@ describe('GeneratePaymentLinkHandler & Verification', () => {
       tamperedEncoded,
       sig, // original signature won't match tampered payload
       secretKey,
-      new Date('2026-11-11T12:00:00Z'),
+      new Date('2026-11-11T12:00:00Z')
     );
 
     expect(verification.valid).toBe(false);
@@ -83,8 +83,8 @@ describe('GeneratePaymentLinkHandler & Verification', () => {
     });
 
     const url = new URL(result.paymentLink);
-    const encodedData = url.searchParams.get('data')!;
-    const sig = url.searchParams.get('sig')!;
+    const encodedData = url.searchParams.get('data') ?? '';
+    const sig = url.searchParams.get('sig') ?? '';
 
     // Check with current time 2 minutes later
     const futureTime = new Date(result.expiresAt.getTime() + 120 * 1000);
@@ -92,7 +92,7 @@ describe('GeneratePaymentLinkHandler & Verification', () => {
       encodedData,
       sig,
       secretKey,
-      futureTime,
+      futureTime
     );
 
     expect(verification.valid).toBe(false);

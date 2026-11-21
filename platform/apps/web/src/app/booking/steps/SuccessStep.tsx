@@ -55,9 +55,7 @@ export default function SuccessStep({
       </dl>
 
       <div className="flex flex-wrap justify-center gap-3">
-        <Button onClick={() => (window.location.href = '/account/appointments')}>
-          Мої візити
-        </Button>
+        <Button onClick={() => (window.location.href = '/account/appointments')}>Мої візити</Button>
         <Button variant="secondary" onClick={() => (window.location.href = '/')}>
           На головну
         </Button>

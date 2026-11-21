@@ -7,9 +7,20 @@
 // всього фільтра — рівно стільки ж запитів, скільки й сторінка: цифри не
 // залежать від пагінації, і `summary.total` — той самий `total`, що й таблиця.
 import { Inject, Injectable } from '@nestjs/common';
-import { CLIENT_LIST_READER, type ClientListReader, type ClientListWhere, type ProfileOrder } from './client-list-reader';
+import {
+  CLIENT_LIST_READER,
+  type ClientListReader,
+  type ClientListWhere,
+  type ProfileOrder,
+} from './client-list-reader';
 import { parseClientListQuery, type ClientListQuery } from './admin-client-list.query';
-import { compareStat, item, statFor, type ClientListPage, type ClientListResult } from './admin-client-list.view';
+import {
+  compareStat,
+  item,
+  statFor,
+  type ClientListPage,
+  type ClientListResult,
+} from './admin-client-list.view';
 import { buildClientListSummary, summaryWindow } from './client-list-summary';
 import type { ClientListFacts } from './client-list-summary';
 import type { Clock } from '../domain/ports';

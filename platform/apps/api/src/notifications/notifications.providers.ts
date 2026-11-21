@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (111 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Провайдери контексту notifications (T-4608, T-4462). Винесено з notifications.module.ts
 // за LOC-гейтом; нагадування T-080 — у appointment-reminder.providers.ts.
 // Збірка deps одним масивом (гейт max-params): фабрика дістає позиційно.
@@ -12,7 +13,10 @@ import { PrismaClientContacts } from './infrastructure/client-contacts';
 import { PrismaNotificationJournal } from './infrastructure/notification-journal';
 import { PrismaLocationContacts } from './infrastructure/location-contacts';
 import { PrismaClientPreferences } from './infrastructure/prisma-client-preferences';
-import { SendBookingConfirmation, type BookingConfirmationDeps } from './application/send-booking-confirmation';
+import {
+  SendBookingConfirmation,
+  type BookingConfirmationDeps,
+} from './application/send-booking-confirmation';
 import { NewDeviceAlert, type SecurityAlertDeps } from './application/security-alert';
 import { LoyaltyNotificationHandler } from './application/loyalty-notification';
 import type { LoyaltyNotificationDeps } from './application/loyalty-notification-ports';

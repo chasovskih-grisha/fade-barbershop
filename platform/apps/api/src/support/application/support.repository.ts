@@ -1,4 +1,8 @@
-import { SupportTicketEntity, InteractiveFaqEntity, ErrorRecoverySuggestionEntity } from '../domain/support.entity';
+import {
+  SupportTicketEntity,
+  InteractiveFaqEntity,
+  ErrorRecoverySuggestionEntity,
+} from '../domain/support.entity';
 
 export interface SupportTicketRepository {
   saveTicket(ticket: SupportTicketEntity): Promise<void>;

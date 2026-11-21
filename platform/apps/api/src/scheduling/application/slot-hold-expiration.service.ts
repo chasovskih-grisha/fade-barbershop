@@ -27,7 +27,7 @@ export class SlotHoldExpirationService {
   assessHold(input: SlotHoldInput): SlotHoldResult {
     const timeZone = input.timeZone ?? 'Europe/Kyiv';
     const kyivStart = kyivStamp(input.slotStart, timeZone);
-    
+
     const elapsedMs = input.currentTime.getTime() - input.heldAt.getTime();
     const holdLimitMs = this.config.holdDurationMinutes * 60 * 1000;
     const remainingMs = holdLimitMs - elapsedMs;

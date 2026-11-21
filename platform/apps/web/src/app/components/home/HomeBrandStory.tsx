@@ -22,17 +22,23 @@ export function HomeBrandStory() {
           </h2>
 
           <p className="text-bodyLg text-fg-secondary">
-            У світі швидкого фастфуду та галасливих барбершопів з чергами, FADE пропонує інший досвід. Це камерна студія на два крісла у центрі Києва, де кожен гість отримує повну увагу майстра, бездоганний сервіс та розкіш тиші.
+            У світі швидкого фастфуду та галасливих барбершопів з чергами, FADE пропонує інший
+            досвід. Це камерна студія на два крісла у центрі Києва, де кожен гість отримує повну
+            увагу майстра, бездоганний сервіс та розкіш тиші.
           </p>
 
           <div className="grid grid-cols-2 gap-4 w-full pt-4 border-t border-line">
             <div>
               <div className="text-h3 font-display font-bold text-fg">0 компромісів</div>
-              <div className="text-caption text-fg-muted uppercase font-medium mt-1">Преміальна косметика</div>
+              <div className="text-caption text-fg-muted uppercase font-medium mt-1">
+                Преміальна косметика
+              </div>
             </div>
             <div>
               <div className="text-h3 font-display font-bold text-fg">2 крісла</div>
-              <div className="text-caption text-fg-muted uppercase font-medium mt-1">Приватна атмосфера</div>
+              <div className="text-caption text-fg-muted uppercase font-medium mt-1">
+                Приватна атмосфера
+              </div>
             </div>
           </div>
         </div>
@@ -43,10 +49,13 @@ export function HomeBrandStory() {
               <span className="font-display text-4xl font-bold">01</span>
             </div>
             <div className="space-y-3 relative z-10">
-              <span className="text-caption font-semibold uppercase text-accent-blue tracking-wider">Анатомічна точність</span>
+              <span className="text-caption font-semibold uppercase text-accent-blue tracking-wider">
+                Анатомічна точність
+              </span>
               <h3 className="font-display text-h4 font-bold text-fg">Геометрія під ваш стиль</h3>
               <p className="text-body text-fg-secondary">
-                Ми враховуємо структуру черепа, щільність волосся та індивідуальні особливості, створюючи форму, яка ідеально тримається тижнями.
+                Ми враховуємо структуру черепа, щільність волосся та індивідуальні особливості,
+                створюючи форму, яка ідеально тримається тижнями.
               </p>
             </div>
             <div className="pt-4 border-t border-line text-caption font-semibold text-fg flex items-center justify-between">
@@ -60,10 +69,13 @@ export function HomeBrandStory() {
               <span className="font-display text-4xl font-bold">02</span>
             </div>
             <div className="space-y-3 relative z-10">
-              <span className="text-caption font-semibold uppercase text-accent-blue tracking-wider">Ритуали догляду</span>
+              <span className="text-caption font-semibold uppercase text-accent-blue tracking-wider">
+                Ритуали догляду
+              </span>
               <h3 className="font-display text-h4 font-bold text-fg">Гарячий рушник та бритва</h3>
               <p className="text-body text-fg-secondary">
-                Кожна стрижка чи гоління супроводжується фірмовим гарячим компресом з аромаоліями, масажем голови та професійним стайлінгом.
+                Кожна стрижка чи гоління супроводжується фірмовим гарячим компресом з аромаоліями,
+                масажем голови та професійним стайлінгом.
               </p>
             </div>
             <div className="pt-4 border-t border-line text-caption font-semibold text-fg flex items-center justify-between">

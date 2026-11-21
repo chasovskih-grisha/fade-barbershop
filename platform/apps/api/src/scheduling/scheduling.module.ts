@@ -1,114 +1,63 @@
 import { Module } from '@nestjs/common';
-import { WaitlistDepositController } from './application/waitlist-deposit.controller';
-import { AdminWaitlistController } from './application/admin-waitlist.controller';
+import { NoShowStagedResponseController } from './no-show-staged-response.controller';
+import { ExportController } from './infrastructure/export.controller';
 import {
-  InMemoryWaitlistExtendedRepository,
-  ManageWaitlistService,
-  WAITLIST_EXTENDED_REPOSITORY,
-} from './application/manage-waitlist.use-case';
+  NO_SHOW_STAGED_REPOSITORY,
+  NoShowStagedResponseService,
+} from './application/no-show-staged-response.service';
+import { PrismaNoShowStagedRepository } from './infrastructure/prisma-no-show-staged.repository';
 import {
-  WaitlistDepositFlow,
-  createInMemoryWaitlistPaymentRepository,
-  type WaitlistDepositDeps,
-  type WaitlistPaymentRepository,
-} from '../payment/application/waitlist-deposit-flow.use-case';
-import {
-  DepositSettlementService,
-  type DepositSettlementDeps,
-  type SettlementPaymentRepository,
-} from './application/deposit-settlement.service';
-import {
-  ClientScheduleChangeController,
-  AdminScheduleChangeController,
-} from './infrastructure/schedule-change.controller';
-import {
-  InMemoryScheduleChangeRepository,
-  SCHEDULE_CHANGE_AVAILABILITY,
-  SCHEDULE_CHANGE_CLOCK,
-  SCHEDULE_CHANGE_EVENTS,
-  SCHEDULE_CHANGE_REPOSITORY,
-  ScheduleChangeApprovalService,
-} from './application/schedule-change-approval.service';
-import { PrismaScheduleChangeAvailability } from './infrastructure/prisma-schedule-change.availability';
-import { RecordingScheduleChangeEvents } from './infrastructure/recording-schedule-change.events';
-import { BookingModule } from '../booking/booking.module';
-import { DepositPolicyProvider } from './infrastructure/deposit-policy.provider';
-
-/**
- * Провайдери грошової гілки запису (T-197, T-160).
- *
- * Репозиторій платежів поки живе в памʼяті: у Prisma-схемі ще немає моделі
- * Payment (billing-персистенція окремим слайсом), тож підмінювати її фейком
- * було б гірше, ніж явно тримати контракт. Коли зʼявиться адаптер, зміниться
- * лише значення WAITLIST_PAYMENT_REPOSITORY.
- */
-export const WAITLIST_PAYMENT_REPOSITORY = Symbol('WAITLIST_PAYMENT_REPOSITORY');
-export const WAITLIST_DEPOSIT_DEPS = Symbol('WAITLIST_DEPOSIT_DEPS');
-export const DEPOSIT_SETTLEMENT_DEPS = Symbol('DEPOSIT_SETTLEMENT_DEPS');
+  CANCELLATION_REASON_REPOSITORY,
+  NoShowManagementService,
+} from './application/no-show-management.service';
+import { PrismaCancellationReasonRepository } from './infrastructure/prisma-cancellation-reason.repository';
+import { DEPOSIT_HOLD_REPOSITORY, DepositHoldService } from './application/deposit-hold.service';
+import { PrismaDepositHoldRepository } from './infrastructure/prisma-deposit-hold.repository';
+import { DepositHoldSweeper } from './infrastructure/deposit-hold-sweeper.worker';
+import { AdminCalendar } from './application/admin-calendar';
+import { REFERENCE_PHOTO_URLS, type ReferencePhotoUrls } from './application/reference-photo-urls';
+import { HaircutAiReferencePhotoUrls } from './infrastructure/reference-photo-urls.adapter';
+import { PrismaSourcePhotoRepository } from '../haircut-ai/infrastructure/prisma-source-photo.repository';
+import { S3PhotoStorage } from '../haircut-ai/infrastructure/s3-photo-storage';
+import { PrismaService } from '../shared/prisma/prisma.service';
 
 @Module({
-  imports: [BookingModule],
-  controllers: [
-    WaitlistDepositController,
-    AdminWaitlistController,
-    ClientScheduleChangeController,
-    AdminScheduleChangeController,
-  ],
+  imports: [],
+  controllers: [NoShowStagedResponseController, ExportController],
   providers: [
+    PrismaService,
+    NoShowStagedResponseService,
+    PrismaNoShowStagedRepository,
+    { provide: NO_SHOW_STAGED_REPOSITORY, useExisting: PrismaNoShowStagedRepository },
+    // T-4560: durable журнал причин скасувань/no-show.
+    PrismaCancellationReasonRepository,
+    { provide: CANCELLATION_REASON_REPOSITORY, useExisting: PrismaCancellationReasonRepository },
+    NoShowManagementService,
+    // T-4619a: утримання крісла під незаплачений депозит.
+    PrismaDepositHoldRepository,
+    { provide: DEPOSIT_HOLD_REPOSITORY, useExisting: PrismaDepositHoldRepository },
+    DepositHoldService,
+    // T-4619a: in-process тік звільняє крісла з простроченим утриманням.
+    DepositHoldSweeper,
+    // Порт ReferencePhotoUrls — інтерфейс, тож Nest резоллює його лише через
+    // явний токен (emitDecoratorMetadata стирає тип до Object).
+    PrismaSourcePhotoRepository,
+    S3PhotoStorage,
+    HaircutAiReferencePhotoUrls,
+    { provide: REFERENCE_PHOTO_URLS, useExisting: HaircutAiReferencePhotoUrls },
     {
-      provide: WAITLIST_PAYMENT_REPOSITORY,
-      useFactory: (): WaitlistPaymentRepository => createInMemoryWaitlistPaymentRepository(),
-    },
-    {
-      provide: WAITLIST_DEPOSIT_DEPS,
-      useFactory: (paymentRepo: WaitlistPaymentRepository): WaitlistDepositDeps => ({
-        paymentRepo,
-        depositPolicy: async () => DepositPolicyProvider.get(),
-      }),
-      inject: [WAITLIST_PAYMENT_REPOSITORY],
-    },
-    {
-      provide: WaitlistDepositFlow,
-      useFactory: (deps: WaitlistDepositDeps) => new WaitlistDepositFlow(deps),
-      inject: [WAITLIST_DEPOSIT_DEPS],
-    },
-    // T-4458: погодження зміни графіка — заявка → рішення → згода клієнта.
-    RecordingScheduleChangeEvents,
-    { provide: SCHEDULE_CHANGE_EVENTS, useExisting: RecordingScheduleChangeEvents },
-    PrismaScheduleChangeAvailability,
-    { provide: SCHEDULE_CHANGE_AVAILABILITY, useExisting: PrismaScheduleChangeAvailability },
-    {
-      provide: SCHEDULE_CHANGE_REPOSITORY,
-      useClass: InMemoryScheduleChangeRepository,
-    },
-    { provide: SCHEDULE_CHANGE_CLOCK, useFactory: () => ({ now: () => new Date() }) },
-    ScheduleChangeApprovalService,
-    // T-4559: керована черга — пріоритети, каскад, відмова, дії адміна.
-    ManageWaitlistService,
-    {
-      provide: WAITLIST_EXTENDED_REPOSITORY,
-      useClass: InMemoryWaitlistExtendedRepository,
-    },
-    {
-      provide: DEPOSIT_SETTLEMENT_DEPS,
-      useFactory: (paymentRepo: WaitlistPaymentRepository): DepositSettlementDeps => {
-        const settlementRepo: SettlementPaymentRepository = {
-          load: async (id) => paymentRepo.findById?.(id) ?? null,
-          save: async (payment) => {
-            await paymentRepo.update(payment.id, payment.toJSON());
-            return payment;
-          },
-        };
-        return { payments: settlementRepo };
-      },
-      inject: [WAITLIST_PAYMENT_REPOSITORY],
-    },
-    {
-      provide: DepositSettlementService,
-      useFactory: (deps: DepositSettlementDeps) => new DepositSettlementService(deps),
-      inject: [DEPOSIT_SETTLEMENT_DEPS],
+      provide: AdminCalendar,
+      useFactory: (prisma: PrismaService, referencePhotoUrls: ReferencePhotoUrls) =>
+        new AdminCalendar({ prisma, referencePhotoUrls }),
+      inject: [PrismaService, REFERENCE_PHOTO_URLS],
     },
   ],
-  exports: [WaitlistDepositFlow, DepositSettlementService, ScheduleChangeApprovalService],
+  exports: [
+    NoShowStagedResponseService,
+    AdminCalendar,
+    HaircutAiReferencePhotoUrls,
+    NoShowManagementService,
+    DepositHoldService,
+  ],
 })
 export class SchedulingModule {}

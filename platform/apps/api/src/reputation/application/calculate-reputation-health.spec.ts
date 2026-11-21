@@ -42,11 +42,11 @@ class MockReputationRepo implements ReputationRepository {
   }
 
   async listReviewsForLocation(locationId: string): Promise<ReviewItem[]> {
-    return this.reviews.filter(r => r.locationId === locationId);
+    return this.reviews.filter((r) => r.locationId === locationId);
   }
 
   async getCompetitorBenchmarks(locationId: string): Promise<CompetitorBenchmark[]> {
-    return this.benchmarks.filter(b => b.locationId === locationId);
+    return this.benchmarks.filter((b) => b.locationId === locationId);
   }
 
   async saveCompetitorBenchmark(benchmark: CompetitorBenchmark): Promise<void> {

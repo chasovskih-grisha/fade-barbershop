@@ -1,19 +1,16 @@
 'use client';
 
 import { NextVisitCard } from './NextVisitCard';
-import { useNextVisit } from './useNextVisit';
+import type { VisitSummary } from './useVisitSummary';
 
 /**
- * Секція «Найближчий візит» профілю (T-4716b). Тримає завантаження окремо від
- * сторінки: поки список візитів вантажиться — один спокійний рядок, запит упав —
- * картки немає, і профіль лишається робочим.
+ * Секція «Найближчий візит» профілю (T-4716b). Список візитів вантажить
+ * `useVisitSummary` один раз на сторінку (T-4734b) — тут лише стани: поки
+ * вантажиться один спокійний рядок, запит упав — картки немає.
  */
-export function NextVisitSection() {
-  const { state, visit } = useNextVisit();
-  // Ensure robust fallback on error or loading states per T-4716
-  const isReady = state === 'success' || state === 'empty';
-  if (state === 'error') return null;
-  if (state === 'loading') {
+export function NextVisitSection({ summary }: { summary: VisitSummary }) {
+  if (summary.state === 'error') return null;
+  if (summary.state === 'loading') {
     return (
       <div data-testid="next-visit-loading" aria-live="polite">
         <p role="status" className="px-1 text-body-s text-fg-secondary">
@@ -24,7 +21,7 @@ export function NextVisitSection() {
   }
   return (
     <div data-testid="next-visit-container">
-      <NextVisitCard visit={visit} />
+      <NextVisitCard visit={summary.nextVisit} />
     </div>
   );
 }

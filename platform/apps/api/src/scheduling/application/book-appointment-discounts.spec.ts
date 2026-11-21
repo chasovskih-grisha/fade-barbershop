@@ -44,9 +44,9 @@ describe('BookAppointment price snapshot (T-090)', () => {
   it('snapshots final price equal to agreed price when there are no discounts', async () => {
     const { useCase, saved } = harness();
     await useCase.execute('', 'loc1', slot('13:00', '13:30'));
-    expect(saved[0]!.agreedPrice).toBe(40000);
-    expect(saved[0]!.finalPrice).toBe(40000);
-    expect(saved[0]!.appliedDiscounts).toEqual([]);
+    expect(saved?.[0]?.agreedPrice).toBe(40000);
+    expect(saved?.[0]?.finalPrice).toBe(40000);
+    expect(saved?.[0]?.appliedDiscounts).toEqual([]);
   });
 
   it('applies a promo code and snapshots the discounted final price', async () => {
@@ -54,8 +54,8 @@ describe('BookAppointment price snapshot (T-090)', () => {
       promoCode: { type: 'promo_code', sourceId: 'IG10', percent: 10 },
     });
     await useCase.execute('', 'loc1', slot('13:00', '13:30'));
-    expect(saved[0]!.finalPrice).toBe(36000);
-    expect(saved[0]!.appliedDiscounts).toEqual([
+    expect(saved?.[0]?.finalPrice).toBe(36000);
+    expect(saved?.[0]?.appliedDiscounts).toEqual([
       { type: 'promo_code', sourceId: 'IG10', amount: 4000 },
     ]);
   });
@@ -65,8 +65,8 @@ describe('BookAppointment price snapshot (T-090)', () => {
       promoCode: { type: 'promo_code', sourceId: 'BIG', amount: 999999 },
     });
     await useCase.execute('', 'loc1', slot('13:00', '13:30'));
-    expect(saved[0]!.finalPrice).toBe(0);
-    expect(saved[0]!.appliedDiscounts).toEqual([
+    expect(saved?.[0]?.finalPrice).toBe(0);
+    expect(saved?.[0]?.appliedDiscounts).toEqual([
       { type: 'promo_code', sourceId: 'BIG', amount: 40000 },
     ]);
   });
@@ -88,8 +88,8 @@ describe('BookAppointment price snapshot (T-090)', () => {
       serviceDuration: 30,
     });
     await useCase.execute('', 'loc1', slot('13:00', '13:30'));
-    expect(saved[0]!.agreedPrice).toBeNull();
-    expect(saved[0]!.finalPrice).toBeNull();
-    expect(saved[0]!.appliedDiscounts).toBeNull();
+    expect(saved?.[0]?.agreedPrice).toBeNull();
+    expect(saved?.[0]?.finalPrice).toBeNull();
+    expect(saved?.[0]?.appliedDiscounts).toBeNull();
   });
 });

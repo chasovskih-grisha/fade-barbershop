@@ -7,7 +7,7 @@
 // потрапляють у потік; історію до старту не переграємо (клієнт і так
 // завантажує поточний стан при відкритті).
 // Увімкнення: ADMIN_LIVE_POLL_MS (дефолт 3000; 0 — вимкнути). У jest — вимкнено.
-import { Injectable, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnApplicationBootstrap, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaService } from '../shared/prisma/prisma.service';
 import { AdminLiveFeed } from './admin-live-feed';
 import { ADMIN_LIVE_TYPES } from './admin-live-types';
@@ -56,11 +56,7 @@ export class OutboxLiveWatcher implements OnApplicationBootstrap, OnModuleDestro
     if (this.timer || !Number.isFinite(intervalMs) || intervalMs <= 0) return;
     this.timer = setTimeout(() => {
       void this.pollOnce().catch((error: unknown) => {
-        // eslint-disable-next-line no-console
-        console.error(
-          '[realtime] outbox live poll failed:',
-          error instanceof Error ? error.message : error
-        );
+        Logger.error(`[realtime] outbox live poll failed: ${String(error)}`, 'OutboxLiveWatcher');
       });
       this.timer = undefined;
       this.start(intervalMs); // самоперезапуск: наступний тік незалежний від помилки

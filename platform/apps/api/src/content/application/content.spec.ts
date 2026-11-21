@@ -1,4 +1,8 @@
-import { ArticleSlugTakenError, ArticleNotFoundError, InvalidArticleInputError } from './content-errors';
+import {
+  ArticleSlugTakenError,
+  ArticleNotFoundError,
+  InvalidArticleInputError,
+} from './content-errors';
 import { articleFixture } from './content.fakes';
 import { contentSetup, draftInput as draft } from './content-spec-setup';
 

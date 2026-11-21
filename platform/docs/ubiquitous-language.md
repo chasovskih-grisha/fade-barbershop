@@ -175,3 +175,4 @@
 - `Post` → `Article`
 - `Customer` у identity → `User`; у CRM → `ClientProfile`
 - `password` / `magic link` для клієнта → `OtpChallenge`
+- `Dto` / `Input` / `Result` / `ErrorBody` у імені типу чи файлу → `Request` (входить в API), `Response` (виходить з API), `Payload` (не HTTP-межа: черга, outbox, webhook, тіло до провайдера, аргументи MCP). Правило — ADR 0055, карта перейменувань — `docs/dto-rename-map.md`

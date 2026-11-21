@@ -7,7 +7,10 @@ describe('HomeVelvetCrestMasteryPromo', () => {
     render(<HomeVelvetCrestMasteryPromo />);
 
     expect(screen.getByText(/Комплекс «Velvet Crest»/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Записатися на Velvet Crest/i })).toHaveAttribute('href', '/booking');
+    expect(screen.getByRole('link', { name: /Записатися на Velvet Crest/i })).toHaveAttribute(
+      'href',
+      '/booking'
+    );
     expect(screen.getByRole('link', { name: /Усі послуги/i })).toHaveAttribute('href', '/services');
   });
 });

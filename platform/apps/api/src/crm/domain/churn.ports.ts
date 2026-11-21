@@ -6,7 +6,10 @@ export interface ChurnPredictorPort {
 }
 
 export interface WinBackCampaignPort {
-  triggerWinBackCampaign(clientId: string, score: ChurnPropensityScore): Promise<{
+  triggerWinBackCampaign(
+    clientId: string,
+    score: ChurnPropensityScore
+  ): Promise<{
     campaignId: string;
     discountPercent: number;
     channelsTriggered: string[];

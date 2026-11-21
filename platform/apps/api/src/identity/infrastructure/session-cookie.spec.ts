@@ -1,4 +1,11 @@
-import { DEFAULT_COOKIE_CONFIG, SESSION_COOKIE_NAME, buildClearCookie, buildSetCookie, cookieConfigFromEnv, cookieReachesHost } from './session-cookie';
+import {
+  DEFAULT_COOKIE_CONFIG,
+  SESSION_COOKIE_NAME,
+  buildClearCookie,
+  buildSetCookie,
+  cookieConfigFromEnv,
+  cookieReachesHost,
+} from './session-cookie';
 
 const stageEnv = {
   NODE_ENV: 'stage',

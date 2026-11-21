@@ -47,8 +47,8 @@ export interface ClientProfileProps {
   phone: string;
   /** Необов'язковий день і місяць народження (T-4730); порожнє — дефолт. */
   birthday?: Birthday | null;
-  inviteCode: string;
-  referredBy: string | null;
+  inviteCode?: string;
+  referredBy?: string | null;
   preferences: Preference[];
   notes: Note[];
   vipDiscountPercent: number | null;

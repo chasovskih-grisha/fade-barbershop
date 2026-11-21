@@ -2,7 +2,12 @@
 // перетворюється в переходи «було → стало» з актором і причиною; події без
 // зміни статусу ігноруються; порядок і сторінка. Чистий домен, без БД.
 
-import { buildStatusHistory, orderHistory, paginateHistory, type StatusHistoryEvent } from './appointment-status-history';
+import {
+  buildStatusHistory,
+  orderHistory,
+  paginateHistory,
+  type StatusHistoryEvent,
+} from './appointment-status-history';
 
 const at = (iso: string) => new Date(iso);
 const T = (iso: string) => at(iso);
@@ -35,8 +40,8 @@ describe('історія статусів Appointment', () => {
       ['confirmed', 'in_progress'],
       ['in_progress', 'completed'],
     ]);
-    expect(history[1]!).toMatchObject({ actorId: 'admin-1', actorRole: 'admin' });
-    expect(history[3]!.occurredAt).toEqual(T('2026-11-02T10:30:00Z'));
+    expect(history[1]).toMatchObject({ actorId: 'admin-1', actorRole: 'admin' });
+    expect(history?.[3]?.occurredAt).toEqual(T('2026-11-02T10:30:00Z'));
   });
 
   it('події без зміни статусу (перенос, референс) не потрапляють в історію', () => {
@@ -54,7 +59,7 @@ describe('історія статусів Appointment', () => {
     const history = buildStatusHistory('apt-1', events);
 
     expect(history.map((entry) => entry.to)).toEqual(['booked', 'cancelled']);
-    expect(history[1]!.reason).toBe('плани змінились');
+    expect(history?.[1]?.reason).toBe('плани змінились');
   });
 
   it('причина скасування та no-show зберігається, порожні поля — null', () => {
@@ -67,7 +72,7 @@ describe('історія статусів Appointment', () => {
       },
     ]);
 
-    expect(history[1]!).toMatchObject({ actorRole: 'admin', actorId: null, reason: null });
+    expect(history[1]).toMatchObject({ actorRole: 'admin', actorId: null, reason: null });
   });
 
   it('orderHistory віддає найновіші зміни першими, не мутуючи вхід', () => {
@@ -79,7 +84,7 @@ describe('історія статусів Appointment', () => {
     const ordered = orderHistory(history);
 
     expect(ordered.map((entry) => entry.to)).toEqual(['confirmed', 'booked']);
-    expect(history[0]!.to).toBe('booked');
+    expect(history?.[0]?.to).toBe('booked');
   });
 
   it('paginateHistory ріже зріз і повертає повну кількість рядків', () => {
@@ -93,7 +98,7 @@ describe('історія статусів Appointment', () => {
 
     expect(page.total).toBe(5);
     expect(page.items).toHaveLength(2);
-    expect(page.items[0]!.occurredAt).toEqual(new Date(Date.UTC(2026, 10, 2, 9, 1)));
+    expect(page?.items?.[0]?.occurredAt).toEqual(new Date(Date.UTC(2026, 10, 2, 9, 1)));
   });
 
   it('додатковий тест перевіряє порожню історію статусів', () => {

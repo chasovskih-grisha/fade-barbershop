@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (115 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 
 export interface SlotLockConfig {
   defaultLeaseMinutes: number;

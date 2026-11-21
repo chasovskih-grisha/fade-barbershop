@@ -21,6 +21,12 @@ export interface ClientAppointmentView {
   referenceComment: string;
   canEditReference: boolean;
   /**
+   * Чи можна почати повторний запис із цього візиту (T-4617). Візит у партії
+   * (father-and-son) — `false`: флоу ще не вміє передзаповнення пакета, тож
+   * кнопка ховається, а не створює запис на одну ногу.
+   */
+  canBookAgain: boolean;
+  /**
    * Умови депозиту візиту (PAY-ADM-09); `null` — грошей у візиті немає.
    * `freeCancelUntil` рахується від поточного початку, тож перенесення
    * візиту зсуває дедлайн (T-4737).
@@ -47,6 +53,8 @@ export interface BookingRow {
   serviceId: string | null;
   agreedPrice: number | null;
   status: string | null;
+  /** `null` — візит поза партією; інакше частина father-and-son запису. */
+  partyId: string | null;
   haircutReferenceId: string | null;
   appointmentComment: string | null;
   start: Date;

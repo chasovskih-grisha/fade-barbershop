@@ -30,15 +30,17 @@ export const DEFAULT_SLOT_CONGESTION_CONFIG: SlotCongestionOptimizerConfig = {
 };
 
 /**
-     * Calculates slot congestion metrics and dynamic pricing multipliers to balance booking loads.
-     */
+ * Calculates slot congestion metrics and dynamic pricing multipliers to balance booking loads.
+ */
 export function optimizeSlotCongestion(
   records: SlotDemandRecord[],
   config: SlotCongestionOptimizerConfig = DEFAULT_SLOT_CONGESTION_CONFIG
 ): SlotCongestionResult[] {
   const results: SlotCongestionResult[] = records.map((record) => {
     const totalCapacity = Math.max(1, record.totalCapacity);
-    const congestionRate = Number(Math.min(1.0, Math.max(0, record.bookedCount / totalCapacity)).toFixed(4));
+    const congestionRate = Number(
+      Math.min(1.0, Math.max(0, record.bookedCount / totalCapacity)).toFixed(4)
+    );
 
     let tier: 'PEAK' | 'NORMAL' | 'OFF_PEAK' = 'NORMAL';
     let pricingMultiplier = config.normalMultiplier;
@@ -65,7 +67,9 @@ export function optimizeSlotCongestion(
   for (const res of results) {
     if (res.tier === 'PEAK' && offPeakHours.length > 0) {
       // Find closest off-peak hour
-      let closest = offPeakHours[0]!;
+      const firstOffPeak = offPeakHours[0];
+      if (firstOffPeak === undefined) continue;
+      let closest: number = firstOffPeak;
       let minDiff = Math.abs(res.slotHour - closest);
       for (const oh of offPeakHours) {
         const diff = Math.abs(res.slotHour - oh);

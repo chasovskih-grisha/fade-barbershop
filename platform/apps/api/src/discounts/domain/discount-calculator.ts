@@ -5,7 +5,7 @@
 
 import { buildPriceBreakdown, type AppliedDiscount, type PriceBreakdown } from './price-breakdown';
 
-export type { AppliedDiscount, PriceBreakdown };
+export type { AppliedDiscount, PriceBreakdown } from './price-breakdown';
 
 /** Джерело знижки: % від `AgreedPrice` або фіксована сума в копійках (DSC-002). */
 export interface DiscountSource {
@@ -93,6 +93,16 @@ export function calculateDiscounts(input: DiscountInput): PriceBreakdown {
   // застосовується як є і лише обрізається до ціни (DSC-004, DSC-013).
   const capped = chosen.length > 1 ? capStack(chosen, cap, rawTotal) : chosen;
   return buildPriceBreakdown(agreedPrice, capped);
+}
+
+/**
+ * Клас-фасад над чистою функцією: частина викликачів (AI-асистент,
+ * промоції) очікує саме об'єкт-калькулятор, а не функцію.
+ */
+export class DiscountCalculator {
+  static calculateDiscounts(input: DiscountInput): PriceBreakdown {
+    return calculateDiscounts(input);
+  }
 }
 
 /** Обрізати стек до капу: пропорційно, останній рядок добирає залишок. */

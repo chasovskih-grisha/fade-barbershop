@@ -5,7 +5,7 @@
 // Увімкнення: AI_WORKER_POLL_MS (дефолт 3000; 0 — вимкнути). У jest
 // (NODE_ENV=test) автостарт не спрацьовує — тести керують tickOnce() вручну.
 
-import { Injectable, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { AiGenerationCycle, type TickReport } from './ai-generation.cycle';
 
 const POLL_DEFAULT_MS = 3_000;
@@ -33,11 +33,7 @@ export class AiGenerationWorker implements OnApplicationBootstrap, OnModuleDestr
     if (this.timer || !Number.isFinite(intervalMs) || intervalMs <= 0) return;
     this.timer = setTimeout(() => {
       void this.cycle.run().catch((error: unknown) => {
-        // eslint-disable-next-line no-console
-        console.error(
-          '[haircut-ai] worker tick failed:',
-          error instanceof Error ? error.message : error
-        );
+        Logger.error(`[haircut-ai] worker tick failed: ${String(error)}`, 'AiGenerationWorker');
       });
       this.timer = undefined;
       this.start(intervalMs); // самоперезапуск: наступний тік незалежний від помилки

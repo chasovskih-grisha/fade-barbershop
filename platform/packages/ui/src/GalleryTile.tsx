@@ -15,7 +15,14 @@ export interface GalleryTileProps extends React.HTMLAttributes<HTMLElement> {
   className?: string;
 }
 
-export function GalleryTile({ before, after, ai = false, caption, className, ...rest }: GalleryTileProps) {
+export function GalleryTile({
+  before,
+  after,
+  ai = false,
+  caption,
+  className,
+  ...rest
+}: GalleryTileProps) {
   const [beforeLoaded, setBeforeLoaded] = useState(false);
   const [afterLoaded, setAfterLoaded] = useState(false);
 

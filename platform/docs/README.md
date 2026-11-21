@@ -12,6 +12,7 @@
 | [booking-flow.md](booking-flow.md) | Флоу запису клієнта: послуга → [режим пакета] → барбер → слот → зачіска/коментар → оплата |
 | [booking-flow-tests.md](booking-flow-tests.md) | Приймальні e2e-сценарії флоу запису: Given/When/Then по кожному екрану (0–5) + гілки |
 | [client-screens.md](client-screens.md) | Екрани клієнта (mobile): головна, локації, послуги, мої візити, профіль |
+| [mobile-audit.md](mobile-audit.md) | Аудит мобільного застосунку (T-2101b): токени, стани, доступність, LOC-борг, план ремедіації |
 | [client-journey.md](client-journey.md) | Клієнтський шлях end-to-end: запис → AI → оплата → візит → відгук → лояльність |
 | [campaigns.md](campaigns.md) | Win-back-кампанії: сегменти CRM → промокод + push одним кліком |
 | [gift-certificates.md](gift-certificates.md) | Подарункові сертифікати: купівля, баланс, погашення (гроші входять до послуги) |

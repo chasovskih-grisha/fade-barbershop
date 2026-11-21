@@ -25,6 +25,10 @@ export interface AdminBookingsDeps {
   services: PrismaServiceRepository;
   appointmentRepo?: import('../domain/appointment-repository').AppointmentRepository;
   depositPolicy: PrismaDepositPolicySettings;
+  /** T-4447: вихідні барбера; за відсутності порту перевірки немає. */
+  dayOffs?: import('../domain/day-off').DayOffRepository;
+  /** T-4619a: утримання крісла під незаплачений депозит. */
+  depositHolds?: import('../application/deposit-hold.service').DepositHoldService;
 }
 
 /**
@@ -79,7 +83,7 @@ export class AdminBookingsController {
   private buildHandler(prepared: ServicePreparation, hours: OpeningHours, dto: BookSlotDto): BookAppointment {
     const d = this.deps;
     // prettier-ignore
-    return new BookAppointment({ bookingRepo: d.bookingRepo, scheduleRepo: d.scheduleRepo, openingHours: hours, serviceDuration: prepared.duration, ...(d.appointmentRepo ? { appointmentRepo: d.appointmentRepo } : {}), ...(prepared.snapshot ? { serviceSnapshot: prepared.snapshot } : {}), ...(dto.reference ? { reference: dto.reference } : {}), ...(dto.origin ? { origin: dto.origin } : {}), depositPolicy: d.depositPolicy });
+    return new BookAppointment({ bookingRepo: d.bookingRepo, scheduleRepo: d.scheduleRepo, openingHours: hours, serviceDuration: prepared.duration, ...(d.appointmentRepo ? { appointmentRepo: d.appointmentRepo } : {}), ...(prepared.snapshot ? { serviceSnapshot: prepared.snapshot } : {}), ...(dto.reference ? { reference: dto.reference } : {}), ...(dto.origin ? { origin: dto.origin } : {}), depositPolicy: d.depositPolicy, ...(d.dayOffs ? { dayOffs: d.dayOffs } : {}), ...(d.depositHolds ? { depositHolds: d.depositHolds } : {}) });
   }
 
   private prepareService(dto: BookSlotDto): Promise<ServicePreparation> {

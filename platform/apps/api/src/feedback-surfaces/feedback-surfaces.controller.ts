@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (253 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Feedback Surfaces API — T-151: Feedback Surfaces.
 // Клієнт: «Залишити відгук» / «Мої відгуки». Майстер: свої відгуки й середня.
 // Адмін: список з фільтрами та відповідь. Публікація — фаза 25 (FDB-006).
@@ -15,7 +16,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
 import {
   AdminListInput,
   AdminReplyInput,
@@ -80,10 +81,7 @@ export class FeedbackSurfacesController {
     @Query('clientId') clientId: string,
     @Query('status') status?: 'all' | 'active' | 'expired'
   ) {
-    const result = await this.feedbackSurfacesService.getClientReviews(
-      clientId,
-      status ?? 'all'
-    );
+    const result = await this.feedbackSurfacesService.getClientReviews(clientId, status ?? 'all');
 
     return { success: true, data: result };
   }

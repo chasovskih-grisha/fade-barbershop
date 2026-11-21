@@ -3,7 +3,12 @@
 // @aws-sdk/client-s3 — єдина точка контакту з SDK; заміна сховища = новий адаптер.
 
 import { Injectable } from '@nestjs/common';
-import { PutObjectCommand, S3Client, GetObjectCommand, DeleteObjectsCommand } from '@aws-sdk/client-s3';
+import {
+  PutObjectCommand,
+  S3Client,
+  GetObjectCommand,
+  DeleteObjectsCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { uuidv7 } from '@fade/domain-shared';
 import type { PhotoStorage, StoredPhotoMeta } from '../domain/ports';

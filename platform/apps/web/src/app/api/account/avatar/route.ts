@@ -15,20 +15,29 @@ export async function PATCH(request: NextRequest) {
     const cookieHeader = request.headers.get('Cookie');
 
     if (!authHeader && !cookieHeader) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: { 'X-Correlation-ID': correlationId } });
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401, headers: { 'X-Correlation-ID': correlationId } }
+      );
     }
 
     let body;
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400, headers: { 'X-Correlation-ID': correlationId } });
+      return NextResponse.json(
+        { error: 'Invalid JSON body' },
+        { status: 400, headers: { 'X-Correlation-ID': correlationId } }
+      );
     }
 
     const result = avatarSchema.safeParse(body);
     if (!result.success) {
       const errorMessage = result.error.issues[0]?.message ?? 'Avatar URL is required';
-      return NextResponse.json({ error: errorMessage }, { status: 400, headers: { 'X-Correlation-ID': correlationId } });
+      return NextResponse.json(
+        { error: errorMessage },
+        { status: 400, headers: { 'X-Correlation-ID': correlationId } }
+      );
     }
 
     const avatarUrl = result.data.avatarUrl.trim();
@@ -48,12 +57,18 @@ export async function PATCH(request: NextRequest) {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ message: 'Failed to update avatar URL' }));
-      return NextResponse.json({ error: err.message }, { status: res.status, headers: { 'X-Correlation-ID': correlationId } });
+      return NextResponse.json(
+        { error: err.message },
+        { status: res.status, headers: { 'X-Correlation-ID': correlationId } }
+      );
     }
 
     const data = await res.json();
     return NextResponse.json(data, { headers: { 'X-Correlation-ID': correlationId } });
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers: { 'X-Correlation-ID': correlationId } });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500, headers: { 'X-Correlation-ID': correlationId } }
+    );
   }
 }

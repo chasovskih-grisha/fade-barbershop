@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (161 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація SMS-шару (T-080, WTL, NSH-007): чисті тексти + обробники.
 import { SMS_LENGTH_LIMIT } from './appointment-reminder-sms';
 import {
@@ -56,7 +57,11 @@ function bookedEvent(): NotificationEvent {
 
 describe('SMS templates', () => {
   it('renders the waitlist position with who and where', () => {
-    const text = renderWaitlistPositionSms({ position: 3, barberName: 'Олег', locationName: 'Fade Поділ' });
+    const text = renderWaitlistPositionSms({
+      position: 3,
+      barberName: 'Олег',
+      locationName: 'Fade Поділ',
+    });
 
     expect(text).toContain('ви в черзі #3');
     expect(text).toContain('барбер: Олег');

@@ -3,7 +3,12 @@
 // надсилає батч. Без AMPLITUDE_API_KEY воркер не стартує — у деві/тестах
 // немає кому платити за MTU, а тихі 401 у логах не потрібні.
 // У jest (NODE_ENV=test) автостарт не спрацьовує, як в outbox notifications.
-import { Injectable, Logger, type OnApplicationBootstrap, type OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  type OnApplicationBootstrap,
+  type OnModuleDestroy,
+} from '@nestjs/common';
 import { ForwardAnalyticsEvents } from '../application/forward-analytics-events';
 
 const DEFAULT_INTERVAL_MS = 30_000;

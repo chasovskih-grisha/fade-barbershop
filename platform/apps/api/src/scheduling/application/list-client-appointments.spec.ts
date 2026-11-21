@@ -96,6 +96,16 @@ describe('ListClientAppointments', () => {
     expect(view?.referenceId).toBeNull();
   });
 
+  it('візит у партії не пропонує повторного запису (T-4617)', async () => {
+    const [single, party] = await handle([
+      bookingRow(),
+      bookingRow({ id: 'bk-2', appointmentId: 'apt-2', partyId: 'party-1' }),
+    ]);
+
+    expect(single?.canBookAgain).toBe(true);
+    expect(party?.canBookAgain).toBe(false);
+  });
+
   it('віддає ID фото, а не URL: бакет приватний (ADR 0008 §2), REF-WEB-03', async () => {
     const [view] = await handle([bookingRow()]);
 

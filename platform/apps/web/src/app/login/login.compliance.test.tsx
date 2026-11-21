@@ -14,6 +14,8 @@ jest.mock('../components/auth/AuthProvider', () => ({
 describe('Login Screen Compliance (T-300)', () => {
   it('displays the personal data disclaimer and login rules', () => {
     render(<LoginPage />);
-    expect(screen.getByText(/Уводячи номер, ви погоджуєтесь з політикою конфіденційності/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Уводячи номер, ви погоджуєтесь з політикою конфіденційності/i)
+    ).toBeInTheDocument();
   });
 });

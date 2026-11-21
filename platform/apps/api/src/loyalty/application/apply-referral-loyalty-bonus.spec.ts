@@ -1,6 +1,11 @@
 import { ApplyReferralLoyaltyBonusHandler } from './apply-referral-loyalty-bonus.use-case';
 import { ClientLoyaltyState } from '../domain/client-loyalty-state';
-import type { LoyaltyCommandContext, ClientLoyaltyStateRepository, OutboxPublisher, Clock } from '../domain/ports';
+import type {
+  LoyaltyCommandContext,
+  ClientLoyaltyStateRepository,
+  OutboxPublisher,
+  Clock,
+} from '../domain/ports';
 
 class InMemoryLoyaltyStateRepo implements ClientLoyaltyStateRepository {
   private store = new Map<string, ClientLoyaltyState>();

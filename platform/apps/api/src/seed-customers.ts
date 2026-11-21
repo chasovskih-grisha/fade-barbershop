@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (104 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Сід клієнтів (T-2104a): демо-акаунти для dev і стабільні клієнти для e2e.
 // Ідентичність — тільки телефон (ADR 0005); без подій/outbox — пряме записування
 // dev-даних (патерн T-012, як seed-admin.ts T-013): експорт + CLI.

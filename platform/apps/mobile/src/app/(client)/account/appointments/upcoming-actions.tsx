@@ -12,8 +12,8 @@ export function UpcomingActions({
 }: {
   app: ExtendedAppointment;
   busy: boolean;
-  onReschedule?: (app: ExtendedAppointment) => void;
-  onCancelVisit?: (app: ExtendedAppointment) => void;
+  onReschedule?: ((app: ExtendedAppointment) => void) | undefined;
+  onCancelVisit?: ((app: ExtendedAppointment) => void) | undefined;
 }) {
   if (!onReschedule && !onCancelVisit) return null;
 

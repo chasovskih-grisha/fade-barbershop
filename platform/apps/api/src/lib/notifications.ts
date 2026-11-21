@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 // Тонкий шар push-сповіщень для сервісів, що працюють поза Nest DI.
 // Реальна доставка делегується sender-у (Expo push у проді, консоль у тестах).
 export interface PushPayload {
@@ -12,8 +13,7 @@ export interface PushSender {
 
 const consoleSender: PushSender = {
   async send(payload) {
-    // eslint-disable-next-line no-console
-    console.log(`[push] ${payload.title}: ${payload.body}`);
+    Logger.log(`[push] ${payload.title}: ${payload.body}`, 'Push');
   },
 };
 

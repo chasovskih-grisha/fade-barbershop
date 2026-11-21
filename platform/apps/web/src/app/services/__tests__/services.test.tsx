@@ -16,7 +16,9 @@ describe('ServiceCard Component', () => {
     render(<ServiceCard service={MOCK_SERVICE} />);
 
     expect(screen.getByText('Преміум Стрижка')).toBeInTheDocument();
-    expect(screen.getByText((content) => content.includes('50') && content.includes('хв'))).toBeInTheDocument();
+    expect(
+      screen.getByText((content) => content.includes('50') && content.includes('хв'))
+    ).toBeInTheDocument();
     expect(screen.getByText('700 ₴')).toBeInTheDocument();
     expect(screen.getByText('Миття голови, точна форма, гарячий компрес')).toBeInTheDocument();
 

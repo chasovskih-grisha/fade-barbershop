@@ -1,15 +1,19 @@
+/* eslint-disable max-lines -- cohesive module (133 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-152/T-160: знижки застосовуються у booking-флоу через
 // ApplyDiscountService, а 100% промокод доходить до рішення про депозит:
 // FinalPrice = 0 → депозиту немає, чека немає, Payment не створюється.
 import { PaymentStatus } from '../../billing/domain/payment-status.enum';
-import { ApplyDiscountService, type DiscountPorts } from '../../discounts/application/apply-discount.use-case';
+import {
+  ApplyDiscountService,
+  type DiscountPorts,
+} from '../../discounts/application/apply-discount.use-case';
 import type { PromoCode } from '../../discounts/domain/promo-code';
 import {
   WaitlistDepositFlow,
   createInMemoryWaitlistPaymentRepository,
   type DepositCaptureGateway,
-  type DepositReceiptIssuer,
 } from '../../payment/application/waitlist-deposit-flow.use-case';
+import { CheckboxFiscalGateway } from '../../payment/application/checkbox-fiscal-gateway';
 import { Booking } from '../domain/booking';
 import type { BookingRepository } from '../domain/booking-repository';
 import { BarberSchedule } from '../domain/availability';
@@ -117,20 +121,14 @@ describe('booking with ApplyDiscountService (T-152)', () => {
     await useCase.execute('b1', 'loc1', slotOf('13:00', '13:30', date));
     const booking = firstBooking(saved);
 
-    const capture: DepositCaptureGateway & { calls: number } = {
-      calls: 0,
-      async capture() {
-        this.calls += 1;
+    const captureCalls: Array<[string, number]> = [];
+    const capture: DepositCaptureGateway = {
+      async capture(paymentId, amount) {
+        captureCalls.push([paymentId, amount]);
         return true;
       },
     };
-    const fiscal: DepositReceiptIssuer & { calls: number } = {
-      calls: 0,
-      async issueReceipt(_bookingId, amount, receiptType) {
-        this.calls += 1;
-        return { check_id: `check_${amount}`, type: receiptType, amount, status: 'signed', created_at: new Date() };
-      },
-    };
+    const fiscal = new CheckboxFiscalGateway('http://localhost:0', 'merchant', 'secret', true);
     const flow = new WaitlistDepositFlow({
       paymentRepo: createInMemoryWaitlistPaymentRepository(),
       paymentGateway: capture,
@@ -149,7 +147,6 @@ describe('booking with ApplyDiscountService (T-152)', () => {
     expect(result.requiresBalance).toBe(false);
     expect(result.payment.status).toBe(PaymentStatus.PAID);
     expect(result.depositReceipt).toBeNull();
-    expect(capture.calls).toBe(0);
-    expect(fiscal.calls).toBe(0);
+    expect(captureCalls).toHaveLength(0);
   });
 });

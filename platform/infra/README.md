@@ -21,8 +21,13 @@
 | `loki` | grafana/loki | 19095 | Централізовані логи (профіль `obs`, T-4204e): single-binary, filesystem — `infra/loki/loki.yml` |
 | `promtail` | grafana/promtail | — | Хвостить денні логи api зі спільного volume `api_logs`, JSON-pipeline (ts→timestamp, level→label) → Loki — `infra/promtail/promtail.yml` |
 
-Три Dockerfile-и ідентичні (Node 20-alpine, `pnpm install`, вихідники) — конкретна
-dev-команда задається в compose через `command:`. Профіль `apps` активний (T-001).
+Три Dockerfile-и однакові за структурою (Node 20-alpine, `pnpm install`, вихідники) і
+мають дві явні стадії (T-4614a): перша, безіменна `dev`, — рецепт для локального
+compose, де команду задає `command:`; `prod` — зібраний артефакт (`nest build` /
+`next build`), який запускає VPS. Локальний `infra/docker-compose.yml` пінить
+`target: dev`, прод-стек — `infra/docker-compose.prod.yml` з `target: prod`.
+Гейт `pnpm images:check` падає, якщо compose назве Dockerfile без `target` або
+прод-стадія запустить dev-команду. Профіль `apps` активний (T-001).
 
 ## Швидкий старт
 

@@ -1,7 +1,18 @@
 // Admin locations CRUD — MNG-ADM-01…03. Мутації через API, не через Prisma
 // (admin-screens.md). Захист ендпоінтів — admin-сесією (адмінка), як admin-auth.
 
-import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Patch, Post, UseFilters } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  UseFilters,
+} from '@nestjs/common';
 import type { CreateLocationInput } from '../application/create-location';
 import type { UpdateLocationInput } from '../application/update-location';
 import { LocationsExceptionFilter } from './locations.exception-filter';

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive module (101 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Earn Referral Bonus (T-143): Awards bonus loyalty points when a referred client
 // completes their first visit. Completes the visit loop: book → attend → feedback →
 // loyalty points → referral → bonus.
@@ -5,9 +6,6 @@
 // is processed via the outbox relay.
 
 import { prisma } from '../../index';
-import { AppointmentActivity } from '../domain';
-import { LoyaltyCounterIncremented } from '../domain/loyalty-events';
-import { DomainEvent } from '../domain/domain-event';
 
 export interface EarnReferralBonusInput {
   appointmentId: string;
@@ -123,21 +121,6 @@ export class EarnReferralBonusHandler {
 
     // 8. Emit LoyaltyPointsEarned events for both parties
     // In a full implementation, we'd use the outbox relay, but for simplicity:
-    const referrerEvent = new LoyaltyPointsEarned({
-      clientId: referrerId,
-      points: bonusPoints,
-      newBalance: 0, // would need to query current balance
-      appointmentId: input.appointmentId,
-      occurredAt: input.occurredAt,
-    });
-
-    const refereeEvent = new LoyaltyPointsEarned({
-      clientId: input.clientId,
-      points: refereePoints,
-      newBalance: 0,
-      appointmentId: input.appointmentId,
-      occurredAt: input.occurredAt,
-    });
 
     return {
       appointmentId: input.appointmentId,

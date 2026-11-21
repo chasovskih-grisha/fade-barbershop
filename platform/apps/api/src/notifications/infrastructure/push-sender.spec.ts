@@ -19,7 +19,11 @@ describe('ConsolePushSender', () => {
     const sender = new ConsolePushSender();
     const logSpy = jest.spyOn(sender['logger'], 'log').mockImplementation(() => {});
     await sender.send([
-      { token: 'ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]', title: 'Нагадування', body: 'Завтра стрижка' },
+      {
+        token: 'ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]',
+        title: 'Нагадування',
+        body: 'Завтра стрижка',
+      },
       { token: 'short', title: 'Короткий', body: 'Токен' },
     ]);
     expect(logSpy).toHaveBeenCalledTimes(2);
@@ -43,9 +47,7 @@ describe('ExpoPushSender', () => {
     jest.spyOn(globalThis, 'fetch').mockImplementation(fetchMock);
 
     const sender = new ExpoPushSender('https://exp.host/test');
-    await sender.send([
-      { token: 'token-1', title: 'Візит', body: 'Чекаємо на вас' },
-    ]);
+    await sender.send([{ token: 'token-1', title: 'Візит', body: 'Чекаємо на вас' }]);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -69,24 +71,24 @@ describe('ExpoPushSender', () => {
   it('кидає на HTTP-помилку', async () => {
     jest.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: false, status: 400 } as Response);
     const sender = new ExpoPushSender('https://exp.host/test');
-    await expect(
-      sender.send([{ token: 'token-1', title: 'Т', body: 'Б' }])
-    ).rejects.toThrow('Expo push HTTP 400');
+    await expect(sender.send([{ token: 'token-1', title: 'Т', body: 'Б' }])).rejects.toThrow(
+      'Expo push HTTP 400'
+    );
   });
 
   it('кидає на мережеву помилку', async () => {
     jest.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('network down'));
     const sender = new ExpoPushSender('https://exp.host/test');
-    await expect(
-      sender.send([{ token: 'token-1', title: 'Т', body: 'Б' }])
-    ).rejects.toThrow('network down');
+    await expect(sender.send([{ token: 'token-1', title: 'Т', body: 'Б' }])).rejects.toThrow(
+      'network down'
+    );
   });
 
   it('логує не-Error кинуте як String(error)', async () => {
     jest.spyOn(globalThis, 'fetch').mockRejectedValue('string-error' as unknown as Error);
     const sender = new ExpoPushSender('https://exp.host/test');
-    await expect(
-      sender.send([{ token: 'token-1', title: 'Т', body: 'Б' }])
-    ).rejects.toBe('string-error');
+    await expect(sender.send([{ token: 'token-1', title: 'Т', body: 'Б' }])).rejects.toBe(
+      'string-error'
+    );
   });
 });

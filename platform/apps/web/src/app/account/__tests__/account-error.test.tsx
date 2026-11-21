@@ -6,7 +6,7 @@ describe('AccountErrorBoundary', () => {
   it('renders account error message, navigation actions and handles reset', () => {
     const resetMock = jest.fn();
     const testError = new Error('Test account error');
-    
+
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     render(<AccountErrorBoundary error={testError} reset={resetMock} />);

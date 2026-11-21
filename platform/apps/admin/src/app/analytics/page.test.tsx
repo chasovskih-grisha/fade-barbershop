@@ -11,7 +11,15 @@ describe('AnalyticsPage', () => {
           ok: true,
           json: async () => ({
             visits: [
-              { id: 'v1', start: '2026-11-10T10:00:00Z', end: '2026-11-10T10:45:00Z', status: 'completed', barberId: 'b1', locationId: 'l1', agreedPrice: 500 },
+              {
+                id: 'v1',
+                start: '2026-11-10T10:00:00Z',
+                end: '2026-11-10T10:45:00Z',
+                status: 'completed',
+                barberId: 'b1',
+                locationId: 'l1',
+                agreedPrice: 500,
+              },
             ],
           }),
         });

@@ -1,5 +1,6 @@
 import { mkdirSync, createWriteStream, type WriteStream } from 'node:fs';
 import { join } from 'node:path';
+import { createRequire } from 'node:module';
 import type { LoggerService } from '@nestjs/common';
 
 /** Trace-кореляція (T-4204f): активний спан → trace_id/span_id; м'який імпорт —
@@ -8,8 +9,9 @@ import type { LoggerService } from '@nestjs/common';
 type ActiveContext = { traceId: string; spanId: string } | null;
 function activeTrace(): ActiveContext {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    const api = require('@opentelemetry/api') as typeof import('@opentelemetry/api');
+    const api = createRequire(__filename)(
+      '@opentelemetry/api'
+    ) as typeof import('@opentelemetry/api');
     const span = api.trace.getSpan(api.context.active());
     if (!span) return null;
     const { traceId, spanId } = span.spanContext();

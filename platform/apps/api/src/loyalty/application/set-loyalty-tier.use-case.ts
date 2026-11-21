@@ -3,7 +3,6 @@
 // Emits LoyaltyTierChanged event for admin dashboards & client notifications.
 
 import { prisma } from '../../index';
-import { ClientLoyaltyState } from '../domain';
 import { LoyaltyTierChanged } from '../domain/loyalty-events';
 import { DomainEvent } from '../domain/domain-event';
 

@@ -17,7 +17,9 @@ export function HomeBrandImpactMasterpiecePromo() {
             Колекційна серія стрижок та королівського гоління «Brand Impact 2026»
           </h2>
           <p className="text-bodyLg text-fg-secondary leading-relaxed">
-            Відчуйте новий стандарт чоловічого догляду у FADE. Поєднання бездоганної архітектури стрижки, фірмового ароматерапевтичного гарячого рушника та преміального стайлінгу з індивідуальним підбором аромату.
+            Відчуйте новий стандарт чоловічого догляду у FADE. Поєднання бездоганної архітектури
+            стрижки, фірмового ароматерапевтичного гарячого рушника та преміального стайлінгу з
+            індивідуальним підбором аромату.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div className="flex items-center gap-3 p-3.5 rounded-input bg-surface-sunken/80 border border-line">
@@ -43,7 +45,9 @@ export function HomeBrandImpactMasterpiecePromo() {
             className="inline-flex h-13 w-full sm:w-auto lg:w-64 items-center justify-center rounded-input bg-accent px-8 text-body font-semibold text-accent-fg hover:opacity-95 transition-all duration-300 shadow-xl hover:scale-[1.02] active:scale-[0.98] text-center"
           >
             <span>Забронювати досвід</span>
-            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+            <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+              &rarr;
+            </span>
           </Link>
           <Link
             href="/services"

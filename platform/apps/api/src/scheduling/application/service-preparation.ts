@@ -24,5 +24,13 @@ export async function prepareService(
   const duration = mode === 'parallel' ? (service.parallelDuration ?? 0) : service.duration;
   // prettier-ignore
   if (duration === 0) throw new HttpException('Fulfillment mode not supported', HttpStatus.BAD_REQUEST);
-  return { duration, snapshot: { serviceId, agreedPrice: price.amount, agreedDuration: duration, fulfillmentMode: mode } };
+  return {
+    duration,
+    snapshot: {
+      serviceId,
+      agreedPrice: price.amount,
+      agreedDuration: duration,
+      fulfillmentMode: mode,
+    },
+  };
 }

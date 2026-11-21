@@ -39,6 +39,8 @@ describe('Customer Acquisition Specialist - Ambassador Referral Milestone Booste
     expect(profile.currentTier).toBe('GOLD_AMBASSADOR');
     expect(profile.totalSuccessfulReferrals).toBe(5);
     expect(profile.bonusCreditCents).toBe(5000);
-    expect(profile.earnedRewards).toContain('VIP Styling Kit + 500 Loyalty Points + Free Beard Spa');
+    expect(profile.earnedRewards).toContain(
+      'VIP Styling Kit + 500 Loyalty Points + Free Beard Spa'
+    );
   });
 });

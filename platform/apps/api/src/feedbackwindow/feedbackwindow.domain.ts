@@ -1,6 +1,3 @@
-import { prisma } from '../index';
-import { Appointment, Booking, ClientProfile } from '../domain';
-
 /** FeedbackWindow Status */
 export enum FeedbackWindowStatus {
   OPEN = 'open',
