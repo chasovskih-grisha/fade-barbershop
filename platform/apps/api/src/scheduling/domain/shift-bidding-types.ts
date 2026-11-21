@@ -69,6 +69,8 @@ export interface BarberShiftAvailability {
   minRestMinutes: number;
   // Maximum consecutive working days
   maxConsecutiveDays: number;
+  // Current shift availability status
+  status: 'open' | 'booked' | 'available' | 'on-break';
 }
 
 /** Conflict check result for shift scheduling */
