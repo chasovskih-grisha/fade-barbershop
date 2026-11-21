@@ -3,6 +3,8 @@ export interface SlotDemandRecord {
   isWeekend: boolean;
   bookedCount: number;
   totalCapacity: number;
+  locationId?: string;
+  barberId?: string;
 }
 
 export interface SlotCongestionResult {
@@ -10,6 +12,7 @@ export interface SlotCongestionResult {
   congestionRate: number; // 0.0 to 1.0
   tier: 'PEAK' | 'NORMAL' | 'OFF_PEAK';
   pricingMultiplier: number; // e.g. 1.2 for peak surge, 0.9 for off-peak discount
+  surgeApplied: boolean;
   recommendedAlternativeHour?: number;
 }
 
@@ -19,19 +22,20 @@ export interface SlotCongestionOptimizerConfig {
   peakMultiplier: number; // e.g. 1.25
   offPeakDiscountMultiplier: number; // e.g. 0.85
   normalMultiplier: number; // e.g. 1.0
+  applySurgeRules: boolean; // whether to apply dynamic surge rules
 }
 
+/** Default configuration for slot congestion optimization */
 export const DEFAULT_SLOT_CONGESTION_CONFIG: SlotCongestionOptimizerConfig = {
   peakThreshold: 0.75,
   offPeakThreshold: 0.35,
   peakMultiplier: 1.2,
   offPeakDiscountMultiplier: 0.9,
   normalMultiplier: 1.0,
+  applySurgeRules: true,
 };
 
-/**
- * Calculates slot congestion metrics and dynamic pricing multipliers to balance booking loads.
- */
+/** Calculates slot congestion metrics and dynamic pricing multipliers to balance booking loads. */
 export function optimizeSlotCongestion(
   records: SlotDemandRecord[],
   config: SlotCongestionOptimizerConfig = DEFAULT_SLOT_CONGESTION_CONFIG
@@ -44,10 +48,12 @@ export function optimizeSlotCongestion(
 
     let tier: 'PEAK' | 'NORMAL' | 'OFF_PEAK' = 'NORMAL';
     let pricingMultiplier = config.normalMultiplier;
+    let surgeApplied = false;
 
     if (congestionRate >= config.peakThreshold) {
       tier = 'PEAK';
       pricingMultiplier = config.peakMultiplier;
+      surgeApplied = true;
     } else if (congestionRate <= config.offPeakThreshold) {
       tier = 'OFF_PEAK';
       pricingMultiplier = config.offPeakDiscountMultiplier;
@@ -58,6 +64,7 @@ export function optimizeSlotCongestion(
       congestionRate,
       tier,
       pricingMultiplier,
+      surgeApplied,
     };
   });
 

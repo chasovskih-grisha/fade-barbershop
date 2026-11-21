@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Recent Commits
 
+- 573346de T-5012: Implement dynamic staff scheduling & shift bidding marketplace
+- 9773ff70 Implement T-5011: Dynamic Surge Pricing & Peak-Hour Revenue Optimization
 - a4bdd2c4 T-5008: Implement Gamified Tiered Membership & Subscription Pass System
 - 68430b75 T-4450: Implement Loyalty Program Configuration
 - e3ad2229 T-4449: Web Push для кабінету — Push subscription and module integration
@@ -52,5 +54,3 @@ All notable changes to this project will be documented in this file.
 - 13c10234 feat(content): search, tag filter and cursor for the public blog feed
 - 5c623f9b docs(memory): record T-4732a run notes
 - 6c273b15 docs(profile): specify the profile doors on web and app
-- a7e9a834 docs(memory): record backlog archiving run 2026-11-21
-- a40713b9 chore(backlog): archive done tasks 2026-11

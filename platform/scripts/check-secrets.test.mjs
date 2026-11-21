@@ -8,6 +8,13 @@ import { checkSecretSource, isScannable } from './check-secrets.mjs';
 
 const run = (text) => checkSecretSource(text, 'file.ts');
 
+// Синтетичні зразки валідного формату для позитивних тестів (не справжні ключі).
+const AWS_KEY = `AKIA${'A'.repeat(16)}`;
+const GOOGLE_KEY = `AIza${'a'.repeat(35)}`;
+const SLACK_TOKEN = `xoxb-${'a'.repeat(12)}`;
+const GITHUB_TOKEN = `ghp_${'a'.repeat(36)}`;
+const STRIPE_KEY = `sk_live_${'a'.repeat(24)}`;
+
 test('PEM приватний ключ — порушення', () => {
   const problems = run('-----BEGIN RSA PRIVATE KEY-----\nMIIE...');
   assert.equal(problems.length, 1);
@@ -16,23 +23,23 @@ test('PEM приватний ключ — порушення', () => {
 });
 
 test('AWS access key id — порушення', () => {
-  assert.equal(run('aws_access_key_id = "TEST_ACCESS_KEY_ID"').length, 1);
+  assert.equal(run(`aws_access_key_id = "${AWS_KEY}"`).length, 1);
 });
 
 test('Google API key — порушення', () => {
-  assert.equal(run('const key = "TEST_GOOGLE_API_KEY"').length, 1);
+  assert.equal(run(`const key = "${GOOGLE_KEY}"`).length, 1);
 });
 
 test('Slack token — порушення', () => {
-  assert.equal(run('SLACK=xoxb-TEST_SLACK_TOKEN').length, 1);
+  assert.equal(run(`SLACK=${SLACK_TOKEN}`).length, 1);
 });
 
 test('GitHub token — порушення', () => {
-  assert.equal(run('token: ghp_TEST_GITHUB_TOKEN').length, 1);
+  assert.equal(run(`token: ${GITHUB_TOKEN}`).length, 1);
 });
 
 test('Stripe live secret — порушення', () => {
-  assert.equal(run('sk_live_TEST_STRIPE_KEY').length, 1);
+  assert.equal(run(STRIPE_KEY).length, 1);
 });
 
 test('плейсхолдер у прикладі — не порушення', () => {
@@ -45,7 +52,7 @@ test('звичайний текст зі словом key — не поруше�
 });
 
 test('два порушення в різних рядках — обидва видимі', () => {
-  const problems = run('x = "TEST_ACCESS_KEY_ID"\ny = "TEST_GOOGLE_API_KEY"');
+  const problems = run(`x = "${AWS_KEY}"\ny = "${GOOGLE_KEY}"`);
   assert.equal(problems.length, 2);
   assert.match(problems[0], /:1:/);
   assert.match(problems[1], /:2:/);
