@@ -960,3 +960,46 @@ model DepositHold {
   @@index([status, expiresAt])
   @@index([barberId, startAt])
 }
+
+// Payment (T-091/T-093/T-094) — durable deposit, on-site payment and refund
+// ledger. Booking payment fields live in BookingPaymentState so Booking keeps
+// its existing columns (zero-downtime, additive migration).
+model Payment {
+  id             String   @id
+  appointmentId  String?  @db.Uuid
+  orderId        String?
+  clientId       String?  @db.Uuid
+  amount         Int
+  form           String
+  status         String
+  traceId        String
+  receiptId      String?
+  refundReason   String?
+  refundedAmount Int      @default(0)
+  retryCount     Int      @default(0)
+  createdAt      DateTime @default(now()) @db.Timestamptz
+  updatedAt      DateTime @updatedAt @db.Timestamptz
+
+  @@index([appointmentId])
+  @@index([status])
+  @@index([clientId])
+}
+
+model BookingPaymentState {
+  bookingId            String    @id @db.Uuid
+  status               String?
+  requiresPayment      Boolean?
+  paymentMethod        String?
+  depositStatus        String?
+  discountReason       String?
+  refundId             String?   @unique
+  refundStatus         String?
+  refundInitiatedAt    DateTime? @db.Timestamptz
+  refundReason         String?
+  refundReasonCode     String?
+  refundMetadata       String?
+  capturedRefundAmount Int?
+  updatedAt            DateTime  @updatedAt @db.Timestamptz
+
+  @@index([refundStatus])
+}

@@ -30,6 +30,7 @@ import { DbPoolModule } from './shared/database/pool/db-pool.module';
 import { ArchiveModule } from './shared/archive/archive.module';
 import { PricingModule } from './pricing/pricing.module';
 import { AssistantsModule } from './assistants/infrastructure/assistants.module';
+import { PaymentModule } from './payment/payment.module';
 import { IdempotencyInterceptor } from './shared/idempotency/idempotency.interceptor';
 
 // HTTP-middleware обліку (SLO SLI, docs/slo.md) вішаються першими — до guard'ів
@@ -64,6 +65,7 @@ import { IdempotencyInterceptor } from './shared/idempotency/idempotency.interce
     ArchiveModule,
     PricingModule,
     AssistantsModule,
+    PaymentModule,
   ],
   providers: [
     {
