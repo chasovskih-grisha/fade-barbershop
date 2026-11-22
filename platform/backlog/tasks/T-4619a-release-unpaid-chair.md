@@ -27,11 +27,20 @@ The invariant has to hold when the process restarts and when the client asks for
 
 ## Done
 
-- [ ] A visit waiting for payment blocks the chair
-- [ ] After 15 minutes without capture, slot search no longer returns that interval as taken
-- [ ] A second expiry pass changes nothing
-- [ ] Capture before expiry confirms; capture after expiry does not
-- [ ] Tests cover the race between a late webhook and the sweeper
+- [x] A visit waiting for payment blocks the chair
+- [x] After 15 minutes without capture, slot search no longer returns that interval as taken
+- [x] A second expiry pass changes nothing
+- [x] Capture before expiry confirms; capture after expiry does not
+- [x] Tests cover the race between a late webhook and the sweeper
+
+## Progress
+
+- 2026-11-22 — payment wiring closed: `DepositFlow` receives `DepositHoldService`,
+  checks the hold before charging and closes it only after a successful capture
+  (a declined charge keeps the same window retryable). Expiry now runs a durable
+  sink that cancels the visit with `deposit_expired` and appends one outbox
+  event (`scheduling.appointment.cancelled`); the conditional update makes the
+  effect idempotent. Tests cover decline/retry and the sweeper-vs-late-capture race.
 
 ## Risks
 

@@ -54,6 +54,11 @@ export interface DepositFlowDeps {
    * Без порту — стара поведінка (без утримань).
    */
   holds?: {
+    /** T-4619a: стан утримання без його закриття — перевірка перед списанням. */
+    status?(
+      appointmentId: string,
+      now: Date
+    ): Promise<'active' | 'captured' | 'expired' | 'cancelled' | 'missing'>;
     capture(
       appointmentId: string,
       now: Date
@@ -155,8 +160,10 @@ export class DepositFlow {
     }
 
     // T-4619a: спершу перевіряємо утримання крісла, і лише потім беремо гроші.
-    const hold = await this.captureHold(booking, now);
-    if (hold !== 'ok') {
+    // Саме утримання закриваємо після успішного списання: відмова еквайрингу
+    // лишає візит у тому ж активному вікні й клієнт може повторити оплату.
+    const hold = await this.holdStatus(booking, now);
+    if (hold === 'expired' || hold === 'cancelled') {
       booking.depositStatus = 'expired';
       await this.deps.bookings.save(booking);
       return {
@@ -193,6 +200,22 @@ export class DepositFlow {
     const receipt = await this.issueReceipt(booking.id, depositAmount, checkId);
     payment.markDepositPaid(receipt?.check_id ?? checkId);
     await this.deps.payments.save(payment);
+
+    const confirmedHold = await this.captureHold(booking, now);
+    if (!confirmedHold) {
+      // Гонка: гроші списалися, коли вікно вже минуло. Візит не підтверджуємо,
+      // щоб не привʼязати оплату до крісла, яке вже могло дістатися іншому.
+      booking.depositStatus = 'expired';
+      await this.deps.bookings.save(booking);
+      return {
+        booking,
+        outcome: 'expired',
+        payment,
+        depositAmount,
+        requiresBalance: depositAmount < price,
+        failureReason: 'deposit_hold_expired_after_capture',
+      };
+    }
 
     booking.depositStatus = CAPTURED_DEPOSIT;
     booking.status = 'confirmed';
@@ -231,12 +254,19 @@ export class DepositFlow {
    * `ok` — крісло ще наше (утримання активне або вже підтверджене); інакше —
    * причина відмови, щоб клієнт бачив, чи вікно минуло, чи візит скасовано.
    */
-  private async captureHold(booking: Booking, now: Date): Promise<'ok' | 'expired' | 'cancelled'> {
+  private async holdStatus(booking: Booking, now: Date): Promise<'ok' | 'expired' | 'cancelled'> {
     if (!this.deps.holds) return 'ok';
-    const { outcome } = await this.deps.holds.capture(booking.id, now);
-    if (outcome === 'expired') return 'expired';
-    if (outcome === 'cancelled') return 'cancelled';
+    if (!this.deps.holds.status) return 'ok';
+    const status = await this.deps.holds.status(booking.id, now);
+    if (status === 'expired') return 'expired';
+    if (status === 'cancelled') return 'cancelled';
     return 'ok';
+  }
+
+  private async captureHold(booking: Booking, now: Date): Promise<boolean> {
+    if (!this.deps.holds) return true;
+    const { outcome } = await this.deps.holds.capture(booking.id, now);
+    return outcome !== 'expired' && outcome !== 'cancelled';
   }
 
   private newPayment(booking: Booking, amount: number, now: Date): Payment {

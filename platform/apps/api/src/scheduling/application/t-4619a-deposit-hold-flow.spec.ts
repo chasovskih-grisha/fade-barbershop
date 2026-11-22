@@ -126,6 +126,63 @@ describe('T-4619a deposit hold flow', () => {
     expect((await holdFor(repository, booking.id)).status).toBe('expired');
   });
 
+  it('keeps the hold active when acquiring declines so the client can retry', async () => {
+    const { booking, holds, repository } = await bookDeposit();
+    const hold = await holdFor(repository, booking.id);
+    const now = new Date(hold.createdAt.getTime() + 60_000);
+    const payments = new InMemoryAppointmentPaymentRepository();
+    const bookings = new InMemoryBookingPaymentRepository([booking]);
+    let approve = false;
+    const flow = new DepositFlow({
+      payments,
+      bookings,
+      gateway: { capture: async () => approve },
+      holds,
+      clock: { now: () => now },
+    });
+
+    const declined = await flow.execute(booking.id);
+    expect(declined.outcome).toBe('failed');
+    expect((await holdFor(repository, booking.id)).status).toBe('active');
+    expect(declined.booking.depositStatus).toBe('failed');
+
+    approve = true;
+    const retried = await flow.execute(booking.id);
+    expect(retried.outcome).toBe('captured');
+    expect(retried.booking.status).toBe('confirmed');
+    expect((await holdFor(repository, booking.id)).status).toBe('captured');
+  });
+
+  it('does not confirm a capture that races past the hold window', async () => {
+    const { booking } = await bookDeposit();
+    const payments = new InMemoryAppointmentPaymentRepository();
+    const bookings = new InMemoryBookingPaymentRepository([booking]);
+    const charges: number[] = [];
+    const flow = new DepositFlow({
+      payments,
+      bookings,
+      gateway: {
+        capture: async (_paymentId, amount) => {
+          charges.push(amount);
+          return true;
+        },
+      },
+      // Вікно минуло між перевіркою і списанням: sweeper вже звільнив крісло.
+      holds: {
+        status: async () => 'active',
+        capture: async () => ({ outcome: 'expired' }),
+      },
+      clock: { now: () => new Date('2026-10-05T12:20:00.000Z') },
+    });
+
+    const result = await flow.execute(booking.id);
+
+    expect(charges).toEqual([210]);
+    expect(result.outcome).toBe('expired');
+    expect(result.failureReason).toBe('deposit_hold_expired_after_capture');
+    expect(result.booking.depositStatus).toBe('expired');
+  });
+
   it('sweeps the expired hold and offers the chair to slot search again', async () => {
     const { booking, holds, repository } = await bookDeposit();
     const hold = await holdFor(repository, booking.id);

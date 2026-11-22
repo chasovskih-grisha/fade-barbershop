@@ -5,6 +5,8 @@ import { CheckboxFiscalGateway } from './application/checkbox-fiscal-gateway';
 import { DepositFlow } from './application/deposit-flow.use-case';
 import { OnsitePayment } from './application/onsite-payment.use-case';
 import { T094Refund } from './application/refund.use-case';
+import { SchedulingModule } from '../scheduling/scheduling.module';
+import { DepositHoldService } from '../scheduling/application/deposit-hold.service';
 import { PaymentController } from './payment.controller';
 import { PrismaAppointmentPaymentRepository } from './infrastructure/prisma-appointment-payment.repository';
 import { PrismaBookingPaymentRepository } from './infrastructure/prisma-booking-payment.repository';
@@ -26,6 +28,7 @@ export const REFUND_RECEIPT_GATEWAY = Symbol('REFUND_RECEIPT_GATEWAY');
  * acquiring/fiscal adapters, and exposes the deposit and on-site HTTP endpoints.
  */
 @Module({
+  imports: [SchedulingModule],
   controllers: [PaymentController],
   providers: [
     PrismaService,
@@ -59,13 +62,15 @@ export const REFUND_RECEIPT_GATEWAY = Symbol('REFUND_RECEIPT_GATEWAY');
         payments: PrismaAppointmentPaymentRepository,
         bookings: PrismaBookingPaymentRepository,
         gateway: StripePaymentCaptureGateway,
-        receipts: CheckboxPaymentReceiptGateway
-      ) => new DepositFlow({ payments, bookings, gateway, receipts }),
+        receipts: CheckboxPaymentReceiptGateway,
+        holds: DepositHoldService
+      ) => new DepositFlow({ payments, bookings, gateway, receipts, holds }),
       inject: [
         APPOINTMENT_PAYMENT_REPOSITORY,
         BOOKING_PAYMENT_REPOSITORY,
         PAYMENT_CAPTURE_GATEWAY,
         PAYMENT_RECEIPT_GATEWAY,
+        DepositHoldService,
       ],
     },
     {

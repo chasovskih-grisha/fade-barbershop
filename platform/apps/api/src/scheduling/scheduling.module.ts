@@ -11,8 +11,13 @@ import {
   NoShowManagementService,
 } from './application/no-show-management.service';
 import { PrismaCancellationReasonRepository } from './infrastructure/prisma-cancellation-reason.repository';
-import { DEPOSIT_HOLD_REPOSITORY, DepositHoldService } from './application/deposit-hold.service';
+import {
+  DEPOSIT_HOLD_EXPIRY_SINK,
+  DEPOSIT_HOLD_REPOSITORY,
+  DepositHoldService,
+} from './application/deposit-hold.service';
 import { PrismaDepositHoldRepository } from './infrastructure/prisma-deposit-hold.repository';
+import { PrismaDepositHoldExpirySink } from './infrastructure/prisma-deposit-hold-expiry.sink';
 import { DepositHoldSweeper } from './infrastructure/deposit-hold-sweeper.worker';
 import { AdminCalendar } from './application/admin-calendar';
 import { REFERENCE_PHOTO_URLS, type ReferencePhotoUrls } from './application/reference-photo-urls';
@@ -36,6 +41,8 @@ import { PrismaService } from '../shared/prisma/prisma.service';
     // T-4619a: утримання крісла під незаплачений депозит.
     PrismaDepositHoldRepository,
     { provide: DEPOSIT_HOLD_REPOSITORY, useExisting: PrismaDepositHoldRepository },
+    PrismaDepositHoldExpirySink,
+    { provide: DEPOSIT_HOLD_EXPIRY_SINK, useExisting: PrismaDepositHoldExpirySink },
     DepositHoldService,
     // T-4619a: in-process тік звільняє крісла з простроченим утриманням.
     DepositHoldSweeper,

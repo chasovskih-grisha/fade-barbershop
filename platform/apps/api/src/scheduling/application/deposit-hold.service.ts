@@ -20,6 +20,7 @@ import {
 
 export const DEPOSIT_HOLD_REPOSITORY = 'DEPOSIT_HOLD_REPOSITORY';
 export const DEPOSIT_HOLD_PUBLISHER = 'DEPOSIT_HOLD_PUBLISHER';
+export const DEPOSIT_HOLD_EXPIRY_SINK = 'DEPOSIT_HOLD_EXPIRY_SINK';
 
 export interface DepositHoldRepository {
   findByAppointmentId(appointmentId: string): Promise<DepositHold | null>;
@@ -34,6 +35,20 @@ export interface DepositHoldEvent {
   barberId: string;
   locationId: string;
   at: Date;
+}
+
+/**
+ * T-4619a: персистентний ефект прострочення — візит стає `cancelled` з
+ * причиною `deposit_expired`, а в outbox пишеться рівно одна подія.
+ * Адаптер мусить бути ідемпотентним: повторний sweep не дублює подію.
+ */
+export interface DepositHoldExpirySink {
+  expire(input: {
+    appointmentId: string;
+    barberId: string;
+    locationId: string;
+    at: Date;
+  }): Promise<void>;
 }
 
 export class InMemoryDepositHoldRepository implements DepositHoldRepository {
@@ -70,7 +85,10 @@ export class DepositHoldService {
     private readonly repository: DepositHoldRepository,
     @Optional()
     @Inject(DEPOSIT_HOLD_PUBLISHER)
-    private readonly publish: (event: DepositHoldEvent) => Promise<void> | void = () => undefined
+    private readonly publish: (event: DepositHoldEvent) => Promise<void> | void = () => undefined,
+    @Optional()
+    @Inject(DEPOSIT_HOLD_EXPIRY_SINK)
+    private readonly expirySink?: DepositHoldExpirySink
   ) {}
 
   /**
@@ -94,7 +112,9 @@ export class DepositHoldService {
     const hold = await this.repository.findByAppointmentId(appointmentId);
     if (!hold) return { outcome: 'missing' };
     const result = captureHold(hold, now);
-    if (result.hold !== hold) await this.repository.save(result.hold);
+    if (result.outcome === 'captured' && result.hold !== hold) {
+      await this.repository.save(result.hold);
+    }
     if (result.outcome === 'captured') {
       await this.publish({
         type: 'deposit_hold.captured',
@@ -105,9 +125,27 @@ export class DepositHoldService {
       });
     }
     if (result.outcome === 'expired' && hold.status === 'active') {
-      await this.publishExpired(result.hold, now);
+      await this.expireAndNotify(result.hold, now);
     }
     return { outcome: result.outcome };
+  }
+
+  /**
+   * Перевірка перед списанням: прострочене утримання одразу переводиться в
+   * `expired` (з подією), активне лишається активним — його закриє capture
+   * після успішної оплати.
+   */
+  async status(
+    appointmentId: string,
+    now: Date = new Date()
+  ): Promise<'active' | 'captured' | 'expired' | 'cancelled' | 'missing'> {
+    const hold = await this.repository.findByAppointmentId(appointmentId);
+    if (!hold) return 'missing';
+    if (hold.status === 'active' && isHoldExpired(hold, now)) {
+      await this.expireAndNotify({ ...hold, status: 'expired', updatedAt: now }, now);
+      return 'expired';
+    }
+    return hold.status;
   }
 
   /** Скасування візиту до оплати звільняє крісло негайно. */
@@ -130,9 +168,8 @@ export class DepositHoldService {
     for (const hold of active) {
       const next = expireHold(hold, now);
       if (!next) continue;
-      await this.repository.save(next);
+      await this.expireAndNotify(next, now);
       expired.push(next);
-      await this.publishExpired(next, now);
     }
     return expired;
   }
@@ -161,7 +198,19 @@ export class DepositHoldService {
     return released;
   }
 
-  private async publishExpired(hold: DepositHold, now: Date): Promise<void> {
+  /**
+   * Один ефект прострочення: спершу durable-візит + outbox, потім утримання.
+   * Якщо процес упаде між кроками, наступний sweep повторить sink, а його
+   * умовний UPDATE не дасть другій події.
+   */
+  private async expireAndNotify(hold: DepositHold, now: Date): Promise<void> {
+    await this.expirySink?.expire({
+      appointmentId: hold.appointmentId,
+      barberId: hold.barberId,
+      locationId: hold.locationId,
+      at: now,
+    });
+    await this.repository.save(hold);
     await this.publish({
       type: 'deposit_hold.expired',
       appointmentId: hold.appointmentId,

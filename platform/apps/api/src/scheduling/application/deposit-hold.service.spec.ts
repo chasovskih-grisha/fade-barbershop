@@ -6,6 +6,7 @@ import {
   DepositHoldService,
   InMemoryDepositHoldRepository,
   type DepositHoldEvent,
+  type DepositHoldExpirySink,
 } from './deposit-hold.service';
 
 const T0 = new Date('2026-11-20T10:00:00.000Z');
@@ -18,12 +19,16 @@ const VISIT = {
   depositAmount: 300,
 };
 
-function make() {
+function make(sink?: DepositHoldExpirySink) {
   const repository = new InMemoryDepositHoldRepository();
   const events: DepositHoldEvent[] = [];
-  const service = new DepositHoldService(repository, (event) => {
-    events.push(event);
-  });
+  const service = new DepositHoldService(
+    repository,
+    (event) => {
+      events.push(event);
+    },
+    sink
+  );
   return { repository, service, events };
 }
 
@@ -98,6 +103,45 @@ describe('DepositHoldService (T-4619a)', () => {
     expect(await service.release('apt-1', T0)).toBe(true);
     expect(await service.release('apt-1', T0)).toBe(false);
     expect(await service.releasedAppointmentIds(T0)).toEqual(new Set(['apt-1']));
+  });
+
+  it('cancels the visit through the expiry sink exactly once when a hold expires', async () => {
+    const expired: Array<{ appointmentId: string; barberId: string; locationId: string; at: Date }> =
+      [];
+    const { service } = make({
+      expire: async (input) => {
+        expired.push(input);
+      },
+    });
+    await service.open(VISIT, T0);
+    const at = new Date(T0.getTime() + 20 * 60_000);
+
+    await service.sweep(at);
+    await service.sweep(at);
+
+    expect(expired).toEqual([
+      {
+        appointmentId: 'apt-1',
+        barberId: 'barber-1',
+        locationId: 'loc-1',
+        at,
+      },
+    ]);
+  });
+
+  it('applies the expiry effect when a late capture arrives before the sweeper', async () => {
+    const expired: string[] = [];
+    const { service } = make({
+      expire: async (input) => {
+        expired.push(input.appointmentId);
+      },
+    });
+    await service.open(VISIT, T0);
+    const late = new Date(T0.getTime() + 16 * 60_000);
+
+    expect(await service.status('apt-1', late)).toBe('expired');
+    expect(await service.status('apt-1', late)).toBe('expired');
+    expect(expired).toEqual(['apt-1']);
   });
 
   it('sweeps expired holds and frees their chairs exactly once', async () => {

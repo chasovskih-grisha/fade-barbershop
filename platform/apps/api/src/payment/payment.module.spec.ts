@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { Booking } from '../scheduling/domain/booking';
 import { PaymentForm } from '../billing/domain/payment-status.enum';
+import { DepositHoldService } from '../scheduling/application/deposit-hold.service';
 import { CheckboxReceiptType } from './application/checkbox-fiscal-gateway';
 import {
   DepositFlow,
@@ -62,6 +63,11 @@ describe('PaymentModule wiring (T-091/T-093)', () => {
       })
       .overrideProvider(REFUND_RECEIPT_GATEWAY)
       .useValue({ issueRefundReceipt: async (input: { refundId: string }) => ({ receiptId: `r_${input.refundId}`, status: 'done' as const }) })
+      .overrideProvider(DepositHoldService)
+      .useValue({
+        status: async () => 'active',
+        capture: async () => ({ outcome: 'captured' }),
+      })
       .compile();
 
     controller = moduleRef.get(PaymentController);
@@ -108,6 +114,11 @@ describe('PaymentModule wiring (T-091/T-093)', () => {
       .useValue({ issueReceipt: async () => undefined })
       .overrideProvider(REFUND_RECEIPT_GATEWAY)
       .useValue({ issueRefundReceipt: async () => ({ receiptId: 'r1', status: 'done' as const }) })
+      .overrideProvider(DepositHoldService)
+      .useValue({
+        status: async () => 'active',
+        capture: async () => ({ outcome: 'captured' }),
+      })
       .compile();
 
     expect(moduleRef.get(DepositFlow)).toBeInstanceOf(DepositFlow);
