@@ -48,7 +48,9 @@ describe('stock movements (T-5011)', () => {
 
   it('checks in stock only when the scanned barcode matches', () => {
     expect(receiveByScan(item(), '4820000000011', 4).onHand).toBe(24);
-    expect(receiveByScan(item({ barcode: undefined }), 'POMADE-001', 1).onHand).toBe(21);
+    const withoutBarcode = item();
+    delete (withoutBarcode as { barcode?: string }).barcode;
+    expect(receiveByScan(withoutBarcode, 'POMADE-001', 1).onHand).toBe(21);
     expect(() => receiveByScan(item(), 'WRONG', 1)).toThrow(/does not belong/);
     expect(() => receiveByScan(item(), '4820000000011', 0)).toThrow(/positive/);
   });
