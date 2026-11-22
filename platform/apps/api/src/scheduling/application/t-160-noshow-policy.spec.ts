@@ -4,6 +4,10 @@
 // PAY-005б) з обовʼязковим логом і ідемпотентністю.
 import { Booking } from '../domain/booking';
 import { RefundStatus } from '../../payment/domain/refund.entity';
+import type { AcquiringGateway } from '../../billing/domain/acquiring.gateway.interface';
+import { Payment } from '../../billing/domain/payment.entity';
+import { PaymentForm, PaymentStatus } from '../../billing/domain/payment-status.enum';
+import { InMemoryAppointmentPaymentRepository } from '../../payment/application/deposit-flow.use-case';
 import {
   T094Refund,
   type ExpenditureReceiptGateway,
@@ -86,6 +90,35 @@ function harness(target = booking()) {
   return { repo, fiscal, refund, policy, target };
 }
 
+function acquiringHarness() {
+  const target = booking();
+  const repo = new MemoryBookingRepository([target]);
+  const fiscal = refundGateway();
+  const payments = new InMemoryAppointmentPaymentRepository();
+  const deposit = new Payment({
+    id: `pay-${target.id}`,
+    appointmentId: target.id,
+    clientId: 'client-1',
+    amount: 150,
+    form: PaymentForm.CARD,
+    status: PaymentStatus.DEPOSIT_PAID,
+    traceId: `trace-${target.id}`,
+    createdAt: START,
+    updatedAt: START,
+  });
+  void payments.save(deposit);
+  const calls: Array<Parameters<AcquiringGateway['refundPayment']>[0]> = [];
+  const provider: Pick<AcquiringGateway, 'refundPayment'> = {
+    async refundPayment(input) {
+      calls.push(input);
+      return { refundId: `re_${input.idempotencyKey ?? ''}`, refundedAmount: input.amount };
+    },
+  };
+  const refund = new T094Refund(repo, fiscal, undefined, payments, provider);
+  const policy = new T160NoShowPolicy(repo, new NoShowPenaltyService(), refund, () => START);
+  return { calls, payments, deposit, fiscal, policy, target };
+}
+
 describe('T160NoShowPolicy (T-160)', () => {
   it('retains the deposit on a no-show and never calls the refund port (NSH-003)', async () => {
     const h = harness();
@@ -145,6 +178,23 @@ describe('T160NoShowPolicy (T-160)', () => {
     expect(second.isDuplicate).toBe(true);
     expect(second.refund.refundId).toBe(first.refund.refundId);
     expect(h.fiscal.calls).toHaveLength(1);
+  });
+
+  it('refunds once through the acquirer when the removal is replayed', async () => {
+    const h = acquiringHarness();
+
+    const first = await h.policy.removeNoShow(h.target, { adminId: 'admin-1', reason: 'помилка' });
+    const second = await h.policy.removeNoShow(h.target, { adminId: 'admin-1', reason: 'помилка' });
+
+    expect(first.refund.status).toBe(RefundStatus.COMPLETED);
+    expect(second.isDuplicate).toBe(true);
+    expect(second.refund.refundId).toBe(first.refund.refundId);
+    expect(h.calls).toHaveLength(1);
+    expect(h.calls[0]?.idempotencyKey).toBe(`ns_remove_${h.target.id}:${h.deposit.id}`);
+    const [stored] = await h.payments.findByAppointmentId(h.target.id);
+    expect(stored?.status).toBe(PaymentStatus.REFUNDED);
+    expect(stored?.refundedAmount).toBe(150);
+    expect(h.fiscal.calls).toEqual([150]);
   });
 
   it('requires a reason and an admin for the removal', async () => {

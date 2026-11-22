@@ -4,6 +4,10 @@
 // через T-094, тож правила refund-порту перевіряються тут же.
 import { Booking } from '../domain/booking';
 import { RefundStatus } from '../../payment/domain/refund.entity';
+import type { AcquiringGateway } from '../../billing/domain/acquiring.gateway.interface';
+import { Payment } from '../../billing/domain/payment.entity';
+import { PaymentForm, PaymentStatus } from '../../billing/domain/payment-status.enum';
+import { InMemoryAppointmentPaymentRepository } from '../../payment/application/deposit-flow.use-case';
 import {
   T094Refund,
   type ExpenditureReceiptGateway,
@@ -89,6 +93,51 @@ function harness(options: { target?: Booking; fail?: boolean } = {}) {
     },
   });
   return { escalation: new T095NoShowEscalation(repo, refund), repo, fiscal, sent, target };
+}
+
+function capturedPayment(target: Booking): Payment {
+  return new Payment({
+    id: `pay-${target.id}`,
+    appointmentId: target.id,
+    clientId: 'client-1',
+    amount: 150,
+    form: PaymentForm.CARD,
+    status: PaymentStatus.DEPOSIT_PAID,
+    traceId: `trace-${target.id}`,
+    createdAt: NOW,
+    updatedAt: NOW,
+  });
+}
+
+function acquiringGateway() {
+  const calls: Array<Parameters<AcquiringGateway['refundPayment']>[0]> = [];
+  const gateway: Pick<AcquiringGateway, 'refundPayment'> = {
+    async refundPayment(input) {
+      calls.push(input);
+      return { refundId: `re_${input.idempotencyKey ?? ''}`, refundedAmount: input.amount };
+    },
+  };
+  return { calls, gateway };
+}
+
+function acquiringHarness() {
+  const target = booking();
+  const repo = new MemoryBookings([target]);
+  const fiscal = refundGateway();
+  const payments = new InMemoryAppointmentPaymentRepository();
+  const deposit = capturedPayment(target);
+  void payments.save(deposit);
+  const provider = acquiringGateway();
+  const refund = new T094Refund(repo, fiscal, undefined, payments, provider.gateway);
+  setPushSender({ async send() {} });
+  return {
+    escalation: new T095NoShowEscalation(repo, refund),
+    provider,
+    payments,
+    deposit,
+    fiscal,
+    target,
+  };
 }
 
 afterEach(() => {
@@ -194,5 +243,28 @@ describe('T095NoShowEscalation (T-095)', () => {
 
     expect(second.refund?.refundId).toBe(first.refund?.refundId);
     expect(h.fiscal.calls).toHaveLength(1);
+  });
+
+  it('refunds NSH-ADM-04 once through the acquirer when escalation is replayed', async () => {
+    const h = acquiringHarness();
+
+    const first = await h.escalation.escalateBooking(h.target, {
+      resolution: 'refund',
+      now: NOW,
+    });
+    const second = await h.escalation.escalateBooking(h.target, {
+      resolution: 'refund',
+      now: NOW,
+    });
+
+    expect(first.refund?.status).toBe(RefundStatus.COMPLETED);
+    expect(second.refund?.refundId).toBe(first.refund?.refundId);
+    expect(h.target.refundReasonCode).toBe('NSH-ADM-04');
+    expect(h.provider.calls).toHaveLength(1);
+    expect(h.provider.calls[0]?.idempotencyKey).toBe(`ns_${h.target.id}:${h.deposit.id}`);
+    const [stored] = await h.payments.findByAppointmentId(h.target.id);
+    expect(stored?.status).toBe(PaymentStatus.REFUNDED);
+    expect(stored?.refundedAmount).toBe(150);
+    expect(h.fiscal.calls).toEqual([150]);
   });
 });

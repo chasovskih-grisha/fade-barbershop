@@ -27,7 +27,7 @@ export type EscalationResolution = 'retain' | 'refund';
 export interface EscalationOptions {
   /** `retain` (дефолт) — депозит лишається, платіж не рухається (NSH-003). */
   resolution?: EscalationResolution;
-  /** Код підстави для refund; дефолт — зняття no-show адміном (NSH-ADM-03). */
+  /** Код підстави для refund; дефолт — зняття no-show адміном (NSH-ADM-04). */
   reasonCode?: string;
   /** Ключ ідемпотентності refund; дефолт — `ns_<bookingId>`. */
   refundId?: string;
@@ -87,7 +87,7 @@ export class T095NoShowEscalation {
         const result = await this.refundUseCase.initiateRefund(
           booking.id,
           undefined,
-          options.reasonCode ?? 'NSH-ADM-03',
+          options.reasonCode ?? 'NSH-ADM-04',
           options.refundId ?? `ns_${booking.id}`
         );
         refund = result.refund;
