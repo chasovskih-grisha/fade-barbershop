@@ -19,6 +19,8 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { ReputationModule } from './reputation/infrastructure/reputation.module';
 import { FeedbackModule } from './feedback/infrastructure/feedback.module';
+import { FeedbackSurfacesModule } from "./feedback-surfaces/feedback-surfaces.module";
+import { PortfolioModule } from "./portfolio/infrastructure/portfolio.module";
 import { SupportModule } from './support/infrastructure/support.module';
 import { AnalyticsModule } from './analytics/infrastructure/analytics.module';
 import { IdempotencyModule } from './shared/idempotency/idempotency.module';
@@ -51,6 +53,8 @@ import { IdempotencyInterceptor } from './shared/idempotency/idempotency.interce
     RealtimeModule,
     ReputationModule,
     FeedbackModule,
+    FeedbackSurfacesModule,
+    PortfolioModule,
     SupportModule,
     AnalyticsModule,
     IdempotencyModule,

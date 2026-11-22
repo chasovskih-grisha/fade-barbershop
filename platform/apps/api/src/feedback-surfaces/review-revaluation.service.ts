@@ -152,3 +152,4 @@ export class ReviewRevaluationService {
     return state;
   }
 }
+export { PrismaReviewRevaluationRepository } from "./infrastructure/prisma-review-revaluation.repository";
