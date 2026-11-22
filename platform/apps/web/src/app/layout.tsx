@@ -10,6 +10,7 @@ import { AuthProvider } from './components/auth/AuthProvider';
 import { RumReporter } from './components/RumReporter';
 import { AnalyticsTracker } from './components/AnalyticsTracker';
 import { ConversionIntelligenceTracker } from './components/ConversionIntelligenceTracker';
+import { PwaRegistrar } from './components/PwaRegistrar';
 
 // Кореневий layout публічного сайту (T-4508): спільний shell + SEO-шаблон сторінок.
 // Метадані сторінок перевизначають `title`/`description` через pageMetadata (lib/metadata).
@@ -25,6 +26,12 @@ export const metadata: Metadata = {
   description: 'Мережа барбершопів: запис за 10 секунд, ціни й вільні вікна онлайн.',
   applicationName: 'Fade',
   formatDetection: { telephone: false },
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'Fade',
+    statusBarStyle: 'default',
+  },
 };
 
 export const viewport: Viewport = {
@@ -44,6 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <RumReporter />
           <AnalyticsTracker />
           <ConversionIntelligenceTracker />
+          <PwaRegistrar />
           <AuthProvider>
             <PublicShell>{children}</PublicShell>
           </AuthProvider>

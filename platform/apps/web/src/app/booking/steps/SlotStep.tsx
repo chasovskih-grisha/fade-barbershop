@@ -4,6 +4,7 @@ import type { DayOption } from '../useBookingFlow';
 import { SlotDayTabs } from './SlotDayTabs';
 import { EmptySlotsState } from './EmptySlotsState';
 import { toSlot, selectedSlotId } from './slot-step-helpers';
+import InstantBookingCard from './InstantBookingCard';
 
 interface Props {
   slots: AvailableSlotDto[];
@@ -20,6 +21,8 @@ interface Props {
   onCancelWaitlist?: () => void;
   waitlist?: { entryId?: string; queuePosition?: number; estimatedWaitMinutes?: number };
   retrySlots?: () => void;
+  instantSlot?: AvailableSlotDto | null;
+  onInstantBook?: (slot: AvailableSlotDto) => void;
 }
 
 /** Екран 3 (booking-flow.md): стрічка дат 14 днів, сітка слотів 15 хв;
@@ -40,6 +43,8 @@ export default function SlotStep(props: Props) {
     onCancelWaitlist,
     waitlist,
     retrySlots,
+    instantSlot,
+    onInstantBook,
   } = props;
 
   const handleSlotChange = (id: string | undefined) => {
@@ -72,6 +77,9 @@ export default function SlotStep(props: Props) {
           onCancelWaitlist={onCancelWaitlist}
           onBack={onBack}
         />
+      )}
+      {!loading && slots.length > 0 && instantSlot && onInstantBook && (
+        <InstantBookingCard slot={instantSlot} onBook={onInstantBook} />
       )}
       {!loading && slots.length > 0 && (
         <Card>

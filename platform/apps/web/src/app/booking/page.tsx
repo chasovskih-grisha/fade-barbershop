@@ -14,6 +14,7 @@ import SuccessStep from './steps/SuccessStep';
 import BookingHeader from './BookingHeader';
 import { STEPS, useBookingFlow } from './useBookingFlow';
 import { useStepFocus } from './useStepFocus';
+import { pickInstantSlot } from './instant-slot';
 
 export default function BookingPage() {
   const flow = useBookingFlow();
@@ -30,7 +31,7 @@ export default function BookingPage() {
         return <BarberStep barbers={flow.barbers} loading={flow.loading} error={flow.error} onBack={() => flow.setStep(1)} onSelect={flow.chooseBarber} retryBarbers={flow.retryBarbers} />;
       case 3:
         // prettier-ignore
-        return <SlotStep slots={flow.slots} days={flow.days} date={flow.date} loading={flow.loading} selectedSlot={flow.slot} onDate={flow.chooseDate} onSelect={flow.chooseSlot} onBack={() => flow.setStep(2)} onNext={() => flow.setStep(4)} onJoinWaitlist={flow.onJoinWaitlist} onCancelWaitlist={flow.onCancelWaitlist} waitlist={flow.waitlist} />;
+        return <SlotStep slots={flow.slots} days={flow.days} date={flow.date} loading={flow.loading} selectedSlot={flow.slot} onDate={flow.chooseDate} onSelect={flow.chooseSlot} onBack={() => flow.setStep(2)} onNext={() => flow.setStep(4)} onJoinWaitlist={flow.onJoinWaitlist} onCancelWaitlist={flow.onCancelWaitlist} waitlist={flow.waitlist} instantSlot={pickInstantSlot(flow.slots, flow.date)} onInstantBook={(slot) => { flow.chooseSlot(slot); flow.setStep(5); }} />;
       case 4:
         // prettier-ignore
         return <HaircutReferenceStep

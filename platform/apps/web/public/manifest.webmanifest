@@ -1,0 +1,44 @@
+{
+  "name": "Fade — барбершоп у Києві",
+  "short_name": "Fade",
+  "description": "Мережа барбершопів: запис за 10 секунд, ціни й вільні вікна онлайн.",
+  "lang": "uk",
+  "dir": "ltr",
+  "id": "/",
+  "start_url": "/booking",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#0E0E10",
+  "theme_color": "#0E0E10",
+  "categories": ["lifestyle", "beauty"],
+  "icons": [
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Записатися онлайн",
+      "short_name": "Запис",
+      "description": "Найближчі вільні вікна у вашому барбершопі",
+      "url": "/booking"
+    },
+    {
+      "name": "Наші барбери",
+      "short_name": "Барбери",
+      "description": "Портфоліо та вільні години барберів",
+      "url": "/barbers"
+    }
+  ]
+}

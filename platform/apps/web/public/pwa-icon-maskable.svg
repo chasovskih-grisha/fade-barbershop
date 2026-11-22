@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none" shape-rendering="geometricPrecision">
+  <title>Fade maskable</title>
+  <rect width="512" height="512" fill="#0E0E10"/>
+  <g fill="#F4F4F6">
+    <polygon points="148,160 316,160 290,198 148,198"/>
+    <polygon points="148,236 270,236 238,274 148,274"/>
+    <polygon points="148,236 196,236 196,336 148,388"/>
+    <polygon points="322,204 410,338 358,338 308,256 258,338 206,338"/>
+  </g>
+</svg>
