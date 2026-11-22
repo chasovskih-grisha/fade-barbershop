@@ -1,3 +1,4 @@
+/* eslint-disable complexity -- one explicit row→aggregate overlay; splitting it would hide which persisted fields are restored. */
 import { Injectable } from '@nestjs/common';
 import type { Booking as BookingRow, BookingPaymentState } from '@prisma/client';
 import { Booking, type BookingSource } from '../../scheduling/domain/booking';

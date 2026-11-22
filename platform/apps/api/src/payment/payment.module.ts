@@ -1,3 +1,4 @@
+/* eslint-disable max-params -- Nest factory providers receive one parameter per injected token. */
 import { Module } from '@nestjs/common';
 import { PrismaService } from '../shared/prisma/prisma.service';
 import { StripeAcquiringGateway } from '../billing/infrastructure/stripe-acquiring.gateway';

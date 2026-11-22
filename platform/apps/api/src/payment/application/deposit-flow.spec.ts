@@ -4,7 +4,8 @@
 // помилці еквайрингу (PAY-WEB-05/06).
 import { Booking } from '../../scheduling/domain/booking';
 import type { DepositPolicy } from '../../scheduling/domain/deposit-terms';
-import { PaymentStatus } from '../../billing/domain/payment-status.enum';
+import { Payment } from '../../billing/domain/payment.entity';
+import { PaymentForm, PaymentStatus } from '../../billing/domain/payment-status.enum';
 import {
   DepositFlow,
   InMemoryAppointmentPaymentRepository,
@@ -146,6 +147,30 @@ describe('DepositFlow (T-091)', () => {
     expect(fiscal.calls).toHaveLength(1);
   });
 
+  it('does not charge again after the deposit was credited to the bill', async () => {
+    const target = booking();
+    const h = harness({ entitle: target });
+    const credited = new Payment({
+      id: 'pay-credited',
+      appointmentId: target.id,
+      clientId: 'client-1',
+      amount: 150,
+      form: PaymentForm.CARD,
+      status: PaymentStatus.AWAITING_BALANCE,
+      traceId: 'deposit-credited',
+      createdAt: START,
+      updatedAt: START,
+    });
+    await h.payments.save(credited);
+
+    const result = await h.flow.execute(target.id);
+
+    expect(result.outcome).toBe('already_paid');
+    expect(result.payment?.id).toBe('pay-credited');
+    expect(h.capture.calls).toHaveLength(0);
+    expect(h.fiscal.calls).toHaveLength(0);
+  });
+
   it('keeps the booking unconfirmed and reports no charge when the acquirer declines', async () => {
     const target = booking();
     const { flow, fiscal, events } = harness({ entitle: target, capture: false });
@@ -172,6 +197,21 @@ describe('DepositFlow (T-091)', () => {
     expect(result.failureReason).toContain('timeout');
     expect(result.payment?.status).toBe(PaymentStatus.CANCELLED);
     expect(fiscal.calls).toHaveLength(0);
+  });
+
+  it('keeps the payment paid when the fiscal provider throws after capture', async () => {
+    const target = booking();
+    const h = harness({ entitle: target });
+    h.fiscal.issueReceipt = async () => {
+      throw new Error('checkbox down');
+    };
+
+    const result = await h.flow.execute(target.id);
+
+    expect(result.outcome).toBe('captured');
+    expect(result.payment?.status).toBe(PaymentStatus.DEPOSIT_PAID);
+    expect(result.receipt).toBeUndefined();
+    expect(target.status).toBe('confirmed');
   });
 
   it('does not invent a deposit when the snapshot disabled it', async () => {

@@ -110,9 +110,13 @@ export class T094Refund {
       return { refund: this.toEntity(booking), isDuplicate: true };
     }
 
-    const reason = reasonCode
-      ? (REASON_BY_CODE[reasonCode] ?? RefundReason.SYSTEM_ERROR)
-      : RefundReason.CANCELLATION;
+    // Невідомий код не можна тихо перетворювати на SYSTEM_ERROR: це обходило б
+    // вікно безкоштовного скасування для PAY-004.
+    const mappedReason = reasonCode ? REASON_BY_CODE[reasonCode] : undefined;
+    if (reasonCode && !mappedReason) {
+      throw new Error(`Unknown refund reason code ${reasonCode}`);
+    }
+    const reason = mappedReason ?? RefundReason.CANCELLATION;
     const at = this.now();
 
     if (reason === RefundReason.CANCELLATION && !canRefundCancellation(booking, at)) {

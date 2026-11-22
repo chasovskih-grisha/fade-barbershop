@@ -5,7 +5,11 @@
 import { uuidv7 } from '@fade/domain-shared';
 import type { Booking } from '../../scheduling/domain/booking';
 import { Payment } from '../../billing/domain/payment.entity';
-import { PaymentForm, PaymentStatus } from '../../billing/domain/payment-status.enum';
+import {
+  PaymentForm,
+  PaymentStatus,
+  isCapturedPaymentStatus,
+} from '../../billing/domain/payment-status.enum';
 import { CheckboxReceiptType, type CheckboxReceipt } from './checkbox-fiscal-gateway';
 import type {
   AppointmentPaymentRepository,
@@ -71,7 +75,8 @@ export class OnsitePayment {
 
     const existing = await this.deps.payments.findByAppointmentId(booking.id);
     const alreadyPaid = existing.find(
-      (payment) => payment.status === PaymentStatus.PAID && payment.amount === paidAmount
+      (payment) =>
+        payment.amount === paidAmount && isCapturedPaymentStatus(payment.status)
     );
     if (alreadyPaid) {
       return {
@@ -111,28 +116,27 @@ export class OnsitePayment {
       depositAmount > 0 ? CheckboxReceiptType.Remainder : CheckboxReceiptType.FullPayment;
     const checkId = depositAmount > 0 ? `remainder_${booking.id}` : `full_${booking.id}`;
 
-    let captured: boolean;
-    try {
-      captured = await this.deps.gateway.capture(payment.id, paidAmount);
-    } catch (error) {
-      return this.fail(
-        booking,
-        payment,
-        audit,
-        depositAmount,
-        `acquiring error: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-    if (!captured) {
-      return this.fail(booking, payment, audit, depositAmount, 'acquiring declined the payment');
+    // Готівку не проводять через еквайринг: достатньо позначки й фіскального
+    // чека. POS/картка — через шлюз.
+    if (input.form !== PaymentForm.CASH) {
+      let captured: boolean;
+      try {
+        captured = await this.deps.gateway.capture(payment.id, paidAmount);
+      } catch (error) {
+        return this.fail(
+          booking,
+          payment,
+          audit,
+          depositAmount,
+          `acquiring error: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+      if (!captured) {
+        return this.fail(booking, payment, audit, depositAmount, 'acquiring declined the payment');
+      }
     }
 
-    const receipt = await this.deps.receipts?.issueReceipt(
-      booking.id,
-      paidAmount,
-      receiptType,
-      checkId
-    );
+    const receipt = await this.issueReceipt(booking.id, paidAmount, receiptType, checkId);
 
     payment.markPaid(receipt?.check_id ?? checkId);
     await this.deps.payments.save(payment);
@@ -181,5 +185,20 @@ export class OnsitePayment {
       failureReason: reason,
       audit,
     };
+  }
+
+  /** Збій чека не скасовує вже отримані гроші; чек перевипускається за checkId. */
+  private async issueReceipt(
+    bookingId: string,
+    amount: number,
+    type: CheckboxReceiptType,
+    checkId: string
+  ): Promise<CheckboxReceipt | undefined> {
+    if (!this.deps.receipts) return undefined;
+    try {
+      return await this.deps.receipts.issueReceipt(bookingId, amount, type, checkId);
+    } catch {
+      return undefined;
+    }
   }
 }

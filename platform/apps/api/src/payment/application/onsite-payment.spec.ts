@@ -2,6 +2,7 @@
 // Специфікація T-093: решта = FinalPrice − депозит, форма готівка/POS,
 // ідемпотентність повторного позначення і закриваючий чек ланцюга.
 import { Booking } from '../../scheduling/domain/booking';
+import { Payment } from '../../billing/domain/payment.entity';
 import { PaymentForm, PaymentStatus } from '../../billing/domain/payment-status.enum';
 import {
   InMemoryAppointmentPaymentRepository,
@@ -93,7 +94,8 @@ describe('OnsitePayment (T-093)', () => {
     expect(result.depositAmount).toBe(150);
     expect(result.paidAmount).toBe(350);
     expect(result.payment?.status).toBe(PaymentStatus.PAID);
-    expect(h.capture.calls).toEqual([[result.payment?.id, 350]]);
+    // Готівка не проходить еквайринг — лише позначка й чек.
+    expect(h.capture.calls).toHaveLength(0);
     expect(h.fiscal.calls).toEqual([
       { amount: 350, type: CheckboxReceiptType.Remainder, checkId: `remainder_${h.target.id}` },
     ]);
@@ -134,8 +136,34 @@ describe('OnsitePayment (T-093)', () => {
 
     expect(second.outcome).toBe('already_paid');
     expect(second.payment?.id).toBe(first.payment?.id);
-    expect(h.capture.calls).toHaveLength(1);
+    expect(h.capture.calls).toHaveLength(0);
     expect(h.fiscal.calls).toHaveLength(1);
+  });
+
+  it('does not charge the remainder again after a partial refund', async () => {
+    const h = harness();
+    const refunded = new Payment({
+      id: 'pay-partial',
+      appointmentId: h.target.id,
+      clientId: 'client-1',
+      amount: 350,
+      form: PaymentForm.CASH,
+      status: PaymentStatus.PARTIALLY_REFUNDED,
+      traceId: 'onsite-partial',
+      createdAt: START,
+      updatedAt: START,
+    });
+    await h.payments.save(refunded);
+
+    const result = await h.payment.execute({
+      bookingId: h.target.id,
+      form: PaymentForm.CASH,
+      by: 'barber-1',
+    });
+
+    expect(result.outcome).toBe('already_paid');
+    expect(result.payment?.id).toBe('pay-partial');
+    expect(h.fiscal.calls).toHaveLength(0);
   });
 
   it('does nothing when the deposit already covers the price', async () => {
@@ -167,6 +195,24 @@ describe('OnsitePayment (T-093)', () => {
     expect(result.paidAmount).toBe(0);
     expect(result.failureReason).toContain('POS offline');
     expect(h.fiscal.calls).toHaveLength(0);
+  });
+
+  it('keeps the cash payment paid when the fiscal provider throws', async () => {
+    const h = harness();
+    h.fiscal.issueReceipt = async () => {
+      throw new Error('checkbox down');
+    };
+
+    const result = await h.payment.execute({
+      bookingId: h.target.id,
+      form: PaymentForm.CASH,
+      by: 'barber-1',
+    });
+
+    expect(result.outcome).toBe('captured');
+    expect(result.payment?.status).toBe(PaymentStatus.PAID);
+    expect(result.receipt).toBeUndefined();
+    expect(h.events).toHaveLength(1);
   });
 
   it('never charges a complimentary visit', async () => {

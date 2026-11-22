@@ -127,6 +127,17 @@ describe('T094Refund (T-094)', () => {
     expect(h.refund.validateRefundAmount(150, 80)).toBe(80);
   });
 
+  it('records a true partial refund without inflating it to the captured total', async () => {
+    const h = harness();
+
+    const { refund } = await h.refund.initiateRefund(h.target.id, 80, 'PAY-004');
+
+    expect(refund.amount).toBe(80);
+    expect(refund.status).toBe(RefundStatus.COMPLETED);
+    expect(h.target.capturedRefundAmount).toBe(80);
+    expect(h.fiscal.calls).toEqual([{ amount: 80, refundId: refund.refundId }]);
+  });
+
   it('refuses a cancellation after the free window and keeps the deposit', async () => {
     const h = harness({ target: booking(1) });
 
@@ -135,6 +146,28 @@ describe('T094Refund (T-094)', () => {
     );
     expect(h.fiscal.calls).toHaveLength(0);
     expect(h.target.refundStatus).toBeNull();
+  });
+
+  it('rejects an unknown reason code instead of bypassing the cancellation window', async () => {
+    const h = harness({ target: booking(1) });
+
+    await expect(h.refund.initiateRefund(h.target.id, undefined, 'NOT-A-CODE')).rejects.toThrow(
+      'Unknown refund reason code'
+    );
+    expect(h.fiscal.calls).toHaveLength(0);
+    expect(h.target.refundId).toBeNull();
+  });
+
+  it('rejects a zero or negative requested amount', async () => {
+    const h = harness();
+
+    await expect(h.refund.initiateRefund(h.target.id, 0)).rejects.toThrow(
+      'Invalid refund amount'
+    );
+    await expect(h.refund.initiateRefund(h.target.id, -1)).rejects.toThrow(
+      'Invalid refund amount'
+    );
+    expect(h.fiscal.calls).toHaveLength(0);
   });
 
   it('lets an admin refund a no-show outside the cancellation window (PAY-005b)', async () => {

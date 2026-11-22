@@ -1,3 +1,4 @@
+/* eslint-disable max-params -- Checkbox receipt signature is fixed by the existing DepositReceiptGateway port (4 args). */
 import { Injectable } from '@nestjs/common';
 import { StripeAcquiringGateway } from '../../billing/infrastructure/stripe-acquiring.gateway';
 import type { DepositCaptureGateway, DepositReceiptGateway } from '../application/deposit-flow.use-case';

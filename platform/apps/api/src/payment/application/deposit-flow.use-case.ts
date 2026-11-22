@@ -8,7 +8,11 @@
 import { uuidv7 } from '@fade/domain-shared';
 import { Booking } from '../../scheduling/domain/booking';
 import { Payment } from '../../billing/domain/payment.entity';
-import { PaymentForm, PaymentStatus } from '../../billing/domain/payment-status.enum';
+import {
+  PaymentForm,
+  PaymentStatus,
+  isCapturedPaymentStatus,
+} from '../../billing/domain/payment-status.enum';
 import { CheckboxReceiptType, type CheckboxReceipt } from './checkbox-fiscal-gateway';
 
 /** Сховище платежів візиту; у проді — Prisma-адаптер billing. */
@@ -138,10 +142,9 @@ export class DepositFlow {
 
     // PAY-WEB-03: повторний клік не створює другий платіж.
     const existing = await this.deps.payments.findByAppointmentId(booking.id);
-    const paidDeposit = existing.find(
-      (payment) =>
-        payment.status === PaymentStatus.DEPOSIT_PAID || payment.status === PaymentStatus.PAID
-    );
+    // Будь-який уже списаний депозит (зокрема зарахований у рахунок візиту або
+    // частково повернений) — це не привід брати гроші вдруге.
+    const paidDeposit = existing.find((payment) => isCapturedPaymentStatus(payment.status));
     if (paidDeposit) {
       return {
         booking,
@@ -289,7 +292,18 @@ export class DepositFlow {
     checkId: string
   ): Promise<CheckboxReceipt | undefined> {
     if (!this.deps.receipts) return undefined;
-    return this.deps.receipts.issueReceipt(bookingId, amount, CheckboxReceiptType.Deposit, checkId);
+    try {
+      return await this.deps.receipts.issueReceipt(
+        bookingId,
+        amount,
+        CheckboxReceiptType.Deposit,
+        checkId
+      );
+    } catch {
+      // Гроші вже списані: збій фіскального провайдера не робить платіж
+      // неоплаченим. Чек можна перевипустити за детермінованим checkId.
+      return undefined;
+    }
   }
 
   private async failDeposit(

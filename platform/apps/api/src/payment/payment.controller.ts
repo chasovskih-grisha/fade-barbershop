@@ -1,8 +1,10 @@
+/* eslint-disable max-lines -- HTTP entry points stay next to their validation (104 vs 100); split tracked in T-2500f */
 import {
   BadRequestException,
   Body,
   Controller,
   Get,
+  NotFoundException,
   HttpCode,
   HttpStatus,
   Param,
@@ -83,6 +85,14 @@ export class PaymentController {
   @HttpCode(HttpStatus.OK)
   async initiateRefund(@Body() body: RefundBody) {
     if (!body.bookingId) throw new BadRequestException('bookingId is required');
+    if (body.amount !== undefined) {
+      if (!Number.isInteger(body.amount) || body.amount <= 0) {
+        throw new BadRequestException('amount must be a positive integer');
+      }
+    }
+    if (body.refundId !== undefined && !body.refundId.trim()) {
+      throw new BadRequestException('refundId must not be empty');
+    }
     const result = await this.refunds.initiateRefund(
       body.bookingId,
       body.amount,
@@ -102,6 +112,8 @@ export class PaymentController {
   /** GET /payment/refunds/:refundId — refund state for admin/cabinet. */
   @Get('refunds/:refundId')
   async refundStatus(@Param('refundId') refundId: string) {
-    return { refund: await this.refunds.refundStatus(refundId) };
+    const refund = await this.refunds.refundStatus(refundId);
+    if (!refund) throw new NotFoundException(`Refund ${refundId} not found`);
+    return { refund };
   }
 }

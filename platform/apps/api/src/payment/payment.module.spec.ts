@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- wiring tests share the payment fixture and fake gateways; split tracked in T-2500f */
 import { Test } from '@nestjs/testing';
 import { Booking } from '../scheduling/domain/booking';
 import { PaymentForm } from '../billing/domain/payment-status.enum';
