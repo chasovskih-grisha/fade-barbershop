@@ -1,4 +1,5 @@
 export { uuidv7 } from './id';
+export * from './events';
 export type { DomainId } from './id';
 export * from './cancellation/types';
 export * from './cancellation/policy';
