@@ -1,4 +1,4 @@
-/* eslint-disable max-params -- Nest factory providers receive one parameter per injected token. */
+/* eslint-disable max-params, max-lines -- Nest factory providers receive one parameter per injected token; wiring stays in one place. */
 import { Module } from '@nestjs/common';
 import { PrismaService } from '../shared/prisma/prisma.service';
 import { StripeAcquiringGateway } from '../billing/infrastructure/stripe-acquiring.gateway';
@@ -93,9 +93,16 @@ export const REFUND_RECEIPT_GATEWAY = Symbol('REFUND_RECEIPT_GATEWAY');
       provide: T094Refund,
       useFactory: (
         bookings: PrismaBookingPaymentRepository,
-        receipts: InProcessExpenditureReceiptGateway
-      ) => new T094Refund(bookings, receipts),
-      inject: [BOOKING_PAYMENT_REPOSITORY, REFUND_RECEIPT_GATEWAY],
+        receipts: InProcessExpenditureReceiptGateway,
+        payments: PrismaAppointmentPaymentRepository,
+        acquiring: StripeAcquiringGateway
+      ) => new T094Refund(bookings, receipts, () => new Date(), payments, acquiring),
+      inject: [
+        BOOKING_PAYMENT_REPOSITORY,
+        REFUND_RECEIPT_GATEWAY,
+        APPOINTMENT_PAYMENT_REPOSITORY,
+        StripeAcquiringGateway,
+      ],
     },
   ],
   exports: [DepositFlow, OnsitePayment, T094Refund],

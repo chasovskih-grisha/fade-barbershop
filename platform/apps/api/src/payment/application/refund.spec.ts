@@ -3,6 +3,9 @@
 // команда адміна поза вікном (no-show), ідемпотентність першого коміту,
 // видатковий чек, `failed` і повтори (PAY-005…010).
 import { Booking } from '../../scheduling/domain/booking';
+import type { AcquiringGateway } from '../../billing/domain/acquiring.gateway.interface';
+import { Payment } from '../../billing/domain/payment.entity';
+import { PaymentForm, PaymentStatus } from '../../billing/domain/payment-status.enum';
 import { RefundReason, RefundStatus } from '../domain/refund.entity';
 import {
   MAX_REFUND_RETRIES,
@@ -11,6 +14,7 @@ import {
   type ExpenditureReceiptGateway,
   type RefundBookingPort,
 } from './refund.use-case';
+import { InMemoryAppointmentPaymentRepository } from './deposit-flow.use-case';
 
 const HOUR_MS = 3_600_000;
 
@@ -78,6 +82,68 @@ function harness(options: { target?: Booking; outcomes?: Array<'done' | 'failed'
   return { refund: new T094Refund(repo, fiscal), repo, fiscal, target };
 }
 
+function payment(input: {
+  appointmentId: string;
+  id: string;
+  amount: number;
+  status: PaymentStatus;
+  receiptId?: string;
+}): Payment {
+  return new Payment({
+    id: input.id,
+    appointmentId: input.appointmentId,
+    clientId: 'client-1',
+    amount: input.amount,
+    form: PaymentForm.CARD,
+    status: input.status,
+    traceId: input.id,
+    ...(input.receiptId ? { receiptId: input.receiptId } : {}),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+}
+
+function acquiring(outcomes: Array<'ok' | 'error'> = ['ok']) {
+  const calls: Array<{ providerSessionId: string; amount: number; idempotencyKey?: string }> = [];
+  let index = 0;
+  const gateway: Pick<AcquiringGateway, 'refundPayment'> = {
+    async refundPayment(params) {
+      calls.push({
+        providerSessionId: params.providerSessionId,
+        amount: params.amount,
+        ...(params.idempotencyKey ? { idempotencyKey: params.idempotencyKey } : {}),
+      });
+      const outcome = outcomes[Math.min(index, outcomes.length - 1)] ?? 'ok';
+      index += 1;
+      if (outcome === 'error') throw new Error('provider timeout');
+      return { refundId: `re_${params.idempotencyKey ?? index}`, refundedAmount: params.amount };
+    },
+  };
+  return { gateway, calls };
+}
+
+function acquiringHarness(options: {
+  target?: Booking;
+  payments: Payment[];
+  provider?: Array<'ok' | 'error'>;
+  receipt?: Array<'done' | 'failed'>;
+}) {
+  const target = options.target ?? booking();
+  const repo = new MemoryBookingRepository([target]);
+  const fiscal = gateway(options.receipt);
+  const payments = new InMemoryAppointmentPaymentRepository();
+  for (const item of options.payments) void payments.save(item);
+  const provider = acquiring(options.provider);
+  return {
+    refund: new T094Refund(repo, fiscal, undefined, payments, provider.gateway),
+    repo,
+    fiscal,
+    payments,
+    provider,
+    target,
+  };
+}
+
 describe('canRefundCancellation (PAY-004)', () => {
   it('allows a cancellation inside the snapshot window and rejects a late one', () => {
     expect(canRefundCancellation(booking(24))).toBe(true);
@@ -117,12 +183,13 @@ describe('T094Refund (T-094)', () => {
     expect(refund.amount).toBe(500);
   });
 
-  it('caps a partial request at the captured amount (PAY-010)', async () => {
+  it('rejects a request above the captured amount before any provider call (PAY-010)', async () => {
     const h = harness();
 
-    const { refund } = await h.refund.initiateRefund(h.target.id, 1_000);
-
-    expect(refund.amount).toBe(150);
+    await expect(h.refund.initiateRefund(h.target.id, 1_000)).rejects.toThrow(
+      'exceeds available captured amount'
+    );
+    expect(h.fiscal.calls).toHaveLength(0);
     expect(h.refund.validateRefundAmount(150, 0)).toBe(0);
     expect(h.refund.validateRefundAmount(150, 80)).toBe(80);
   });
@@ -238,5 +305,144 @@ describe('T094Refund (T-094)', () => {
     expect(stored?.paymentMethod).toBe('walk-in');
     await expect(h.refund.refundStatus('missing')).resolves.toBeNull();
     void refund;
+  });
+});
+
+describe('T094Refund acquiring (PAY-009)', () => {
+  it('refunds the full captured amount across payments only after provider confirmation', async () => {
+    const target = booking(24);
+    target.status = 'completed';
+    const h = acquiringHarness({
+      target,
+      payments: [
+        payment({ appointmentId: target.id, id: 'pay-dep', amount: 150, status: PaymentStatus.DEPOSIT_PAID }),
+        payment({ appointmentId: target.id, id: 'pay-rem', amount: 350, status: PaymentStatus.PAID }),
+      ],
+    });
+
+    const { refund } = await h.refund.initiateRefund(target.id, undefined, 'PAY-004', 'refund-1');
+
+    expect(h.provider.calls).toEqual([
+      { providerSessionId: 'pay-dep', amount: 150, idempotencyKey: 'refund-1:pay-dep' },
+      { providerSessionId: 'pay-rem', amount: 350, idempotencyKey: 'refund-1:pay-rem' },
+    ]);
+    expect(refund.status).toBe(RefundStatus.COMPLETED);
+    expect(refund.amount).toBe(500);
+    const stored = await h.payments.findByAppointmentId(target.id);
+    expect(stored.map((item) => [item.status, item.refundedAmount])).toEqual([
+      [PaymentStatus.REFUNDED, 150],
+      [PaymentStatus.REFUNDED, 350],
+    ]);
+    expect(h.fiscal.calls).toHaveLength(1);
+  });
+
+  it('keeps a partial refund below the captured amount valid and partially refunds the payment', async () => {
+    const target = booking(24);
+    const h = acquiringHarness({
+      target,
+      payments: [
+        payment({ appointmentId: target.id, id: 'pay-dep', amount: 150, status: PaymentStatus.DEPOSIT_PAID }),
+      ],
+    });
+
+    const { refund } = await h.refund.initiateRefund(target.id, 80, 'PAY-004', 'refund-part');
+
+    expect(h.provider.calls).toEqual([
+      { providerSessionId: 'pay-dep', amount: 80, idempotencyKey: 'refund-part:pay-dep' },
+    ]);
+    expect(refund.amount).toBe(80);
+    expect(refund.status).toBe(RefundStatus.COMPLETED);
+    const [stored] = await h.payments.findByAppointmentId(target.id);
+    expect(stored?.status).toBe(PaymentStatus.PARTIALLY_REFUNDED);
+    expect(stored?.refundedAmount).toBe(80);
+    expect(h.fiscal.calls).toEqual([{ amount: 80, refundId: refund.refundId }]);
+  });
+
+  it('rejects a refund above the remaining captured balance before calling the provider', async () => {
+    const target = booking(24);
+    const h = acquiringHarness({
+      target,
+      payments: [
+        payment({ appointmentId: target.id, id: 'pay-dep', amount: 150, status: PaymentStatus.DEPOSIT_PAID }),
+      ],
+    });
+
+    await expect(
+      h.refund.initiateRefund(target.id, 151, 'PAY-004', 'refund-over')
+    ).rejects.toThrow('exceeds available captured amount');
+
+    expect(h.provider.calls).toHaveLength(0);
+    expect(h.fiscal.calls).toHaveLength(0);
+    expect(target.refundId).toBeNull();
+  });
+
+  it('leaves a provider timeout failed and retryable, then completes with the same key', async () => {
+    const target = booking(24);
+    const h = acquiringHarness({
+      target,
+      provider: ['error', 'ok'],
+      payments: [
+        payment({ appointmentId: target.id, id: 'pay-dep', amount: 150, status: PaymentStatus.DEPOSIT_PAID }),
+      ],
+    });
+
+    const { refund } = await h.refund.initiateRefund(target.id, undefined, 'PAY-004', 'refund-retry');
+
+    expect(refund.status).toBe(RefundStatus.FAILED);
+    expect(refund.adminNote).toContain('provider timeout');
+    expect((await h.payments.findByAppointmentId(target.id))[0]?.status).toBe(
+      PaymentStatus.DEPOSIT_PAID
+    );
+    expect(h.fiscal.calls).toHaveLength(0);
+
+    const retried = await h.refund.retryRefund(refund.refundId);
+
+    expect(retried.status).toBe(RefundStatus.COMPLETED);
+    expect(h.provider.calls.map((call) => call.idempotencyKey)).toEqual([
+      'refund-retry:pay-dep',
+      'refund-retry:pay-dep',
+    ]);
+    expect((await h.payments.findByAppointmentId(target.id))[0]?.status).toBe(
+      PaymentStatus.REFUNDED
+    );
+    expect(h.fiscal.calls).toHaveLength(1);
+  });
+
+  it('does not call the provider twice for a duplicate same-key retry', async () => {
+    const target = booking(24);
+    const h = acquiringHarness({
+      target,
+      payments: [
+        payment({ appointmentId: target.id, id: 'pay-dep', amount: 150, status: PaymentStatus.DEPOSIT_PAID }),
+      ],
+    });
+
+    const first = await h.refund.initiateRefund(target.id, undefined, 'PAY-004', 'refund-same');
+    const second = await h.refund.initiateRefund(target.id, undefined, 'PAY-004', 'refund-same');
+
+    expect(second.isDuplicate).toBe(true);
+    expect(second.refund.refundId).toBe(first.refund.refundId);
+    expect(h.provider.calls).toHaveLength(1);
+    expect(h.fiscal.calls).toHaveLength(1);
+  });
+
+  it('retries only the expenditure receipt when the provider already confirmed', async () => {
+    const target = booking(24);
+    const h = acquiringHarness({
+      target,
+      receipt: ['failed', 'done'],
+      payments: [
+        payment({ appointmentId: target.id, id: 'pay-dep', amount: 150, status: PaymentStatus.DEPOSIT_PAID }),
+      ],
+    });
+
+    const { refund } = await h.refund.initiateRefund(target.id, undefined, 'PAY-004', 'refund-rcpt');
+    expect(refund.status).toBe(RefundStatus.FAILED);
+
+    const retried = await h.refund.retryRefund(refund.refundId);
+
+    expect(retried.status).toBe(RefundStatus.COMPLETED);
+    expect(h.provider.calls).toHaveLength(1);
+    expect(h.fiscal.calls).toHaveLength(2);
   });
 });

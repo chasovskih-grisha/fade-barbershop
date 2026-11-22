@@ -30,6 +30,8 @@ export interface AcquiringGateway {
     amount: number;
     reason: string;
     traceId: string;
+    /** Stable across retries: the provider must treat the same key as one refund. */
+    idempotencyKey?: string;
     feeReversalAmount?: number;
   }): Promise<{ refundId: string; feeReversed?: number; refundedAmount?: number }>;
 

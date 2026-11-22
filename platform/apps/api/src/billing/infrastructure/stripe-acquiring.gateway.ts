@@ -47,10 +47,11 @@ export class StripeAcquiringGateway implements AcquiringGateway {
     amount: number;
     reason: string;
     traceId: string;
+    idempotencyKey?: string;
     feeReversalAmount?: number;
   }): Promise<{ refundId: string; feeReversed?: number; refundedAmount: number }> {
     // FADE Payment & Billing Specialist: Production Stripe Refund API wrapper with fee reversal & audit tracing
-    const refundId = `re_fade_${Date.now()}`;
+    const refundId = `re_fade_${params.idempotencyKey ?? Date.now()}`;
     const feeReversed = params.feeReversalAmount ?? Math.round(params.amount * 0.029 + 30);
     return { refundId, feeReversed, refundedAmount: params.amount };
   }
