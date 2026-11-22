@@ -2,6 +2,7 @@ import { PrismaService } from './shared/prisma/prisma.service';
 import { seedAdmin } from './seed-admin';
 
 const KEYS = ['FADE_ADMIN_PHONE', 'FADE_ADMIN_USERNAME', 'FADE_ADMIN_PASSWORD'] as const;
+const NODE_ENV = process.env.NODE_ENV;
 
 type FakeUserRepo = {
   findUnique: jest.Mock;
@@ -17,6 +18,8 @@ const makePrisma = (): FakeUserRepo => ({
 
 afterEach(() => {
   for (const key of KEYS) delete process.env[key];
+  if (NODE_ENV === undefined) delete process.env.NODE_ENV;
+  else process.env.NODE_ENV = NODE_ENV;
 });
 
 describe('seedAdmin', () => {
@@ -52,6 +55,27 @@ describe('seedAdmin', () => {
     process.env.FADE_ADMIN_PASSWORD = 'x';
     await expect(seedAdmin({ user: makePrisma() } as unknown as PrismaService)).rejects.toThrow(
       'at least'
+    );
+  });
+
+  it('refuses dev default credentials in production', async () => {
+    process.env.NODE_ENV = 'production';
+
+    await expect(seedAdmin({ user: makePrisma() } as unknown as PrismaService)).rejects.toThrow(
+      'required in production'
+    );
+  });
+
+  it('seeds the founder in production when all credentials are provided', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.FADE_ADMIN_PHONE = '+380501112233';
+    process.env.FADE_ADMIN_USERNAME = 'founder';
+    process.env.FADE_ADMIN_PASSWORD = 'ProductionPass123';
+    const prisma = makePrisma();
+    prisma.findUnique.mockResolvedValue(null);
+
+    await expect(seedAdmin({ user: prisma } as unknown as PrismaService)).resolves.toContain(
+      'created'
     );
   });
 });

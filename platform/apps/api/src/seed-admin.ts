@@ -13,10 +13,24 @@ import { createLogger } from './shared/seed/seed-logger';
  * Credentials come from env (dev defaults for local only):
  *   FADE_ADMIN_PHONE (E.164), FADE_ADMIN_USERNAME, FADE_ADMIN_PASSWORD
  */
+function resolveAdminCredentials() {
+  const phone = process.env.FADE_ADMIN_PHONE;
+  const username = process.env.FADE_ADMIN_USERNAME;
+  const password = process.env.FADE_ADMIN_PASSWORD;
+  if (process.env.NODE_ENV === 'production' && (!phone || !username || !password)) {
+    throw new Error(
+      'FADE_ADMIN_PHONE, FADE_ADMIN_USERNAME and FADE_ADMIN_PASSWORD are required in production'
+    );
+  }
+  return {
+    phone: phone ?? '+380000000001',
+    username: username ?? 'owner',
+    password: password ?? 'FadeOwner2026',
+  };
+}
+
 export async function seedAdmin(prisma: PrismaService): Promise<string> {
-  const adminPhone = process.env.FADE_ADMIN_PHONE ?? '+380000000001';
-  const username = process.env.FADE_ADMIN_USERNAME ?? 'owner';
-  const password = process.env.FADE_ADMIN_PASSWORD ?? 'FadeOwner2026';
+  const { phone: adminPhone, username, password } = resolveAdminCredentials();
 
   let phoneNumber: PhoneNumber;
   try {

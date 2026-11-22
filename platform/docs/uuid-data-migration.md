@@ -21,7 +21,7 @@ staging or a client database is filled before the retype.
 - [ ] `apps/api/prisma/migrations` contains no migration that creates an
       `Int`/`BigInt` primary key or `autoincrement()`; `pnpm uuid:check` is green.
 - [ ] `pnpm db:migration:check` is green on the migration folder.
-- [ ] The prod database is created by `prisma migrate deploy` on api start, and
+- [ ] The prod database is created by `prisma migrate deploy` in the `db-init` one-shot before api start, and
       `db-seed` is not run there (T-4614b).
 - [ ] A restore drill on a copy of prod confirms the dump restores onto the
       UUID schema.

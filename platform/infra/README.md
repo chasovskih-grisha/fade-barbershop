@@ -11,6 +11,7 @@
 | `minio` | quay.io/minio/minio | 19000 (S3 API), 19001 (консоль) | Об'єкт-сховище — майбутній `media.fade.com.ua` (ADR 0017) |
 | `minio-init` | quay.io/minio/mc | — | Одноразово: створює три бакети й ставить їм приватну політику (`mc anonymous set none`), ідемпотентно при кожному `up` |
 | `db-seed` | build `infra/api.Dockerfile` | — | One-shot (T-2104): міграції + сід (довідники/записи/клієнти/адмін), ідемпотентно; api стартує лише після його успіху (`service_completed_successfully`) — докладно `docs/seeding.md` |
+| `db-init` (prod) | build `infra/api.Dockerfile` (`prod`) | — | One-shot (T-4614b): лише `prisma migrate deploy` + засновник-адмін; жодних демо-довідників. api чекає на його успіх — докладно `docs/seeding.md` |
 | `smspit` | axllent/mailpit | 19096 | Дев-SMS-канал (T-4301): OTP-коди як email на `<phone>@sms.dev`, Web UI перегляду; активується `OTP_PROVIDER=mailpit` в `infra/.env.docker` (дефолт — console: код у логах) |
 | `api` | build `infra/api.Dockerfile` | 13000 | NestJS API (профіль `apps`) |
 | `web` | build `infra/web.Dockerfile` | 13001 | Публічний сайт (профіль `apps`) |
@@ -26,6 +27,7 @@
 compose, де команду задає `command:`; `prod` — зібраний артефакт (`nest build` /
 `next build`), який запускає VPS. Локальний `infra/docker-compose.yml` пінить
 `target: dev`, прод-стек — `infra/docker-compose.prod.yml` з `target: prod`.
+Прод-стек піднімає `db-init` (схема + засновник), а не dev `db-seed`; демо-дані в прод не потрапляють.
 Гейт `pnpm images:check` падає, якщо compose назве Dockerfile без `target` або
 прод-стадія запустить dev-команду. Профіль `apps` активний (T-001).
 

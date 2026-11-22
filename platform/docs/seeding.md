@@ -51,6 +51,16 @@ pnpm seed:e2e          # reset + FIXED_IDS + адмін + клієнти + за�
 
 One-shot сервіс у `infra/docker-compose.yml` (профілі deps/apps, патерн `minio-init`): `prisma migrate deploy` → `seed:dev` → `seed:customers` → `seed:appointments` → `seed:admin`, з `FADE_SEED_REQUIRE_CLIENTS=1`. `api` стартує лише після його успішного завершення (`service_completed_successfully`) — свіже середовище піднімається з даними без ручних кроків. Вихідники скриптів і `package.json` змонтовані з хоста (ADR 0018): правка сіду не вимагає перебудови образу. Повторний `up` = оновлення, не дублікати.
 
+### Прод-старт (`db-init`, T-4614b)
+
+Прод-стек `infra/docker-compose.prod.yml` **не** запускає `db-seed` і не сіє демо-дані. One-shot `db-init` на прод-образі api виконує лише:
+
+```text
+prisma migrate deploy → node dist/seed-admin.js
+```
+
+`api` стартує після `db-init: service_completed_successfully`. Обліковка засновника задається обовʼязковими `FADE_ADMIN_PHONE`, `FADE_ADMIN_USERNAME`, `FADE_ADMIN_PASSWORD`; без них `seedAdmin` у `NODE_ENV=production` падає, а compose не піднімається. Повторний старт ідемпотентний: міграції не мають pending, адмін оновлюється за телефоном, другий акаунт не створюється. Довідники, клієнти й записи лишаються виключно dev/e2e-сідами.
+
 ## Змінні середовища
 
 | Змінна | Де читається | Призначення |

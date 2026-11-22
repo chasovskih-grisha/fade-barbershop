@@ -8,7 +8,7 @@
 |----|--------|---------|------|-----------|--------|
 | [T-4614](../tasks/T-4614-preopening-production-mvp.md) | Pre-opening MVP: сайт, адмінка і API в проді з нульовим каталогом (після знака FADE) | рішення засновника 2026-10-02, ADR 0051/0052, web-screens.md | frontend, backend, devops, high-risk | senior | todo |
 | [T-4614a](../tasks/T-4614a-production-images.md) | └ Слайс: прод-образи api/web/admin, не dev (5 SP) | T-4614 | devops, infra | middle | review |
-| [T-4614b](../tasks/T-4614b-empty-prod-database.md) | └ Слайс: stage/prod без демо-сіду (5 SP) | T-4614 | devops, backend | middle | todo |
+| [T-4614b](../tasks/T-4614b-empty-prod-database.md) | └ Слайс: stage/prod без демо-сіду (5 SP) | T-4614 | devops, backend | middle | review |
 | [T-4614c](../tasks/T-4614c-stage-prod-autodeploy.md) | └ Слайс: підключити автодеплой stage → prod (5 SP) | T-4614 | devops, infra, high-risk | middle | todo |
 | [T-4614e](../tasks/T-4614e-preopening-site.md) | └ Слайс: вітрина порожнього каталогу (5 SP) | T-4614 | frontend, design | middle | in_progress |
 | [T-4614f](../tasks/T-4614f-admin-empty-database.md) | └ Слайс: адмінка на порожній базі (5 SP) | T-4614 | frontend, backend | middle | todo |

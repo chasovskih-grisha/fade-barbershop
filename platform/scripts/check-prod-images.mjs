@@ -23,6 +23,39 @@ export const COMPOSE = {
   prod: 'infra/docker-compose.prod.yml',
 };
 
+/** Top-level compose service body (stops at the next two-space service). */
+export function composeService(compose, name) {
+  const start = compose.search(new RegExp(`^  ${name}:`, 'm'));
+  if (start < 0) return undefined;
+  return compose.slice(start).split(/\n(?=  [A-Za-z0-9_-]+:\s*$)/m)[0];
+}
+
+/**
+ * T-4614b: production starts from migrations and the founder account only.
+ * Dev/e2e seeds must not reappear in the prod stack, and api must wait for
+ * the init one-shot so it never serves a migrated-but-adminless database.
+ */
+export function checkProdDatabaseInit(compose) {
+  const problems = [];
+  const init = composeService(compose, 'db-init');
+  if (!init) {
+    problems.push('prod compose: db-init one-shot is missing');
+  } else {
+    if (!/prod-init\.sh/.test(init)) {
+      problems.push('prod compose: db-init must run apps/api/scripts/prod-init.sh');
+    }
+    for (const seed of ['seed:dev', 'seed:customers', 'seed:appointments']) {
+      if (init.includes(seed)) problems.push(`prod compose: db-init must not run ${seed}`);
+    }
+  }
+
+  const api = composeService(compose, 'api');
+  if (!api || !/db-init:\s*\n\s+condition:\s+service_completed_successfully/.test(api)) {
+    problems.push('prod compose: api must wait for db-init service_completed_successfully');
+  }
+  return problems;
+}
+
 /** Stage names of a Dockerfile, in file order. */
 export function stages(dockerfile) {
   return [...dockerfile.matchAll(/^FROM\s+\S+\s+AS\s+(\S+)/gm)].map((m) => m[1]);
@@ -97,6 +130,9 @@ function main() {
     }
     for (const problem of checkComposeTargets(compose, (d) => read(d)))
       problems.push(`${mode}: ${problem}`);
+    if (mode === 'prod') {
+      for (const problem of checkProdDatabaseInit(compose)) problems.push(problem);
+    }
   }
   for (const app of APPS) {
     const dockerfile = read(`infra/${app}.Dockerfile`);

@@ -5,8 +5,10 @@ import {
   APPS,
   checkComposeTargets,
   checkProdCommand,
+  checkProdDatabaseInit,
   cmdOfStage,
   composeBuilds,
+  composeService,
   finalStage,
   stages,
 } from './check-prod-images.mjs';
@@ -88,4 +90,53 @@ test('the repository ships two-mode images for every app', async () => {
     assert.deepEqual(checkProdCommand(source, app), []);
     assert.notEqual(finalStage(source), 'dev', `${app}: dev must not be the last stage`);
   }
+});
+
+const PROD_DB = `services:
+  db-init:
+    image: fade-platform-prod-api
+    command: ['sh', '/app/apps/api/scripts/prod-init.sh']
+  api:
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+  web:
+    image: web
+`;
+
+test('composeService reads one top-level service only', () => {
+  assert.match(composeService(PROD_DB, 'db-init') ?? '', /prod-init\.sh/);
+  assert.doesNotMatch(composeService(PROD_DB, 'db-init') ?? '', /depends_on/);
+});
+
+test('checkProdDatabaseInit accepts migrations plus the founder account', () => {
+  assert.deepEqual(checkProdDatabaseInit(PROD_DB), []);
+});
+
+test('checkProdDatabaseInit rejects a prod stack without db-init', () => {
+  const compose = PROD_DB.replace(/  db-init:[\s\S]*?  api:/, '  api:');
+  assert.match(checkProdDatabaseInit(compose)[0], /db-init one-shot is missing/);
+});
+
+test('checkProdDatabaseInit rejects demo seeds in production', () => {
+  const compose = PROD_DB.replace('prod-init.sh', 'prod-init.sh && pnpm seed:dev');
+  assert.match(checkProdDatabaseInit(compose)[0], /seed:dev/);
+});
+
+test('checkProdDatabaseInit rejects api starting before db-init', () => {
+  const compose = PROD_DB.replace(
+    '      db-init:\n        condition: service_completed_successfully\n',
+    ''
+  );
+  assert.match(checkProdDatabaseInit(compose)[0], /api must wait/);
+});
+
+test('the repository production stack initializes only schema and founder', async () => {
+  const fs = await import('node:fs');
+  const compose = fs.readFileSync(
+    new URL('../infra/docker-compose.prod.yml', import.meta.url),
+    'utf8'
+  );
+  assert.deepEqual(checkProdDatabaseInit(compose), []);
+  assert.doesNotMatch(compose, /seed:dev|seed:customers|seed:appointments/);
 });
