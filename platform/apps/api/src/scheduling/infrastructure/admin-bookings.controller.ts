@@ -29,6 +29,8 @@ export interface AdminBookingsDeps {
   dayOffs?: import('../domain/day-off').DayOffRepository;
   /** T-4619a: утримання крісла під незаплачений депозит. */
   depositHolds?: import('../application/deposit-hold.service').DepositHoldService;
+  /** T-4616a: недоступність барбера блокує новий запис. */
+  unavailable?: Pick<import('../domain/shift-conflict-ports').BarberUnavailabilityRepository, 'covers'>;
 }
 
 /**
@@ -83,7 +85,7 @@ export class AdminBookingsController {
   private buildHandler(prepared: ServicePreparation, hours: OpeningHours, dto: BookSlotDto): BookAppointment {
     const d = this.deps;
     // prettier-ignore
-    return new BookAppointment({ bookingRepo: d.bookingRepo, scheduleRepo: d.scheduleRepo, openingHours: hours, serviceDuration: prepared.duration, ...(d.appointmentRepo ? { appointmentRepo: d.appointmentRepo } : {}), ...(prepared.snapshot ? { serviceSnapshot: prepared.snapshot } : {}), ...(dto.reference ? { reference: dto.reference } : {}), ...(dto.origin ? { origin: dto.origin } : {}), depositPolicy: d.depositPolicy, ...(d.dayOffs ? { dayOffs: d.dayOffs } : {}), ...(d.depositHolds ? { depositHolds: d.depositHolds } : {}) });
+    return new BookAppointment({ bookingRepo: d.bookingRepo, scheduleRepo: d.scheduleRepo, openingHours: hours, serviceDuration: prepared.duration, ...(d.appointmentRepo ? { appointmentRepo: d.appointmentRepo } : {}), ...(prepared.snapshot ? { serviceSnapshot: prepared.snapshot } : {}), ...(dto.reference ? { reference: dto.reference } : {}), ...(dto.origin ? { origin: dto.origin } : {}), depositPolicy: d.depositPolicy, ...(d.dayOffs ? { dayOffs: d.dayOffs } : {}), ...(d.depositHolds ? { depositHolds: d.depositHolds } : {}), ...(d.unavailable ? { unavailable: d.unavailable } : {}) });
   }
 
   private prepareService(dto: BookSlotDto): Promise<ServicePreparation> {

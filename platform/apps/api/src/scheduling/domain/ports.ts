@@ -20,4 +20,6 @@ export interface SchedulePolicyRepository {
 export interface ScheduleChangeLogRepository {
   append(change: ScheduleChange): Promise<void>;
   listByBarber(barberId: string): Promise<ScheduleChange[]>;
+  /** Журнал мережі для адмінки (SCH-ADM-02). */
+  listAll(): Promise<ScheduleChange[]>;
 }

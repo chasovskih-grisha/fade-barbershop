@@ -48,6 +48,9 @@ export class FakeScheduleChangeLogRepository implements ScheduleChangeLogReposit
   async listByBarber(barberId: string): Promise<ScheduleChange[]> {
     return this.changes.filter((change) => change.barberId === barberId);
   }
+  async listAll(): Promise<ScheduleChange[]> {
+    return [...this.changes];
+  }
 }
 
 export type { AvailabilityWindowData };

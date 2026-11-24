@@ -1,4 +1,5 @@
-import { Controller, Patch, HttpCode, Param, Body, Get, UseFilters } from '@nestjs/common';
+import { Controller, Patch, HttpCode, Param, Body, Get, Req, UseFilters } from '@nestjs/common';
+import type { Request } from 'express';
 import { SetAvailabilityHandler } from '../application/set-availability';
 import { ListAvailabilityHandler } from '../application/list-availability';
 import { SchedulingHttpMapper } from '../scheduling-http.mapper';
@@ -20,14 +21,17 @@ export class AdminAvailabilityController {
   @HttpCode(202)
   async setAvailability(
     @Param('barberId') barberId: string,
-    @Body() payload: { locationId: string; windows: AvailabilityWindowData[] }
+    @Body() payload: { locationId: string; windows: AvailabilityWindowData[] },
+    @Req() req: Request
   ) {
     if (!payload || !Array.isArray(payload.windows))
       throw new InvalidScheduleInputError('windows must be an array');
+    const actorId = (req as Request & { adminUserId?: string }).adminUserId;
     const result = await this.setHandler.handle({
       barberId,
       locationId: payload.locationId,
       windows: payload.windows,
+      ...(actorId ? { changedBy: actorId } : {}),
     });
     return SchedulingHttpMapper.toResponse(result.version);
   }

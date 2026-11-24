@@ -19,6 +19,7 @@ describe('ListClientAppointments', () => {
       orderBy: { start: 'desc' },
     });
     expect(prisma.service.findMany).not.toHaveBeenCalled();
+    expect(prisma.depositHold.findMany).not.toHaveBeenCalled();
   });
 
   it('мапить booked у картку кабінету з іменами', async () => {

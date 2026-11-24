@@ -12,6 +12,10 @@ export interface DayOffData {
   reason: string;
 }
 
+export interface DayOffRepository {
+  findByBarberId(barberId: string): Promise<DayOffData[]>;
+}
+
 export class InvalidDayOffError extends Error {
   constructor(message: string) {
     super(message);

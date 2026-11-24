@@ -49,7 +49,7 @@ describe('AdminBookingsController (e2e)', () => {
     // за контрактом клієнта в спільному хелпері @fade/test-utils.
     const response = await postWithRetry((b: object) => post(b), payload);
     const saved = await prisma.booking.findUnique({ where: { id: response.body.id } });
-    expect(saved?.start?.toISOString()).toBe(`${DATE}T11:15:00.000Z`);
+    expect(saved?.start.toISOString()).toBe(`${DATE}T11:15:00.000Z`);
   });
 
   test('returns 400 when the requested time is outside opening hours', async () => {

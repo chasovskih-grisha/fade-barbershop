@@ -2,11 +2,14 @@
 // Читаємо Booking напряму: конфлікт — інший активний запис того ж барбера,
 // що перетинається зі слотом. Скасовані записи місце не займають.
 import { Injectable } from '@nestjs/common';
-import { prisma } from '../../index';
+import type { Prisma } from '@prisma/client';
+import { currentDb } from '../../shared/prisma/prisma-context';
+import { PrismaService } from '../../shared/prisma/prisma.service';
 import type { ScheduleChangeAvailability } from '../application/schedule-change-approval.service';
 import type { SlotRef } from '../domain/schedule-change-request';
 
 interface BookingRow {
+  id: string;
   barberId: string;
 }
 
@@ -20,18 +23,24 @@ function slotBounds(slot: SlotRef): { start: Date; end: Date } {
 
 @Injectable()
 export class PrismaScheduleChangeAvailability implements ScheduleChangeAvailability {
+  constructor(private readonly prisma: PrismaService) {}
+
+  private db(): Prisma.TransactionClient {
+    return currentDb() ?? (this.prisma as Prisma.TransactionClient);
+  }
+
   async isSlotAvailable(input: { appointmentId: string; slot: SlotRef }): Promise<boolean> {
-    const booking = (await prisma.booking.findFirst({
+    const booking = (await this.db().booking.findFirst({
       where: { OR: [{ id: input.appointmentId }, { appointmentId: input.appointmentId }] },
-      select: { barberId: true },
+      select: { id: true, barberId: true },
     })) as BookingRow | null;
     if (!booking) return false;
 
     const { start, end } = slotBounds(input.slot);
-    const conflict = (await prisma.booking.findFirst({
+    const conflict = (await this.db().booking.findFirst({
       where: {
         barberId: booking.barberId,
-        id: { not: input.appointmentId },
+        id: { not: booking.id },
         start: { lt: end },
         end: { gt: start },
         NOT: { status: 'cancelled' },

@@ -3,12 +3,12 @@
 // Правила — у domain/schedule-change-request.ts; тут порт сховища, перевірка
 // зайнятості слота в момент згоди й подія перенесення (T-042).
 //
-// Сховище in-memory: у `prisma/schema.prisma` немає таблиці заявок на зміну
-// часу. Порт `ScheduleChangeRepository` готовий прийняти Prisma-адаптер.
-// Подія пишеться в наданий порт `ScheduleChangeEvents` (outbox) — саме вона
-// ідемпотентна за `eventId`.
-import { Inject, Injectable } from '@nestjs/common';
+// Durable-сховище — `PrismaScheduleChangeRepository`; in-memory реалізація
+// лишається для юніт-тестів. Подія пишеться в outbox, а `agreementEventId`
+// робить повторну згоду ідемпотентною.
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import {
+  ScheduleChangeConflictError,
   approveRequest,
   confirmAgreement,
   effectiveStatus,
@@ -26,6 +26,8 @@ export const SCHEDULE_CHANGE_REPOSITORY = 'SCHEDULE_CHANGE_REPOSITORY';
 export const SCHEDULE_CHANGE_EVENTS = 'SCHEDULE_CHANGE_EVENTS';
 export const SCHEDULE_CHANGE_AVAILABILITY = 'SCHEDULE_CHANGE_AVAILABILITY';
 export const SCHEDULE_CHANGE_CLOCK = 'SCHEDULE_CHANGE_CLOCK';
+export const SCHEDULE_CHANGE_UOW = 'SCHEDULE_CHANGE_UOW';
+export const SCHEDULE_CHANGE_APPLIER = 'SCHEDULE_CHANGE_APPLIER';
 
 /** Годинник заявок: інжектується, щоб hold і прострочення були детерміновані. */
 export interface ScheduleChangeClock {
@@ -35,6 +37,8 @@ export interface ScheduleChangeClock {
 export interface ScheduleChangeRepository {
   findById(id: string): Promise<ScheduleChangeRequest | null>;
   save(request: ScheduleChangeRequest): Promise<void>;
+  /** Атомарно закріплює згоду; false — хтось уже підтвердив/стан змінився. */
+  claimConfirmation(request: ScheduleChangeRequest): Promise<boolean>;
   list(): Promise<ScheduleChangeRequest[]>;
 }
 
@@ -49,8 +53,25 @@ export class InMemoryScheduleChangeRepository implements ScheduleChangeRepositor
     this.requests.set(request.id, request);
   }
 
+  async claimConfirmation(request: ScheduleChangeRequest): Promise<boolean> {
+    const current = this.requests.get(request.id);
+    if (!current || current.status !== 'approved' || current.agreement) return false;
+    this.requests.set(request.id, request);
+    return true;
+  }
+
   async list(): Promise<ScheduleChangeRequest[]> {
     return [...this.requests.values()];
+  }
+
+  /** Для тестів транзакційного відкоту: знімок і відновлення in-memory стану. */
+  snapshot(): Map<string, ScheduleChangeRequest> {
+    return new Map(this.requests);
+  }
+
+  restore(snapshot: Map<string, ScheduleChangeRequest>): void {
+    this.requests.clear();
+    for (const [id, request] of snapshot) this.requests.set(id, request);
   }
 }
 
@@ -62,6 +83,16 @@ export interface ScheduleChangeEvents {
 /** Зайнятість слота на момент згоди (availability/booking-контур). */
 export interface ScheduleChangeAvailability {
   isSlotAvailable(input: { appointmentId: string; slot: SlotRef }): Promise<boolean>;
+}
+
+/** Застосування згоди: Booking рухається через RescheduleAppointment (T-042). */
+export interface ScheduleChangeApplier {
+  apply(event: ScheduleChangeConfirmedEvent): Promise<void>;
+}
+
+/** Один use case = одна транзакція (outbox + заявка + перенесення). */
+export interface ScheduleChangeUnitOfWork {
+  run<T>(work: () => Promise<T>): Promise<T>;
 }
 
 export interface ScheduleChangeView {
@@ -110,7 +141,13 @@ export class ScheduleChangeApprovalService {
     @Inject(SCHEDULE_CHANGE_AVAILABILITY)
     private readonly availability: ScheduleChangeAvailability,
     @Inject(SCHEDULE_CHANGE_CLOCK)
-    private readonly clock: ScheduleChangeClock
+    private readonly clock: ScheduleChangeClock,
+    @Optional()
+    @Inject(SCHEDULE_CHANGE_UOW)
+    private readonly uow?: ScheduleChangeUnitOfWork,
+    @Optional()
+    @Inject(SCHEDULE_CHANGE_APPLIER)
+    private readonly applier?: ScheduleChangeApplier
   ) {}
 
   /** Заявка клієнта на інший час (T-230). */
@@ -165,7 +202,7 @@ export class ScheduleChangeApprovalService {
       });
       if (!free) {
         // Не зберігаємо схвалення на зайнятий слот: заявка лишається requested.
-        throw new Error('Proposed slot is no longer available');
+        throw new ScheduleChangeConflictError('Proposed slot is no longer available');
       }
     }
 
@@ -193,29 +230,52 @@ export class ScheduleChangeApprovalService {
     id: string,
     input: { clientId: string; eventId: string; at?: Date }
   ): Promise<{ request: ScheduleChangeView; alreadyConfirmed: boolean; eventEmitted: boolean }> {
-    const request = await this.require(id);
-    const at = input.at ?? this.clock.now();
+    const work = async () => {
+      const request = await this.require(id);
+      const at = input.at ?? this.clock.now();
 
-    const slot = request.proposal?.slot;
-    const slotTaken =
-      request.status === 'approved' && slot
-        ? !(await this.availability.isSlotAvailable({
-            appointmentId: request.appointmentId,
-            slot,
-          }))
-        : false;
+      const slot = request.proposal?.slot;
+      const slotTaken =
+        request.status === 'approved' && slot
+          ? !(await this.availability.isSlotAvailable({
+              appointmentId: request.appointmentId,
+              slot,
+            }))
+          : false;
 
-    const result = confirmAgreement(request, { ...input, at, slotTaken });
-    if (result.event) {
+      const result = confirmAgreement(request, { ...input, at, slotTaken });
+      if (!result.event) {
+        return {
+          request: toView(result.request, at),
+          alreadyConfirmed: true,
+          eventEmitted: false,
+        };
+      }
+
+      const claimed = await this.repository.claimConfirmation(result.request);
+      if (!claimed) {
+        const latest = await this.require(id);
+        if (latest.agreement?.eventId === input.eventId) {
+          return {
+            request: toView(latest, at),
+            alreadyConfirmed: true,
+            eventEmitted: false,
+          };
+        }
+        throw new ScheduleChangeConflictError('Change request changed before confirmation');
+      }
+
+      // Перенесення і подія — в одній транзакції зі згодою. Якщо слот уже не
+      // проходить Availability/OpeningHours/конфлікт, усе відкочується.
+      await this.applier?.apply(result.event);
       await this.events.append(result.event);
-      await this.repository.save(result.request);
-    }
-
-    return {
-      request: toView(result.request, at),
-      alreadyConfirmed: result.alreadyConfirmed,
-      eventEmitted: result.event !== null,
+      return {
+        request: toView(result.request, at),
+        alreadyConfirmed: false,
+        eventEmitted: true,
+      };
     };
+    return this.uow ? this.uow.run(work) : work();
   }
 
   private async require(id: string): Promise<ScheduleChangeRequest> {

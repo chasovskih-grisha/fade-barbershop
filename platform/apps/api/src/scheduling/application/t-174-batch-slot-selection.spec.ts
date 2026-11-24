@@ -1,4 +1,3 @@
-/* eslint-disable max-lines -- cohesive module (129 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // Специфікація T-174: пакетний підбір слотів для групи та групове бронювання.
 // Use case перевіряється з in-memory портами — без Prisma і без HTTP, рівно те,
 // що обіцяє задача: підбір до groupSize слотів і створення рівно groupSize записів.
@@ -63,10 +62,7 @@ describe('T174BatchSlotSelectionUseCase', () => {
     expect(result.success).toBe(true);
     expect(result.selectedSlots).toHaveLength(2);
     expect(result.selectedSlots.map((slot) => slot.slotId)).toEqual(['slot-1', 'slot-2']);
-    expect(result.selectedSlots[0]).toMatchObject({
-      barberId: 'barber-1',
-      serviceId: 'service-cut',
-    });
+    expect(result.selectedSlots[0]).toMatchObject({ barberId: 'barber-1', serviceId: 'service-cut' });
     expect(result.totalEstimatedPrice).toBe(200);
     expect(result.rejectedReasons).toBeUndefined();
     expect(calls[0]).toEqual({

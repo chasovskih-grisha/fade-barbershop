@@ -24,8 +24,15 @@ export class ListClientAppointments {
       orderBy: { start: 'desc' },
     });
     if (rows.length === 0) return [];
-    const names = await loadNames(this.prisma, rows);
-    return rows.map((row) => toView(row, names));
+    const [names, holds] = await Promise.all([
+      loadNames(this.prisma, rows),
+      this.prisma.depositHold.findMany({
+        where: { appointmentId: { in: rows.map((row) => row.id) } },
+        select: { appointmentId: true, expiresAt: true, status: true },
+      }),
+    ]);
+    const holdByBooking = new Map(holds.map((hold) => [hold.appointmentId, hold]));
+    return rows.map((row) => toView(row, names, holdByBooking.get(row.id)));
   }
 }
 
@@ -53,7 +60,8 @@ async function loadNames(prisma: PrismaService, rows: BookingRow[]) {
 
 function toView(
   row: BookingRow,
-  names: Awaited<ReturnType<typeof loadNames>>
+  names: Awaited<ReturnType<typeof loadNames>>,
+  hold?: { expiresAt: Date; status: string }
 ): ClientAppointmentView {
   const stamp = kyivStamp(row.start);
   const domainStatus = row.status ?? 'booked';
@@ -74,7 +82,7 @@ function toView(
     canEditReference: domainStatus === 'booked',
     canBookAgain: row.partyId === null,
     // Депозит із снепшота візиту (PAY-ADM-09); діалог скасування читає лише його.
-    deposit: toClientDeposit(row),
+    deposit: toClientDeposit(row, hold),
   };
 }
 

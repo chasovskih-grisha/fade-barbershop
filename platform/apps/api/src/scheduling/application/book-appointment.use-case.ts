@@ -62,6 +62,21 @@ export class BookAppointment {
         const slotDuration = Math.round(
           (slotSpan.end.getTime() - slotSpan.start.getTime()) / 60000
         );
+        const visitEnd = new Date(
+          slotSpan.start.getTime() + this.serviceDuration() * 60000
+        );
+        // T-4616a: недоступність блокує новий запис у її інтервалі.
+        if (
+          barberId &&
+          (await this.isUnavailable({
+            barberId,
+            locationId,
+            start: slotSpan.start,
+            end: visitEnd,
+          }))
+        ) {
+          throw InvalidSlotError.of('Barber is unavailable for this slot');
+        }
 
         // If total duration from service positions exceeds slot duration, reject
         if (totalDuration > slotDuration) {
@@ -74,6 +89,16 @@ export class BookAppointment {
 
         for (const schedule of candidates) {
           if (!accepts(schedule, slotSpan.slot)) continue;
+          // any-barber не повинен вибирати барбера з позначеною недоступністю.
+          if (
+            await this.isUnavailable({
+              barberId: schedule.getBarberId(),
+              locationId,
+              start: slotSpan.start,
+              end: visitEnd,
+            })
+          )
+            continue;
           sawValidAvailability = true;
           if (await this.isOverDailyLimit(schedule.getBarberId(), locationId, slotSpan.start))
             continue;
@@ -95,6 +120,23 @@ export class BookAppointment {
     if (barberId)
       return [await this.deps.scheduleRepo.findByBarberAndLocation(barberId, locationId)].filter((schedule): schedule is BarberSchedule => !!schedule);
     return this.deps.scheduleRepo.listAllByLocation(locationId);
+  }
+
+  private serviceDuration(): number {
+    return this.deps.serviceSnapshot?.agreedDuration ?? this.deps.serviceDuration;
+  }
+
+  /** T-4616a: чи перекриває візит позначену недоступність барбера. */
+  private async isUnavailable(input: {
+    barberId: string;
+    locationId: string;
+    start: Date;
+    end: Date;
+  }): Promise<boolean> {
+    const { barberId, locationId, start, end } = input;
+    return (
+      (await this.deps.unavailable?.covers({ barberId, locationId, start, end })) ?? false
+    );
   }
 
   /** Денний ліміт локації (T-4421): барбер з вичерпаною нормою не отримує слот. */

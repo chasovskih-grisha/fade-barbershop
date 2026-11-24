@@ -6,6 +6,8 @@ import { PrismaLocationRepository } from '../../locations/infrastructure/prisma-
 import { PrismaServiceRepository } from '../../catalog/infrastructure/prisma-service.repository';
 import { PrismaAppointmentRepository } from './prisma-appointment.repository';
 import { PrismaDepositPolicySettings } from './prisma-deposit-policy-settings';
+import { DepositHoldService } from '../application/deposit-hold.service';
+import { PrismaBarberUnavailabilityRepository } from './prisma-barber-unavailability.repository';
 import { ADMIN_BOOKINGS_IO } from './admin-bookings.controller';
 
 export const adminBookingsProvider = {
@@ -17,6 +19,8 @@ export const adminBookingsProvider = {
     services: deps[3],
     appointmentRepo: deps[4],
     depositPolicy: deps[5],
+    depositHolds: deps[6],
+    unavailable: deps[7],
   }),
   inject: [
     PrismaBookingRepository,
@@ -25,5 +29,7 @@ export const adminBookingsProvider = {
     PrismaServiceRepository,
     PrismaAppointmentRepository,
     PrismaDepositPolicySettings,
+    DepositHoldService,
+    PrismaBarberUnavailabilityRepository,
   ],
 };

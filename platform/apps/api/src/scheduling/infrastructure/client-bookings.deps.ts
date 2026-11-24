@@ -24,6 +24,8 @@ export interface ClientBookingsDeps {
   onlineBooking?: EvaluateOnlineBooking;
   /** Surge-ціноутворення (T-4811); без нього ціна без множника. */
   surge?: SurgePricing;
-  /** T-4619a: утримання крісла під незаплачений депозит. */
-  depositHolds?: Pick<DepositHoldService, 'open'>;
+  /** T-4619a/T-4619b: утримання крісла і серверний дедлайн для клієнта. */
+  depositHolds?: Pick<DepositHoldService, 'open' | 'find'>;
+  /** T-4616a: недоступність барбера блокує новий запис. */
+  unavailable?: Pick<import('../domain/shift-conflict-ports').BarberUnavailabilityRepository, 'covers'>;
 }

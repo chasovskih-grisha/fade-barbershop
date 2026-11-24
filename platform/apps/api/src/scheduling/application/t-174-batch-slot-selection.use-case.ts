@@ -101,7 +101,9 @@ export class T174BatchSlotSelectionUseCase {
       };
     }
 
-    // Select optimal slots for the group
+    // Fixed price per service for batch slot estimation (T-174)
+    const SERVICE_PRICE_CENTS = 10000; // 100.00 UAH per service
+
     const selectedSlots = availableSlots.slice(0, groupSize).map((slot, index) => ({
       slotId: slot.id,
       barberId: slot.barberId,
@@ -112,7 +114,7 @@ export class T174BatchSlotSelectionUseCase {
 
     // Calculate estimated price
     const totalEstimatedPrice = selectedSlots.reduce(
-      (total, slot) => total + (slot.serviceId ? 100 : 0), // placeholder pricing
+      (total, slot) => total + (slot.serviceId ? SERVICE_PRICE_CENTS : 0),
       0
     );
 

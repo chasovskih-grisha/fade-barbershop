@@ -18,9 +18,10 @@ export async function persistMoveTime(
     select: { id: true, barberId: true, locationId: true, start: true, end: true },
   });
   if (!current) return null;
+  const barberId = query.newBarberId ?? current.barberId;
   const conflict = await db.booking.findFirst({
     where: {
-      barberId: current.barberId,
+      barberId,
       start: { lt: query.newEnd },
       end: { gt: query.newStart },
       id: { not: current.id },
@@ -46,7 +47,12 @@ export async function persistMoveTime(
   }
   await db.booking.update({
     where: { id: current.id },
-    data: { start: query.newStart, end: query.newEnd, version: { increment: 1 } },
+    data: {
+      start: query.newStart,
+      end: query.newEnd,
+      ...(query.newBarberId ? { barberId: query.newBarberId } : {}),
+      version: { increment: 1 },
+    },
   });
   // Старі часи — точні ISO з БД (агрегат зберігає лише HH:mm). Спан «подія в
   // outbox» + W3C-каріювання (T-4204) — той самий патерн, що й для booked у
@@ -59,6 +65,7 @@ export async function persistMoveTime(
         ...query.event.payload,
         oldStart: current.start.toISOString(),
         oldEnd: current.end.toISOString(),
+        ...(query.newBarberId ? { oldBarberId: current.barberId } : {}),
       };
       injectOutboxTrace({ payload });
       await db.outboxMessage.create({

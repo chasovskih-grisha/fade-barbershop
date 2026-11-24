@@ -312,7 +312,7 @@ export interface WaitlistPositionInfo {
 /** Запис про утримання слота (каскад, підтвердження, прострочення). */
 export interface SlotHoldRecord {
   slotId: string;
-  clientId: string;
+  clientId?: string;
   heldAt: string;
   status: string;
   triggerType?: string;
@@ -321,7 +321,7 @@ export interface SlotHoldRecord {
   cancellationReason?: string | null;
   fifoCompliant?: boolean;
   releasedAt?: string | null;
-  /** ISO-час, коли клiєнт став у чергу за цим слотом (T-181). */
+  /** ISO-час, коли клiєнт став у чергу за цимsled to (T-181). */
   waitingSince?: string;
 }
 
@@ -530,7 +530,7 @@ export class InMemoryWaitlistQueue extends WaitlistQueue {
   private recordHold(slotId: string, status: string, extra: Partial<SlotHoldRecord>): void {
     this.holds.push({
       slotId,
-      clientId: '',
+      ...(extra.clientId !== undefined ? { clientId: extra.clientId } : {}),
       heldAt: new Date().toISOString(),
       status,
       fifoCompliant: true,

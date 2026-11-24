@@ -19,6 +19,7 @@ import {
 import {
   InMemoryScheduleChangeRepository,
   ScheduleChangeApprovalService,
+  type ScheduleChangeApplier,
   type ScheduleChangeAvailability,
   type ScheduleChangeEvents,
 } from './schedule-change-approval.service';
@@ -57,9 +58,10 @@ function request(overrides: Partial<ScheduleChangeRequest> = {}): ScheduleChange
   };
 }
 
-function harness(options: { available?: boolean; failAppend?: boolean } = {}) {
+function harness(options: { available?: boolean; failAppend?: boolean; applyError?: string } = {}) {
   const repository = new InMemoryScheduleChangeRepository();
   const appended: Array<{ eventId: string }> = [];
+  const applied: string[] = [];
   const events: ScheduleChangeEvents = {
     async append(event) {
       if (options.failAppend) throw new Error('outbox unavailable');
@@ -73,12 +75,34 @@ function harness(options: { available?: boolean; failAppend?: boolean } = {}) {
       return options.available ?? true;
     },
   };
+  const applier: ScheduleChangeApplier = {
+    async apply(event) {
+      if (options.applyError) throw new Error(options.applyError);
+      applied.push(event.payload.to.date + ' ' + event.payload.to.start);
+    },
+  };
   return {
     repository,
     appended,
-    service: new ScheduleChangeApprovalService(repository, events, availability, {
-      now: () => NOW,
-    }),
+    applied,
+    service: new ScheduleChangeApprovalService(
+      repository,
+      events,
+      availability,
+      { now: () => NOW },
+      {
+        run: async (work) => {
+          const snapshot = repository.snapshot();
+          try {
+            return await work();
+          } catch (error) {
+            repository.restore(snapshot);
+            throw error;
+          }
+        },
+      },
+      applier
+    ),
   };
 }
 
@@ -278,8 +302,25 @@ describe('ScheduleChangeApprovalService (T-4458)', () => {
     expect((await repository.findById('req-1'))?.status).toBe('requested');
   });
 
+  it('rejects an approval outside the 60-day booking window', async () => {
+    const { service, repository } = harness();
+    await service.request({
+      id: 'req-1',
+      appointmentId: 'apt-1',
+      clientId: 'c-1',
+      currentSlot: CURRENT,
+      requestedSlot: { date: '2027-02-01', start: '14:00', end: '15:00' },
+      at: NOW,
+    });
+
+    await expect(service.approve('req-1', { by: 'admin-1', at: NOW })).rejects.toThrow(
+      'booking window'
+    );
+    expect((await repository.findById('req-1'))?.status).toBe('requested');
+  });
+
   it('confirms once, persists the agreement and appends exactly one event', async () => {
-    const { service, appended, repository } = harness();
+    const { service, appended, applied, repository } = harness();
     await service.request({
       id: 'req-1',
       appointmentId: 'apt-1',
@@ -296,7 +337,30 @@ describe('ScheduleChangeApprovalService (T-4458)', () => {
     expect(first).toMatchObject({ alreadyConfirmed: false, eventEmitted: true });
     expect(retry).toMatchObject({ alreadyConfirmed: true, eventEmitted: false });
     expect(appended).toEqual([{ eventId: 'evt-1' }]);
+    expect(applied).toEqual(['2026-11-21 14:00']);
     expect((await repository.findById('req-1'))?.status).toBe('confirmed');
+  });
+
+  it('leaves the request approved when the agreed slot no longer fits the schedule', async () => {
+    const { service, appended, applied, repository } = harness({
+      applyError: 'Barber has no availability for this slot',
+    });
+    await service.request({
+      id: 'req-1',
+      appointmentId: 'apt-1',
+      clientId: 'c-1',
+      currentSlot: CURRENT,
+      requestedSlot: WANTED,
+      at: NOW,
+    });
+    await service.approve('req-1', { by: 'admin-1', at: NOW });
+
+    await expect(
+      service.confirm('req-1', { clientId: 'c-1', eventId: 'evt-1', at: NOW })
+    ).rejects.toThrow('no availability');
+    expect((await repository.findById('req-1'))?.status).toBe('approved');
+    expect(appended).toEqual([]);
+    expect(applied).toEqual([]);
   });
 
   it('reports unknown requests and surfaces outbox failures', async () => {

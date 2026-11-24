@@ -6,6 +6,8 @@ import type { BookingRepository } from '../domain/booking-repository';
 import { LocationNotFoundError } from '../../locations/application/locations-errors';
 import { validateAvailability } from './availability-validation';
 import { InvalidScheduleInputError } from '../domain/availability';
+import { recordScheduleChange } from '../domain/schedule-change-log';
+import type { ScheduleChangeLogRepository } from '../domain/ports';
 
 /**
  * Депенденсі інжекція для SetAvailabilityHandler.
@@ -16,6 +18,8 @@ export interface SetAvailabilityDeps {
   bookings: Pick<BookingRepository, 'findForBarberAtLocation'>;
   outbox: Outbox;
   uow: UnitOfWork;
+  /** T-230: журнал змін для адмінського редактора. */
+  changeLog?: ScheduleChangeLogRepository;
 }
 
 /**
@@ -28,6 +32,8 @@ export class SetAvailabilityHandler {
     barberId: string;
     locationId: string;
     windows: AvailabilityWindowData[];
+    /** Автор зміни; без нього — сам барбер (сумісність старих викликів). */
+    changedBy?: string;
   }): Promise<{ version: number }> {
     const { barberId, locationId, windows } = params;
     if (
@@ -55,6 +61,18 @@ export class SetAvailabilityHandler {
         version: previous ? previous.getVersion() + 1 : 0,
       });
       await this.deps.scheduleRepo.save(schedule);
+      if (this.deps.changeLog) {
+        await this.deps.changeLog.append(
+          recordScheduleChange({
+            barberId,
+            locationId,
+            source: 'admin',
+            changedBy: params.changedBy ?? barberId,
+            previous: previous?.getWindows() ?? [],
+            next: windows,
+          })
+        );
+      }
       // Emit event
       const event = new AvailabilityChanged({
         barberId,

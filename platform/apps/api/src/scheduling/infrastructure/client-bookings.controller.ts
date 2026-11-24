@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- client booking endpoints keep validation and slot locks together; split tracked in T-2500f */
 // Клієнтське підтвердження запису (T-041, екран 5 флоу): перший споживач
 // життєвого циклу Appointment з клієнтського боку. Той самий use case
 // BookAppointment, що й в адмінки — валідації слота, снепшоти і подія booked
@@ -13,6 +14,14 @@ import {
   Post,
   Req,
 } from '@nestjs/common';
+
+/** T-4619b: дедлайн утримання + серверний час для зсуву годинника клієнта. */
+type DepositPayload = {
+  amount: number;
+  expiresAt: string;
+  serverNow: string;
+  resumeToken: string;
+};
 import { ApiTags } from '@nestjs/swagger';
 import { BookAppointment } from '../application/book-appointment.use-case';
 import { BookingConflictError } from '../domain/booking';
@@ -26,14 +35,21 @@ import type { Request } from 'express';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { SlotReservations } from '../application/slot-reservations.service';
 import type { HeldSlot } from '../application/slot-lock.ports';
-import { ReservationInvalidError, SlotLockedError, slotLockKey } from '../domain/slot-reservation';
+import {
+  ReservationInvalidError,
+  SlotLockedError,
+  slotLockKey,
+} from '../domain/slot-reservation';
 import { webClientId } from './client-web-session';
 import { OnlineBookingBlockedError } from '../../booking/policy/evaluate-online-booking';
 import { assertOnlinePolicyAllowed } from './client-online-policy';
 import type { ClientBookingsDeps } from './client-bookings.deps';
+import { depositResumeToken } from '../../shared/deposit-resume-token';
 
 /** Токен зібраних залежностей клієнтського підтвердження (провайдер у SchedulingModule). */
 export const CLIENT_BOOKINGS_IO = Symbol('CLIENT_BOOKINGS_IO');
+
+
 
 @ApiTags('booking')
 @Controller('booking/bookings')
@@ -47,7 +63,10 @@ export class ClientBookingsController {
   /** Екран 5 флоу: клієнт підтверджує запис — той самий use case, що й адмін. */
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() dto: ClientBookingDto, @Req() req: Request): Promise<{ id: string }> {
+  async create(
+    @Body() dto: ClientBookingDto,
+    @Req() req: Request
+  ): Promise<{ id: string; deposit?: DepositPayload }> {
     const location = await this.deps.locationRepo.findById(dto.locationId);
     if (!location?.active) throw new HttpException('Location not found', HttpStatus.NOT_FOUND);
     const prepared = await prepareService(this.deps.services, dto);
@@ -65,13 +84,39 @@ export class ClientBookingsController {
         dto.locationId,
         slot
       );
-      return { id: booking.id };
+      return {
+        id: booking.id,
+        ...(await this.depositHoldOf(booking)),
+      };
     } catch (e) {
       throw this.toHttpError(e);
     } finally {
       await this.releaseSlot(held);
     }
   }
+  /**
+   * T-4619b: дедлайн береться з фактичного утримання, а не з клієнтської
+   * константи 15 хвилин. Без утримання (безкоштовний візит, нульовий депозит)
+   * клієнт не бачить платіжного кроку.
+   */
+  private async depositHoldOf(booking: {
+    id: string;
+    deposit: { amount: number } | null;
+  }): Promise<{ deposit?: DepositPayload }> {
+    const amount = booking.deposit?.amount ?? 0;
+    if (amount <= 0 || !this.deps.depositHolds?.find) return {};
+    const hold = await this.deps.depositHolds.find(booking.id);
+    if (!hold) return {};
+    return {
+      deposit: {
+        amount,
+        expiresAt: hold.expiresAt.toISOString(),
+        serverNow: new Date().toISOString(),
+        resumeToken: depositResumeToken(booking.id),
+      },
+    };
+  }
+
   /** Checkout-резервація (T-4802): свій токен перевіряємо, інакше беремо лок. */
   private async lockSlot(dto: ClientBookingDto): Promise<HeldSlot> {
     // prettier-ignore
@@ -83,8 +128,7 @@ export class ClientBookingsController {
   }
   private async releaseSlot(held: HeldSlot): Promise<void> {
     if (held.ephemeral) await this.reservations.release(held.ephemeral);
-    else if (held.reserved)
-      await this.reservations.releaseByKey(held.reserved.key, held.reserved.token);
+    else if (held.reserved) await this.reservations.releaseByKey(held.reserved.key, held.reserved.token);
   }
 
   /** Плаский мапінг помилок домену → HTTP (спільна семантика з адмінським). */
@@ -104,6 +148,6 @@ export class ClientBookingsController {
   private buildHandler(prepared: ServicePreparation, hours: OpeningHours, dto: ClientBookingDto): BookAppointment {
     const d = this.deps;
     // prettier-ignore
-    return new BookAppointment({ bookingRepo: d.bookingRepo, scheduleRepo: d.scheduleRepo, openingHours: hours, serviceDuration: prepared.duration, appointmentRepo: d.appointmentRepo, depositPolicy: d.depositPolicy, ...(d.dayOffs ? { dayOffs: d.dayOffs } : {}), ...(d.surge ? { surge: d.surge } : {}), ...(d.depositHolds ? { depositHolds: d.depositHolds } : {}), ...(prepared.snapshot ? { serviceSnapshot: prepared.snapshot } : {}), ...(dto.reference ? { reference: dto.reference } : {}), origin: { source: 'web', ...(dto.clientId ? { clientId: dto.clientId } : {}) } });
+    return new BookAppointment({ bookingRepo: d.bookingRepo, scheduleRepo: d.scheduleRepo, openingHours: hours, serviceDuration: prepared.duration, appointmentRepo: d.appointmentRepo, depositPolicy: d.depositPolicy, ...(d.dayOffs ? { dayOffs: d.dayOffs } : {}), ...(d.surge ? { surge: d.surge } : {}), ...(d.depositHolds ? { depositHolds: d.depositHolds } : {}), ...(d.unavailable ? { unavailable: d.unavailable } : {}), ...(prepared.snapshot ? { serviceSnapshot: prepared.snapshot } : {}), ...(dto.reference ? { reference: dto.reference } : {}), origin: { source: 'web', ...(dto.clientId ? { clientId: dto.clientId } : {}) } });
   }
 }

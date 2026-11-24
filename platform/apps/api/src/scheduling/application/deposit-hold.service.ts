@@ -1,6 +1,5 @@
 /* eslint-disable max-lines -- cohesive module (131 lines vs 100 limit after formatting reflow); decomposition deferred to T-2500f */
 // T-4619a: утримання крісла під незаплачений депозит.
-// T-4619a: утримання крісла під незаплачений депозит.
 //
 // Порт `DepositHoldRepository` не залежить від сховища: у проді — Prisma,
 // у тестах — in-memory. Сервіс відкриває утримання на 15 хвилин, підтверджує
@@ -102,6 +101,11 @@ export class DepositHoldService {
     const hold = openDepositHold({ ...input, id: uuidv7(), now });
     await this.repository.save(hold);
     return hold;
+  }
+
+  /** T-4619b: клієнт бачить дедлайн із серверного `expiresAt`. */
+  async find(appointmentId: string): Promise<DepositHold | null> {
+    return this.repository.findByAppointmentId(appointmentId);
   }
 
   /** Оплата в межах вікна підтверджує крісло; після — повертає `expired`. */

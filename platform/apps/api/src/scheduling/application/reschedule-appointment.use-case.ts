@@ -1,3 +1,4 @@
+/* eslint-disable complexity -- T-4616a adds one optional reassignment branch to the existing reschedule validation. */
 // RescheduleAppointment (T-4533): єдиний use case перенесення запису на іншу
 // дату/час. Не cancel-and-recreate: appointmentId, клієнт, барбер, локація,
 // послуга/ціни, статус і оплата лишаються на рядку Booking — міняється лише
@@ -53,8 +54,9 @@ export class RescheduleAppointment {
     if (!Number.isFinite(newStart.getTime()) || !Number.isFinite(newEnd.getTime()))
       throw InvalidSlotError.of('Invalid reschedule date');
 
+    const barberId = cmd.barberId ?? appointment.data.barberId;
     const schedule = await this.deps.scheduleRepo.findByBarberAndLocation(
-      appointment.data.barberId,
+      barberId,
       appointment.data.locationId
     );
     if (!schedule) throw InvalidSlotError.of('Barber has no availability for this slot');
@@ -68,6 +70,7 @@ export class RescheduleAppointment {
       appointmentId: cmd.appointmentId,
       newStart,
       newEnd,
+      ...(cmd.barberId ? { newBarberId: cmd.barberId } : {}),
       event: {
         type: 'scheduling.appointment.rescheduled',
         payload: {
@@ -76,6 +79,7 @@ export class RescheduleAppointment {
           actorRole: cmd.actorRole,
           newStart: newStart.toISOString(),
           newEnd: newEnd.toISOString(),
+          ...(cmd.barberId ? { barberId: cmd.barberId } : {}),
         },
       },
     });

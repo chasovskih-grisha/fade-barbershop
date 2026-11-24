@@ -13,9 +13,20 @@ SCH-001…008: based on the permission flag, the barber edits weekly windows and
 
 ## Done
 
-- [ ] Editor works with conflict blocking
-- [ ] Change log in the admin panel
+- [x] Editor works with conflict blocking
+- [x] Change log in the admin panel
 
 ## Risks
 
-- [ ] **Self-service boundaries**: barber does not move others' visits; API permissions
+- [x] **Self-service boundaries**: barber does not move others' visits; API permissions
+
+## Current Slice (2026-11-24)
+
+Backend is wired end to end: `GET/PUT /barber/schedule/:locationId`, history and
+unavailability routes use the mobile client session and the `selfSchedule` flag;
+`EditOwnScheduleHandler` blocks a save when a future visit falls outside the new
+windows and returns the conflict list. `SetAvailabilityHandler` and the barber
+route write a durable `ScheduleChangeLog` (source `admin`/`barber`), exposed at
+`GET /admin/schedule/change-log`. Barber unavailability continues through the
+existing T-4616a interval/conflict path. The barber mobile screens are not part
+of this backend slice.

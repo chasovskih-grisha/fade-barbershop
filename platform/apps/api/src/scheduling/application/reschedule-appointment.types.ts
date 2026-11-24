@@ -11,6 +11,8 @@ export interface AppointmentTimeMover {
     appointmentId: string;
     newStart: Date;
     newEnd: Date;
+    /** T-4616a: новий барбер; без поля барбер візиту не змінюється. */
+    newBarberId?: string;
     event: { type: string; payload: Record<string, string> };
   }): Promise<{ oldStart: Date; oldEnd: Date } | null>;
 }
@@ -37,4 +39,6 @@ export interface RescheduleCommand {
   date: string;
   start: string;
   end: string;
+  /** T-4616a: перепризначення на іншого барбера (без поля — той самий барбер). */
+  barberId?: string;
 }

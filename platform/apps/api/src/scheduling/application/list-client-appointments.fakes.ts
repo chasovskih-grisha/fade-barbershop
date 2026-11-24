@@ -31,10 +31,14 @@ export function bookingRow(overrides: Record<string, unknown> = {}) {
 }
 
 /** Prisma-фейк із заданими рядками booking + довідниками сервісу/барбера/локації. */
-export function prismaOf(rows: ReturnType<typeof bookingRow>[]) {
+export function prismaOf(
+  rows: ReturnType<typeof bookingRow>[],
+  holds: Array<{ appointmentId: string; expiresAt: Date; status: string }> = []
+) {
   const findMany = jest.fn().mockResolvedValue(rows);
   const prisma = {
     booking: { findMany },
+    depositHold: { findMany: jest.fn().mockResolvedValue(holds) },
     service: { findMany: jest.fn().mockResolvedValue([{ id: 'svc-1', name: 'Стрижка' }]) },
     user: { findMany: jest.fn().mockResolvedValue([{ id: 'barber-1', name: 'Олег' }]) },
     location: { findMany: jest.fn().mockResolvedValue([{ id: 'loc-1', name: 'Поділ' }]) },

@@ -26,13 +26,19 @@ import {
   type ScheduleChangeStatus,
   type SlotRef,
 } from '../domain/schedule-change-request';
+import { BookingConflictError } from '../domain/booking';
+import { InvalidSlotError } from '../domain/slot-validator';
 
 function mapError(error: unknown): never {
   if (error instanceof NotFoundException || error instanceof BadRequestException) throw error;
   if (error instanceof Error && error.message.includes('not found')) {
     throw new NotFoundException(error.message);
   }
-  if (error instanceof ScheduleChangeConflictError) {
+  if (
+    error instanceof ScheduleChangeConflictError ||
+    error instanceof BookingConflictError ||
+    error instanceof InvalidSlotError
+  ) {
     throw new ConflictException(error.message);
   }
   if (error instanceof ScheduleChangeError) throw new BadRequestException(error.message);

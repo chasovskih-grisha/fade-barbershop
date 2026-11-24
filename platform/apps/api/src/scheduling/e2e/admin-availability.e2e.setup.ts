@@ -12,19 +12,43 @@ import { PrismaOutboxPublisher } from '../../locations/infrastructure/prisma-loc
 import { Booking } from '../domain/booking';
 import { PrismaBookingRepository } from '../infrastructure/prisma-booking.repository';
 import { PrismaAvailabilityRepository } from '../infrastructure/prisma-availability.repository';
+import { PrismaScheduleChangeLogRepository } from '../infrastructure/prisma-schedule-change-log.repository';
 import { SchedulingModule } from '../scheduling.module';
 
 export async function buildAdminAvailabilityApp(bookings: Booking[]): Promise<{
   app: INestApplication;
   schedules: Map<string, unknown>;
+  changeLog: { append: jest.Mock; listByBarber: jest.Mock; listAll: jest.Mock };
 }> {
   const schedules = new Map<string, unknown>();
-  const users = { findById: async () => ({ id: 'admin-1', role: 'admin', active: true }) };
+  const users = {
+    findById: async (id: string) =>
+      id === 'admin-1'
+        ? { id: 'admin-1', role: 'admin', active: true }
+        : id === 'barber-1'
+          ? { id: 'barber-1', role: 'barber', active: true, selfSchedule: true }
+          : null,
+  };
   const sessions = {
-    findByTokenHash: async (hash: string) =>
-      hash === hashToken('admin-token')
-        ? { userId: 'admin-1', channel: 'admin', revokedAt: null }
-        : null,
+    findByTokenHash: async (hash: string) => {
+      if (hash === hashToken('admin-token'))
+        return { userId: 'admin-1', channel: 'admin', revokedAt: null, active: true };
+      if (hash === hashToken('barber-token'))
+        return {
+          id: 'session-barber',
+          userId: 'barber-1',
+          channel: 'mobile',
+          revokedAt: null,
+          active: true,
+          accessValid: () => true,
+        };
+      return null;
+    },
+  };
+  const changeLog = {
+    append: jest.fn(async () => undefined),
+    listByBarber: jest.fn(async () => []),
+    listAll: jest.fn(async () => []),
   };
   const scheduleRepo = {
     findByBarberAndLocation: async (barberId: string, locationId: string) =>
@@ -39,6 +63,10 @@ export async function buildAdminAvailabilityApp(bookings: Booking[]): Promise<{
       $connect: jest.fn(),
       $disconnect: jest.fn(),
       $transaction: async (work: (tx: object) => Promise<unknown>) => work({}),
+      user: {
+        findUnique: async ({ where }: { where: { id: string } }) => users.findById(where.id),
+      },
+      staffAssignment: { findUnique: async () => ({ id: 'assignment-1' }) },
     })
     .overrideProvider(PrismaUserRepository)
     .useValue(users)
@@ -50,6 +78,8 @@ export async function buildAdminAvailabilityApp(bookings: Booking[]): Promise<{
     })
     .overrideProvider(PrismaAvailabilityRepository)
     .useValue(scheduleRepo)
+    .overrideProvider(PrismaScheduleChangeLogRepository)
+    .useValue(changeLog)
     .overrideProvider(PrismaBookingRepository)
     .useValue({ findForBarberAtLocation: async () => bookings })
     .overrideProvider(PrismaOutboxPublisher)
@@ -58,5 +88,5 @@ export async function buildAdminAvailabilityApp(bookings: Booking[]): Promise<{
   const app = module.createNestApplication();
   app.use(cookieParser());
   await app.init();
-  return { app, schedules };
+  return { app, schedules, changeLog };
 }

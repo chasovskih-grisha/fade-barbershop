@@ -17,10 +17,21 @@ The schedule changes faster than client requests; the operator-approved option i
 
 ## Done
 
-- [ ] Change request → operator confirms/rejects (with alternative)
-- [ ] Client agreement is recorded as a new event (idempotent)
-- [ ] Test schedule and booking window conflicts
+- [x] Change request → operator confirms/rejects (with alternative)
+- [x] Client agreement is recorded as a new event (idempotent)
+- [x] Test schedule and booking window conflicts
 
 ## Risks
 
-- [ ] **Schedule change during approval**: a new booking arrives for a cancelled state — serial execution + slot identifier validation
+- [x] **Schedule change during approval**: a new booking arrives for a cancelled state — serial execution + slot identifier validation
+
+## Current Slice (2026-11-24)
+
+Requests persist in `ScheduleChangeRequest`; approval checks the 60-day window
+and live slot availability, rejection keeps an optional alternative. Client
+agreement is claimed with one conditional update (`agreementEventId` unique), so
+a retry with the same event id emits no second event or reschedule. The winning
+agreement applies the move through `RescheduleAppointment` (T-042) inside the
+same transaction; schedule/OpeningHours/booking conflicts roll the agreement
+back. HTTP: `POST /schedule/change-requests`, `POST /schedule/change-requests/:id/confirm`,
+`GET/POST /admin/schedule/change-requests` and `…/:id/approve|reject`.

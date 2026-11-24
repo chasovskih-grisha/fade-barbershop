@@ -1,5 +1,4 @@
-/**
- * T-176: Enhanced Mobile Waitlist Client Features - Notification integration and slot acceptance
+/** T-176: Enhanced Mobile Waitlist Client Features - Notification integration and slot acceptance
  *
  * Implement push notification integration and slot acceptance/rejection
  * for waitlist clients, building on the existing waitlist infrastructure
@@ -7,14 +6,13 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { APPOINTMENT_RECORD_REPOSITORY, type AppointmentRepository } from '../domain/repositories';
 import { WaitlistQueue } from '../domain/waitlist-queue';
 import { CLIENT_REPOSITORY, type ClientRepository } from '../../clients/domain/repositories';
 import { ExpoPushSender } from '../../notifications/infrastructure/expo-push-sender';
 import { v4 as uuidv4 } from '../../lib/uuid';
 
-/**
- * Interface for slot acceptance input
- */
+/** Interface for slot acceptance input */
 export interface SlotAcceptanceInput {
   clientId: string;
   slotId: string;
@@ -22,9 +20,7 @@ export interface SlotAcceptanceInput {
   reason?: string; // 'accept' | 'decline' | 'timeout'
 }
 
-/**
- * Interface for slot acceptance result
- */
+/** Interface for slot acceptance result */
 export interface SlotAcceptanceResult {
   success: boolean;
   appointmentId?: string;
@@ -32,23 +28,23 @@ export interface SlotAcceptanceResult {
   shouldNotify: boolean;
 }
 
-/**
- * T-176: Enhanced Mobile Waitlist Client Features - Notification and slot acceptance
+/** T-176: Enhanced Mobile Waitlist Client Features - Notification and slot acceptance
  *
  * Provides push notification integration and slot acceptance/rejection functionality
  * for waitlist clients. When a slot becomes available, clients can accept or decline,
  * and the system handles the waitlist cascade logic.
  */
 @Injectable()
+/* eslint-disable max-params -- 4 params needed: appointmentRepo, waitlistQueue, clientRepo, pushSender */
 export class T176WaitlistNotificationsUseCase {
   constructor(
+    @Inject(APPOINTMENT_RECORD_REPOSITORY) private appointmentRepo: AppointmentRepository,
     @Inject(WaitlistQueue) private waitlistQueue: WaitlistQueue,
     @Inject(CLIENT_REPOSITORY) private clientRepo: ClientRepository,
     @Inject(ExpoPushSender) private pushSender: ExpoPushSender
   ) {}
 
-  /**
-   * Handle slot acceptance or rejection by a waitlist client.
+  /** Handle slot acceptance or rejection by a waitlist client.
    * If accepted, create the appointment. If declined, continue cascade.
    */
   async handleSlotAcceptance(input: SlotAcceptanceInput): Promise<SlotAcceptanceResult> {
@@ -72,18 +68,18 @@ export class T176WaitlistNotificationsUseCase {
 
       await this.waitlistQueue.markSlotAsBooked(slotId);
 
-      // Create the appointment
-      await /* prisma.appointment.create */ {
+      // Create the appointment using the repository
+      await this.appointmentRepo.create({
         id: appointmentId,
         clientId,
         barberId: slotDetails.barberId,
         serviceId: slotDetails.serviceId,
-        startTime: slotDetails.startTime,
+        startTime: new Date(slotDetails.startTime),
         status: 'booked',
         source: 'waitlist_acceptance',
         createdAt: now,
         updatedAt: now,
-      };
+      });
 
       // Send confirmation push notification
       const client = await this.clientRepo.getById(clientId);

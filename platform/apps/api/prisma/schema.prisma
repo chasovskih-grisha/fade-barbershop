@@ -346,6 +346,44 @@ model AvailabilityWindow {
   @@index([locationId])
 }
 
+// T-230: журнал змін графіка (SCH-006/007). previous/next — знімки вікон
+// до і після зміни; source розрізняє self-service барбера й адмінку.
+model ScheduleChangeLog {
+  id         String   @id @db.Uuid
+  barberId   String   @db.Uuid
+  locationId String   @db.Uuid
+  source     String
+  changedBy  String   @db.Uuid
+  occurredAt DateTime @default(now()) @db.Timestamptz
+  previous   Json
+  next       Json
+
+  @@index([barberId, occurredAt])
+  @@index([locationId, occurredAt])
+}
+
+// T-4458: заявка клієнта на зміну часу. agreementEventId унікальний — повторна
+// згода з тим самим eventId не створює другої події перенесення.
+model ScheduleChangeRequest {
+  id               String   @id @db.Uuid
+  appointmentId    String   @db.Uuid
+  clientId         String   @db.Uuid
+  currentSlot      Json
+  requestedSlot    Json?
+  status           String
+  requestedAt      DateTime @db.Timestamptz
+  proposal         Json?
+  rejection        Json?
+  agreement        Json?
+  agreementEventId String?  @unique
+  createdAt        DateTime @default(now()) @db.Timestamptz
+  updatedAt        DateTime @updatedAt @db.Timestamptz
+
+  @@index([status, requestedAt])
+  @@index([appointmentId])
+  @@index([clientId])
+}
+
 // Факти записів (T-061 / T-111 / T-4464): occupancy facts per hour for slow-hours analysis.
 model OccupancyFact {
   id          String    @id @db.Uuid
@@ -421,6 +459,46 @@ model Booking {
   @@index([barberId, status])
   @@index([partyId])
   @@index([haircutReferenceId])
+}
+
+// T-4616a: позначений інтервал недоступності барбера. Маркування не чіпає
+// наявні Booking; нові записи в інтервалі відхиляються.
+model BarberUnavailability {
+  id         String   @id @db.Uuid
+  barberId   String   @db.Uuid
+  locationId String?  @db.Uuid
+  start      DateTime @db.Timestamptz
+  end        DateTime @db.Timestamptz
+  reason     String?
+  createdBy  String   @db.Uuid
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  @@index([barberId, start, end])
+  @@index([locationId, start, end])
+}
+
+// T-4616a: один відкритий конфлікт на візит. Рішення закриває рядок; сама
+// Booking змінюється лише явним reassign/cancel через use case.
+model ShiftConflict {
+  id               String    @id @db.Uuid
+  appointmentId    String    @db.Uuid
+  bookingId        String    @unique @db.Uuid
+  barberId         String    @db.Uuid
+  locationId       String    @db.Uuid
+  clientId         String?   @db.Uuid
+  serviceId        String?   @db.Uuid
+  start            DateTime  @db.Timestamptz
+  end              DateTime  @db.Timestamptz
+  status           String    @default("open")
+  resolution       String?
+  resolvedBarberId String?   @db.Uuid
+  resolvedAt       DateTime? @db.Timestamptz
+  createdAt        DateTime  @default(now()) @db.Timestamptz
+  updatedAt        DateTime  @updatedAt @db.Timestamptz
+
+  @@index([status, start])
+  @@index([barberId, status])
+  @@index([locationId, status])
 }
 
 model Service {
@@ -756,10 +834,11 @@ model IdempotencyRecord {
   id           String   @id @db.Uuid
   key          String   @unique
   fingerprint  String
-  statusCode   Int
-  responseBody Json
-  createdAt    DateTime @default(now()) @db.Timestamptz
-  expiresAt    DateTime @db.Timestamptz
+  statusCode      Int
+  responseBody    Json
+  responseHeaders Json?
+  createdAt       DateTime @default(now()) @db.Timestamptz
+  expiresAt       DateTime @db.Timestamptz
 
   @@index([expiresAt])
 }

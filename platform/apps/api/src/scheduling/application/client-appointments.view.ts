@@ -31,7 +31,13 @@ export interface ClientAppointmentView {
    * `freeCancelUntil` рахується від поточного початку, тож перенесення
    * візиту зсуває дедлайн (T-4737).
    */
-  deposit: { amount: number; freeCancelUntil: string } | null;
+  deposit: {
+    amount: number;
+    freeCancelUntil: string;
+    bookingId?: string;
+    expiresAt?: string;
+    holdStatus?: 'active' | 'captured' | 'expired' | 'cancelled';
+  } | null;
 }
 
 /** Мапінг доменних статусів Appointment → словник кабінету. */

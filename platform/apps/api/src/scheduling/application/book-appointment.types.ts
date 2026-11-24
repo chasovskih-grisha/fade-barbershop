@@ -9,23 +9,9 @@ import type { DailyLoadPolicy } from '../domain/daily-load-limit';
 import type { DepositPolicySettingsPort } from '../domain/deposit-policy-settings';
 import type { DiscountInput } from '../../discounts/domain/discount-calculator';
 import type { ServicePosition } from '../domain/composed-slot-span';
-import type {
-  ApplyDiscountInput,
-  ApplyDiscountResult,
-} from '../../discounts/application/apply-discount.use-case';
-import type {
-  SlotDemandRecord,
-  SlotCongestionOptimizerConfig,
-  SlotCongestionResult,
-} from '../domain/slot-congestion-optimizer';
-import type {
-  OpenShift,
-  ShiftTemplate,
-  ShiftBiddingResult,
-  ShiftChangeRequest,
-  BarberShiftAvailability,
-  DemandOverlay,
-} from '../domain/shift-bidding-types';
+import type { ApplyDiscountInput, ApplyDiscountResult } from '../../discounts/application/apply-discount.use-case';
+import type { SlotDemandRecord, SlotCongestionOptimizerConfig, SlotCongestionResult } from '../domain/slot-congestion-optimizer';
+import type { OpenShift, ShiftTemplate, ShiftBiddingResult, ShiftChangeRequest, BarberShiftAvailability, DemandOverlay } from '../domain/shift-bidding-types';
 
 export interface BookAppointmentDeps {
   bookingRepo: BookingRepository;
@@ -39,7 +25,7 @@ export interface BookAppointmentDeps {
   appointmentRepo?: AppointmentRepository;
   // prettier-ignore
   serviceSnapshot?: { serviceId: string; agreedPrice: number; agreedDuration?: number; fulfillmentMode?: 'sequential' | 'parallel' };
-  /** Знижки при записі (T-090, ADR 0007): клієнт + слот + послуга + промокод.
+  /** Знитки при записі (T-090, ADR 0007): клієнт + слот + послуга + промокод.
    * `DiscountCalculator` застосовується в use case і снепшотиться на Booking.
    */
   discounts?: Omit<DiscountInput, 'agreedPrice'>;
@@ -86,44 +72,23 @@ export interface BookAppointmentDeps {
       ruleId: string | null;
     }>;
   };
-  /** Оптимізатор конгежованості слотів (T-5011): demand-based множники в реальному часі. */
+  /** Оптимізатор конгежованності слотів (T-5011): реальний час eng demand-based multipliers. */
   slotCongestionOptimizer?: {
-    optimizeSlotCongestion(
-      records: SlotDemandRecord[],
-      config: SlotCongestionOptimizerConfig
-    ): SlotCongestionResult[];
+    optimizeSlotCongestion(records: SlotDemandRecord[], config: SlotCongestionOptimizerConfig): SlotCongestionResult[];
   };
-  /** Репозиторій вихідних барбера (T-4447). */
+  /** Репозиторій днів відрядження барбера (T-4447). */
   dayOffs?: import('../domain/day-off').DayOffRepository;
+  /** T-4616a: інтервали, на які барбер позначений недоступним. */
+  unavailable?: Pick<import('../domain/shift-conflict-ports').BarberUnavailabilityRepository, 'covers'>;
   /** Оптимізатор змінової біржування та розкладу (T-5012): динамічний графік та marketplace для зміни слотів. */
   shiftBiddingOptimizer?: {
-    optimizeShiftBidding(
-      openShifts: OpenShift[],
-      barberAvailabilities: BarberShiftAvailability[],
-      demandOverlay?: DemandOverlay
-    ): ShiftBiddingResult;
-    createShiftChangeRequest(input: {
-      id: string;
-      appointmentId: string;
-      clientId: string;
-      currentSlot: { date: string; start: string; end: string };
-      requestedSlot?: { date: string; start: string; end: string };
-      at?: Date;
-    }): ShiftChangeRequest;
-    approveShiftChangeRequest(
-      request: ShiftChangeRequest,
-      input: { by: string; slot?: { date: string; start: string; end: string }; at?: Date }
-    ): ShiftChangeRequest;
-    rejectShiftChangeRequest(
-      request: ShiftChangeRequest,
-      input: { by: string; reason: string }
-    ): ShiftChangeRequest;
-    confirmShiftChangeAgreement(
-      request: ShiftChangeRequest,
-      input: { clientId: string; eventId: string; at?: Date; slotTaken?: boolean }
-    ): { request: ShiftChangeRequest; alreadyConfirmed: boolean };
+    optimizeShiftBidding(openShifts: OpenShift[], barberAvailabilities: BarberShiftAvailability[], demandOverlay?: DemandOverlay): ShiftBiddingResult;
+    createShiftChangeRequest(input: { id: string; appointmentId: string; clientId: string; currentSlot: { date: string; start: string; end: string }; requestedSlot?: { date: string; start: string; end: string }; at?: Date }): ShiftChangeRequest;
+    approveShiftChangeRequest(request: ShiftChangeRequest, input: { by: string; slot?: { date: string; start: string; end: string; }; at?: Date }): ShiftChangeRequest;
+    rejectShiftChangeRequest(request: ShiftChangeRequest, input: { by: string; reason: string }): ShiftChangeRequest;
+    confirmShiftChangeAgreement(request: ShiftChangeRequest, input: { clientId: string; eventId: string; at?: Date; slotTaken?: boolean }): { request: ShiftChangeRequest; alreadyConfirmed: boolean };
   };
-  /** Шаблони зміни графіка (T-5012). */
+  /** Те шаблони зміни графіка (T-5012). */
   shiftTemplates?: {
     listAllByLocation(locationId: string): Promise<ShiftTemplate[]>;
     findById(templateId: string): Promise<ShiftTemplate | null>;
