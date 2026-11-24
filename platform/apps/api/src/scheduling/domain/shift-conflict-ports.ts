@@ -9,12 +9,7 @@ import type {
 
 export interface BarberUnavailabilityRepository {
   save(data: BarberUnavailabilityData): Promise<void>;
-  covers(input: {
-    barberId: string;
-    locationId: string;
-    start: Date;
-    end: Date;
-  }): Promise<boolean>;
+  covers(input: { barberId: string; locationId: string; start: Date; end: Date }): Promise<boolean>;
   futureVisitsForBarber(input: {
     barberId: string;
     interval: { start: Date; end: Date };
@@ -24,13 +19,12 @@ export interface BarberUnavailabilityRepository {
 }
 
 export interface ShiftConflictRepository {
-  /** Відкриває конфлікт один раз на візит; повертає false, якщо вже існує. */
+  /** Відкриває конфлікт один раз на візит/партію; false, якщо вже відкритий. */
   open(data: ShiftConflictData): Promise<boolean>;
   findById(id: string): Promise<ShiftConflictData | null>;
-  listOpen(filter: {
-    barberId?: string;
-    locationId?: string;
-  }): Promise<ShiftConflictData[]>;
+  /** Усі ноги партії в порядку часу — рішення застосовується до них разом. */
+  bookingIdsForParty(partyId: string): Promise<string[]>;
+  listOpen(filter: { barberId?: string; locationId?: string }): Promise<ShiftConflictData[]>;
   /** Закриття в межах поточної транзакції; closed-конфлікт не переписується. */
   close(
     id: string,

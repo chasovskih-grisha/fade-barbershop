@@ -18,16 +18,21 @@ import { ListShiftConflicts } from './list-shift-conflicts.use-case';
 const at = new Date('2026-11-23T08:00:00.000Z');
 const interval = { start: '2026-11-24T09:00:00.000Z', end: '2026-11-24T18:00:00.000Z' };
 
-const visit = (id: string, start: string, status: string | null = 'confirmed'): VisitRow => ({
+const visit = (
+  id: string,
+  start: string,
+  options: { status?: string | null; partyId?: string | null } = {}
+): VisitRow => ({
   bookingId: `booking-${id}`,
   appointmentId: `appointment-${id}`,
+  partyId: options.partyId ?? null,
   barberId: 'b1',
   locationId: 'loc1',
   clientId: `client-${id}`,
   serviceId: 'service-1',
   start: new Date(start),
   end: new Date(new Date(start).getTime() + 30 * 60000),
-  status,
+  status: options.status === undefined ? 'confirmed' : options.status,
 });
 
 class FakeUnavailabilities implements BarberUnavailabilityRepository {
@@ -54,11 +59,20 @@ class FakeConflicts implements ShiftConflictRepository {
   rows: ShiftConflictData[] = [];
   async open(data: ShiftConflictData) {
     if (this.rows.some((row) => row.bookingId === data.bookingId)) return false;
+    if (
+      data.partyId &&
+      this.rows.some((row) => row.partyId === data.partyId && row.status === 'open')
+    ) {
+      return false;
+    }
     this.rows.push(data);
     return true;
   }
   async findById(id: string) {
     return this.rows.find((row) => row.id === id) ?? null;
+  }
+  async bookingIdsForParty(partyId: string) {
+    return this.rows.filter((row) => row.partyId === partyId).map((row) => row.bookingId);
   }
   async listOpen() {
     return this.rows.filter((row) => row.status === 'open');
@@ -75,12 +89,13 @@ class FakeConflicts implements ShiftConflictRepository {
   }
 }
 
-const setup = () => {
-  const visits = [
-    visit('1', '2026-11-24T09:00:00.000Z'),
-    visit('2', '2026-11-24T11:00:00.000Z'),
-    visit('3', '2026-11-24T15:00:00.000Z', 'completed'),
-  ];
+const defaultVisits = () => [
+  visit('1', '2026-11-24T09:00:00.000Z'),
+  visit('2', '2026-11-24T11:00:00.000Z'),
+  visit('3', '2026-11-24T15:00:00.000Z', { status: 'completed' }),
+];
+
+const setup = (visits: VisitRow[] = defaultVisits()) => {
   const unavailabilities = new FakeUnavailabilities(visits);
   const conflicts = new FakeConflicts();
   const mark = new MarkBarberUnavailable({
@@ -107,10 +122,7 @@ describe('MarkBarberUnavailable', () => {
 
     expect(result.conflictsCreated).toBe(2);
     expect(visits).toEqual(before);
-    expect(conflicts.rows.map((row) => row.bookingId)).toEqual([
-      'booking-1',
-      'booking-2',
-    ]);
+    expect(conflicts.rows.map((row) => row.bookingId)).toEqual(['booking-1', 'booking-2']);
     expect(conflicts.rows.every((row) => row.status === 'open')).toBe(true);
   });
 
@@ -139,6 +151,29 @@ describe('MarkBarberUnavailable', () => {
 
     expect(again.conflictsCreated).toBe(0);
     expect(conflicts.rows).toHaveLength(2);
+  });
+
+  it('opens one conflict for a father-son party instead of one per leg', async () => {
+    const { mark, conflicts } = setup([
+      visit('father', '2026-11-24T09:00:00.000Z', { partyId: 'party-1' }),
+      visit('son', '2026-11-24T09:30:00.000Z', { partyId: 'party-1' }),
+    ]);
+
+    const result = await mark.execute({
+      barberId: 'b1',
+      locationId: 'loc1',
+      ...interval,
+      actorId: 'admin-1',
+    });
+
+    expect(result.conflictsCreated).toBe(1);
+    expect(conflicts.rows).toHaveLength(1);
+    expect(conflicts.rows[0]).toMatchObject({
+      bookingId: 'booking-father',
+      partyId: 'party-1',
+      start: new Date('2026-11-24T09:00:00.000Z'),
+      end: new Date('2026-11-24T10:00:00.000Z'),
+    });
   });
 
   it('lists open conflicts with visit, client, service, time and other-barber availability', async () => {

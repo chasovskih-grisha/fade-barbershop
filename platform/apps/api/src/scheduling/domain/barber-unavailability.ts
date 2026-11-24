@@ -22,6 +22,8 @@ export interface ShiftConflictData {
   id: string;
   appointmentId: string;
   bookingId: string;
+  /** T-4616a: партія — одна конфліктна одиниця; null для соло-візиту. */
+  partyId: string | null;
   barberId: string;
   locationId: string;
   clientId: string | null;
@@ -38,6 +40,7 @@ export interface ShiftConflictData {
 export interface VisitRow {
   bookingId: string;
   appointmentId: string;
+  partyId: string | null;
   barberId: string;
   locationId: string;
   clientId: string | null;
@@ -86,6 +89,7 @@ export function openConflict(input: {
     id: input.id,
     appointmentId: visit.appointmentId,
     bookingId: visit.bookingId,
+    partyId: visit.partyId,
     barberId: visit.barberId,
     locationId: visit.locationId,
     clientId: visit.clientId,
@@ -97,6 +101,27 @@ export function openConflict(input: {
     resolvedBarberId: null,
     resolvedAt: null,
     createdAt: input.createdAt,
+  };
+}
+
+/**
+ * Одна партія — один конфлікт: ноги не створюють окремих рішень.
+ * Границя конфлікту охоплює всі уражені ноги, а не лише першу.
+ */
+export function openPartyConflict(input: {
+  id: string;
+  visits: VisitRow[];
+  createdAt: Date;
+}): ShiftConflictData {
+  if (input.visits.length === 0) throw new Error('A party conflict needs at least one visit');
+  const [first] = input.visits;
+  if (!first) throw new Error('A party conflict needs at least one visit');
+  const start = new Date(Math.min(...input.visits.map((visit) => visit.start.getTime())));
+  const end = new Date(Math.max(...input.visits.map((visit) => visit.end.getTime())));
+  return {
+    ...openConflict({ id: input.id, visit: first, createdAt: input.createdAt }),
+    start,
+    end,
   };
 }
 

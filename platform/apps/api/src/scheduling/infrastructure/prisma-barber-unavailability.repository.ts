@@ -66,6 +66,7 @@ export class PrismaBarberUnavailabilityRepository implements BarberUnavailabilit
       select: {
         id: true,
         appointmentId: true,
+        partyId: true,
         barberId: true,
         locationId: true,
         clientId: true,
@@ -79,6 +80,7 @@ export class PrismaBarberUnavailabilityRepository implements BarberUnavailabilit
     return rows.map((row) => ({
       bookingId: row.id,
       appointmentId: row.appointmentId ?? row.id,
+      partyId: row.partyId,
       barberId: row.barberId,
       locationId: row.locationId,
       clientId: row.clientId,

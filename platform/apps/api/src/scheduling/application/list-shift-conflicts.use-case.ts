@@ -10,6 +10,7 @@ export interface ShiftConflictView {
   id: string;
   appointmentId: string;
   bookingId: string;
+  partyId: string | null;
   barberId: string;
   locationId: string;
   clientId: string | null;
@@ -27,7 +28,9 @@ export interface ListShiftConflictsDeps {
 export class ListShiftConflicts {
   constructor(private readonly deps: ListShiftConflictsDeps) {}
 
-  async execute(filter: { barberId?: string; locationId?: string } = {}): Promise<ShiftConflictView[]> {
+  async execute(
+    filter: { barberId?: string; locationId?: string } = {}
+  ): Promise<ShiftConflictView[]> {
     const conflicts = await this.deps.conflicts.listOpen(filter);
     return Promise.all(
       conflicts.map(async (conflict) => ({
@@ -43,6 +46,7 @@ function toView(conflict: ShiftConflictData): Omit<ShiftConflictView, 'otherBarb
     id: conflict.id,
     appointmentId: conflict.appointmentId,
     bookingId: conflict.bookingId,
+    partyId: conflict.partyId,
     barberId: conflict.barberId,
     locationId: conflict.locationId,
     clientId: conflict.clientId,

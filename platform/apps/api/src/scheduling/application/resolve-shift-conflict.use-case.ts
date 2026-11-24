@@ -64,12 +64,7 @@ export class ResolveShiftConflict {
       if (!canReassignConflict(conflict)) return { conflict, changed: false };
 
       if (cmd.decision === 'cancel') {
-        await this.deps.cancel.cancel({
-          appointmentId: conflict.appointmentId,
-          actorId: cmd.actorId,
-          actorRole: 'admin',
-          reason: 'barber unavailable',
-        });
+        await this.cancel(conflict, cmd.actorId);
         const closed = await this.close(conflict, {
           resolution: 'cancelled',
           at: this.deps.clock.now(),
@@ -77,6 +72,11 @@ export class ResolveShiftConflict {
         return { conflict: closed, changed: true };
       }
 
+      if (conflict.partyId) {
+        throw InvalidSlotError.of(
+          'Party conflict must be resolved as a whole; per-leg reassignment is not allowed'
+        );
+      }
       await this.assertQualified(conflict, cmd.barberId);
       await this.assertAvailable(conflict, cmd);
       await this.deps.reschedule.handle({
@@ -129,6 +129,31 @@ export class ResolveShiftConflict {
     );
     if (!qualified.has(barberId)) {
       throw InvalidSlotError.of('Barber does not perform this service');
+    }
+  }
+
+  /** Скасування партії — лише всі ноги разом; часткове скасування заборонене. */
+  private async cancel(conflict: ShiftConflictData, actorId: string): Promise<void> {
+    if (!conflict.partyId) {
+      await this.deps.cancel.cancel({
+        appointmentId: conflict.appointmentId,
+        actorId,
+        actorRole: 'admin',
+        reason: 'barber unavailable',
+      });
+      return;
+    }
+    const bookingIds = await this.deps.conflicts.bookingIdsForParty(conflict.partyId);
+    if (bookingIds.length < 2) {
+      throw new Error(`Party conflict ${conflict.id} does not have both legs`);
+    }
+    for (const appointmentId of bookingIds) {
+      await this.deps.cancel.cancel({
+        appointmentId,
+        actorId,
+        actorRole: 'admin',
+        reason: 'barber unavailable',
+      });
     }
   }
 

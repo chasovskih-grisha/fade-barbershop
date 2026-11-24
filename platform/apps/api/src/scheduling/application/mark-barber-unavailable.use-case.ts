@@ -5,8 +5,9 @@ import { uuidv7 } from '@fade/domain-shared';
 import {
   assertAvailabilityInterval,
   isActionableVisit,
-  openConflict,
+  openPartyConflict,
   type BarberUnavailabilityData,
+  type VisitRow,
 } from '../domain/barber-unavailability';
 import type {
   BarberUnavailabilityRepository,
@@ -64,14 +65,27 @@ export class MarkBarberUnavailable {
       now,
       ...(cmd.locationId ? { locationId: cmd.locationId } : {}),
     });
+    const groups = groupVisits(visits);
     let conflictsCreated = 0;
-    for (const visit of visits) {
-      if (!isActionableVisit(visit.status)) continue;
+    for (const group of groups.values()) {
       const created = await this.deps.conflicts.open(
-        openConflict({ id: uuidv7(), visit, createdAt: now })
+        openPartyConflict({ id: uuidv7(), visits: group, createdAt: now })
       );
       if (created) conflictsCreated += 1;
     }
     return { unavailability, conflictsCreated };
   }
+}
+
+/** Партія — одна група; соло-візит — окрема. Завершені/скасовані не входять. */
+function groupVisits(visits: VisitRow[]): VisitRow[][] {
+  const groups = new Map<string, VisitRow[]>();
+  for (const visit of visits) {
+    if (!isActionableVisit(visit.status)) continue;
+    const key = visit.partyId ? `party:${visit.partyId}` : `booking:${visit.bookingId}`;
+    const group = groups.get(key) ?? [];
+    group.push(visit);
+    groups.set(key, group);
+  }
+  return [...groups.values()];
 }

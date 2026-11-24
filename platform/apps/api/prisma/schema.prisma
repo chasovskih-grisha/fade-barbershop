@@ -477,12 +477,14 @@ model BarberUnavailability {
   @@index([locationId, start, end])
 }
 
-// T-4616a: один відкритий конфлікт на візит. Рішення закриває рядок; сама
-// Booking змінюється лише явним reassign/cancel через use case.
+// T-4616a: один відкритий конфлікт на візит або партію. Рішення закриває рядок;
+// сама Booking змінюється лише явним reassign/cancel через use case.
 model ShiftConflict {
   id               String    @id @db.Uuid
   appointmentId    String    @db.Uuid
   bookingId        String    @unique @db.Uuid
+  // Для партії — representative booking + partyId; рішення застосовується до всіх ног.
+  partyId          String?   @db.Uuid
   barberId         String    @db.Uuid
   locationId       String    @db.Uuid
   clientId         String?   @db.Uuid
@@ -499,6 +501,7 @@ model ShiftConflict {
   @@index([status, start])
   @@index([barberId, status])
   @@index([locationId, status])
+  @@index([partyId, status])
 }
 
 model Service {

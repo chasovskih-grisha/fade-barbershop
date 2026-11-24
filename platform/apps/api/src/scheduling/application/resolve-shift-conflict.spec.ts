@@ -8,10 +8,15 @@ import type { DayOffData } from '../domain/day-off';
 import { ResolveShiftConflict } from './resolve-shift-conflict.use-case';
 
 const at = new Date('2026-11-23T08:00:00.000Z');
-const conflict = (id: string, bookingId: string): ShiftConflictData => ({
+const conflict = (
+  id: string,
+  bookingId: string,
+  partyId: string | null = null
+): ShiftConflictData => ({
   id,
   appointmentId: `appointment-${id}`,
   bookingId,
+  partyId,
   barberId: 'b1',
   locationId: 'loc1',
   clientId: `client-${id}`,
@@ -26,12 +31,18 @@ const conflict = (id: string, bookingId: string): ShiftConflictData => ({
 });
 
 class FakeConflicts implements ShiftConflictRepository {
-  constructor(public rows: ShiftConflictData[]) {}
+  constructor(
+    public rows: ShiftConflictData[],
+    private readonly partyBookings: Record<string, string[]> = {}
+  ) {}
   async open() {
     return false;
   }
   async findById(id: string) {
     return this.rows.find((row) => row.id === id) ?? null;
+  }
+  async bookingIdsForParty(partyId: string) {
+    return this.partyBookings[partyId] ?? [];
   }
   async listOpen() {
     return this.rows.filter((row) => row.status === 'open');
@@ -52,12 +63,22 @@ const matrix: BarberServiceAssignmentSnapshot = {
   matrix: new Map([['b2', new Map([['loc1', new Set(['service-1'])]])]]),
 };
 
-const setup = (options: { unavailableBarbers?: string[]; dayOffs?: DayOffData[] } = {}) => {
-  const conflicts = new FakeConflicts([
-    conflict('c1', 'booking-1'),
-    conflict('c2', 'booking-2'),
-    conflict('c3', 'booking-3'),
-  ]);
+const setup = (
+  options: {
+    unavailableBarbers?: string[];
+    dayOffs?: DayOffData[];
+    partyBookings?: Record<string, string[]>;
+  } = {}
+) => {
+  const conflicts = new FakeConflicts(
+    [
+      conflict('c1', 'booking-1'),
+      conflict('c2', 'booking-2'),
+      conflict('c3', 'booking-3'),
+      conflict('c4', 'booking-father', 'party-1'),
+    ],
+    options.partyBookings
+  );
   const rescheduled: unknown[] = [];
   const cancelled: unknown[] = [];
   const events: string[] = [];
@@ -191,5 +212,30 @@ describe('ResolveShiftConflict', () => {
     expect(replay.changed).toBe(false);
     expect(ctx.rescheduled).toHaveLength(callsAfterFirst);
     expect(ctx.events).toHaveLength(eventsAfterFirst);
+  });
+
+  it('treats a father-son party as one decision and never moves a single leg', async () => {
+    const ctx = setup({
+      partyBookings: { 'party-1': ['booking-father', 'booking-son'] },
+    });
+
+    await expect(ctx.resolve.execute(reassign('c4', 'b2'))).rejects.toThrow(
+      'Party conflict must be resolved as a whole'
+    );
+    expect(ctx.rescheduled).toEqual([]);
+    expect(ctx.cancelled).toEqual([]);
+    expect(ctx.conflicts.rows.find((row) => row.id === 'c4')?.status).toBe('open');
+
+    await ctx.resolve.execute({ conflictId: 'c4', actorId: 'admin-1', decision: 'cancel' });
+
+    expect(ctx.cancelled).toEqual([
+      expect.objectContaining({ appointmentId: 'booking-father', reason: 'barber unavailable' }),
+      expect.objectContaining({ appointmentId: 'booking-son', reason: 'barber unavailable' }),
+    ]);
+    expect(ctx.conflicts.rows.find((row) => row.id === 'c4')).toMatchObject({
+      partyId: 'party-1',
+      status: 'closed',
+      resolution: 'cancelled',
+    });
   });
 });

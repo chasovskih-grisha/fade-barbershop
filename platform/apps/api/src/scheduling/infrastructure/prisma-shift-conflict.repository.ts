@@ -12,6 +12,7 @@ type Row = {
   id: string;
   appointmentId: string;
   bookingId: string;
+  partyId: string | null;
   barberId: string;
   locationId: string;
   clientId: string | null;
@@ -34,12 +35,20 @@ export class PrismaShiftConflictRepository implements ShiftConflictRepository {
   }
 
   async open(data: ShiftConflictData): Promise<boolean> {
+    if (data.partyId) {
+      const existing = await this.db().shiftConflict.findFirst({
+        where: { partyId: data.partyId, status: 'open' },
+        select: { id: true },
+      });
+      if (existing) return false;
+    }
     const result = await this.db().shiftConflict.createMany({
       data: [
         {
           id: data.id,
           appointmentId: data.appointmentId,
           bookingId: data.bookingId,
+          partyId: data.partyId,
           barberId: data.barberId,
           locationId: data.locationId,
           clientId: data.clientId,
@@ -60,10 +69,16 @@ export class PrismaShiftConflictRepository implements ShiftConflictRepository {
     return row ? toData(row) : null;
   }
 
-  async listOpen(filter: {
-    barberId?: string;
-    locationId?: string;
-  }): Promise<ShiftConflictData[]> {
+  async bookingIdsForParty(partyId: string): Promise<string[]> {
+    const rows = await this.db().booking.findMany({
+      where: { partyId },
+      select: { id: true },
+      orderBy: { start: 'asc' },
+    });
+    return rows.map((row) => row.id);
+  }
+
+  async listOpen(filter: { barberId?: string; locationId?: string }): Promise<ShiftConflictData[]> {
     const rows = await this.db().shiftConflict.findMany({
       where: {
         status: 'open',
