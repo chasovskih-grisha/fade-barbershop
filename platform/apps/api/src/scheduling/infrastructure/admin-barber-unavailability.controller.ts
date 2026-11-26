@@ -1,4 +1,5 @@
 /* eslint-disable max-lines -- T-4616a: the three backend commands share one admin route group. */
+/* eslint-disable max-params -- Nest injects each use case separately; the optional money step stays a 4th dependency instead of a wrapper provider. */
 // T-4616a: backend-команди для майбутніх admin-поверхонь (самі екрани — T-4616b).
 // PUT недоступності, окремий список конфліктів і рішення по кожному візиту.
 import {
@@ -8,6 +9,8 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
+  Inject,
+  Optional,
   Param,
   Post,
   Query,
@@ -32,6 +35,10 @@ import {
   type ResolveShiftConflictResult,
 } from '../application/resolve-shift-conflict.use-case';
 import { adminActor } from './admin-actor';
+import {
+  BarberCancelSettlement,
+  type BarberCancelSettlementResult,
+} from '../../payment/application/barber-cancel-settlement.use-case';
 
 interface MarkBody {
   locationId?: string;
@@ -52,13 +59,21 @@ interface BatchResolveBody {
   decisions: Array<ResolveBody & { conflictId: string }>;
 }
 
+/** Рішення + його грошовий слід: візит скасовано, депозит повертається. */
+type ResolvedWithMoney = ResolveShiftConflictResult & {
+  settlements?: BarberCancelSettlementResult[];
+};
+
 @ApiTags('admin-barber-unavailability')
 @Controller('admin')
 export class AdminBarberUnavailabilityController {
   constructor(
     private readonly mark: MarkBarberUnavailable,
     private readonly list: ListShiftConflicts,
-    private readonly resolve: ResolveShiftConflict
+    private readonly resolve: ResolveShiftConflict,
+    @Optional()
+    @Inject(BarberCancelSettlement)
+    private readonly cancellationMoney?: BarberCancelSettlement
   ) {}
 
   @Post('barbers/:barberId/unavailability')
@@ -98,9 +113,10 @@ export class AdminBarberUnavailabilityController {
     @Param('id') id: string,
     @Body() body: ResolveBody,
     @Req() req: Request
-  ): Promise<ResolveShiftConflictResult> {
+  ): Promise<ResolvedWithMoney> {
     const actor = adminActor(req);
-    return this.call(() => this.resolve.execute(toCommand(id, body, actor.actorId)));
+    const result = await this.call(() => this.resolve.execute(toCommand(id, body, actor.actorId)));
+    return this.withMoney(result);
   }
 
   @Post('shift-conflicts/resolve-batch')
@@ -113,7 +129,34 @@ export class AdminBarberUnavailabilityController {
     const commands = (body.decisions ?? []).map((decision) =>
       toCommand(decision.conflictId, decision, actor.actorId)
     );
-    return { outcomes: await this.resolve.executeMany(commands) };
+    // Гроші — після кожного окремого рішення: партія скасовується разом, але
+    // відмова повернення по одній нозі не відкочує інші.
+    const outcomes: Awaited<ReturnType<ResolveShiftConflict['executeMany']>> = [];
+    for (const command of commands) {
+      const [outcome] = await this.resolve.executeMany([command]);
+      if (!outcome) continue;
+      // Гроші йдуть за скасованими візитами, а не за id конфлікту.
+      if (outcome.status === 'resolved' && outcome.cancelledBookingIds?.length) {
+        await this.settleCancelled(outcome.cancelledBookingIds);
+      }
+      outcomes.push(outcome);
+    }
+    return { outcomes };
+  }
+
+  /** Скасований візит звільняє крісло і повертає списаний депозит (T-094). */
+  private async withMoney(result: ResolveShiftConflictResult): Promise<ResolvedWithMoney> {
+    if (!result.changed || !result.cancelledBookingIds?.length) return result;
+    return { ...result, settlements: await this.settleCancelled(result.cancelledBookingIds) };
+  }
+
+  private async settleCancelled(appointmentIds: string[]): Promise<BarberCancelSettlementResult[]> {
+    if (!this.cancellationMoney) return [];
+    const settlements: BarberCancelSettlementResult[] = [];
+    for (const appointmentId of appointmentIds) {
+      settlements.push(await this.cancellationMoney.settle({ appointmentId }));
+    }
+    return settlements;
   }
 
   private async call<T>(work: () => Promise<T>): Promise<T> {

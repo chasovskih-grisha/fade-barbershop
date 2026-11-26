@@ -48,10 +48,22 @@ export type ResolveShiftConflictCommand =
 export interface ResolveShiftConflictResult {
   conflict: ShiftConflictData;
   changed: boolean;
+  /**
+   * T-4616a: візити, які справді скасовано цим рішенням (для партії — всі
+   * ноги). Гроші за ними закриває виклик: refund і звільнення крісла не
+   * живуть у домені календаря.
+   */
+  cancelledBookingIds?: string[];
 }
 
 export type ResolveManyOutcome =
-  | { conflictId: string; status: 'resolved'; changed: boolean }
+  | {
+      conflictId: string;
+      status: 'resolved';
+      changed: boolean;
+      /** T-4616b: візити, скасовані цим рішенням — за ними йде settlement. */
+      cancelledBookingIds?: string[];
+    }
   | { conflictId: string; status: 'failed'; error: string };
 
 export class ResolveShiftConflict {
@@ -64,12 +76,12 @@ export class ResolveShiftConflict {
       if (!canReassignConflict(conflict)) return { conflict, changed: false };
 
       if (cmd.decision === 'cancel') {
-        await this.cancel(conflict, cmd.actorId);
+        const cancelledBookingIds = await this.cancel(conflict, cmd.actorId);
         const closed = await this.close(conflict, {
           resolution: 'cancelled',
           at: this.deps.clock.now(),
         });
-        return { conflict: closed, changed: true };
+        return { conflict: closed, changed: true, cancelledBookingIds };
       }
 
       if (conflict.partyId) {
@@ -107,6 +119,9 @@ export class ResolveShiftConflict {
           conflictId: cmd.conflictId,
           status: 'resolved',
           changed: result.changed,
+          ...(result.cancelledBookingIds?.length
+            ? { cancelledBookingIds: result.cancelledBookingIds }
+            : {}),
         });
       } catch (error) {
         outcomes.push({
@@ -133,7 +148,7 @@ export class ResolveShiftConflict {
   }
 
   /** Скасування партії — лише всі ноги разом; часткове скасування заборонене. */
-  private async cancel(conflict: ShiftConflictData, actorId: string): Promise<void> {
+  private async cancel(conflict: ShiftConflictData, actorId: string): Promise<string[]> {
     if (!conflict.partyId) {
       await this.deps.cancel.cancel({
         appointmentId: conflict.appointmentId,
@@ -141,7 +156,7 @@ export class ResolveShiftConflict {
         actorRole: 'admin',
         reason: 'barber unavailable',
       });
-      return;
+      return [conflict.bookingId];
     }
     const bookingIds = await this.deps.conflicts.bookingIdsForParty(conflict.partyId);
     if (bookingIds.length < 2) {
@@ -155,6 +170,7 @@ export class ResolveShiftConflict {
         reason: 'barber unavailable',
       });
     }
+    return bookingIds;
   }
 
   /** Візит не можна перепризначити на барбера, який недоступний у цьому слоті. */
