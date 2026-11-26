@@ -214,6 +214,21 @@ describe('ResolveShiftConflict', () => {
     expect(ctx.events).toHaveLength(eventsAfterFirst);
   });
 
+  // T-4616b: одне рішення → один скасований візит → одна подія в outbox, тож
+  // і одне повідомлення клієнту. Повтор не шле друге (replay закритий конфлікт).
+  it('repeating a cancel decision does not cancel the visit twice', async () => {
+    const ctx = setup();
+    const cancel = { conflictId: 'c3', actorId: 'admin-1', decision: 'cancel' as const };
+
+    await ctx.resolve.execute(cancel);
+    const replay = await ctx.resolve.execute(cancel);
+
+    expect(replay.changed).toBe(false);
+    expect(replay.cancelledBookingIds).toBeUndefined();
+    expect(ctx.cancelled).toHaveLength(1);
+    expect(ctx.events).toEqual(['cancelled']);
+  });
+
   it('treats a father-son party as one decision and never moves a single leg', async () => {
     const ctx = setup({
       partyBookings: { 'party-1': ['booking-father', 'booking-son'] },

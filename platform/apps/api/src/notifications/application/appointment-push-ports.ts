@@ -22,10 +22,17 @@ export interface AppointmentClients {
   findClientIdByAppointmentId(appointmentId: string): Promise<string | null>;
 }
 
+/** Ім'я барбера нового слота (T-4616b); null — імені немає, текст без нього. */
+export interface BarberNames {
+  findName(barberId: string): Promise<string | null>;
+}
+
 export interface AppointmentPushDeps {
   push: PushSender;
   devices: DevicePushTokens;
   clients: AppointmentClients;
   preferences: ClientPushPreferences;
   journal: NotificationJournal;
+  /** Необов'язковий: без нього перенесення називає час, але не майстра. */
+  barberNames?: BarberNames;
 }

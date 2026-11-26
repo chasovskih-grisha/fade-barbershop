@@ -14,6 +14,7 @@ export const makePushFakes = (
     tokens?: string[];
     handled?: boolean;
     failSend?: Error;
+    barberName?: string | null;
   } = {}
 ) => {
   const pushed: PushMessage[] = [];
@@ -51,8 +52,22 @@ export const makePushFakes = (
       journalRows.push(record);
     }),
   };
-  const deps: AppointmentPushDeps = { push, devices, clients, preferences, journal };
-  return { pushed, journalRows, push, devices, clients, preferences, journal, deps };
+  const barberNames = {
+    findName: jest
+      .fn()
+      .mockImplementation(async (barberId: string) =>
+        opts.barberName === undefined ? `${barberId}-name` : opts.barberName
+      ),
+  };
+  const deps: AppointmentPushDeps = {
+    push,
+    devices,
+    clients,
+    preferences,
+    journal,
+    barberNames,
+  };
+  return { pushed, journalRows, push, devices, clients, preferences, journal, barberNames, deps };
 };
 
 export const pushEvent = (

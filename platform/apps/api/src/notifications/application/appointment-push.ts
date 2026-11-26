@@ -7,7 +7,7 @@ import {
   type AppointmentPushDeps,
   type PushEventType,
 } from './appointment-push-ports';
-import { pushBody, pushTitle } from './appointment-push-messages';
+import { pushBody, pushTitle, type PushPayload } from './appointment-push-messages';
 import type { HandleOutcome, NotificationEvent } from './send-booking-confirmation';
 
 export type { AppointmentPushDeps } from './appointment-push-ports';
@@ -33,11 +33,10 @@ export class AppointmentPushNotification {
     const tokens = await this.deps.devices.findTokensByUserId(clientId);
     if (tokens.length === 0) return this.skip(event, 'у клієнта немає зареєстрованих пристроїв');
 
-    const payload = (event.payload ?? {}) as { start?: string };
+    const payload = (event.payload ?? {}) as PushPayload;
     const title = pushTitle(type);
-    await this.deps.push.send(
-      tokens.map((token) => ({ token, title, body: pushBody(type, payload) }))
-    );
+    const body = pushBody(type, { ...payload, ...(await this.newBarberName(payload)) });
+    await this.deps.push.send(tokens.map((token) => ({ token, title, body })));
     const recipient = `${tokens.length} пристроїв`;
     await this.deps.journal.markSent({
       eventId: event.id,
@@ -47,6 +46,13 @@ export class AppointmentPushNotification {
       subject: title,
     });
     return { handled: true, reason: 'sent', recipient };
+  }
+
+  /** Перенесення на іншого майстра називає його (T-4616b). */
+  private async newBarberName(payload: PushPayload): Promise<{ barberName?: string }> {
+    if (!payload.barberId || !this.deps.barberNames) return {};
+    const name = await this.deps.barberNames.findName(payload.barberId);
+    return name ? { barberName: name } : {};
   }
 
   private async skip(event: NotificationEvent, detail: string): Promise<HandleOutcome> {

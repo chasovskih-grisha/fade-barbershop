@@ -26,7 +26,7 @@ describe('AppointmentPushNotification: доставка', () => {
     });
 
     await new AppointmentPushNotification(deps).handleOne(
-      pushEvent('scheduling.appointment.rescheduled', { start: '2026-10-06T12:00:00.000Z' })
+      pushEvent('scheduling.appointment.rescheduled', { newStart: '2026-10-06T12:00:00.000Z' })
     );
 
     expect(pushed).toHaveLength(2);
@@ -44,6 +44,71 @@ describe('AppointmentPushNotification: доставка', () => {
 
     expect(pushed[0]?.title).toBe('FADE: візит скасовано');
     expect(pushed[0]?.body).toContain('скасовано');
+    expect(pushed[0]?.body).toContain('зателефонуйте');
+  });
+
+  // T-4616b: барбер недоступний — клієнт бачить причину і як записатися знову,
+  // без «дзвоніть нам» (рецепція не обдзвонює кожен рядок) і без діагнозу.
+  it('cancelled барбером недоступним → причина і шлях до нового часу', async () => {
+    const { deps, pushed } = makePushFakes();
+
+    await new AppointmentPushNotification(deps).handleOne(
+      pushEvent('scheduling.appointment.cancelled', {
+        appointmentId: 'apt-1',
+        reason: 'barber unavailable',
+      })
+    );
+
+    expect(pushed[0]?.title).toBe('FADE: візит скасовано');
+    expect(pushed[0]?.body).toContain('Барбер недоступний');
+    expect(pushed[0]?.body).toContain('Оберіть новий час');
+    expect(pushed[0]?.body).not.toContain('зателефонуйте');
+  });
+
+  // Реальний payload перенесення несе newStart (mover), а не start: без цього
+  // клієнт отримував «перенесено» без нового часу (T-4616b).
+  it('rescheduled → називає новий час із newStart', async () => {
+    const { deps, pushed } = makePushFakes();
+
+    await new AppointmentPushNotification(deps).handleOne(
+      pushEvent('scheduling.appointment.rescheduled', {
+        newStart: '2026-11-16T12:00:00.000Z',
+      })
+    );
+
+    expect(pushed[0]?.body).toContain('перенесено на');
+    expect(pushed[0]?.body).toContain('16 листопада 2026');
+    expect(pushed[0]?.body).toContain('14:00');
+  });
+
+  // Перенесення на іншого майстра називає і його (T-4616b).
+  it('rescheduled на іншого барбера → називає майстра', async () => {
+    const { deps, pushed } = makePushFakes({ barberName: 'Олег' });
+
+    await new AppointmentPushNotification(deps).handleOne(
+      pushEvent('scheduling.appointment.rescheduled', {
+        newStart: '2026-11-16T12:00:00.000Z',
+        barberId: 'barber-2',
+      })
+    );
+
+    expect(pushed[0]?.body).toBe(
+      'Ваш візит перенесено на 16 листопада 2026 р. о 14:00, майстер Олег.'
+    );
+  });
+
+  it('rescheduled без імені барбера → текст без «майстер»', async () => {
+    const { deps, pushed } = makePushFakes({ barberName: null });
+
+    await new AppointmentPushNotification(deps).handleOne(
+      pushEvent('scheduling.appointment.rescheduled', {
+        newStart: '2026-11-16T12:00:00.000Z',
+        barberId: 'barber-2',
+      })
+    );
+
+    expect(pushed[0]?.body).not.toContain('майстер');
+    expect(pushed[0]?.body).toContain('16 листопада 2026');
   });
 
   it('без start → текст без дати (payload не несе часу)', async () => {
