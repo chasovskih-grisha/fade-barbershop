@@ -41,6 +41,8 @@ export class CalendarExportController {
           finalPrice: true,
           appliedDiscounts: true,
           haircutReferenceId: true,
+          status: true,
+          version: true,
         },
       });
       if (!booking) {
