@@ -10,7 +10,6 @@ import {
   HttpException,
   HttpStatus,
   Inject,
-  Optional,
   Param,
   Post,
   Query,
@@ -71,9 +70,10 @@ export class AdminBarberUnavailabilityController {
     private readonly mark: MarkBarberUnavailable,
     private readonly list: ListShiftConflicts,
     private readonly resolve: ResolveShiftConflict,
-    @Optional()
+    // Обов'язковий: PaymentModule реєструє провайдер, тож відсутність — помилка
+    // збірки модуля, а не тихий пропуск повернення (T-4616b).
     @Inject(BarberCancelSettlement)
-    private readonly cancellationMoney?: BarberCancelSettlement
+    private readonly cancellationMoney: BarberCancelSettlement
   ) {}
 
   @Post('barbers/:barberId/unavailability')
@@ -151,7 +151,6 @@ export class AdminBarberUnavailabilityController {
   }
 
   private async settleCancelled(appointmentIds: string[]): Promise<BarberCancelSettlementResult[]> {
-    if (!this.cancellationMoney) return [];
     const settlements: BarberCancelSettlementResult[] = [];
     for (const appointmentId of appointmentIds) {
       settlements.push(await this.cancellationMoney.settle({ appointmentId }));

@@ -41,8 +41,12 @@ import { AdminAppointmentsController } from './infrastructure/admin-appointments
 import { AdminAppointmentRescheduleController } from './infrastructure/admin-appointment-reschedule.controller';
 import { AdminAppointmentReferenceController } from './infrastructure/admin-appointment-reference.controller';
 import { appointmentCommandProviders } from './infrastructure/appointment-command.providers';
-import { AdminBarberUnavailabilityController } from './infrastructure/admin-barber-unavailability.controller';
 import { barberUnavailabilityProviders } from './infrastructure/barber-unavailability.providers';
+// T-4616a: сам контролер живе в PaymentModule (він же тримає грошовий слід
+// скасування), тому use cases експортуються, а не тримаються тут.
+import { MarkBarberUnavailable } from './application/mark-barber-unavailable.use-case';
+import { ListShiftConflicts } from './application/list-shift-conflicts.use-case';
+import { ResolveShiftConflict } from './application/resolve-shift-conflict.use-case';
 import { AdminAvailabilityController } from './infrastructure/admin-availability.controller';
 import { BarberScheduleController } from './infrastructure/barber-schedule.controller';
 import { AdminScheduleLogController } from './infrastructure/admin-schedule-log.controller';
@@ -64,7 +68,6 @@ import {
     AdminAppointmentsController,
     AdminAppointmentRescheduleController,
     AdminAppointmentReferenceController,
-    AdminBarberUnavailabilityController,
     AdminAvailabilityController,
     BarberScheduleController,
     AdminScheduleLogController,
@@ -125,6 +128,9 @@ import {
     HaircutAiReferencePhotoUrls,
     NoShowManagementService,
     DepositHoldService,
+    MarkBarberUnavailable,
+    ListShiftConflicts,
+    ResolveShiftConflict,
   ],
 })
 export class SchedulingModule {}

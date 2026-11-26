@@ -9,6 +9,8 @@ import { T094Refund } from './application/refund.use-case';
 import { SchedulingModule } from '../scheduling/scheduling.module';
 import { DepositHoldService } from '../scheduling/application/deposit-hold.service';
 import { PaymentController } from './payment.controller';
+import { BarberCancelSettlement } from './application/barber-cancel-settlement.use-case';
+import { AdminBarberUnavailabilityController } from '../scheduling/infrastructure/admin-barber-unavailability.controller';
 import { PrismaAppointmentPaymentRepository } from './infrastructure/prisma-appointment-payment.repository';
 import { PrismaBookingPaymentRepository } from './infrastructure/prisma-booking-payment.repository';
 import {
@@ -30,7 +32,7 @@ export const REFUND_RECEIPT_GATEWAY = Symbol('REFUND_RECEIPT_GATEWAY');
  */
 @Module({
   imports: [SchedulingModule],
-  controllers: [PaymentController],
+  controllers: [PaymentController, AdminBarberUnavailabilityController],
   providers: [
     PrismaService,
     PrismaAppointmentPaymentRepository,
@@ -57,6 +59,23 @@ export const REFUND_RECEIPT_GATEWAY = Symbol('REFUND_RECEIPT_GATEWAY');
     { provide: PAYMENT_CAPTURE_GATEWAY, useExisting: StripePaymentCaptureGateway },
     { provide: PAYMENT_RECEIPT_GATEWAY, useExisting: CheckboxPaymentReceiptGateway },
     { provide: REFUND_RECEIPT_GATEWAY, useExisting: InProcessExpenditureReceiptGateway },
+    // T-4616a: скасування з рішення по конфлікту повертає гроші тут, бо refund
+    // належить платежам, а конфлікт — календарю (контролер вище).
+    {
+      provide: BarberCancelSettlement,
+      useFactory: (
+        bookings: PrismaBookingPaymentRepository,
+        payments: PrismaAppointmentPaymentRepository,
+        refunds: T094Refund,
+        holds: DepositHoldService
+      ) => new BarberCancelSettlement({ bookings, payments, refunds, holds }),
+      inject: [
+        BOOKING_PAYMENT_REPOSITORY,
+        APPOINTMENT_PAYMENT_REPOSITORY,
+        T094Refund,
+        DepositHoldService,
+      ],
+    },
     {
       provide: DepositFlow,
       useFactory: (
