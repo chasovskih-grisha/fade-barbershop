@@ -88,13 +88,14 @@ function payment(input: {
   amount: number;
   status: PaymentStatus;
   receiptId?: string;
+  form?: PaymentForm;
 }): Payment {
   return new Payment({
     id: input.id,
     appointmentId: input.appointmentId,
     clientId: 'client-1',
     amount: input.amount,
-    form: PaymentForm.CARD,
+    form: input.form ?? PaymentForm.CARD,
     status: input.status,
     traceId: input.id,
     ...(input.receiptId ? { receiptId: input.receiptId } : {}),
@@ -152,6 +153,33 @@ describe('canRefundCancellation (PAY-004)', () => {
 });
 
 describe('T094Refund (T-094)', () => {
+  it('refunds a captured deposit whose hold was lost before confirmation', async () => {
+    const target = booking();
+    const h = acquiringHarness({
+      target,
+      payments: [
+        payment({
+          appointmentId: target.id,
+          id: 'pay-late',
+          amount: 150,
+          status: PaymentStatus.DEPOSIT_PAID,
+        }),
+      ],
+    });
+
+    const refund = await h.refund.refundLateCapture({
+      bookingId: target.id,
+      paymentId: 'pay-late',
+      amount: 150,
+    });
+
+    expect(refund?.status).toBe(RefundStatus.COMPLETED);
+    expect(refund?.reason).toBe(RefundReason.SYSTEM_ERROR);
+    expect(h.provider.calls).toHaveLength(1);
+    expect(h.provider.calls[0]?.amount).toBe(150);
+    expect(h.fiscal.calls).toHaveLength(1);
+  });
+
   it('refunds the captured deposit in full with an expenditure receipt', async () => {
     const h = harness();
 
@@ -228,13 +256,31 @@ describe('T094Refund (T-094)', () => {
   it('rejects a zero or negative requested amount', async () => {
     const h = harness();
 
-    await expect(h.refund.initiateRefund(h.target.id, 0)).rejects.toThrow(
-      'Invalid refund amount'
-    );
-    await expect(h.refund.initiateRefund(h.target.id, -1)).rejects.toThrow(
-      'Invalid refund amount'
-    );
+    await expect(h.refund.initiateRefund(h.target.id, 0)).rejects.toThrow('Invalid refund amount');
+    await expect(h.refund.initiateRefund(h.target.id, -1)).rejects.toThrow('Invalid refund amount');
     expect(h.fiscal.calls).toHaveLength(0);
+  });
+
+  it('rejects a sub-unit amount that would round to zero before any provider call', async () => {
+    const target = booking();
+    const h = acquiringHarness({
+      target,
+      payments: [
+        payment({
+          appointmentId: target.id,
+          id: 'pay-dep',
+          amount: 150,
+          status: PaymentStatus.DEPOSIT_PAID,
+        }),
+      ],
+    });
+
+    await expect(h.refund.initiateRefund(target.id, 0.4, 'PAY-004')).rejects.toThrow(
+      'Invalid refund amount'
+    );
+    expect(h.provider.calls).toHaveLength(0);
+    expect(h.fiscal.calls).toHaveLength(0);
+    expect(target.refundId).toBeNull();
   });
 
   it('lets an admin refund a no-show outside the cancellation window (PAY-005b)', async () => {
@@ -284,6 +330,58 @@ describe('T094Refund (T-094)', () => {
     await expect(h.refund.retryRefund(refund.refundId)).rejects.toThrow('Maximum refund retry');
   });
 
+  it('settles a cash refund without calling acquiring', async () => {
+    const target = booking(24);
+    const h = acquiringHarness({
+      target,
+      payments: [
+        payment({
+          appointmentId: target.id,
+          id: 'pay-cash',
+          amount: 350,
+          status: PaymentStatus.PAID,
+          form: PaymentForm.CASH,
+        }),
+      ],
+    });
+
+    const { refund } = await h.refund.initiateRefund(target.id, 350, 'PAY-004');
+
+    expect(refund.status).toBe(RefundStatus.COMPLETED);
+    expect(h.provider.calls).toHaveLength(0);
+    expect(h.fiscal.calls).toHaveLength(1);
+    expect((await h.payments.findByAppointmentId(target.id))[0]?.status).toBe(
+      PaymentStatus.REFUNDED
+    );
+  });
+
+  it('uses a separate retry budget for expenditure receipts', async () => {
+    const target = booking(24);
+    const h = acquiringHarness({
+      target,
+      receipt: ['failed', 'failed', 'failed'],
+      payments: [
+        payment({
+          appointmentId: target.id,
+          id: 'pay-dep',
+          amount: 150,
+          status: PaymentStatus.DEPOSIT_PAID,
+        }),
+      ],
+    });
+
+    const { refund } = await h.refund.initiateRefund(target.id);
+    for (let attempt = 0; attempt < MAX_REFUND_RETRIES; attempt += 1) {
+      await h.refund.retryRefund(refund.refundId);
+    }
+
+    await expect(h.refund.retryRefund(refund.refundId)).rejects.toThrow(
+      'Maximum refund retry attempts (receipt'
+    );
+    expect(h.provider.calls).toHaveLength(1);
+    expect(h.fiscal.calls).toHaveLength(3);
+  });
+
   it('refuses to refund when nothing was captured', async () => {
     const target = booking(24);
     target.depositStatus = null;
@@ -315,8 +413,18 @@ describe('T094Refund acquiring (PAY-009)', () => {
     const h = acquiringHarness({
       target,
       payments: [
-        payment({ appointmentId: target.id, id: 'pay-dep', amount: 150, status: PaymentStatus.DEPOSIT_PAID }),
-        payment({ appointmentId: target.id, id: 'pay-rem', amount: 350, status: PaymentStatus.PAID }),
+        payment({
+          appointmentId: target.id,
+          id: 'pay-dep',
+          amount: 150,
+          status: PaymentStatus.DEPOSIT_PAID,
+        }),
+        payment({
+          appointmentId: target.id,
+          id: 'pay-rem',
+          amount: 350,
+          status: PaymentStatus.PAID,
+        }),
       ],
     });
 
@@ -341,7 +449,12 @@ describe('T094Refund acquiring (PAY-009)', () => {
     const h = acquiringHarness({
       target,
       payments: [
-        payment({ appointmentId: target.id, id: 'pay-dep', amount: 150, status: PaymentStatus.DEPOSIT_PAID }),
+        payment({
+          appointmentId: target.id,
+          id: 'pay-dep',
+          amount: 150,
+          status: PaymentStatus.DEPOSIT_PAID,
+        }),
       ],
     });
 
@@ -363,13 +476,18 @@ describe('T094Refund acquiring (PAY-009)', () => {
     const h = acquiringHarness({
       target,
       payments: [
-        payment({ appointmentId: target.id, id: 'pay-dep', amount: 150, status: PaymentStatus.DEPOSIT_PAID }),
+        payment({
+          appointmentId: target.id,
+          id: 'pay-dep',
+          amount: 150,
+          status: PaymentStatus.DEPOSIT_PAID,
+        }),
       ],
     });
 
-    await expect(
-      h.refund.initiateRefund(target.id, 151, 'PAY-004', 'refund-over')
-    ).rejects.toThrow('exceeds available captured amount');
+    await expect(h.refund.initiateRefund(target.id, 151, 'PAY-004', 'refund-over')).rejects.toThrow(
+      'exceeds available captured amount'
+    );
 
     expect(h.provider.calls).toHaveLength(0);
     expect(h.fiscal.calls).toHaveLength(0);
@@ -382,11 +500,21 @@ describe('T094Refund acquiring (PAY-009)', () => {
       target,
       provider: ['error', 'ok'],
       payments: [
-        payment({ appointmentId: target.id, id: 'pay-dep', amount: 150, status: PaymentStatus.DEPOSIT_PAID }),
+        payment({
+          appointmentId: target.id,
+          id: 'pay-dep',
+          amount: 150,
+          status: PaymentStatus.DEPOSIT_PAID,
+        }),
       ],
     });
 
-    const { refund } = await h.refund.initiateRefund(target.id, undefined, 'PAY-004', 'refund-retry');
+    const { refund } = await h.refund.initiateRefund(
+      target.id,
+      undefined,
+      'PAY-004',
+      'refund-retry'
+    );
 
     expect(refund.status).toBe(RefundStatus.FAILED);
     expect(refund.adminNote).toContain('provider timeout');
@@ -413,7 +541,12 @@ describe('T094Refund acquiring (PAY-009)', () => {
     const h = acquiringHarness({
       target,
       payments: [
-        payment({ appointmentId: target.id, id: 'pay-dep', amount: 150, status: PaymentStatus.DEPOSIT_PAID }),
+        payment({
+          appointmentId: target.id,
+          id: 'pay-dep',
+          amount: 150,
+          status: PaymentStatus.DEPOSIT_PAID,
+        }),
       ],
     });
 
@@ -432,11 +565,21 @@ describe('T094Refund acquiring (PAY-009)', () => {
       target,
       receipt: ['failed', 'done'],
       payments: [
-        payment({ appointmentId: target.id, id: 'pay-dep', amount: 150, status: PaymentStatus.DEPOSIT_PAID }),
+        payment({
+          appointmentId: target.id,
+          id: 'pay-dep',
+          amount: 150,
+          status: PaymentStatus.DEPOSIT_PAID,
+        }),
       ],
     });
 
-    const { refund } = await h.refund.initiateRefund(target.id, undefined, 'PAY-004', 'refund-rcpt');
+    const { refund } = await h.refund.initiateRefund(
+      target.id,
+      undefined,
+      'PAY-004',
+      'refund-rcpt'
+    );
     expect(refund.status).toBe(RefundStatus.FAILED);
 
     const retried = await h.refund.retryRefund(refund.refundId);

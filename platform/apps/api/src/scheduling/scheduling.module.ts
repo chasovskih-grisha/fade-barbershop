@@ -20,7 +20,11 @@ import {
 import { PrismaDepositHoldRepository } from './infrastructure/prisma-deposit-hold.repository';
 import { PrismaDepositHoldExpirySink } from './infrastructure/prisma-deposit-hold-expiry.sink';
 import { DepositHoldSweeper } from './infrastructure/deposit-hold-sweeper.worker';
+import { DepositHoldNudgeWorker } from './infrastructure/deposit-hold-nudge.worker';
+import { NudgeExpiringHolds } from './application/nudge-expiring-holds';
+import { PrismaExpiringHoldNotice } from './infrastructure/prisma-expiring-hold-notice';
 import { AdminCalendar } from './application/admin-calendar';
+import { ListClientAppointments } from './application/list-client-appointments';
 import { REFERENCE_PHOTO_URLS, type ReferencePhotoUrls } from './application/reference-photo-urls';
 import { HaircutAiReferencePhotoUrls } from './infrastructure/reference-photo-urls.adapter';
 import { PrismaSourcePhotoRepository } from '../haircut-ai/infrastructure/prisma-source-photo.repository';
@@ -42,12 +46,11 @@ import { AdminAppointmentRescheduleController } from './infrastructure/admin-app
 import { AdminAppointmentReferenceController } from './infrastructure/admin-appointment-reference.controller';
 import { appointmentCommandProviders } from './infrastructure/appointment-command.providers';
 import { barberUnavailabilityProviders } from './infrastructure/barber-unavailability.providers';
-// T-4616a: сам контролер живе в PaymentModule (він же тримає грошовий слід
-// скасування), тому use cases експортуються, а не тримаються тут.
 import { MarkBarberUnavailable } from './application/mark-barber-unavailable.use-case';
 import { ListShiftConflicts } from './application/list-shift-conflicts.use-case';
 import { ResolveShiftConflict } from './application/resolve-shift-conflict.use-case';
 import { AdminAvailabilityController } from './infrastructure/admin-availability.controller';
+import { BarberAppointmentsController } from './infrastructure/barber-appointments.controller';
 import { BarberScheduleController } from './infrastructure/barber-schedule.controller';
 import { AdminScheduleLogController } from './infrastructure/admin-schedule-log.controller';
 import {
@@ -69,6 +72,7 @@ import {
     AdminAppointmentRescheduleController,
     AdminAppointmentReferenceController,
     AdminAvailabilityController,
+    BarberAppointmentsController,
     BarberScheduleController,
     AdminScheduleLogController,
     ClientScheduleChangeController,
@@ -92,6 +96,8 @@ import {
     PrismaDepositHoldExpirySink,
     { provide: DEPOSIT_HOLD_EXPIRY_SINK, useExisting: PrismaDepositHoldExpirySink },
     DepositHoldService,
+    // T-083: «Мої візити» барбера читає ту саму read-модель, що й кабінет клієнта.
+    ListClientAppointments,
     // T-041/T-4619a: адмінський BookAppointment створює запис і утримання крісла.
     PrismaBookingRepository,
     PrismaAvailabilityRepository,
@@ -109,6 +115,15 @@ import {
     ...scheduleChangeProviders,
     // T-4619a: in-process тік звільняє крісла з простроченим утриманням.
     DepositHoldSweeper,
+    // T-4619: нагадування за 5 хвилин до дедлайну; дублі ловить outbox.
+    PrismaExpiringHoldNotice,
+    {
+      provide: NudgeExpiringHolds,
+      useFactory: (holds: PrismaDepositHoldRepository, notices: PrismaExpiringHoldNotice) =>
+        new NudgeExpiringHolds({ holds, notices }),
+      inject: [DEPOSIT_HOLD_REPOSITORY, PrismaExpiringHoldNotice],
+    },
+    DepositHoldNudgeWorker,
     // Порт ReferencePhotoUrls — інтерфейс, тож Nest резоллює його лише через
     // явний токен (emitDecoratorMetadata стирає тип до Object).
     PrismaSourcePhotoRepository,
@@ -128,6 +143,8 @@ import {
     HaircutAiReferencePhotoUrls,
     NoShowManagementService,
     DepositHoldService,
+    // T-4616a: use cases недоступності споживає адмінський контролер із PaymentModule
+    // (він же тримає грошовий слід скасування), тому їх експортуємо.
     MarkBarberUnavailable,
     ListShiftConflicts,
     ResolveShiftConflict,

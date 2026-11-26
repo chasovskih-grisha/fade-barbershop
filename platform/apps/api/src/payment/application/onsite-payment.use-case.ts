@@ -50,8 +50,86 @@ export interface OnsitePaymentResult {
   audit: { at: Date; by: string; form: PaymentForm; amount: number };
 }
 
+export interface OnsitePaymentStatus {
+  bookingId: string;
+  finalPrice: number;
+  depositAmount: number;
+  amountDue: number;
+  outstanding: number;
+  paymentId: string | null;
+  form: PaymentForm | null;
+  paymentStatus: string;
+  receipt: CheckboxReceipt | null;
+}
+
 export class OnsitePayment {
   constructor(private readonly deps: OnsitePaymentDeps) {}
+
+  /** T-093: the admin card reads the non-editable remainder and receipt state. */
+  async status(bookingId: string): Promise<OnsitePaymentStatus> {
+    const booking = await this.deps.bookings.findById(bookingId);
+    if (!booking) throw new Error(`Booking ${bookingId} not found`);
+    const finalPrice = booking.finalPrice ?? 0;
+    const depositAmount = booking.depositStatus === 'captured' ? (booking.deposit?.amount ?? 0) : 0;
+    const amountDue = Math.max(0, finalPrice - depositAmount);
+    const existing = await this.deps.payments.findByAppointmentId(booking.id);
+    const paid =
+      amountDue > 0
+        ? existing.find(
+            (payment) => payment.amount === amountDue && isCapturedPaymentStatus(payment.status)
+          )
+        : undefined;
+    const receiptId = paid?.receiptId ?? (paid ? this.checkIdFor(booking.id, depositAmount) : null);
+    const receipt = receiptId ? (this.deps.receipts?.findReceipt?.(receiptId) ?? null) : null;
+    const paymentStatus =
+      !booking.requiresPayment || finalPrice <= 0
+        ? 'complimentary'
+        : amountDue === 0
+          ? 'nothing_due'
+          : paid
+            ? paid.status
+            : 'unpaid';
+    return {
+      bookingId: booking.id,
+      finalPrice,
+      depositAmount,
+      amountDue,
+      outstanding: paid || amountDue === 0 || paymentStatus === 'complimentary' ? 0 : amountDue,
+      paymentId: paid?.id ?? null,
+      form: paid?.form ?? null,
+      paymentStatus,
+      receipt,
+    };
+  }
+
+  /** T-093: retry the same fiscal check after a provider failure. */
+  async retryReceipt(bookingId: string): Promise<{
+    outcome: 'retried' | 'signed' | 'not_paid' | 'no_receipt';
+    receipt?: CheckboxReceipt;
+  }> {
+    const booking = await this.deps.bookings.findById(bookingId);
+    if (!booking) throw new Error(`Booking ${bookingId} not found`);
+    const finalPrice = booking.finalPrice ?? 0;
+    const depositAmount = booking.depositStatus === 'captured' ? (booking.deposit?.amount ?? 0) : 0;
+    const amountDue = Math.max(0, finalPrice - depositAmount);
+    const existing = await this.deps.payments.findByAppointmentId(booking.id);
+    const paid = existing.find(
+      (payment) => payment.amount === amountDue && isCapturedPaymentStatus(payment.status)
+    );
+    if (!paid) return { outcome: 'not_paid' };
+    if (!this.deps.receipts) return { outcome: 'no_receipt' };
+    const receipt = await this.deps.receipts.issueReceipt(
+      booking.id,
+      paid.amount,
+      depositAmount > 0 ? CheckboxReceiptType.Remainder : CheckboxReceiptType.FullPayment,
+      paid.receiptId ?? this.checkIdFor(booking.id, depositAmount)
+    );
+    return { outcome: receipt.status === 'signed' ? 'signed' : 'retried', receipt };
+  }
+
+  private checkIdFor(bookingId: string, depositAmount: number): string {
+    return depositAmount > 0 ? `remainder_${bookingId}` : `full_${bookingId}`;
+  }
 
   async execute(input: OnsitePaymentInput): Promise<OnsitePaymentResult> {
     const booking = await this.deps.bookings.findById(input.bookingId);
@@ -75,8 +153,7 @@ export class OnsitePayment {
 
     const existing = await this.deps.payments.findByAppointmentId(booking.id);
     const alreadyPaid = existing.find(
-      (payment) =>
-        payment.amount === paidAmount && isCapturedPaymentStatus(payment.status)
+      (payment) => payment.amount === paidAmount && isCapturedPaymentStatus(payment.status)
     );
     if (alreadyPaid) {
       return {

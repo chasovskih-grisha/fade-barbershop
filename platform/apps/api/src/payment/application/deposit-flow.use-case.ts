@@ -40,10 +40,44 @@ export interface DepositReceiptGateway {
     type: CheckboxReceiptType,
     checkId?: string
   ): Promise<CheckboxReceipt>;
+  /** T-093: stored receipt state for the admin card (optional for legacy fakes). */
+  findReceipt?(checkId: string): CheckboxReceipt | null;
 }
 
 export interface PaymentEventPublisher {
   publish(event: { type: string; data: Record<string, unknown> }): Promise<void>;
+}
+
+export type LateCaptureRefundStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+export interface LateCaptureRefundResult {
+  status: LateCaptureRefundStatus;
+  refundId: string;
+  adminNote?: string;
+}
+
+/** T-4619c: повернення грошей, якщо утримання втрачено після списання. */
+export interface LateCaptureRefundPort {
+  refundLateCapture(input: {
+    bookingId: string;
+    paymentId: string;
+    amount: number;
+  }): Promise<LateCaptureRefundResult | null>;
+}
+
+export type DepositHoldState = 'active' | 'captured' | 'expired' | 'cancelled' | 'missing';
+
+export interface DepositHoldPort {
+  /** Стан без закриття утримання — перевірка перед списанням. */
+  status(appointmentId: string, now: Date): Promise<DepositHoldState>;
+  capture(
+    appointmentId: string,
+    now: Date
+  ): Promise<{ outcome: Exclude<DepositHoldState, 'active'> | 'already_captured' }>;
+  /** Невдалий платіж не має лишати крісло під утриманням. */
+  release(appointmentId: string): Promise<boolean>;
+  /** Server deadline for cabinet resume; absent in older test ports. */
+  find?(appointmentId: string): Promise<{ expiresAt: Date; status: string } | null>;
 }
 
 export interface DepositFlowDeps {
@@ -57,22 +91,21 @@ export interface DepositFlowDeps {
    * прострочення — відмовляє, щоб не привʼязати гроші до вже вільного крісла.
    * Без порту — стара поведінка (без утримань).
    */
-  holds?: {
-    /** T-4619a: стан утримання без його закриття — перевірка перед списанням. */
-    status?(
-      appointmentId: string,
-      now: Date
-    ): Promise<'active' | 'captured' | 'expired' | 'cancelled' | 'missing'>;
-    capture(
-      appointmentId: string,
-      now: Date
-    ): Promise<{ outcome: 'captured' | 'already_captured' | 'expired' | 'cancelled' | 'missing' }>;
-  };
+  holds?: DepositHoldPort;
+  /** Автоматичне повернення пізнього capture; без порту гроші лишаються в журналі. */
+  lateCaptureRefunds?: LateCaptureRefundPort;
   clock?: { now(): Date };
 }
 
 export type DepositOutcome =
-  'captured' | 'already_paid' | 'complimentary' | 'no_deposit' | 'failed' | 'expired';
+  | 'captured'
+  | 'already_paid'
+  | 'complimentary'
+  | 'no_deposit'
+  | 'pending'
+  | 'failed'
+  | 'expired'
+  | 'unknown';
 
 export interface DepositFlowResult {
   booking: Booking;
@@ -82,6 +115,14 @@ export interface DepositFlowResult {
   requiresBalance: boolean;
   receipt?: CheckboxReceipt;
   failureReason?: string;
+  /** T-4619c: результат повернення після втраченого утримання. */
+  refund?: {
+    status: LateCaptureRefundStatus;
+    refundId?: string;
+    failureReason?: string;
+  };
+  /** T-4619b: server chair-hold deadline, never a client-invented timer. */
+  expiresAt?: string;
 }
 
 const CAPTURED_DEPOSIT = 'captured';
@@ -163,10 +204,11 @@ export class DepositFlow {
     }
 
     // T-4619a: спершу перевіряємо утримання крісла, і лише потім беремо гроші.
-    // Саме утримання закриваємо після успішного списання: відмова еквайрингу
-    // лишає візит у тому ж активному вікні й клієнт може повторити оплату.
+    // Порядок навмисний: закрити утримання до списання означало б лишити
+    // підтверджене крісло без оплати, якщо процес упаде між кроками. Відмова
+    // еквайрингу звільняє активне утримання, тож клієнт може обрати новий слот.
     const hold = await this.holdStatus(booking, now);
-    if (hold === 'expired' || hold === 'cancelled') {
+    if (hold !== 'ok') {
       booking.depositStatus = 'expired';
       await this.deps.bookings.save(booking);
       return {
@@ -190,11 +232,13 @@ export class DepositFlow {
     try {
       captured = await this.deps.gateway.capture(payment.id, depositAmount);
     } catch (error) {
-      return this.failDeposit(
-        booking,
-        payment,
-        `acquiring error: ${error instanceof Error ? error.message : String(error)}`
-      );
+      const reason = error instanceof Error ? error.message : String(error);
+      // With a chair hold, a provider timeout must not strand the hold: release
+      // it and let the client retry. Without a hold there is nothing to release,
+      // so keep the payment for reconciliation instead of claiming a decline.
+      return this.deps.holds
+        ? this.failDeposit(booking, payment, `acquiring error: ${reason}`)
+        : this.unknownDeposit(booking, payment, `acquiring outcome unknown: ${reason}`);
     }
     if (!captured) {
       return this.failDeposit(booking, payment, 'acquiring declined the deposit');
@@ -204,19 +248,26 @@ export class DepositFlow {
     payment.markDepositPaid(receipt?.check_id ?? checkId);
     await this.deps.payments.save(payment);
 
-    const confirmedHold = await this.captureHold(booking, now);
-    if (!confirmedHold) {
-      // Гонка: гроші списалися, коли вікно вже минуло. Візит не підтверджуємо,
-      // щоб не привʼязати оплату до крісла, яке вже могло дістатися іншому.
-      booking.depositStatus = 'expired';
-      await this.deps.bookings.save(booking);
+    const holdOutcome = await this.captureHold(booking, now);
+    if (holdOutcome !== 'captured' && holdOutcome !== 'already_captured') {
+      // Гонка: гроші списалися, коли утримання вже не наше. Візит не
+      // підтверджуємо, щоб не привʼязати оплату до вільного крісла; одразу
+      // ініціюємо повернення, а на збої платіж лишається для retry T-094.
+      const refund = await this.refundLateCapture(booking, payment, depositAmount);
+      // Refund and hold-expiry effects write the booking themselves; reload so
+      // the expired deposit does not overwrite their status/refund fields.
+      const latestBooking = (await this.deps.bookings.findById(booking.id)) ?? booking;
+      latestBooking.depositStatus = 'expired';
+      await this.deps.bookings.save(latestBooking);
+      const latestPayment = (await this.deps.payments.findById(payment.id)) ?? payment;
       return {
-        booking,
+        booking: latestBooking,
         outcome: 'expired',
-        payment,
+        payment: latestPayment,
         depositAmount,
         requiresBalance: depositAmount < price,
-        failureReason: 'deposit_hold_expired_after_capture',
+        failureReason: `deposit_hold_${holdOutcome}_after_capture`,
+        ...(refund ? { refund } : {}),
       };
     }
 
@@ -245,6 +296,105 @@ export class DepositFlow {
   }
 
   /**
+   * Read-only reconciliation for a lost POST response: reports what the stored
+   * booking and payments prove. It never calls the acquiring gateway.
+   */
+  async status(bookingId: string): Promise<DepositFlowResult> {
+    const booking = await this.deps.bookings.findById(bookingId);
+    if (!booking) throw new Error(`Booking ${bookingId} not found`);
+
+    const price = booking.finalPrice ?? 0;
+    if (!booking.requiresPayment || price <= 0) {
+      return { booking, outcome: 'complimentary', depositAmount: 0, requiresBalance: false };
+    }
+
+    const existing = await this.deps.payments.findByAppointmentId(booking.id);
+    const paidDeposit = existing.find((payment) => isCapturedPaymentStatus(payment.status));
+    if (paidDeposit) {
+      return {
+        booking,
+        outcome: 'already_paid',
+        payment: paidDeposit,
+        depositAmount: paidDeposit.amount,
+        requiresBalance: paidDeposit.amount < price,
+      };
+    }
+
+    const depositAmount = this.resolveDepositAmount(booking);
+    if (depositAmount <= 0) {
+      return { booking, outcome: 'no_deposit', depositAmount: 0, requiresBalance: price > 0 };
+    }
+
+    const holdRecord = await this.deps.holds?.find?.(booking.id);
+    const expiresAt = holdRecord ? { expiresAt: holdRecord.expiresAt.toISOString() } : {};
+    const failed = existing.find((payment) => payment.status === PaymentStatus.CANCELLED);
+    const now = this.deps.clock?.now() ?? new Date();
+    const holdState = await this.holdStatus(booking, now);
+    if (holdState !== 'ok') {
+      return failed || booking.depositStatus === 'failed'
+        ? {
+            booking,
+            outcome: 'failed',
+            ...(failed ? { payment: failed } : {}),
+            depositAmount: 0,
+            requiresBalance: price > 0,
+            failureReason: failed?.refundReason ?? 'deposit capture failed',
+          }
+        : {
+            booking,
+            outcome: 'expired',
+            depositAmount: 0,
+            requiresBalance: price > 0,
+            failureReason: `deposit_hold_${holdState}`,
+            ...expiresAt,
+          };
+    }
+
+    const pending = existing.find(
+      (payment) =>
+        payment.status === PaymentStatus.AWAITING_DEPOSIT && payment.amount === depositAmount
+    );
+    if (pending) {
+      return {
+        booking,
+        outcome: 'pending',
+        payment: pending,
+        depositAmount,
+        requiresBalance: depositAmount < price,
+        ...expiresAt,
+      };
+    }
+
+    if (failed || booking.depositStatus === 'failed') {
+      return {
+        booking,
+        outcome: 'failed',
+        ...(failed ? { payment: failed } : {}),
+        depositAmount: 0,
+        requiresBalance: price > 0,
+        failureReason: failed?.refundReason ?? 'deposit capture failed',
+      };
+    }
+
+    if (booking.depositStatus === CAPTURED_DEPOSIT) {
+      return {
+        booking,
+        outcome: 'already_paid',
+        depositAmount,
+        requiresBalance: depositAmount < price,
+      };
+    }
+
+    return {
+      booking,
+      outcome: 'pending',
+      depositAmount,
+      requiresBalance: depositAmount < price,
+      ...expiresAt,
+    };
+  }
+
+  /**
    * PAY-ADM-09: джерело істини — снепшот візиту, а не поточна політика.
    * Зміна налаштувань діє лише на нові записи; `null` — депозит вимкнено
    * (або округлення дало 0, тобто конфіг поводиться як «вимкнено»).
@@ -255,21 +405,53 @@ export class DepositFlow {
 
   /**
    * `ok` — крісло ще наше (утримання активне або вже підтверджене); інакше —
-   * причина відмови, щоб клієнт бачив, чи вікно минуло, чи візит скасовано.
+   * причина відмови. Відсутнє утримання — теж відмова: брати гроші за крісло,
+   * яке ніхто не тримав, небезпечніше за помилку.
    */
-  private async holdStatus(booking: Booking, now: Date): Promise<'ok' | 'expired' | 'cancelled'> {
+  private async holdStatus(
+    booking: Booking,
+    now: Date
+  ): Promise<'ok' | 'expired' | 'cancelled' | 'missing'> {
     if (!this.deps.holds) return 'ok';
-    if (!this.deps.holds.status) return 'ok';
     const status = await this.deps.holds.status(booking.id, now);
-    if (status === 'expired') return 'expired';
-    if (status === 'cancelled') return 'cancelled';
-    return 'ok';
+    return status === 'active' || status === 'captured' ? 'ok' : status;
   }
 
-  private async captureHold(booking: Booking, now: Date): Promise<boolean> {
-    if (!this.deps.holds) return true;
-    const { outcome } = await this.deps.holds.capture(booking.id, now);
-    return outcome !== 'expired' && outcome !== 'cancelled';
+  private async captureHold(
+    booking: Booking,
+    now: Date
+  ): Promise<'captured' | 'already_captured' | 'expired' | 'cancelled' | 'missing'> {
+    if (!this.deps.holds) return 'captured';
+    return (await this.deps.holds.capture(booking.id, now)).outcome;
+  }
+
+  /** Пізній capture не підтверджує візит; гроші повертаємо, не змінюючи результат. */
+  private async refundLateCapture(
+    booking: Booking,
+    payment: Payment,
+    amount: number
+  ): Promise<DepositFlowResult['refund']> {
+    if (!this.deps.lateCaptureRefunds) return undefined;
+    try {
+      const refund = await this.deps.lateCaptureRefunds.refundLateCapture({
+        bookingId: booking.id,
+        paymentId: payment.id,
+        amount,
+      });
+      if (!refund) return { status: 'failed', failureReason: 'refund_not_created' };
+      return {
+        status: refund.status,
+        refundId: refund.refundId,
+        ...(refund.adminNote ? { failureReason: refund.adminNote } : {}),
+      };
+    } catch (error) {
+      // Refund failure is surfaced instead of pretending money moved; the
+      // payment stays visible for T-094 retry.
+      return {
+        status: 'failed',
+        failureReason: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 
   private newPayment(booking: Booking, amount: number, now: Date): Payment {
@@ -306,11 +488,25 @@ export class DepositFlow {
     }
   }
 
+  private unknownDeposit(booking: Booking, payment: Payment, reason: string): DepositFlowResult {
+    return {
+      booking,
+      outcome: 'unknown',
+      payment,
+      depositAmount: payment.amount,
+      requiresBalance: (booking.finalPrice ?? 0) > 0,
+      failureReason: reason,
+    };
+  }
+
   private async failDeposit(
     booking: Booking,
     payment: Payment,
     reason: string
   ): Promise<DepositFlowResult> {
+    // T-4619a: відмова/помилка еквайрингу звільняє крісло негайно, інакше
+    // невдала оплата тримає його до закінчення 15-хвилинного вікна.
+    await this.deps.holds?.release(booking.id);
     payment.failCapture(reason);
     await this.deps.payments.save(payment);
     booking.depositStatus = 'failed';

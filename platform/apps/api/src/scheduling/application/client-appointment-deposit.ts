@@ -4,6 +4,16 @@ import { freeCancelDeadline } from '../domain/deposit-terms';
 
 export type ClientDepositHoldStatus = 'active' | 'captured' | 'expired' | 'cancelled';
 
+/**
+ * Повернення депозиту в кабінеті (T-094): клієнт бачить, що гроші їдуть назад,
+ * а не лише зникаючий візит. Статуси — RefundStatus із billing.
+ */
+export interface ClientDepositRefundView {
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  /** Сума повернення в грн; completed — фактично повернута. */
+  amount: number;
+}
+
 export interface ClientDepositView {
   amount: number;
   freeCancelUntil: string;
@@ -21,7 +31,8 @@ export function toClientDeposit(
     cancellationWindowHours: number | null;
     start: Date;
   },
-  hold?: { expiresAt: Date; status: string } | null
+  hold?: { expiresAt: Date; status: string } | null,
+  refund?: { status: string; amount: number | null } | null
 ): ClientDepositView | null {
   if (row.depositAmount === null || row.depositAmount <= 0) return null;
   if (row.cancellationWindowHours === null) return null;
@@ -29,6 +40,7 @@ export function toClientDeposit(
   const terms: ClientDepositView = {
     amount: row.depositAmount,
     freeCancelUntil: deadline.toISOString(),
+    ...(refund ? { refund: toRefundView(row.depositAmount, refund) } : {}),
   };
   if (!hold) return terms;
   return {
@@ -36,5 +48,15 @@ export function toClientDeposit(
     bookingId: row.id,
     expiresAt: hold.expiresAt.toISOString(),
     holdStatus: hold.status as ClientDepositHoldStatus,
+  };
+}
+
+function toRefundView(
+  depositAmount: number,
+  refund: { status: string; amount: number | null }
+): ClientDepositRefundView {
+  return {
+    status: refund.status as ClientDepositRefundView['status'],
+    amount: refund.amount ?? depositAmount,
   };
 }

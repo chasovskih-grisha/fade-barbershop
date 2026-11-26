@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- одна матриця контракту кабінету; фікстури винесені в .fakes */
 // ListClientAppointments (T-041): мапер рядків booking у картки кабінету —
 // словник статусів, імена довідників, ID фото (не URL: бакет приватний).
 // Порожній список не чіпає довідники. Фікстури — list-client-appointments.fakes.ts.
@@ -22,9 +23,11 @@ describe('ListClientAppointments', () => {
     expect(prisma.depositHold.findMany).not.toHaveBeenCalled();
   });
 
-  it('мапить booked у картку кабінету з іменами', async () => {
-    const [view] = await handle([bookingRow()]);
+  it('мапить booked у картку кабінету з іменами і джерелом (PAY-ONS-01)', async () => {
+    const [view] = await handle([bookingRow({ source: 'walk_in' })]);
+    const legacy = await handle([bookingRow({ source: null })]);
 
+    expect(legacy[0]?.source).toBe('web');
     expect(view).toMatchObject({
       id: 'apt-1',
       date: '2026-09-28',
@@ -35,6 +38,7 @@ describe('ListClientAppointments', () => {
       locationName: 'Поділ',
       price: 700,
       status: 'upcoming',
+      source: 'walk_in',
       referenceId: 'photo-1',
       referenceComment: 'коротше',
       canEditReference: true,
@@ -105,6 +109,36 @@ describe('ListClientAppointments', () => {
 
     expect(single?.canBookAgain).toBe(true);
     expect(party?.canBookAgain).toBe(false);
+  });
+
+  it('показує повернення депозиту, яке вже почалося (T-094)', async () => {
+    const { prisma } = prismaOf(
+      [bookingRow()],
+      [],
+      [{ bookingId: 'bk-1', refundStatus: 'processing', capturedRefundAmount: null }]
+    );
+
+    const [view] = await new ListClientAppointments(prisma as never).handle('user-1');
+
+    expect(view?.deposit?.refund).toEqual({ status: 'processing', amount: 210 });
+  });
+
+  it('називає фактично повернену суму, коли повернення завершене', async () => {
+    const { prisma } = prismaOf(
+      [bookingRow()],
+      [],
+      [{ bookingId: 'bk-1', refundStatus: 'completed', capturedRefundAmount: 100 }]
+    );
+
+    const [view] = await new ListClientAppointments(prisma as never).handle('user-1');
+
+    expect(view?.deposit?.refund).toEqual({ status: 'completed', amount: 100 });
+  });
+
+  it('без повернення поле відсутнє, а не нульове', async () => {
+    const [view] = await handle([bookingRow()]);
+
+    expect(view?.deposit).not.toHaveProperty('refund');
   });
 
   it('віддає ID фото, а не URL: бакет приватний (ADR 0008 §2), REF-WEB-03', async () => {

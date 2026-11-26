@@ -73,7 +73,13 @@ function receipts(): DepositReceiptGateway & {
   };
 }
 
-function harness(options: { entitle?: Booking; capture?: boolean | Error } = {}): {
+function harness(
+  options: {
+    entitle?: Booking;
+    capture?: boolean | Error;
+    hold?: 'active' | 'expired' | 'cancelled' | 'missing';
+  } = {}
+): {
   flow: DepositFlow;
   bookings: InMemoryBookingPaymentRepository;
   payments: InMemoryAppointmentPaymentRepository;
@@ -94,6 +100,19 @@ function harness(options: { entitle?: Booking; capture?: boolean | Error } = {})
     receipts: fiscal,
     events: { publish: async (event) => void events.push(event) },
     clock: { now: () => START },
+    ...(options.hold
+      ? {
+          holds: {
+            status: async () => options.hold ?? 'active',
+            capture: async () => ({ outcome: 'captured' as const }),
+            release: async () => true,
+            find: async () => ({
+              expiresAt: new Date(START.getTime() + 15 * 60_000),
+              status: options.hold ?? 'active',
+            }),
+          },
+        }
+      : {}),
   });
   return { flow, bookings, payments, capture, fiscal, events };
 }
@@ -187,16 +206,102 @@ describe('DepositFlow (T-091)', () => {
     expect(events).toHaveLength(0);
   });
 
-  it('treats an acquirer exception as a charge failure and never issues a receipt', async () => {
+  it('reports an acquirer exception as unknown, not as a decline', async () => {
     const target = booking();
-    const { flow, fiscal } = harness({ entitle: target, capture: new Error('timeout') });
+    const { flow, fiscal, events } = harness({
+      entitle: target,
+      capture: new Error('timeout'),
+    });
 
     const result = await flow.execute(target.id);
 
-    expect(result.outcome).toBe('failed');
+    expect(result.outcome).toBe('unknown');
     expect(result.failureReason).toContain('timeout');
-    expect(result.payment?.status).toBe(PaymentStatus.CANCELLED);
+    expect(result.payment?.status).toBe(PaymentStatus.AWAITING_DEPOSIT);
+    expect(target.depositStatus).toBeNull();
     expect(fiscal.calls).toHaveLength(0);
+    expect(events).toHaveLength(0);
+  });
+
+  it('reconciles a paid deposit without charging again', async () => {
+    const target = booking();
+    const h = harness({ entitle: target });
+
+    await h.flow.execute(target.id);
+    const result = await h.flow.status(target.id);
+
+    expect(result.outcome).toBe('already_paid');
+    expect(result.payment?.status).toBe(PaymentStatus.DEPOSIT_PAID);
+    expect(h.capture.calls).toHaveLength(1);
+  });
+
+  it('reports the server hold deadline while payment is still pending', async () => {
+    const target = booking();
+    const h = harness({ entitle: target, hold: 'active' });
+    await h.payments.save(
+      new Payment({
+        id: 'pay-pending',
+        appointmentId: target.id,
+        clientId: 'client-1',
+        amount: 150,
+        form: PaymentForm.CARD,
+        status: PaymentStatus.AWAITING_DEPOSIT,
+        traceId: 'deposit-pending',
+        createdAt: START,
+        updatedAt: START,
+      })
+    );
+
+    const result = await h.flow.status(target.id);
+
+    expect(result.outcome).toBe('pending');
+    expect(result.expiresAt).toBe('2026-12-01T10:15:00.000Z');
+  });
+
+  it('reports an in-flight capture as pending', async () => {
+    const target = booking();
+    const h = harness({ entitle: target });
+    await h.payments.save(
+      new Payment({
+        id: 'pay-pending',
+        appointmentId: target.id,
+        clientId: 'client-1',
+        amount: 150,
+        form: PaymentForm.CARD,
+        status: PaymentStatus.AWAITING_DEPOSIT,
+        traceId: 'deposit-pending',
+        createdAt: START,
+        updatedAt: START,
+      })
+    );
+
+    const result = await h.flow.status(target.id);
+
+    expect(result.outcome).toBe('pending');
+    expect(result.payment?.id).toBe('pay-pending');
+    expect(h.capture.calls).toHaveLength(0);
+  });
+
+  it('reconciles a declined capture as failed', async () => {
+    const target = booking();
+    const h = harness({ entitle: target, capture: false });
+
+    await h.flow.execute(target.id);
+    const result = await h.flow.status(target.id);
+
+    expect(result.outcome).toBe('failed');
+    expect(result.payment?.status).toBe(PaymentStatus.CANCELLED);
+  });
+
+  it('reconciles an expired hold as expired', async () => {
+    const target = booking();
+    const h = harness({ entitle: target, hold: 'expired' });
+
+    const result = await h.flow.status(target.id);
+
+    expect(result.outcome).toBe('expired');
+    expect(result.failureReason).toContain('deposit_hold_expired');
+    expect(h.capture.calls).toHaveLength(0);
   });
 
   it('keeps the payment paid when the fiscal provider throws after capture', async () => {

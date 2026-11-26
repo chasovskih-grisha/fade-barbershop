@@ -60,6 +60,18 @@ function receipts(): DepositReceiptGateway & {
         created_at: new Date(),
       };
     },
+    findReceipt(checkId: string): CheckboxReceipt | null {
+      const call = calls.find((entry) => entry.checkId === checkId);
+      return call
+        ? {
+            check_id: checkId,
+            type: call.type,
+            amount: call.amount,
+            status: 'signed',
+            created_at: new Date(),
+          }
+        : null;
+    },
   };
 }
 
@@ -213,6 +225,61 @@ describe('OnsitePayment (T-093)', () => {
     expect(result.payment?.status).toBe(PaymentStatus.PAID);
     expect(result.receipt).toBeUndefined();
     expect(h.events).toHaveLength(1);
+  });
+
+  it('reports the non-editable remainder before payment', async () => {
+    const h = harness();
+
+    const status = await h.payment.status(h.target.id);
+
+    expect(status).toMatchObject({
+      finalPrice: 500,
+      depositAmount: 150,
+      amountDue: 350,
+      outstanding: 350,
+      paymentStatus: 'unpaid',
+      receipt: null,
+    });
+  });
+
+  it('reports the paid remainder and signed receipt on the card', async () => {
+    const h = harness();
+    await h.payment.execute({ bookingId: h.target.id, form: PaymentForm.CASH, by: 'barber-1' });
+
+    const status = await h.payment.status(h.target.id);
+
+    expect(status).toMatchObject({
+      amountDue: 350,
+      outstanding: 0,
+      paymentStatus: PaymentStatus.PAID,
+      form: PaymentForm.CASH,
+    });
+    expect(status.receipt).toMatchObject({
+      check_id: `remainder_${h.target.id}`,
+      status: 'signed',
+    });
+  });
+
+  it('retries the same receipt id without charging again', async () => {
+    const h = harness();
+    await h.payment.execute({ bookingId: h.target.id, form: PaymentForm.CASH, by: 'barber-1' });
+    h.fiscal.calls.length = 0;
+
+    const result = await h.payment.retryReceipt(h.target.id);
+
+    expect(result.outcome).toBe('signed');
+    expect(result.receipt?.check_id).toBe(`remainder_${h.target.id}`);
+    expect(h.fiscal.calls).toEqual([
+      { amount: 350, type: CheckboxReceiptType.Remainder, checkId: `remainder_${h.target.id}` },
+    ]);
+    expect(h.capture.calls).toHaveLength(0);
+  });
+
+  it('does not retry a receipt before the remainder is paid', async () => {
+    const h = harness();
+
+    expect(await h.payment.retryReceipt(h.target.id)).toEqual({ outcome: 'not_paid' });
+    expect(h.fiscal.calls).toHaveLength(0);
   });
 
   it('never charges a complimentary visit', async () => {

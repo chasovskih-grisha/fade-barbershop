@@ -1,7 +1,10 @@
 /* eslint-disable max-params -- Checkbox receipt signature is fixed by the existing DepositReceiptGateway port (4 args). */
 import { Injectable } from '@nestjs/common';
 import { StripeAcquiringGateway } from '../../billing/infrastructure/stripe-acquiring.gateway';
-import type { DepositCaptureGateway, DepositReceiptGateway } from '../application/deposit-flow.use-case';
+import type {
+  DepositCaptureGateway,
+  DepositReceiptGateway,
+} from '../application/deposit-flow.use-case';
 import type { ExpenditureReceiptGateway } from '../application/refund.use-case';
 import {
   CheckboxFiscalGateway,
@@ -40,6 +43,10 @@ export class CheckboxPaymentReceiptGateway implements DepositReceiptGateway {
     checkId?: string
   ): Promise<CheckboxReceipt> {
     return this.checkbox.issueReceipt(bookingId, amount, type, checkId);
+  }
+
+  findReceipt(checkId: string): CheckboxReceipt | null {
+    return this.checkbox.findReceipt(checkId);
   }
 }
 

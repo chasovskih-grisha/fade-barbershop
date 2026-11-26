@@ -67,20 +67,19 @@ export class ProcessStripeWebhookHandler {
   async handle(input: ProcessStripeWebhookInput): Promise<ProcessStripeWebhookResult> {
     const eventId = input.eventId || input.eventObject.id;
 
-    // Strict Webhook Idempotency Check
+    // Strict Webhook Idempotency Check. Повторна доставка все одно називає
+    // платіж: після краху між handler-ом і закриттям крісла redelivery мусить
+    // довести settlement до кінця, а не загубити його.
     if (eventId && this.processedEventIds.has(eventId)) {
-      return { processed: true, alreadyProcessed: true };
+      const existingPayment = await this.findPayment(input);
+      return {
+        processed: true,
+        alreadyProcessed: true,
+        ...(existingPayment ? { paymentId: existingPayment.id } : {}),
+      };
     }
 
-    const metadataPaymentId = input.eventObject.metadata?.paymentId;
-    let payment: Payment | null = null;
-
-    if (metadataPaymentId) {
-      payment = await this.ctx.payments.findById(metadataPaymentId);
-    }
-    if (!payment && input.eventObject.id) {
-      payment = await this.ctx.payments.findByProviderSessionId(input.eventObject.id);
-    }
+    const payment = await this.findPayment(input);
 
     if (!payment) {
       const now = this.ctx.clock.now();
@@ -104,6 +103,17 @@ export class ProcessStripeWebhookHandler {
       this.processedEventIds.add(eventId);
     }
     return res;
+  }
+
+  /** Платіж за `metadata.paymentId`, далі — за провайдерським session id. */
+  private async findPayment(input: ProcessStripeWebhookInput): Promise<Payment | null> {
+    const metadataPaymentId = input.eventObject.metadata?.paymentId;
+    if (metadataPaymentId) {
+      const byMetadata = await this.ctx.payments.findById(metadataPaymentId);
+      if (byMetadata) return byMetadata;
+    }
+    if (!input.eventObject.id) return null;
+    return this.ctx.payments.findByProviderSessionId(input.eventObject.id);
   }
 
   private async processEventForPayment(

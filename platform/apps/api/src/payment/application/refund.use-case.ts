@@ -13,7 +13,7 @@ import { uuidv7 } from '@fade/domain-shared';
 import type { Booking } from '../../scheduling/domain/booking';
 import { DEFAULT_DEPOSIT_POLICY } from '../../scheduling/domain/deposit-terms';
 import type { AcquiringGateway } from '../../billing/domain/acquiring.gateway.interface';
-import { isCapturedPaymentStatus } from '../../billing/domain/payment-status.enum';
+import { PaymentForm, isCapturedPaymentStatus } from '../../billing/domain/payment-status.enum';
 import { RefundReason, RefundStatus, type RefundEntity } from '../domain/refund.entity';
 import type { AppointmentPaymentRepository } from './deposit-flow.use-case';
 
@@ -48,6 +48,9 @@ interface RefundMetadataRecord {
   completedAt?: string;
   receiptId?: string;
   retryCount?: number;
+  retryKind?: 'provider' | 'receipt';
+  providerRetries?: number;
+  receiptRetries?: number;
   note?: string;
   allocations?: RefundAllocation[];
 }
@@ -61,6 +64,10 @@ const REASON_BY_CODE: Record<string, RefundReason> = {
   FRAUD_PREVENTION: RefundReason.FRAUD_PREVENTION,
   DUPLICATE_BOOKING: RefundReason.DUPLICATE_BOOKING,
   SYSTEM_ERROR: RefundReason.SYSTEM_ERROR,
+  // T-4619a: capture arrived after the chair hold was already lost.
+  LATE_CAPTURE: RefundReason.SYSTEM_ERROR,
+  // T-4616a/ADR 0056: барбер недоступний — адмінське скасування, не «хвороба».
+  BARBER_UNAVAILABLE: RefundReason.ADMIN_WITHDRAWAL,
 };
 
 function refundMethodOf(value: string | null): RefundEntity['paymentMethod'] {
@@ -79,6 +86,12 @@ function readMetadata(raw: string | null): RefundMetadataRecord {
     if (typeof record.completedAt === 'string') metadata.completedAt = record.completedAt;
     if (typeof record.receiptId === 'string') metadata.receiptId = record.receiptId;
     if (typeof record.retryCount === 'number') metadata.retryCount = record.retryCount;
+    if (record.retryKind === 'provider' || record.retryKind === 'receipt') {
+      metadata.retryKind = record.retryKind;
+    }
+    if (typeof record.providerRetries === 'number')
+      metadata.providerRetries = record.providerRetries;
+    if (typeof record.receiptRetries === 'number') metadata.receiptRetries = record.receiptRetries;
     if (typeof record.note === 'string') metadata.note = record.note;
     if (Array.isArray(record.allocations)) {
       metadata.allocations = record.allocations.flatMap((entry) => {
@@ -166,6 +179,10 @@ export class T094Refund {
       throw new Error(`Invalid refund amount ${amount ?? 0}`);
     }
     const validatedAmount = Math.round(requested);
+    // 0.4 rounds to 0: reject it before a zero-value provider/receipt call.
+    if (!Number.isSafeInteger(validatedAmount) || validatedAmount <= 0) {
+      throw new Error(`Invalid refund amount ${requested}`);
+    }
     if (validatedAmount > capturedTotal) {
       throw new Error(
         `Refund amount ${validatedAmount} exceeds available captured amount ${capturedTotal}`
@@ -190,6 +207,27 @@ export class T094Refund {
   }
 
   /** PAY-009: повторна команда еквайрингу після `failed`. */
+  /**
+   * T-4619c: captured-депозит, чиє утримання втрачено до підтвердження.
+   * Використовує той самий ідемпотентний refund-шлях, що й скасування.
+   */
+  async refundLateCapture(input: {
+    bookingId: string;
+    paymentId: string;
+    amount: number;
+  }): Promise<RefundEntity | null> {
+    const booking = await this.bookingRepo.findById(input.bookingId);
+    if (!booking) return null;
+    if (booking.refundId) return this.toEntity(booking);
+    const { refund } = await this.initiateRefund(
+      input.bookingId,
+      input.amount,
+      'SYSTEM_ERROR',
+      `late_capture_${input.paymentId}`
+    );
+    return refund;
+  }
+
   async retryRefund(refundId: string): Promise<RefundEntity> {
     const booking = await this.findByRefundId(refundId);
     if (!booking) throw new Error(`Refund ${refundId} not found`);
@@ -197,16 +235,25 @@ export class T094Refund {
       throw new Error(`Refund ${refundId} is not in failed status`);
     }
     const metadata = readMetadata(booking.refundMetadata);
-    const retryCount = metadata.retryCount ?? 0;
+    const retryKind = metadata.retryKind ?? 'provider';
+    const retryCount =
+      retryKind === 'receipt'
+        ? (metadata.receiptRetries ?? metadata.retryCount ?? 0)
+        : (metadata.providerRetries ?? metadata.retryCount ?? 0);
     if (retryCount >= MAX_REFUND_RETRIES) {
-      throw new Error(`Maximum refund retry attempts (${MAX_REFUND_RETRIES}) reached`);
+      throw new Error(
+        `Maximum refund retry attempts (${retryKind}, ${MAX_REFUND_RETRIES}) reached`
+      );
     }
 
     const at = this.now();
     booking.refundStatus = RefundStatus.PROCESSING;
     booking.refundMetadata = JSON.stringify({
       ...metadata,
-      retryCount: retryCount + 1,
+      retryCount: (metadata.retryCount ?? 0) + 1,
+      ...(retryKind === 'receipt'
+        ? { receiptRetries: retryCount + 1 }
+        : { providerRetries: retryCount + 1 }),
       allocations: metadata.allocations ?? [],
     });
     await this.bookingRepo.save(booking);
@@ -283,6 +330,7 @@ export class T094Refund {
     booking.refundStatus = RefundStatus.FAILED;
     booking.refundMetadata = JSON.stringify({
       ...metadata,
+      retryKind: 'receipt',
       note: result.error ?? 'expenditure receipt failed',
     });
     await this.bookingRepo.save(booking);
@@ -301,11 +349,13 @@ export class T094Refund {
     metadata: RefundMetadataRecord
   ): Promise<{ failed: boolean; relatedReceiptId?: string }> {
     const paymentRepo = this.payments;
-    const acquiring = this.acquiring;
-    if (!paymentRepo || !acquiring) {
-      return this.failRefund(booking, metadata, [], 'acquiring_not_configured');
+    if (!paymentRepo) {
+      return this.failRefund(booking, metadata, [], 'payment repository not configured');
     }
     const payments = await paymentRepo.findByAppointmentId(booking.id);
+    // Capture the original fiscal receipt before completeRefund overwrites
+    // `receiptId` with the refund's own receipt id.
+    const relatedReceiptId = payments.find((payment) => payment.receiptId)?.receiptId;
     let allocations = metadata.allocations ?? [];
     let remaining = amount - allocations.reduce((sum, item) => sum + item.amount, 0);
 
@@ -315,20 +365,30 @@ export class T094Refund {
       const available = Math.max(0, payment.amount - payment.refundedAmount);
       if (available <= 0) continue;
       const portion = Math.min(available, remaining);
+      const cash = payment.form === PaymentForm.CASH;
+      if (!cash && !this.acquiring) {
+        return this.failRefund(booking, metadata, allocations, 'acquiring_not_configured');
+      }
       try {
-        const result = await acquiring.refundPayment({
-          providerSessionId: payment.id,
-          amount: portion,
-          reason: booking.refundReason ?? 'refund',
-          traceId: refundId,
-          idempotencyKey: `${refundId}:${payment.id}`,
-        });
+        // Cash never had an acquirer session: settle it with the expenditure
+        // receipt only, while keeping the ledger allocation idempotent.
+        const providerRefundId = cash
+          ? `cash_${refundId}_${payment.id}`
+          : (
+              await this.acquiring!.refundPayment({
+                providerSessionId: payment.id,
+                amount: portion,
+                reason: booking.refundReason ?? 'refund',
+                traceId: refundId,
+                idempotencyKey: `${refundId}:${payment.id}`,
+              })
+            ).refundId;
         payment.initiateRefund(booking.refundReason ?? 'refund', portion);
-        payment.completeRefund(result.refundId, portion);
+        payment.completeRefund(providerRefundId, portion);
         await paymentRepo.save(payment);
         allocations = [
           ...allocations,
-          { paymentId: payment.id, amount: portion, refundId: result.refundId },
+          { paymentId: payment.id, amount: portion, refundId: providerRefundId },
         ];
         remaining -= portion;
         metadata.allocations = allocations;
@@ -347,7 +407,6 @@ export class T094Refund {
     if (remaining > 0) {
       return this.failRefund(booking, metadata, allocations, 'no_captured_payment_balance');
     }
-    const relatedReceiptId = payments.find((payment) => payment.receiptId)?.receiptId;
     return { failed: false, ...(relatedReceiptId ? { relatedReceiptId } : {}) };
   }
 
@@ -358,7 +417,12 @@ export class T094Refund {
     reason: string
   ): Promise<{ failed: true }> {
     booking.refundStatus = RefundStatus.FAILED;
-    booking.refundMetadata = JSON.stringify({ ...metadata, allocations, note: reason });
+    booking.refundMetadata = JSON.stringify({
+      ...metadata,
+      retryKind: 'provider',
+      allocations,
+      note: reason,
+    });
     await this.bookingRepo.save(booking);
     return { failed: true };
   }
