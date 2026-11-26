@@ -9,7 +9,6 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
-  Inject,
   Param,
   Post,
   Query,
@@ -70,9 +69,9 @@ export class AdminBarberUnavailabilityController {
     private readonly mark: MarkBarberUnavailable,
     private readonly list: ListShiftConflicts,
     private readonly resolve: ResolveShiftConflict,
-    // Обов'язковий: PaymentModule реєструє провайдер, тож відсутність — помилка
-    // збірки модуля, а не тихий пропуск повернення (T-4616b).
-    @Inject(BarberCancelSettlement)
+    // Обов'язковий: PaymentModule (цей самий модуль) реєструє провайдер, тож
+    // його відсутність ламає збірку модуля, а не тихо лишає скасування без
+    // повернення (T-4616b).
     private readonly cancellationMoney: BarberCancelSettlement
   ) {}
 
@@ -126,20 +125,17 @@ export class AdminBarberUnavailabilityController {
     @Req() req: Request
   ): Promise<{ outcomes: ResolveManyOutcome[] }> {
     const actor = adminActor(req);
-    const commands = (body.decisions ?? []).map((decision) =>
-      toCommand(decision.conflictId, decision, actor.actorId)
+    const outcomes = await this.resolve.executeMany(
+      (body.decisions ?? []).map((decision) =>
+        toCommand(decision.conflictId, decision, actor.actorId)
+      )
     );
-    // Гроші — після кожного окремого рішення: партія скасовується разом, але
-    // відмова повернення по одній нозі не відкочує інші.
-    const outcomes: Awaited<ReturnType<ResolveShiftConflict['executeMany']>> = [];
-    for (const command of commands) {
-      const [outcome] = await this.resolve.executeMany([command]);
-      if (!outcome) continue;
-      // Гроші йдуть за скасованими візитами, а не за id конфлікту.
+    // Гроші — за скасованими візитами, після кожного окремого рішення: партія
+    // скасовується разом, але відмова повернення по одній нозі не відкочує інші.
+    for (const outcome of outcomes) {
       if (outcome.status === 'resolved' && outcome.cancelledBookingIds?.length) {
         await this.settleCancelled(outcome.cancelledBookingIds);
       }
-      outcomes.push(outcome);
     }
     return { outcomes };
   }

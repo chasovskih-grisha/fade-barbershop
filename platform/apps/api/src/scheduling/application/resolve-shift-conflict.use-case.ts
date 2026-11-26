@@ -6,9 +6,11 @@
 import { barbersForService } from '../domain/barber-service-matrix';
 import { InvalidSlotError } from '../domain/slot-validator';
 import { canReassignConflict, type ShiftConflictData } from '../domain/barber-unavailability';
-import type { ShiftConflictRepository } from '../domain/shift-conflict-ports';
+import type {
+  BarberUnavailabilityRepository,
+  ShiftConflictRepository,
+} from '../domain/shift-conflict-ports';
 import type { BarberServiceAssignmentRepository } from '../domain/ports.barber-service-assignment';
-import type { BarberUnavailabilityRepository } from '../domain/shift-conflict-ports';
 import { isDayOff, type DayOffRepository } from '../domain/day-off';
 import type { UnitOfWork } from '../../locations/domain/ports';
 import type { RescheduleCommand } from './reschedule-appointment.types';

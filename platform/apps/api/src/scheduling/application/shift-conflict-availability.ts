@@ -26,25 +26,26 @@ export class SchedulingShiftConflictAvailability implements ShiftConflictAvailab
   async hasOtherBarber(conflict: ShiftConflictData): Promise<boolean> {
     const location = await this.deps.locations.findById(conflict.locationId);
     if (!location) return false;
-    const schedules = await this.deps.schedules.listAllByLocation(conflict.locationId);
-    const candidates = new Set(
-      schedules.map((schedule) => schedule.getBarberId()).filter((id) => id !== conflict.barberId)
+    const others = (await this.deps.schedules.listAllByLocation(conflict.locationId)).filter(
+      (schedule) => schedule.getBarberId() !== conflict.barberId
     );
-    if (candidates.size === 0) return false;
+    if (others.length === 0) return false;
+    const othersIds = others.map((schedule) => schedule.getBarberId());
 
+    // Той самий фільтр кваліфікації, що й у переносі; без послуги — усі, хто має графік.
     const qualified = conflict.serviceId
       ? barbersForService(
           (await this.deps.barberServices.snapshotForLocation(conflict.locationId)).matrix,
           { locationId: conflict.locationId, serviceId: conflict.serviceId },
-          candidates
+          othersIds
         )
-      : candidates;
+      : new Set(othersIds);
 
     const slot = slotOf(conflict);
     const duration = Math.round((conflict.end.getTime() - conflict.start.getTime()) / 60000);
-    for (const schedule of schedules) {
+    for (const schedule of others) {
       const barberId = schedule.getBarberId();
-      if (barberId === conflict.barberId || !qualified.has(barberId)) continue;
+      if (!qualified.has(barberId)) continue;
       try {
         new SlotValidator(schedule, location.hours, duration).validate(slot);
       } catch {

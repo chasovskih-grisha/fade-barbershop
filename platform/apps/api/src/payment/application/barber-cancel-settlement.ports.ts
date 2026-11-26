@@ -1,5 +1,6 @@
 // Порти й результати settlement скасованого візиту (T-4616a/ADR 0056 §7).
 // Винесено з use case за LOC-гейтом: сам клас — лише порядок кроків.
+import type { PaymentStatus } from '../../billing/domain/payment-status.enum';
 
 export const BARBER_UNAVAILABLE_REASON = 'BARBER_UNAVAILABLE';
 
@@ -14,7 +15,9 @@ export interface CancelSettlementBookings {
 }
 
 export interface CancelSettlementPayments {
-  findByAppointmentId(appointmentId: string): Promise<Array<{ amount: number; status: string }>>;
+  findByAppointmentId(
+    appointmentId: string
+  ): Promise<Array<{ amount: number; status: PaymentStatus }>>;
 }
 
 export interface CancelSettlementHolds {

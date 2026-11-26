@@ -37,7 +37,7 @@ export class BarberCancelSettlement {
     if (booking?.refundId) return replayed(booking, holdReleased);
 
     const payments = await this.deps.payments.findByAppointmentId(appointmentId);
-    const captured = payments.filter((payment) => isCapturedPaymentStatus(payment.status as never));
+    const captured = payments.filter((payment) => isCapturedPaymentStatus(payment.status));
     if (captured.length === 0) return { outcome: 'released_without_money', holdReleased };
 
     return this.refund(appointmentId, captured, holdReleased);

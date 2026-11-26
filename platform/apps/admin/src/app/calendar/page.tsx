@@ -11,6 +11,7 @@ import VisitCard from './VisitCard';
 import CalendarToolbar, { type ToolbarState } from './CalendarToolbar';
 import VisitsTable from './VisitsTable';
 import { useAdminCalendar } from './useAdminCalendar';
+import { ShiftConflictsPanel } from './ShiftConflictsPanel';
 
 /** Цивільна дата в локальній зоні. toISOString() — UTC, після півночі в Києві це вчора. */
 function localIsoDate(date: Date): string {
@@ -49,6 +50,8 @@ export default function CalendarPage() {
         title="Календар"
         subtitle="Візити мережі за день або тиждень; клік по рядку — дії життєвого циклу"
       />
+      {/* T-4616b: барбер став недоступним — візити потребують рішення. */}
+      <ShiftConflictsPanel />
       <CalendarToolbar
         state={filters}
         locations={locations}
