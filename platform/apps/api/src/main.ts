@@ -16,7 +16,9 @@ import { securityHeaders } from './shared/security/security-headers';
 const logger = new DailyFileLogger(join(process.cwd(), 'var', 'logs'));
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { logger });
+  // rawBody (T-091/PAY-006): підпис еквайрингу звіряється з байтами запиту,
+  // тому JSON-парсер лишає недоторкану копію тіла для /payment/webhooks/stripe.
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { logger, rawBody: true });
   app.use(securityHeaders);
   app.use(cookieParser());
   const corsOrigin = process.env.CORS_ORIGIN ?? 'http://localhost:13001';

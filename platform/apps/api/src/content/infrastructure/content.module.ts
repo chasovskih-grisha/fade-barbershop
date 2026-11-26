@@ -12,15 +12,23 @@ import { PrismaSeoBlockRepository } from './prisma-seo-block.repository';
 import { PrismaContentOutbox } from './prisma-content-outbox';
 import { PublicContentController } from './public-content.controller';
 import { AdminContentController } from './admin-content.controller';
+import { AdminArticlePreviewController } from './admin-article-preview.controller';
+import { PreviewArticleHandler } from '../application/preview-article';
 import { SeoBlockController } from './seo-block.controller';
 import { GetSeoBlockUseCase } from '../application/get-seo-block';
 import { UpdateSeoBlockUseCase } from '../application/update-seo-block';
 import { contentUseCaseProviders } from './content-use-case.providers';
 
 @Module({
-  controllers: [PublicContentController, AdminContentController, SeoBlockController],
+  controllers: [
+    PublicContentController,
+    AdminContentController,
+    AdminArticlePreviewController,
+    SeoBlockController,
+  ],
   providers: [
     PrismaService,
+    PreviewArticleHandler,
     { provide: PrismaClient, useExisting: PrismaService },
     PrismaUnitOfWork,
     PrismaArticleRepository,

@@ -20,7 +20,8 @@ type DepositPayload = {
   amount: number;
   expiresAt: string;
   serverNow: string;
-  resumeToken: string;
+  /** Лише для анонімного запису; іменований читає депозит сесією клієнта. */
+  resumeToken?: string;
 };
 import { ApiTags } from '@nestjs/swagger';
 import { BookAppointment } from '../application/book-appointment.use-case';
@@ -86,7 +87,7 @@ export class ClientBookingsController {
       );
       return {
         id: booking.id,
-        ...(await this.depositHoldOf(booking)),
+        ...(await this.depositHoldOf(booking, clientId)),
       };
     } catch (e) {
       throw this.toHttpError(e);
@@ -99,10 +100,10 @@ export class ClientBookingsController {
    * константи 15 хвилин. Без утримання (безкоштовний візит, нульовий депозит)
    * клієнт не бачить платіжного кроку.
    */
-  private async depositHoldOf(booking: {
-    id: string;
-    deposit: { amount: number } | null;
-  }): Promise<{ deposit?: DepositPayload }> {
+  private async depositHoldOf(
+    booking: { id: string; deposit: { amount: number } | null },
+    clientId: string | undefined
+  ): Promise<{ deposit?: DepositPayload }> {
     const amount = booking.deposit?.amount ?? 0;
     if (amount <= 0 || !this.deps.depositHolds?.find) return {};
     const hold = await this.deps.depositHolds.find(booking.id);
@@ -112,7 +113,9 @@ export class ClientBookingsController {
         amount,
         expiresAt: hold.expiresAt.toISOString(),
         serverNow: new Date().toISOString(),
-        resumeToken: depositResumeToken(booking.id),
+        // Анонімний запис не має сесії, тому отримує підписану капабіліті на
+        // читання власного депозиту. Іменованому вона не потрібна й не видається.
+        ...(clientId ? {} : { resumeToken: depositResumeToken(booking.id) }),
       },
     };
   }

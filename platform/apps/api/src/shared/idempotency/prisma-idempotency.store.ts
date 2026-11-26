@@ -18,6 +18,9 @@ export class PrismaIdempotencyStore implements IdempotencyStore {
       fingerprint: row.fingerprint,
       statusCode: row.statusCode,
       body: row.responseBody,
+      ...(row.responseHeaders
+        ? { headers: row.responseHeaders as NonNullable<IdempotencySnapshot['headers']> }
+        : {}),
       expiresAt: row.expiresAt,
     };
   }
@@ -27,6 +30,7 @@ export class PrismaIdempotencyStore implements IdempotencyStore {
       fingerprint: snapshot.fingerprint,
       statusCode: snapshot.statusCode,
       responseBody: snapshot.body as object,
+      responseHeaders: (snapshot.headers ?? {}) as object,
       expiresAt: snapshot.expiresAt,
     };
     await this.prisma.idempotencyRecord.upsert({

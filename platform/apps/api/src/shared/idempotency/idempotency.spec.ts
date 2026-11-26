@@ -48,6 +48,7 @@ describe('idempotency rules (T-4207)', () => {
       kind: 'replay',
       statusCode: 201,
       body: { id: 'ok' },
+      headers: {},
     });
   });
 

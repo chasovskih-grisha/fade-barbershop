@@ -59,4 +59,44 @@ describe('AdminSessionGuard', () => {
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
     expect(ctx.request.adminUserId).toBe(ADMIN_ID);
   });
+
+  it('allows active barbers to mark on-site payments without granting other admin routes', async () => {
+    sessions.findByTokenHash.mockResolvedValue(session);
+    users.findById.mockResolvedValue({ ...activeAdmin, role: 'barber' });
+    const ctx = context('/payment/onsite', 'valid');
+
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
+    expect(ctx.request.adminUserId).toBe(ADMIN_ID);
+    await expect(guard.canActivate(context('/payment/refunds', 'valid'))).rejects.toBeInstanceOf(
+      ForbiddenException
+    );
+    await expect(guard.canActivate(context('/admin/barbers', 'valid'))).rejects.toBeInstanceOf(
+      ForbiddenException
+    );
+  });
+
+  it('rejects inactive barbers and non-staff roles on on-site payments', async () => {
+    sessions.findByTokenHash.mockResolvedValue(session);
+    users.findById.mockResolvedValue({ ...activeAdmin, role: 'barber', active: false });
+    await expect(guard.canActivate(context('/payment/onsite', 'valid'))).rejects.toBeInstanceOf(
+      ForbiddenException
+    );
+    users.findById.mockResolvedValue({ ...activeAdmin, role: 'client' });
+    await expect(guard.canActivate(context('/payment/onsite', 'valid'))).rejects.toBeInstanceOf(
+      ForbiddenException
+    );
+  });
+
+  it('does not leave on-site payments and every refund route public', async () => {
+    for (const path of [
+      '/payment/onsite',
+      '/payment/refunds',
+      '/payment/refunds/refund-1/retry',
+      '/payment/refunds/refund-1',
+    ]) {
+      await expect(guard.canActivate(context(path))).rejects.toBeInstanceOf(
+        UnauthorizedException
+      );
+    }
+  });
 });

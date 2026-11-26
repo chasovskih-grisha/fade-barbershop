@@ -11,6 +11,14 @@ export const CONTENT_EVENTS = {
 
 export type ArticleStatus = 'draft' | 'published';
 
+/** Один блок тіла статті: клієнт малює структуру, а не виконує HTML. */
+export type ArticleBlock =
+  | { type: 'paragraph'; text: string }
+  | { type: 'heading'; level: 2 | 3; text: string }
+  | { type: 'list'; items: string[] }
+  | { type: 'quote'; text: string }
+  | { type: 'image'; src: string; alt: string; caption: string | null };
+
 /** Анонс для стрічки: без повного тексту. */
 export interface ArticleSummary {
   id: Uuid;
@@ -25,6 +33,8 @@ export interface ArticleSummary {
 
 export interface Article extends ArticleSummary {
   body: string;
+  /** Розібране тіло; порожній масив, якщо чернетка ще не готова до публікації. */
+  blocks: ArticleBlock[];
   status: ArticleStatus;
   createdAt: string;
   updatedAt: string;

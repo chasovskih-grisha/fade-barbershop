@@ -32,6 +32,8 @@ export interface LifecycleSuite {
 
 export interface LifecycleSuiteOptions {
   admin?: boolean;
+  /** UUID for the stamped admin actor; persistence columns require a real UUID. */
+  adminId?: string;
   cookies?: boolean;
   book?: { start: string; end: string; reference?: object; origin?: object };
 }
@@ -58,7 +60,7 @@ export async function lifecycleSuite(options: LifecycleSuiteOptions = {}): Promi
   try {
     const moduleRef = await Test.createTestingModule({ imports: [SchedulingModule] }).compile();
     app = moduleRef.createNestApplication();
-    if (options.admin) stampAdmin(app);
+    if (options.admin) stampAdmin(app, options.adminId);
     if (options.cookies) app.use(cookieParser());
     await app.init();
     ids = buildLifecycleIds();

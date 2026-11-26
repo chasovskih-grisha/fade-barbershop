@@ -3,6 +3,7 @@ import { BookingModule } from './booking.module';
 import { BookingReader } from './infrastructure/booking.reader';
 import { AvailableSlots } from './infrastructure/available-slots';
 import { ClientBookingsController } from '../scheduling/infrastructure/client-bookings.controller';
+import { ClientAppointmentCalendarController } from '../scheduling/infrastructure/client-appointment-calendar.controller';
 import { PrismaService } from '../shared/prisma/prisma.service';
 import { PrismaUnitOfWork } from '../shared/prisma/prisma-context';
 import { PrismaLocationRepository } from '../locations/infrastructure/prisma-location.repository';
@@ -48,6 +49,10 @@ describe('BookingModule wiring', () => {
     // Клієнтське підтвердження (T-041) резолвиться з графу BookingModule
     // (контролер живе в SchedulingModule, маршрутизується як /booking/bookings).
     expect(moduleRef.get(ClientBookingsController)).toBeInstanceOf(ClientBookingsController);
+    // T-4446a: `.ics` власного візиту резолвиться з того ж графу BookingModule.
+    expect(moduleRef.get(ClientAppointmentCalendarController)).toBeInstanceOf(
+      ClientAppointmentCalendarController
+    );
     await moduleRef.close();
   });
 });

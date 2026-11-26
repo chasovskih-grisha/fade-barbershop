@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- cohesive interceptor: replay, persist and header capture belong to one HTTP boundary. */
 // Interceptor idempotency-ключів (T-4207): на mutating-запитах із
 // `Idempotency-Key` повтор віддає збережену відповідь, а не створює дубль.
 // Без заголовка запит проходить як звичайний — ключ опційний, валідується,
@@ -22,6 +23,7 @@ import {
   expiresAt,
   fingerprint,
   isValidIdempotencyKey,
+  type IdempotencyHeaders,
 } from './idempotency';
 
 @Injectable()
@@ -67,8 +69,11 @@ export class IdempotencyInterceptor implements NestInterceptor {
 
   private replay(
     response: Response,
-    decision: { statusCode: number; body: unknown }
+    decision: { statusCode: number; body: unknown; headers: IdempotencyHeaders }
   ): Observable<unknown> {
+    for (const [name, value] of Object.entries(decision.headers)) {
+      response.setHeader(name, value);
+    }
     response.setHeader(REPLAYED_HEADER, 'true');
     response.status(decision.statusCode);
     return of(decision.body);
@@ -88,10 +93,28 @@ export class IdempotencyInterceptor implements NestInterceptor {
         fingerprint: input.requestFingerprint,
         statusCode: input.response.statusCode || 200,
         body: input.body,
+        headers: this.headersOf(input.response),
         expiresAt: expiresAt(input.now),
       });
     } catch {
       // Сховище ключів не має ламати успішну відповідь клієнту.
     }
+  }
+
+  /** Заголовки відповіді, які мають сенс для replay; hop-by-hop і довжину не зберігаємо. */
+  private headersOf(response: Response): IdempotencyHeaders {
+    const skip = new Set([
+      'connection',
+      'content-length',
+      'date',
+      'keep-alive',
+      'transfer-encoding',
+    ]);
+    const headers: IdempotencyHeaders = {};
+    for (const [name, value] of Object.entries(response.getHeaders())) {
+      if (value === undefined || skip.has(name.toLowerCase())) continue;
+      headers[name] = Array.isArray(value) ? value.map(String) : String(value);
+    }
+    return headers;
   }
 }

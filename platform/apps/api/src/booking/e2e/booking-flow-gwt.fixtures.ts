@@ -14,7 +14,18 @@ import {
   seedTestLocation,
 } from '@fade/test-utils';
 
-export const GWT_DATE = '2026-11-03'; // вівторок (dayOfWeek 1 у конвенції коду)
+/** Найближчий майбутній день тижня (UTC), щоб фікстура не протухала. */
+function nextWeekday(dayOfWeek: number, now = new Date()): string {
+  const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const delta = (dayOfWeek - date.getUTCDay() + 7) % 7 || 7;
+  date.setUTCDate(date.getUTCDate() + delta);
+  return date.toISOString().slice(0, 10);
+}
+
+/** Вівторок (dayOfWeek 1 у конвенції коду), завжди в межах lead/horizon. */
+export const GWT_DATE = nextWeekday(2);
+/** Середа після GWT_DATE — вихідний локації. */
+export const GWT_CLOSED_DATE = nextWeekday(3, new Date(`${GWT_DATE}T00:00:00.000Z`));
 
 export function buildGwtIds() {
   // prettier-ignore

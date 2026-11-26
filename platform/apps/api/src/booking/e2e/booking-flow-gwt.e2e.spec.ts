@@ -8,7 +8,13 @@ import { INestApplication } from '@nestjs/common';
 import { BookingModule } from '../booking.module';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { getWithRetry } from '@fade/test-utils';
-import { buildGwtIds, cleanupGwt, seedGwt, GWT_DATE } from './booking-flow-gwt.fixtures';
+import {
+  buildGwtIds,
+  cleanupGwt,
+  seedGwt,
+  GWT_CLOSED_DATE,
+  GWT_DATE,
+} from './booking-flow-gwt.fixtures';
 
 describe('Booking flow GWT (e2e, Postgres)', () => {
   let app: INestApplication;
@@ -69,7 +75,7 @@ describe('Booking flow GWT (e2e, Postgres)', () => {
     const byStart = index(res.body);
     // 50-хв послуга округлюється до сітки: слот 11:00 займає 11:00–12:00.
     expect(byStart.get('11:00')).toMatchObject({ start: '11:00', end: '12:00' });
-    expect(byStart.get('11:00')?.barbers?.sort()).toEqual([ids.barberA, ids.barberB].sort());
+    expect(byStart.get('11:00')?.barbers.sort()).toEqual([ids.barberA, ids.barberB].sort());
     // Зайняті крісла 14:00–15:30 — у стрічці disabled (barbers: []), не сховані.
     expect(byStart.get('14:00')).toMatchObject({ start: '14:00', barbers: [] });
     expect(byStart.get('15:00')).toMatchObject({ start: '15:00', barbers: [] });
@@ -79,7 +85,7 @@ describe('Booking flow GWT (e2e, Postgres)', () => {
   });
 
   test('Екран 3, середа — вихідний локації: стрічка порожня', async () => {
-    const res = await slots({ ...base, date: '2026-11-04' }).expect(201);
+    const res = await slots({ ...base, date: GWT_CLOSED_DATE }).expect(201);
     expect(res.body).toEqual([]);
   });
 

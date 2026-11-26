@@ -16,6 +16,7 @@ function contextOf(method: string, headers: Record<string, string> = {}, body?: 
     statusCode: 201,
     setHeader: jest.fn(),
     status: jest.fn(),
+    getHeaders: jest.fn(() => ({ 'content-type': 'application/json' })),
   };
   const context = {
     switchToHttp: () => ({
@@ -75,7 +76,12 @@ describe('IdempotencyInterceptor (T-4207)', () => {
     });
     expect(store.purgeExpired).toHaveBeenCalled();
     expect(store.save).toHaveBeenCalledWith(
-      expect.objectContaining({ key: KEY, statusCode: 201, body: { id: 7 } })
+      expect.objectContaining({
+        key: KEY,
+        statusCode: 201,
+        body: { id: 7 },
+        headers: { 'content-type': 'application/json' },
+      })
     );
   });
 
@@ -86,6 +92,7 @@ describe('IdempotencyInterceptor (T-4207)', () => {
       fingerprint: fingerprint('POST', '/booking', { a: 1 }),
       statusCode: 201,
       body: { id: 7 },
+      headers: { 'content-type': 'application/json', 'x-request-id': ['a', 'b'] },
       expiresAt: expiresAt(now),
     };
     const store = storeOf(record);
@@ -93,6 +100,8 @@ describe('IdempotencyInterceptor (T-4207)', () => {
     const { context, response } = contextOf('POST', { 'idempotency-key': KEY }, { a: 1 });
     const result = await interceptor.intercept(context, nextWith({ id: 8 }));
     await expect(firstValueFrom(result)).resolves.toEqual({ id: 7 });
+    expect(response.setHeader).toHaveBeenCalledWith('content-type', 'application/json');
+    expect(response.setHeader).toHaveBeenCalledWith('x-request-id', ['a', 'b']);
     expect(response.setHeader).toHaveBeenCalledWith('idempotency-replayed', 'true');
     expect(response.status).toHaveBeenCalledWith(201);
     expect(store.save).not.toHaveBeenCalled();

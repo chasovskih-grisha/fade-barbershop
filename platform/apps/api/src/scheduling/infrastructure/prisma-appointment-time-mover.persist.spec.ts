@@ -89,6 +89,7 @@ describe('перенесення візиту з депозитом', () => {
     const prisma = {
       booking: { findMany },
       depositHold: { findMany: jest.fn().mockResolvedValue([]) },
+      bookingPaymentState: { findMany: jest.fn().mockResolvedValue([]) },
       service: { findMany: jest.fn().mockResolvedValue([{ id: 'svc-1', name: 'Стрижка' }]) },
       user: { findMany: jest.fn().mockResolvedValue([{ id: 'barber-1', name: 'Олег' }]) },
       location: { findMany: jest.fn().mockResolvedValue([{ id: 'loc-1', name: 'Поділ' }]) },

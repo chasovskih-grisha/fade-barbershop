@@ -63,7 +63,7 @@ describe('T174BatchSlotSelectionUseCase', () => {
     expect(result.selectedSlots).toHaveLength(2);
     expect(result.selectedSlots.map((slot) => slot.slotId)).toEqual(['slot-1', 'slot-2']);
     expect(result.selectedSlots[0]).toMatchObject({ barberId: 'barber-1', serviceId: 'service-cut' });
-    expect(result.totalEstimatedPrice).toBe(200);
+    expect(result.totalEstimatedPrice).toBe(20000); // дві послуги по 100.00 UAH у копійках
     expect(result.rejectedReasons).toBeUndefined();
     expect(calls[0]).toEqual({
       serviceIds: ['service-cut'],

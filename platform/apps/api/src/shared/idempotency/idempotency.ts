@@ -34,16 +34,22 @@ export function fingerprint(method: string, path: string, body: unknown): string
     .digest('hex');
 }
 
+export type IdempotencyHeaders = Record<string, string | string[]>;
+
 export interface IdempotencySnapshot {
   key: string;
   fingerprint: string;
   statusCode: number;
   body: unknown;
+  /** Response headers set by the handler, replayed with the cached response. */
+  headers?: IdempotencyHeaders;
   expiresAt: Date;
 }
 
 export type ReplayDecision =
-  { kind: 'fresh' } | { kind: 'replay'; statusCode: number; body: unknown } | { kind: 'conflict' };
+  | { kind: 'fresh' }
+  | { kind: 'replay'; statusCode: number; body: unknown; headers: IdempotencyHeaders }
+  | { kind: 'conflict' };
 
 export function decideReplay(
   stored: IdempotencySnapshot | null,
@@ -53,7 +59,12 @@ export function decideReplay(
   if (!stored) return { kind: 'fresh' };
   if (stored.expiresAt.getTime() <= now.getTime()) return { kind: 'fresh' };
   if (stored.fingerprint !== requestFingerprint) return { kind: 'conflict' };
-  return { kind: 'replay', statusCode: stored.statusCode, body: stored.body };
+  return {
+    kind: 'replay',
+    statusCode: stored.statusCode,
+    body: stored.body,
+    headers: stored.headers ?? {},
+  };
 }
 
 export function expiresAt(now: Date): Date {

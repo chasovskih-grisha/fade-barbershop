@@ -2,7 +2,7 @@
 import { Module } from '@nestjs/common';
 import { BookingController } from './infrastructure/booking.controller';
 import { BookingReader } from './infrastructure/booking.reader';
-import { AvailableSlots } from './infrastructure/available-slots';
+import { availableSlotsProvider } from './infrastructure/available-slots.provider';
 import { ServicesModule } from '../catalog/infrastructure/services.module';
 import { SchedulingModule } from '../scheduling/scheduling.module';
 import { LocationsModule } from '../locations/infrastructure/locations.module';
@@ -13,6 +13,7 @@ import { PrismaBarberPhotoRepository } from '../identity/infrastructure/prisma-b
 import { S3PublicMediaStorage } from '../shared/media/s3-public-media-storage';
 import { PrismaBookingRepository } from '../scheduling/infrastructure/prisma-booking.repository';
 import { PrismaAvailabilityRepository } from '../scheduling/infrastructure/prisma-availability.repository';
+import { PrismaBarberUnavailabilityRepository } from '../scheduling/infrastructure/prisma-barber-unavailability.repository';
 import { PrismaBarberServiceAssignmentRepository } from '../scheduling/infrastructure/prisma-barber-service-assignment.repository';
 import { PrismaSlotPolicyRepository } from '../scheduling/infrastructure/prisma-slot-policy.repository';
 import { SystemClock } from '../locations/infrastructure/system-clock';
@@ -22,6 +23,7 @@ import { PrismaServiceRepository } from '../catalog/infrastructure/prisma-servic
 import { PrismaAppointmentRepository } from '../scheduling/infrastructure/prisma-appointment.repository';
 import { PrismaDepositPolicySettings } from '../scheduling/infrastructure/prisma-deposit-policy-settings';
 import { ClientBookingsController } from '../scheduling/infrastructure/client-bookings.controller';
+import { ClientAppointmentCalendarController } from '../scheduling/infrastructure/client-appointment-calendar.controller';
 import { clientBookingsProvider } from '../scheduling/infrastructure/client-bookings.providers';
 import { slotLockProviders } from '../scheduling/infrastructure/slot-lock.providers';
 import { BookingPolicyModule } from '../booking/policy/booking-policy.module';
@@ -50,31 +52,6 @@ const bookingReader = {
   ],
 };
 
-const availableSlots = {
-  provide: AvailableSlots,
-  useFactory: (...deps: any[]) =>
-    new AvailableSlots({
-      bookingRepo: deps[0],
-      scheduleRepo: deps[1],
-      locationRepo: deps[2],
-      userRepo: deps[3],
-      serviceRepo: deps[4],
-      assignmentRepo: deps[5],
-      slotPolicyRepo: deps[6],
-      clock: deps[7],
-    }),
-  inject: [
-    PrismaBookingRepository,
-    PrismaAvailabilityRepository,
-    PrismaLocationRepository,
-    PrismaUserRepository,
-    PrismaServiceRepository,
-    PrismaBarberServiceAssignmentRepository,
-    PrismaSlotPolicyRepository,
-    SystemClock,
-  ],
-};
-
 @Module({
   imports: [
     SchedulingModule,
@@ -93,6 +70,7 @@ const availableSlots = {
     PrismaBarberServiceAssignmentRepository,
     PrismaBookingRepository,
     PrismaAvailabilityRepository,
+    PrismaBarberUnavailabilityRepository,
     PrismaSlotPolicyRepository,
     PrismaAppointmentRepository,
     PrismaDepositPolicySettings,
@@ -101,8 +79,8 @@ const availableSlots = {
     clientBookingsProvider,
     ...slotLockProviders,
     bookingReader,
-    availableSlots,
+    availableSlotsProvider,
   ],
-  controllers: [BookingController, ClientBookingsController],
+  controllers: [BookingController, ClientBookingsController, ClientAppointmentCalendarController],
 })
 export class BookingModule {}

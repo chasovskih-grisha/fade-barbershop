@@ -14,6 +14,7 @@ import {
   buildGwtIds,
   cleanupGwt,
   seedGwt,
+  GWT_CLOSED_DATE,
   GWT_DATE,
   type GwtIds,
 } from './booking-flow-gwt.fixtures';
@@ -62,6 +63,22 @@ describe('Client booking confirm (e2e, Postgres)', () => {
       where: { aggregateId: res.body.id, type: 'scheduling.appointment.booked' },
     });
     expect(event).toBeTruthy();
+
+    // T-4619a: HTTP-шлях створює durable утримання крісла під депозит.
+    const hold = await prisma.depositHold.findUnique({
+      where: { appointmentId: res.body.id },
+    });
+    expect(hold).toMatchObject({
+      appointmentId: res.body.id,
+      locationId: ids.location,
+      depositAmount: 180,
+      status: 'active',
+    });
+    expect(hold?.expiresAt.getTime()).toBeGreaterThan(Date.now());
+
+    // T-4619b: клієнт отримує суму і саме серверний дедлайн утримання.
+    expect(res.body).toMatchObject({ id: res.body.id, deposit: { amount: 180 } });
+    expect(new Date(res.body.deposit.expiresAt).toISOString()).toBe(hold?.expiresAt.toISOString());
   });
 
   test('канал аналітики серверний: source з DTO (навіть admin) проігноровано', async () => {
@@ -75,7 +92,7 @@ describe('Client booking confirm (e2e, Postgres)', () => {
     // prettier-ignore
     await confirm({ ...base, barberId: ids.barberA, start: '14:00', end: '15:00' }).expect(HttpStatus.CONFLICT);
     // prettier-ignore
-    await confirm({ ...base, date: '2026-11-04' }).expect(HttpStatus.BAD_REQUEST); // середа — вихідний локації
+    await confirm({ ...base, date: GWT_CLOSED_DATE }).expect(HttpStatus.BAD_REQUEST); // середа — вихідний локації
     // prettier-ignore
     await confirm({ ...base, locationId: '00000000-0000-4000-8000-000000000000' }).expect(HttpStatus.NOT_FOUND);
     // prettier-ignore
