@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 import { NoShowStagedResponseController } from './no-show-staged-response.controller';
 import { ExportController } from './infrastructure/export.controller';
+import { CalendarExportController } from './infrastructure/calendar-export.controller';
 import {
   NO_SHOW_STAGED_REPOSITORY,
   NoShowStagedResponseService,
@@ -27,8 +28,7 @@ import { AdminCalendar } from './application/admin-calendar';
 import { ListClientAppointments } from './application/list-client-appointments';
 import { REFERENCE_PHOTO_URLS, type ReferencePhotoUrls } from './application/reference-photo-urls';
 import { HaircutAiReferencePhotoUrls } from './infrastructure/reference-photo-urls.adapter';
-import { PrismaSourcePhotoRepository } from '../haircut-ai/infrastructure/prisma-source-photo.repository';
-import { S3PhotoStorage } from '../haircut-ai/infrastructure/s3-photo-storage';
+import { AppointmentHistoryProjection } from './infrastructure/appointment-history.projection';
 import { PrismaService } from '../shared/prisma/prisma.service';
 import { PrismaSessionRepository } from '../identity/infrastructure/prisma-session-repository';
 import { ClientSessionGuard } from '../identity/infrastructure/client-session.guard';
@@ -67,7 +67,8 @@ import {
   controllers: [
     NoShowStagedResponseController,
     ExportController,
-    AdminBookingsController,
+    
+    CalendarExportController,   AdminBookingsController,
     AdminAppointmentsController,
     AdminAppointmentRescheduleController,
     AdminAppointmentReferenceController,
@@ -113,6 +114,8 @@ import {
     ...scheduleSelfServiceProviders,
     // T-4458: заявки на зміну часу, згода клієнта й перенесення.
     ...scheduleChangeProviders,
+    // T-4534: история статусів візитів (projection + repository).
+    AppointmentHistoryProjection,
     // T-4619a: in-process тік звільняє крісла з простроченим утриманням.
     DepositHoldSweeper,
     // T-4619: нагадування за 5 хвилин до дедлайну; дублі ловить outbox.
@@ -126,8 +129,6 @@ import {
     DepositHoldNudgeWorker,
     // Порт ReferencePhotoUrls — інтерфейс, тож Nest резоллює його лише через
     // явний токен (emitDecoratorMetadata стирає тип до Object).
-    PrismaSourcePhotoRepository,
-    S3PhotoStorage,
     HaircutAiReferencePhotoUrls,
     { provide: REFERENCE_PHOTO_URLS, useExisting: HaircutAiReferencePhotoUrls },
     {
@@ -143,8 +144,8 @@ import {
     HaircutAiReferencePhotoUrls,
     NoShowManagementService,
     DepositHoldService,
-    // T-4616a: use cases недоступності споживає адмінський контролер із PaymentModule
-    // (він же тримає грошовий слід скасування), тому їх експортуємо.
+    // T-4616a: use cases недоступності споживає админський контролер із PaymentModule
+    // (він же тримає грошовий слід скасування), їх експортуємо.
     MarkBarberUnavailable,
     ListShiftConflicts,
     ResolveShiftConflict,

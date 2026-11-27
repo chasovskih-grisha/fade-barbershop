@@ -17,6 +17,7 @@ import type { Request } from 'express';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { RescheduleAppointment } from '../application/reschedule-appointment.use-case';
 import { SetAppointmentReference } from '../application/set-appointment-reference.use-case';
+import { PrismaAppointmentHistoryRepository } from '../infrastructure/prisma-appointment-history.repository';
 import { appointmentHttpError } from './appointment-http';
 import { requireOwnAppointment } from './own-appointment';
 
@@ -34,7 +35,8 @@ export class ClientAppointmentsController {
   constructor(
     private readonly rescheduleUseCase: RescheduleAppointment,
     private readonly referenceUseCase: SetAppointmentReference,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly historyRepository: PrismaAppointmentHistoryRepository
   ) {}
 
   @Post(':id/reschedule')
@@ -44,7 +46,7 @@ export class ClientAppointmentsController {
     @Body() dto: ClientCommandDto,
     @Req() req: Request
   ): Promise<{ status: string }> {
-    return this.run(async () => {
+    return this.exec(async () => {
       const when = rescheduleWhen(dto);
       const actorId = await requireOwnAppointment(this.prisma, req, id);
       await this.rescheduleUseCase.handle({
@@ -53,6 +55,7 @@ export class ClientAppointmentsController {
         actorRole: 'client',
         ...when,
       });
+      return { status: 'ok' };
     });
   }
 
@@ -63,7 +66,7 @@ export class ClientAppointmentsController {
     @Body() dto: ClientCommandDto,
     @Req() req: Request
   ): Promise<{ status: string }> {
-    return this.run(async () => {
+    return this.exec(async () => {
       const actorId = await requireOwnAppointment(this.prisma, req, id);
       await this.referenceUseCase.handle({
         appointmentId: id,
@@ -72,15 +75,31 @@ export class ClientAppointmentsController {
         ...(dto.referenceId === undefined ? {} : { referenceId: dto.referenceId }),
         ...(dto.comment === undefined ? {} : { comment: dto.comment }),
       });
+      return { status: 'ok' };
     });
   }
 
-  private async run(action: () => Promise<void>): Promise<{ status: string }> {
+  @Post(':id/history')
+  @HttpCode(HttpStatus.OK)
+  async history(
+    @Param('id') id: string,
+    @Req() req: Request
+  ): Promise<{ items: any[]; total: number }> {
+    const actorId = await requireOwnAppointment(this.prisma, req, id);
+    // Отримуємо історію статусів для візиту
+    const result = await this.historyRepository.findByAppointmentId(id, {
+      limit: 50,
+      offset: 0,
+    });
+    return { items: result.items, total: result.total };
+  }
+
+  private async exec<T>(action: () => Promise<T>): Promise<T> {
     try {
-      await action();
-      return { status: 'ok' };
+      return await action();
     } catch (error) {
       appointmentHttpError(error);
+      throw error;
     }
   }
 }

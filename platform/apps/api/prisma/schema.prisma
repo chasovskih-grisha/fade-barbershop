@@ -386,14 +386,14 @@ model ScheduleChangeRequest {
 
 // Факти записів (T-061 / T-111 / T-4464): occupancy facts per hour for slow-hours analysis.
 model OccupancyFact {
-  id          String    @id @db.Uuid
-  locationId  String    @db.Uuid
-  date        DateTime  @db.Date
-  hour        Int       // 0..23
-  start       DateTime  @db.Timestamptz
-  end         DateTime  @db.Timestamptz
-  duration    Int       // minutes
-  createdAt   DateTime  @default(now()) @db.Timestamptz
+  id         String   @id @db.Uuid
+  locationId String   @db.Uuid
+  date       DateTime @db.Date
+  hour       Int // 0..23
+  start      DateTime @db.Timestamptz
+  end        DateTime @db.Timestamptz
+  duration   Int // minutes
+  createdAt  DateTime @default(now()) @db.Timestamptz
 
   @@index([locationId, date, hour])
   @@index([date, hour])
@@ -421,6 +421,7 @@ model Booking {
   appliedDiscounts        Json?
   finalPrice              Int?
   agreedDuration          Int? // T-4618a: agreed duration snapshot in minutes
+  durationVariant         String? // T-4419: selected duration variant snapshot
   fulfillmentMode         String?
   partyId                 String?  @db.Uuid
   partyRole               String?
@@ -505,26 +506,27 @@ model ShiftConflict {
 }
 
 model Service {
-  id               String         @id @db.Uuid
-  name             String
-  description      String?
-  category         String?
-  slug             String?        @unique
-  seoDescription   String?
-  faq              Json?
-  duration         Int
-  parallelDuration Int?
-  active           Boolean        @default(true)
-  sortOrder        Int            @default(0)
-  createdAt        DateTime       @default(now()) @db.Timestamptz
-  updatedAt        DateTime       @updatedAt @db.Timestamptz
-  prices           ServicePrice[]
-  isAddon          Boolean        @default(false)
-  packageItems     String[]       @default([])
-  cleanupMinutes   Int            @default(0)
-  resourceIds      String[]       @default([])
+  id                String         @id @db.Uuid
+  name              String
+  description       String?
+  category          String?
+  slug              String?        @unique
+  seoDescription    String?
+  faq               Json?
+  durationVariants  Json?
+  duration          Int
+  parallelDuration  Int?
+  active            Boolean        @default(true)
+  sortOrder         Int            @default(0)
+  createdAt         DateTime       @default(now()) @db.Timestamptz
+  updatedAt         DateTime       @updatedAt @db.Timestamptz
+  prices            ServicePrice[]
+  isAddon           Boolean        @default(false)
+  packageItems      String[]       @default([])
+  cleanupMinutes    Int            @default(0)
+  resourceIds       String[]       @default([])
   commissionPercent Int?
-  consumableItems  String[]       @default([])
+  consumableItems   String[]       @default([])
 
   @@unique([name, duration, isAddon])
   @@index([active, isAddon])
@@ -593,18 +595,18 @@ model SurgeRule {
 // locationId = null — глобальний дефолт (єдиний рядок). Значення читаються
 // EvaluateOnlineBooking і віддаються фронту через GET /booking/policy.
 model OnlineBookingPolicy {
-  id                         String   @id @db.Uuid
-  locationId                 String?  @unique @db.Uuid
-  minLeadMinutes             Int      @default(60)
-  maxHorizonDays             Int      @default(30)
-  cancellationDeadlineHours  Int      @default(12)
-  rescheduleDeadlineHours    Int      @default(12)
-  maxActiveBookings          Int      @default(2)
-  allowGuestBooking          Boolean  @default(true)
-  blockNoShowsCount          Int      @default(3)
-  blockNoShowsWindowDays     Int      @default(180)
-  createdAt                  DateTime @default(now()) @db.Timestamptz
-  updatedAt                  DateTime @updatedAt @db.Timestamptz
+  id                        String   @id @db.Uuid
+  locationId                String?  @unique @db.Uuid
+  minLeadMinutes            Int      @default(60)
+  maxHorizonDays            Int      @default(30)
+  cancellationDeadlineHours Int      @default(12)
+  rescheduleDeadlineHours   Int      @default(12)
+  maxActiveBookings         Int      @default(2)
+  allowGuestBooking         Boolean  @default(true)
+  blockNoShowsCount         Int      @default(3)
+  blockNoShowsWindowDays    Int      @default(180)
+  createdAt                 DateTime @default(now()) @db.Timestamptz
+  updatedAt                 DateTime @updatedAt @db.Timestamptz
 }
 
 // LocationSlotPolicy — налаштування генерації слотів на рівні локації (T-4522).
@@ -711,6 +713,41 @@ model Visit {
 
   @@index([clientId, occurredAt])
   @@index([barberId, occurredAt])
+}
+
+// Чат візиту (T-081, context messaging): одна розмова на Booking.id (візит).
+// Учасники — clientId і barberId на момент відкриття; нові учасники не
+// додаються. `lastMessageAt` — для сортування списку розмов у mobile.
+model ChatConversation {
+  id            String        @id @db.Uuid
+  visitId       String        @unique @db.Uuid
+  clientId      String        @db.Uuid
+  barberId      String        @db.Uuid
+  createdAt     DateTime      @default(now()) @db.Timestamptz
+  lastMessageAt DateTime?     @db.Timestamptz
+  messages      ChatMessage[]
+
+  @@index([clientId, lastMessageAt])
+  @@index([barberId, lastMessageAt])
+}
+
+// Повідомлення розмови. `clientMessageId` — ключ ідемпотентності офлайн-черги:
+// реплей того самого id не створює другий рядок (NULL не конфліктує).
+model ChatMessage {
+  id              String           @id @db.Uuid
+  conversationId  String           @db.Uuid
+  conversation    ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId        String           @db.Uuid
+  senderRole      String
+  body            String
+  clientMessageId String?
+  deliveredAt     DateTime?        @db.Timestamptz
+  readAt          DateTime?        @db.Timestamptz
+  createdAt       DateTime         @default(now()) @db.Timestamptz
+
+  @@unique([conversationId, clientMessageId])
+  @@index([conversationId, createdAt])
+  @@index([conversationId, readAt])
 }
 
 // SourcePhoto — референсне фото клієнта (context haircut-ai, ADR 0008). Байти
@@ -834,9 +871,9 @@ model AccountErasure {
 // TTL 24 год). key унікальний; responseBody — тіло відповіді для replay, без
 // заголовків (Set-Cookie не кешуємо). upsert перезаписує прострочений ключ.
 model IdempotencyRecord {
-  id           String   @id @db.Uuid
-  key          String   @unique
-  fingerprint  String
+  id              String   @id @db.Uuid
+  key             String   @unique
+  fingerprint     String
   statusCode      Int
   responseBody    Json
   responseHeaders Json?
@@ -852,39 +889,39 @@ model Product {
   description String?
   brand       String?
   category    String?
-  photoUrl    String?  // media.fade.com.ua CDN URL
+  photoUrl    String? // media.fade.com.ua CDN URL
   active      Boolean  @default(true)
   createdAt   DateTime @default(now()) @db.Timestamptz
   updatedAt   DateTime @updatedAt @db.Timestamptz
 
-  variants    ProductVariant[]
+  variants ProductVariant[]
 }
 
 model ProductVariant {
-  id          String   @id @db.Uuid
-  productId   String   @db.Uuid
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  name        String   // volume/color
-  sku         String   @unique
-  price       Int      // in kopecks
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now()) @db.Timestamptz
-  updatedAt   DateTime @updatedAt @db.Timestamptz
+  id        String   @id @db.Uuid
+  productId String   @db.Uuid
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String // volume/color
+  sku       String   @unique
+  price     Int // in kopecks
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
 
-  stockItems  StockItem[]
+  stockItems StockItem[]
 
   @@index([productId])
 }
 
 model StockItem {
-  id          String         @id @db.Uuid
-  variantId   String         @db.Uuid
-  variant     ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  locationId  String         @db.Uuid
-  location    Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  quantity    Int            @default(0)
-  createdAt   DateTime       @default(now()) @db.Timestamptz
-  updatedAt   DateTime       @updatedAt @db.Timestamptz
+  id         String         @id @db.Uuid
+  variantId  String         @db.Uuid
+  variant    ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  locationId String         @db.Uuid
+  location   Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  quantity   Int            @default(0)
+  createdAt  DateTime       @default(now()) @db.Timestamptz
+  updatedAt  DateTime       @updatedAt @db.Timestamptz
 
   @@unique([variantId, locationId])
   @@index([locationId])
@@ -894,12 +931,12 @@ model StockItem {
 // SavedClientFilter (T-4461) — збережений CRM-фільтр клієнта.
 // Сторінка не зберігається: фільтр завжди відкривається з першої сторінки.
 model SavedClientFilter {
-  id            String   @id @db.Uuid
-  ownerId       String   @db.Uuid
-  name          String
-  query         Json     @default("[]")
-  createdAt     DateTime @default(now()) @db.Timestamptz
-  updatedAt     DateTime @updatedAt @db.Timestamptz
+  id        String   @id @db.Uuid
+  ownerId   String   @db.Uuid
+  name      String
+  query     Json     @default("[]")
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
 
   @@index([ownerId])
   @@index([updatedAt])
@@ -907,18 +944,18 @@ model SavedClientFilter {
 
 // FeedbackWindow (T-4451/T-4463) — вікно Period feedback-submission.
 model FeedbackWindow {
-  id               String   @id @db.Uuid
-  appointmentId    String   @db.Uuid
-  clientId         String   @db.Uuid
-  barberId         String?  @db.Uuid
-  locationId       String?  @db.Uuid
-  rating           Int      @default(5)
-  text             String?
-  isPublic         Boolean  @default(false)
-  consentGiven     Boolean  @default(false)
-  photos           Json     @default("[]")
-  createdAt        DateTime @default(now()) @db.Timestamptz
-  updatedAt        DateTime @updatedAt @db.Timestamptz
+  id            String   @id @db.Uuid
+  appointmentId String   @db.Uuid
+  clientId      String   @db.Uuid
+  barberId      String?  @db.Uuid
+  locationId    String?  @db.Uuid
+  rating        Int      @default(5)
+  text          String?
+  isPublic      Boolean  @default(false)
+  consentGiven  Boolean  @default(false)
+  photos        Json     @default("[]")
+  createdAt     DateTime @default(now()) @db.Timestamptz
+  updatedAt     DateTime @updatedAt @db.Timestamptz
 
   submissions FeedbackSubmission[]
 
@@ -927,23 +964,51 @@ model FeedbackWindow {
   @@index([createdAt])
 }
 
+// FeedbackRequestWindow (T-150, ADR 0016) — матеріалізоване вікно відгуку на
+// завершений візит: один рядок на `appointmentId` (ключ дедуплікації для
+// повторної доставки `scheduling.AppointmentCompleted`). `windowEndsAt` —
+// снепшот 30-денного вікна на момент створення, тож зміна конфігурації не
+// рухає вже відкриті вікна. `remindedAt` — не більше одного нагадування через
+// 2 години (FDB-MOB-02). Окремо від `FeedbackWindow` (публічний відгук
+// T-4451/T-4463): тут стан вікна, там — опублікований відгук.
+model FeedbackRequestWindow {
+  id            String    @id @db.Uuid
+  appointmentId String    @unique @db.Uuid
+  clientId      String    @db.Uuid
+  barberId      String?   @db.Uuid
+  locationId    String?   @db.Uuid
+  completedAt   DateTime  @db.Timestamptz
+  windowEndsAt  DateTime  @db.Timestamptz
+  status        String    @default("open")
+  remindedAt    DateTime? @db.Timestamptz
+  submittedAt   DateTime? @db.Timestamptz
+  rating        Int?
+  text          String?
+  photos        Json      @default("[]")
+  createdAt     DateTime  @default(now()) @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @db.Timestamptz
+
+  @@index([clientId, status])
+  @@index([status, windowEndsAt])
+}
+
 // FeedbackSubmission (T-4451/T-4463) — адміністративне опрацювання.
 model FeedbackSubmission {
-  id               String   @id @db.Uuid
-  feedbackId       String   @db.Uuid
-  feedback         FeedbackWindow @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
-  adminId          String   @db.Uuid
-  status           String    @default("new")
-  replyText        String?
-  processedAt      DateTime? @db.Timestamptz
-  processedBy      String?
-  showcaseModerated Boolean   @default(false)
-  moderatedBy      String?
-  moderatedAt      DateTime? @db.Timestamptz
-  moderationNote   String?
-  repliedAt        DateTime? @db.Timestamptz
-  createdAt        DateTime @default(now()) @db.Timestamptz
-  updatedAt        DateTime @updatedAt @db.Timestamptz
+  id                String         @id @db.Uuid
+  feedbackId        String         @db.Uuid
+  feedback          FeedbackWindow @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  adminId           String         @db.Uuid
+  status            String         @default("new")
+  replyText         String?
+  processedAt       DateTime?      @db.Timestamptz
+  processedBy       String?
+  showcaseModerated Boolean        @default(false)
+  moderatedBy       String?
+  moderatedAt       DateTime?      @db.Timestamptz
+  moderationNote    String?
+  repliedAt         DateTime?      @db.Timestamptz
+  createdAt         DateTime       @default(now()) @db.Timestamptz
+  updatedAt         DateTime       @updatedAt @db.Timestamptz
 
   @@index([feedbackId])
   @@index([status])
@@ -952,16 +1017,16 @@ model FeedbackSubmission {
 
 // NoShowStaged (T-4452) — етапи no-show: detected → notified → rebook_offered → deposit_settled.
 model NoShowStaged {
-  id               String   @id @db.Uuid
-  clientId         String   @db.Uuid
-  appointmentId    String   @db.Uuid
-  stage            String   @default("detected")
-  depositAmount    Int
-  depositDecision  String?
-  journal          Json     @default("[]")
-  detectedAt       DateTime @default(now()) @db.Timestamptz
-  createdAt        DateTime @default(now()) @db.Timestamptz
-  updatedAt        DateTime @updatedAt @db.Timestamptz
+  id              String   @id @db.Uuid
+  clientId        String   @db.Uuid
+  appointmentId   String   @db.Uuid
+  stage           String   @default("detected")
+  depositAmount   Int
+  depositDecision String?
+  journal         Json     @default("[]")
+  detectedAt      DateTime @default(now()) @db.Timestamptz
+  createdAt       DateTime @default(now()) @db.Timestamptz
+  updatedAt       DateTime @updatedAt @db.Timestamptz
 
   @@index([clientId])
   @@index([appointmentId])
@@ -999,22 +1064,22 @@ model CampaignSent {
 // no-show. Рядки не перезаписуються: admin-«excused» додає нову фіксацію, тож
 // аудит зберігається, а статистика бере останню фіксацію на візит.
 model CancellationReasonJournal {
-  id           String   @id @db.Uuid
-  appointmentId String  @db.Uuid
-  clientId     String   @db.Uuid
-  barberId     String   @db.Uuid
-  serviceId    String?  @db.Uuid
-  locationId   String   @db.Uuid
-  channel      String
-  kind         String
-  reason       String?
-  customReason String?
-  noShowReason String?
-  excused      Boolean  @default(false)
-  cancelledBy  String
-  startedAt    DateTime @db.Timestamptz
-  recordedAt   DateTime @db.Timestamptz
-  createdAt    DateTime @default(now()) @db.Timestamptz
+  id            String   @id @db.Uuid
+  appointmentId String   @db.Uuid
+  clientId      String   @db.Uuid
+  barberId      String   @db.Uuid
+  serviceId     String?  @db.Uuid
+  locationId    String   @db.Uuid
+  channel       String
+  kind          String
+  reason        String?
+  customReason  String?
+  noShowReason  String?
+  excused       Boolean  @default(false)
+  cancelledBy   String
+  startedAt     DateTime @db.Timestamptz
+  recordedAt    DateTime @db.Timestamptz
+  createdAt     DateTime @default(now()) @db.Timestamptz
 
   @@index([appointmentId, kind])
   @@index([barberId, recordedAt])
@@ -1084,4 +1149,42 @@ model BookingPaymentState {
   updatedAt            DateTime  @updatedAt @db.Timestamptz
 
   @@index([refundStatus])
+}
+
+// T-4445: блок «рекомендуємо» — один конфіг на локацію (locationId NULL —
+// мережевий дефолт): ручний вибір або топ-N за записами попереднього тижня.
+model RecommendedServicesConfig {
+  id         String   @id @db.Uuid
+  locationId String?  @unique @db.Uuid
+  mode       String   @default("top-week")
+  serviceIds String[] @default([])
+  limit      Int      @default(4)
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+}
+
+// Добові лічильники показів/кліків блоку: метрика, за якою налаштовують вибір.
+model RecommendedServiceMetric {
+  id        String   @id @db.Uuid
+  day       DateTime @db.Date
+  serviceId String   @db.Uuid
+  kind      String
+  count     Int      @default(0)
+
+  @@unique([day, serviceId, kind])
+  @@index([day, kind])
+}
+
+model AppointmentHistory {
+  id               String   @id @db.Uuid
+  appointmentId    String   @db.Uuid
+  fromStatus       String?
+  toStatus         String
+  actorId          String?
+  actorRole        String?
+  reason           String?
+  occurredAt       DateTime @db.Timestamptz
+  sourceEventId    String   @unique
+
+  @@unique([appointmentId, sourceEventId])
+  @@index([appointmentId, occurredAt])
 }
