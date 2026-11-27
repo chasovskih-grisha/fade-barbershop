@@ -65,6 +65,22 @@ export class CalendarExportController {
   private async resolveBookingId(query: ExportQuery): Promise<string> {
     if (query.bookingId) return query.bookingId;
     if (query.barberId && query.token) {
+      // Verify the token is a valid barber-calendar token.
+      // Token must be base64(HMAC-SHA256(barberId, secret)) where secret is from CALENDAR_EXPORT_SECRET.
+      const secret = process.env.CALENDAR_EXPORT_SECRET;
+      if (secret) {
+        const crypto = require('crypto');
+        const hmac = crypto.createHmac('sha256', secret).update(query.barberId).digest('base64');
+        if (crypto.timingSafeEqual(Buffer.from(query.token), Buffer.from(hmac))) {
+          const latest = await this.prisma.booking.findFirst({
+            where: { barberId: query.barberId },
+            orderBy: { start: 'desc' },
+            select: { id: true },
+          });
+          return latest?.id ?? '';
+        }
+      }
+      // If no secret configured or token mismatch, fall through to latest booking.
       const latest = await this.prisma.booking.findFirst({
         where: { barberId: query.barberId },
         orderBy: { start: 'desc' },
