@@ -4,6 +4,7 @@ import { getServices } from '@/lib/api/catalog';
 import { pageMetadata } from '@/lib/metadata';
 import { ErrorState } from '@/app/components/states/ErrorState';
 import { ActionLink } from '@/app/components/ActionLink';
+import { Button } from '@fade/ui';
 import { BOOKING_OPENS_SOON_TEXT } from '@/lib/booking-availability';
 import { ServiceCard } from './ServiceCard';
 import { ServicesStyleAdvisor } from './ServicesStyleAdvisor';
@@ -64,6 +65,23 @@ export default async function ServicesPage() {
               <ServiceCard key={service.id} service={service} />
             ))}
           </div>
+
+      {/* T-250: CTA section for service signup */}
+      <div className="rounded-card rounded-card border border-line p-8 pt-12">
+        <div className="max-w-xl">
+          <h2 className="font-display text-h3 font-bold text-fg mb-4">Забронювати стрижку</h2>
+          <p className="text-body text-fg-secondary mb-6">Обери послугу та час, який тобі підходить</p>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {['fade-clipper', 'fade-beard', 'fade-child'].map((style) => (
+              <div key={style} className="p-4 border border-line rounded-input hover:border-accent transition-colors">
+                <h3 className="font-text text-h4 font-semibold">{style.replace('-', ' ')}</h3>
+                <p className="text-sm text-fg-secondary">{style.replace('-', ' ')} — {style.split('-')[1]}</p>
+                <Button href="/services/{style}" variant="primary">Забронювати</Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
         </>
       )}
     </div>
