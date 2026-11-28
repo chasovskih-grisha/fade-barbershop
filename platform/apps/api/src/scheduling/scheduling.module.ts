@@ -60,6 +60,7 @@ import { AdminScheduleLogController } from './infrastructure/admin-schedule-log.
 import { AdminCalendarController } from './infrastructure/admin-calendar.controller';
 import { AdminBookingDetailController } from './infrastructure/admin-booking-detail.controller';
 import { ClientAppointmentsController } from './infrastructure/client-appointments.controller';
+import { ClientAppointmentHistoryController } from './infrastructure/client-appointment-history.controller';
 import { ClientCancelController } from './infrastructure/client-cancel.controller';
 import { ClientAppointmentListController } from './infrastructure/client-appointment-list.controller';
 import { ClientBookAgainController } from './infrastructure/client-book-again.controller';
@@ -82,6 +83,7 @@ import {
     AdminBookingDetailController,
     AdminCalendarController,
     ClientAppointmentsController,
+    ClientAppointmentHistoryController,
     ClientCancelController,
     ClientAppointmentListController,
     ClientBookAgainController,

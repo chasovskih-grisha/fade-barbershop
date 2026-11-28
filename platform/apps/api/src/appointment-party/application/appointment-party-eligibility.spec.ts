@@ -6,7 +6,6 @@ import { UnprocessableEntityException } from '@nestjs/common';
 import { CreateAppointmentParty } from './create-appointment-party.use-case';
 import {
   InMemoryAppointmentPartyRepository,
-  baseInput,
   parallelInput,
   sequentialInput,
 } from './create-appointment-party-test.fakes';

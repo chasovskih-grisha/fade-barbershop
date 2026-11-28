@@ -1,18 +1,11 @@
-/* eslint-disable max-lines -- мапер + запит утримань/повернень/довідників лишаються поруч: порт один, рознесення сховало б, що читається одним проходом */
 // Read-модель «Мої візити» (web-cabinet-screens §3): рядки Booking клієнта
-// з іменами послуги, барбера і локації. Форми і словник статусів —
-// у client-appointments.view.ts.
-
+// з іменами послуги, барбера і локації. Форми і словник статусів — у
+// client-appointments.view.ts, мапер рядка — у client-appointments-row.ts.
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import { kyivStamp } from './kyiv-stamp';
-import { loadNames, type AppointmentNames } from './client-appointment-names';
-import { toClientDeposit } from './client-appointment-deposit';
-import {
-  CABINET_STATUS,
-  type BookingRow,
-  type ClientAppointmentView,
-} from './client-appointments.view';
+import { loadNames } from './client-appointment-names';
+import { toClientAppointmentView } from './client-appointments-row';
+import type { ClientAppointmentView } from './client-appointments.view';
 
 export type { CabinetStatus, ClientAppointmentView } from './client-appointments.view';
 
@@ -55,48 +48,12 @@ export class ListClientAppointments {
     return rows.map((row) => {
       const hold = holdByBooking.get(row.id);
       const refund = refundByBooking.get(row.id);
-      return toView({ row, names, ...(hold ? { hold } : {}), ...(refund ? { refund } : {}) });
+      return toClientAppointmentView({
+        row,
+        names,
+        ...(hold ? { hold } : {}),
+        ...(refund ? { refund } : {}),
+      });
     });
   }
-}
-
-function toView(input: {
-  row: BookingRow;
-  names: AppointmentNames;
-  hold?: { expiresAt: Date; status: string };
-  refund?: { status: string; amount: number | null };
-}): ClientAppointmentView {
-  const { row, names, hold, refund } = input;
-  const stamp = kyivStamp(row.start);
-  const domainStatus = row.status ?? 'booked';
-  return {
-    id: row.appointmentId ?? row.id,
-    date: stamp.date,
-    startTime: stamp.time,
-    endTime: kyivStamp(row.end).time,
-    // ISO-моменти для календарних посилань (T-4446): кабінет не рахує їх сам.
-    startsAt: row.start.toISOString(),
-    endsAt: row.end.toISOString(),
-    serviceName: names.service.get(row.serviceId ?? '') ?? '',
-    barberName: names.barber.get(row.barberId) ?? '',
-    locationName: names.location.get(row.locationId) ?? '',
-    price: row.agreedPrice ?? 0,
-    status: CABINET_STATUS[domainStatus] ?? 'upcoming',
-    source: bookingSourceOf(row),
-    // Тільки ID: фото лежить у приватному бакеті (ADR 0008 §2), підписаний
-    // URL клієнт отримує з GET /booking/reference-photos/:id (REF-WEB-03).
-    referenceId: row.haircutReferenceId,
-    referenceComment: row.appointmentComment ?? '',
-    canEditReference: domainStatus === 'booked',
-    canBookAgain: row.partyId === null,
-    // T-4616a: причина скасування приходить із рядка візиту, а не з UI.
-    cancelReason: row.cancelReason ?? null,
-    // Депозит із снепшота візиту (PAY-ADM-09); діалог скасування читає лише його.
-    deposit: toClientDeposit(row, hold, refund),
-  };
-}
-
-/** ANL-004: рядки без каналу — старі онлайн-записи, не «без джерела». */
-function bookingSourceOf(row: BookingRow): string {
-  return row.source ?? 'web';
 }

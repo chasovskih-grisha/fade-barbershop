@@ -1,4 +1,9 @@
 /** Custom workflow trigger, condition and action engine (T-5020). */
+import { matchesCondition } from './workflow-conditions';
+
+// Оцінка умови живе в workflow-conditions.ts (LOC/складність на функцію);
+// публічний шлях модуля лишається тим самим для викликів і спеків.
+export { matchesCondition };
 
 export type WorkflowTrigger =
   | 'booking_created'
@@ -69,51 +74,6 @@ const WORKFLOW_ACTIONS: readonly WorkflowActionType[] = [
   'award_points',
   'assign_task',
 ];
-
-function readPath(data: Readonly<Record<string, unknown>>, path: string): unknown {
-  return path.split('.').reduce<unknown>((current, key) => {
-    if (current === null || typeof current !== 'object' || Array.isArray(current)) return undefined;
-    return (current as Record<string, unknown>)[key];
-  }, data);
-}
-
-function asNumber(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string' && value.trim() !== '') {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-  return null;
-}
-
-/** Evaluates one condition against the event payload. */
-export function matchesCondition(
-  condition: RuleCondition,
-  data: Readonly<Record<string, unknown>>
-): boolean {
-  const actual = readPath(data, condition.field);
-  switch (condition.operator) {
-    case 'exists':
-      return actual !== undefined && actual !== null;
-    case 'eq':
-      return actual === condition.value;
-    case 'neq':
-      return actual !== condition.value;
-    case 'includes':
-      if (typeof actual === 'string') return actual.includes(String(condition.value));
-      if (Array.isArray(actual)) return actual.includes(condition.value);
-      return false;
-    default: {
-      const left = asNumber(actual);
-      const right = asNumber(condition.value);
-      if (left === null || right === null) return false;
-      if (condition.operator === 'gt') return left > right;
-      if (condition.operator === 'gte') return left >= right;
-      if (condition.operator === 'lt') return left < right;
-      return left <= right;
-    }
-  }
-}
 
 /** Returns validation errors; an empty list means the rule is executable. */
 export function validateWorkflowRule(rule: WorkflowRule): string[] {

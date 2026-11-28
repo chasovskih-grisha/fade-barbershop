@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Controller, Get, Header, Logger, Query, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
@@ -69,9 +70,8 @@ export class CalendarExportController {
       // Token must be base64(HMAC-SHA256(barberId, secret)) where secret is from CALENDAR_EXPORT_SECRET.
       const secret = process.env.CALENDAR_EXPORT_SECRET;
       if (secret) {
-        const crypto = require('crypto');
-        const hmac = crypto.createHmac('sha256', secret).update(query.barberId).digest('base64');
-        if (crypto.timingSafeEqual(Buffer.from(query.token), Buffer.from(hmac))) {
+        const hmac = createHmac('sha256', secret).update(query.barberId).digest('base64');
+        if (timingSafeEqual(Buffer.from(query.token), Buffer.from(hmac))) {
           const latest = await this.prisma.booking.findFirst({
             where: { barberId: query.barberId },
             orderBy: { start: 'desc' },

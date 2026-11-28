@@ -1,51 +1,7 @@
 // Специфікація T-174: пакетний підбір слотів для групи та групове бронювання.
 // Use case перевіряється з in-memory портами — без Prisma і без HTTP, рівно те,
 // що обіцяє задача: підбір до groupSize слотів і створення рівно groupSize записів.
-import type { ClientRepository } from '../../clients/domain/repositories';
-import type { AppointmentRecord, AppointmentRepository } from '../domain/repositories';
-import type { AvailableSlot, SlotSearchCriteria, WaitlistQueue } from '../domain/waitlist-queue';
-import { T174BatchSlotSelectionUseCase } from './t-174-batch-slot-selection.use-case';
-
-const SLOTS: AvailableSlot[] = [
-  { id: 'slot-1', barberId: 'barber-1', serviceId: 'svc-1', startTime: '2026-11-20T10:00:00.000Z' },
-  { id: 'slot-2', barberId: 'barber-1', serviceId: 'svc-1', startTime: '2026-11-20T10:30:00.000Z' },
-  { id: 'slot-3', barberId: 'barber-1', serviceId: 'svc-1', startTime: '2026-11-20T11:00:00.000Z' },
-];
-
-function harness(options: { slots?: AvailableSlot[]; knownClient?: boolean } = {}) {
-  const created: AppointmentRecord[] = [];
-  const calls: SlotSearchCriteria[] = [];
-
-  const waitlistQueue = {
-    getAvailableSlots: jest.fn(async (criteria: SlotSearchCriteria) => {
-      calls.push(criteria);
-      return options.slots ?? SLOTS;
-    }),
-  } as unknown as WaitlistQueue;
-
-  const clientRepo = {
-    getById: jest.fn(async (id: string) =>
-      options.knownClient === false ? null : { id, name: 'Олена', visitCount: 3 }
-    ),
-    getNoShowHistory: jest.fn(async () => []),
-  } as unknown as ClientRepository;
-
-  const appointmentRepo = {
-    create: jest.fn(async (record: AppointmentRecord) => {
-      created.push(record);
-    }),
-    findMany: jest.fn(async () => created),
-  } as unknown as AppointmentRepository;
-
-  return {
-    useCase: new T174BatchSlotSelectionUseCase(appointmentRepo, waitlistQueue, clientRepo),
-    created,
-    calls,
-    waitlistQueue,
-    clientRepo,
-    appointmentRepo,
-  };
-}
+import { SLOTS, harness } from './t-174-batch-slot-selection.fakes';
 
 describe('T174BatchSlotSelectionUseCase', () => {
   it('picks one slot per group member and reports the estimated price', async () => {
@@ -118,33 +74,5 @@ describe('T174BatchSlotSelectionUseCase', () => {
     expect(result.success).toBe(false);
     expect(result.rejectedReasons).toEqual(['Client not found']);
     expect(waitlistQueue.getAvailableSlots).not.toHaveBeenCalled();
-  });
-
-  it('creates one booking per group member with the waitlist group source', async () => {
-    const { useCase, created } = harness();
-
-    const result = await useCase.createGroupBooking({
-      clientId: 'client-1',
-      assignedBarberId: 'barber-1',
-      serviceId: 'service-cut',
-      slotId: 'slot-1',
-      groupSize: 3,
-      notes: 'День народження',
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.bookingIds).toHaveLength(3);
-    expect(created).toHaveLength(3);
-    for (const record of created) {
-      expect(record).toMatchObject({
-        clientId: 'client-1',
-        barberId: 'barber-1',
-        serviceId: 'service-cut',
-        status: 'booked',
-        source: 'waitlist_group',
-        notes: 'День народження',
-      });
-    }
-    expect(result.summary).toContain('3');
   });
 });

@@ -17,7 +17,6 @@ import type { Request } from 'express';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { RescheduleAppointment } from '../application/reschedule-appointment.use-case';
 import { SetAppointmentReference } from '../application/set-appointment-reference.use-case';
-import { PrismaAppointmentHistoryRepository } from '../infrastructure/prisma-appointment-history.repository';
 import { appointmentHttpError } from './appointment-http';
 import { requireOwnAppointment } from './own-appointment';
 
@@ -35,8 +34,7 @@ export class ClientAppointmentsController {
   constructor(
     private readonly rescheduleUseCase: RescheduleAppointment,
     private readonly referenceUseCase: SetAppointmentReference,
-    private readonly prisma: PrismaService,
-    private readonly historyRepository: PrismaAppointmentHistoryRepository
+    private readonly prisma: PrismaService
   ) {}
 
   @Post(':id/reschedule')
@@ -77,21 +75,6 @@ export class ClientAppointmentsController {
       });
       return { status: 'ok' };
     });
-  }
-
-  @Post(':id/history')
-  @HttpCode(HttpStatus.OK)
-  async history(
-    @Param('id') id: string,
-    @Req() req: Request
-  ): Promise<{ items: any[]; total: number }> {
-    const actorId = await requireOwnAppointment(this.prisma, req, id);
-    // Отримуємо історію статусів для візиту
-    const result = await this.historyRepository.findByAppointmentId(id, {
-      limit: 50,
-      offset: 0,
-    });
-    return { items: result.items, total: result.total };
   }
 
   private async exec<T>(action: () => Promise<T>): Promise<T> {

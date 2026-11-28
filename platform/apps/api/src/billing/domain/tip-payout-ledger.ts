@@ -1,41 +1,19 @@
-/** Tip payout ledger, batching and reconciliation (T-5006). */
-
+/** Tip payout ledger, batching and reconciliation (T-5006).
+ *
+ * Публічний шлях модуля: типи — tip-payout.types.ts, звірка —
+ * tip-payout-reconcile.ts; журнал і планування виплат лишаються тут.
+ */
 import type { TipAllocation } from './tip-allocation';
+import type { TipPayoutEntry, TipPayoutPlan, TipPayoutTransfer } from './tip-payout.types';
 
-export type TipPayoutStatus = 'pending' | 'paid' | 'failed';
-
-export interface TipPayoutEntry {
-  readonly id: string;
-  readonly barberId: string;
-  readonly amountMinor: number;
-  readonly currency: string;
-  readonly period: string;
-  readonly status: TipPayoutStatus;
-}
-
-export interface TipPayoutTransfer {
-  readonly barberId: string;
-  readonly amountMinor: number;
-  readonly currency: string;
-  readonly entryIds: readonly string[];
-}
-
-export interface TipPayoutPlan {
-  readonly transfers: readonly TipPayoutTransfer[];
-  /** Sub-threshold (or unpaid) entries kept for the next payout run. */
-  readonly carriedOver: readonly TipPayoutEntry[];
-  readonly totalMinor: number;
-}
-
-export interface TipReconciliation {
-  readonly missingInLedger: readonly string[];
-  readonly missingInPayout: readonly string[];
-  readonly mismatched: readonly {
-    readonly entryId: string;
-    readonly ledgerMinor: number;
-    readonly payoutMinor: number;
-  }[];
-}
+export { reconcileTipPayouts } from './tip-payout-reconcile';
+export type {
+  TipPayoutEntry,
+  TipPayoutPlan,
+  TipPayoutStatus,
+  TipPayoutTransfer,
+  TipReconciliation,
+} from './tip-payout.types';
 
 /** Writes one immutable ledger entry per barber allocation; ids are deterministic. */
 export function buildTipPayoutEntries(
@@ -55,17 +33,16 @@ export function buildTipPayoutEntries(
     }));
 }
 
-/**
- * Groups pending entries per barber and currency into one transfer each,
- * carrying over balances below the Stripe Connect minimum transfer amount.
- */
-export function planTipPayouts(
-  entries: readonly TipPayoutEntry[],
-  minimumTransferMinor = 0
-): TipPayoutPlan {
-  const threshold = Math.max(0, minimumTransferMinor);
-  const groups = new Map<string, { barberId: string; currency: string; amountMinor: number; ids: string[] }>();
+interface PayoutGroup {
+  readonly barberId: string;
+  readonly currency: string;
+  amountMinor: number;
+  readonly ids: string[];
+}
 
+/** Pending entries grouped per barber and currency — one transfer each. */
+function groupPending(entries: readonly TipPayoutEntry[]): Map<string, PayoutGroup> {
+  const groups = new Map<string, PayoutGroup>();
   for (const entry of entries) {
     if (entry.status !== 'pending') continue;
     const key = `${entry.currency}:${entry.barberId}`;
@@ -79,10 +56,23 @@ export function planTipPayouts(
     group.ids.push(entry.id);
     groups.set(key, group);
   }
+  return groups;
+}
 
+/**
+ * Groups pending entries per barber and currency into one transfer each,
+ * carrying over balances below the Stripe Connect minimum transfer amount.
+ */
+export function planTipPayouts(
+  entries: readonly TipPayoutEntry[],
+  minimumTransferMinor = 0
+): TipPayoutPlan {
+  const threshold = Math.max(0, minimumTransferMinor);
+  const groups = groupPending(entries);
   const transfers: TipPayoutTransfer[] = [];
   const carriedOver: TipPayoutEntry[] = [];
   let totalMinor = 0;
+
   for (const group of [...groups.values()].sort((left, right) =>
     `${left.currency}:${left.barberId}`.localeCompare(`${right.currency}:${right.barberId}`)
   )) {
@@ -101,50 +91,4 @@ export function planTipPayouts(
     totalMinor += group.amountMinor;
   }
   return { transfers, carriedOver, totalMinor };
-}
-
-/**
- * Checks that every paid ledger entry is covered by exactly one transfer and
- * that transfer amounts match the covered entries.
- */
-export function reconcileTipPayouts(
-  entries: readonly TipPayoutEntry[],
-  transfers: readonly TipPayoutTransfer[]
-): TipReconciliation {
-  const paid = new Map(
-    entries.filter((entry) => entry.status === 'paid').map((entry) => [entry.id, entry])
-  );
-  const covered = new Set<string>();
-  const missingInLedger: string[] = [];
-  const mismatched: TipReconciliation['mismatched'][number][] = [];
-
-  for (const transfer of transfers) {
-    const matched = transfer.entryIds.flatMap((entryId) => {
-      const entry = paid.get(entryId);
-      if (!entry) {
-        missingInLedger.push(entryId);
-        return [];
-      }
-      covered.add(entryId);
-      return [entry];
-    });
-    if (matched.length === 0) continue;
-    const ledgerMinor = matched.reduce((sum, entry) => sum + entry.amountMinor, 0);
-    const currencyMismatch = matched.some((entry) => entry.currency !== transfer.currency);
-    if (ledgerMinor !== transfer.amountMinor || currencyMismatch) {
-      mismatched.push({
-        entryId: transfer.entryIds[0] ?? '',
-        ledgerMinor,
-        payoutMinor: transfer.amountMinor,
-      });
-    }
-  }
-
-  const missingInPayout = [...paid.keys()].filter((entryId) => !covered.has(entryId));
-
-  return {
-    missingInLedger: missingInLedger.sort(),
-    missingInPayout: missingInPayout.sort(),
-    mismatched: mismatched.sort((left, right) => left.entryId.localeCompare(right.entryId)),
-  };
 }

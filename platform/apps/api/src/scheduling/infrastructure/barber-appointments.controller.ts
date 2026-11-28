@@ -4,12 +4,9 @@
 // Обмеження фронту: список не містить депозит-утримання (hold) — це окремий
 // запит /barber/payments/bookings/:id/onsite, який кладе барбер-платежний контролер.
 
-import { Controller, Get, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
 import type { Request } from 'express';
-import {
-  ClientSessionGuard,
-  clientSessionOf,
-} from '../../identity/infrastructure/client-session.guard';
+import { clientSessionOf } from '../../identity/infrastructure/client-session.guard';
 import { ListClientAppointments } from '../application/list-client-appointments';
 
 @Controller('barber')

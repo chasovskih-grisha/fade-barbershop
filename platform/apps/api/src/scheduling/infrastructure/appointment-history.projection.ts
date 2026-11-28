@@ -75,7 +75,16 @@ export class AppointmentHistoryProjection {
       const fromStatus = existingLast?.toStatus ?? null;
 
       // Створюємо новий Eint історії - використовує createdAt як occurredAt
-      await this.historyRepository.create(appointmentId, fromStatus, toStatus, actorId, actorRole, reason, event.createdAt, event.id);
+      await this.historyRepository.create({
+        appointmentId,
+        fromStatus,
+        toStatus,
+        actorId,
+        actorRole,
+        reason,
+        occurredAt: event.createdAt,
+        sourceEventId: event.id,
+      });
 
       this.logger.log(
         `Created appointment history entry: ${appointmentId} ${event.type} -> ${toStatus}`

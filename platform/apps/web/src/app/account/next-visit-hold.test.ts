@@ -1,5 +1,4 @@
 import { waitingForDeposit } from './next-visit';
-import { nextVisitHoldCases } from './lib/next-visit-hold';
 import type { ExtendedAppointment } from '@/lib/api/appointments';
 
 function visit(deposit: NonNullable<ExtendedAppointment['deposit']>): ExtendedAppointment {

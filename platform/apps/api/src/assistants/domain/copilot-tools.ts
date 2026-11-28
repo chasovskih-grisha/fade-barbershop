@@ -1,80 +1,25 @@
-/** AI copilot tool registry, RBAC and audit decisions (T-5019). */
+/** AI copilot tool registry, RBAC and audit decisions (T-5019).
+ *
+ * Публічний шлях модуля: типи — copilot.types.ts, типовий каталог —
+ * copilot-default-tools.ts, реєстр і авторизація — тут.
+ */
+import type {
+  CopilotAuditEntry,
+  CopilotDecision,
+  CopilotTool,
+  CopilotToolCall,
+  ToolRejection,
+} from './copilot.types';
 
-export type CopilotRole = 'owner' | 'manager' | 'receptionist' | 'barber';
-
-export interface CopilotTool {
-  readonly name: string;
-  readonly description: string;
-  readonly requiredRoles: readonly CopilotRole[];
-  /** Mutations are audited and may require explicit operator confirmation. */
-  readonly mutating: boolean;
-  readonly requiresConfirmation: boolean;
-  /** Exact parameter names accepted by the tool. */
-  readonly parameters: readonly string[];
-}
-
-export interface CopilotToolCall {
-  readonly tool: string;
-  readonly role: CopilotRole;
-  readonly parameters: Readonly<Record<string, unknown>>;
-  /** Human-in-the-loop confirmation for mutating tools. */
-  readonly confirmed?: boolean;
-}
-
-export type ToolRejection =
-  | 'unknown_tool'
-  | 'forbidden'
-  | 'invalid_parameters'
-  | 'confirmation_required';
-
-export interface CopilotAuditEntry {
-  readonly tool: string;
-  readonly role: CopilotRole;
-  readonly mutating: boolean;
-  readonly outcome: 'allowed' | 'rejected';
-  readonly reason?: ToolRejection;
-  readonly at: Date;
-}
-
-export type CopilotDecision =
-  | { readonly allowed: true; readonly audit: CopilotAuditEntry }
-  | { readonly allowed: false; readonly reason: ToolRejection; readonly audit: CopilotAuditEntry };
-
-/** Tools shipped with the copilot; operators can extend the registry per deployment. */
-export const DEFAULT_COPILOT_TOOLS: readonly CopilotTool[] = [
-  {
-    name: 'analytics.query',
-    description: 'Read aggregated revenue, utilization and retention metrics.',
-    requiredRoles: ['owner', 'manager'],
-    mutating: false,
-    requiresConfirmation: false,
-    parameters: ['metric', 'period'],
-  },
-  {
-    name: 'appointments.reschedule',
-    description: 'Move one appointment to a new start time.',
-    requiredRoles: ['owner', 'manager', 'receptionist'],
-    mutating: true,
-    requiresConfirmation: true,
-    parameters: ['appointmentId', 'start'],
-  },
-  {
-    name: 'inventory.lookup',
-    description: 'Read stock levels for a SKU.',
-    requiredRoles: ['owner', 'manager', 'receptionist', 'barber'],
-    mutating: false,
-    requiresConfirmation: false,
-    parameters: ['sku'],
-  },
-  {
-    name: 'clients.export',
-    description: 'Export client records for the operator organisation.',
-    requiredRoles: ['owner'],
-    mutating: false,
-    requiresConfirmation: false,
-    parameters: [],
-  },
-];
+export { DEFAULT_COPILOT_TOOLS } from './copilot-default-tools';
+export type {
+  CopilotAuditEntry,
+  CopilotDecision,
+  CopilotRole,
+  CopilotTool,
+  CopilotToolCall,
+  ToolRejection,
+} from './copilot.types';
 
 export function registerCopilotTools(
   tools: readonly CopilotTool[]
@@ -97,6 +42,25 @@ function parametersMatch(tool: CopilotTool, parameters: Readonly<Record<string, 
   return keys.length === expected.length && keys.every((key, index) => key === expected[index]);
 }
 
+interface AuditInput {
+  readonly call: CopilotToolCall;
+  readonly mutating: boolean;
+  readonly outcome: 'allowed' | 'rejected';
+  readonly at: Date;
+  readonly reason?: ToolRejection;
+}
+
+function auditOf(input: AuditInput): CopilotAuditEntry {
+  const base = {
+    tool: input.call.tool,
+    role: input.call.role,
+    mutating: input.mutating,
+    outcome: input.outcome,
+    at: input.at,
+  };
+  return input.reason ? { ...base, reason: input.reason } : base;
+}
+
 /**
  * Authorizes one copilot tool call. Every call — allowed or rejected — returns
  * an audit entry so AI-initiated actions stay traceable.
@@ -110,7 +74,7 @@ export function authorizeCopilotToolCall(
   const reject = (reason: ToolRejection, mutating: boolean): CopilotDecision => ({
     allowed: false,
     reason,
-    audit: { tool: call.tool, role: call.role, mutating, outcome: 'rejected', reason, at },
+    audit: auditOf({ call, mutating, outcome: 'rejected', at, reason }),
   });
 
   if (!tool) return reject('unknown_tool', false);
@@ -119,8 +83,5 @@ export function authorizeCopilotToolCall(
   if (tool.mutating && tool.requiresConfirmation && call.confirmed !== true) {
     return reject('confirmation_required', true);
   }
-  return {
-    allowed: true,
-    audit: { tool: tool.name, role: call.role, mutating: tool.mutating, outcome: 'allowed', at },
-  };
+  return { allowed: true, audit: auditOf({ call, mutating: tool.mutating, outcome: 'allowed', at }) };
 }
