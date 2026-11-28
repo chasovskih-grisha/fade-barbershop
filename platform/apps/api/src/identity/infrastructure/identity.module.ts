@@ -14,6 +14,7 @@ import { PushTokensController } from './push-tokens.controller';
 import { WebPushSubscriptionController } from './web-push-subscription.controller';
 import { ClientProfileController } from './client-profile.controller';
 import { ClientBirthdayController } from './client-birthday.controller';
+import { ClientUsualChairController } from './client-usual-chair.controller';
 import { AdminAccountController } from './admin-account.controller';
 import { PrismaLoginAudit } from './prisma-login-audit';
 import { S3PublicMediaStorage } from '../../shared/media/s3-public-media-storage';
@@ -57,6 +58,7 @@ import { CrmModule } from '../../crm/crm.module';
     WebPushSubscriptionController,
     ClientProfileController,
     ClientBirthdayController,
+    ClientUsualChairController,
     AdminLoginController,
     AdminMeController,
     AdminBarbersController,

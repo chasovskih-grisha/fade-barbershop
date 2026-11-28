@@ -4,6 +4,7 @@
 import {
   UpdateClientProfileHandler,
   UpdateBirthdayHandler,
+  UpdateUsualChairHandler,
   UpdatePreferencesHandler,
   AddNoteHandler,
   RemoveNoteHandler,
@@ -21,6 +22,7 @@ export const ADMIN_CLIENTS_HANDLERS = Symbol('ADMIN_CLIENTS_HANDLERS');
 export interface AdminClientsHandlers {
   updateProfile: UpdateClientProfileHandler;
   updateBirthday: UpdateBirthdayHandler;
+  updateUsualChair: UpdateUsualChairHandler;
   updatePreferences: UpdatePreferencesHandler;
   addNote: AddNoteHandler;
   removeNote: RemoveNoteHandler;

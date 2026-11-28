@@ -31,11 +31,14 @@ Without the empty rule, the first shop in the list becomes everyone's usual chai
 
 ## Risks
 
-- [ ] **A booking change hidden in the spec.** The paragraph says the booking steps stay as they are
+- [x] **A booking change hidden in the spec.** The paragraph says the booking steps stay as they are
 
-## Re-verified at 91202f68
+## Verified
 
-The spec is delivered: review commit `92199659` adds only `docs/` files, so `filesCoveringReview`
-returns zero owned product files and `qaTask` (test required from the review diff) cannot accept it.
-Its three `Done` boxes are ticked. The code children are T-4725b (web) and T-4725c (app). Needs a
-`split` parent or a code child that carries the gate, not new work here.
+`docs/web-cabinet-screens.md` §2 «Звична локація і барбер» and `docs/client-screens.md` §5 now
+carry the rule, and the rule is implemented on both surfaces: `ClientUsualChairController`
+(`PATCH /identity/profile/usual-chair`, CRM `UpdateUsualChairHandler`, `ClientProfile.usualChair`),
+web `AccountUsualChairCard` + `/api/account/usual-chair`, app `UsualChairCard`. Covered by
+`client-usual-chair.controller.spec.ts`, `usual-chair.test.tsx` (web), `usual-chair-card.test.tsx`
+(app). Empty saves empty, a stale id shows «Більше не доступно» and clears, and no booking command
+runs.

@@ -5,6 +5,7 @@ import { useAuth } from '../components/auth/AuthProvider';
 import { AISection } from './components/AISection';
 import { AccountProfileCard } from './AccountProfileCard';
 import { AccountBirthdayCard } from './AccountBirthdayCard';
+import { AccountUsualChairCard } from './AccountUsualChairCard';
 import { AccountPreferencesCard, AccountReferralsLink } from './AccountPreferencesCard';
 import { AccountNotificationsCard } from './AccountNotificationsCard';
 import { NextVisitSection } from './NextVisitSection';
@@ -62,6 +63,7 @@ export default function AccountPage() {
         onChangePhone={phoneChange.open}
       />
       <AccountBirthdayCard initial={user.birthday ?? null} token={token} onSaved={refreshUser} />
+      <AccountUsualChairCard token={token} />
       <AccountPreferencesCard
         preferences={preferences.preferences}
         savedPreferences={preferences.savedPreferences}

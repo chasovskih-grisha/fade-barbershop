@@ -9,6 +9,7 @@ export {
   UpdateClientProfileHandler,
   UpdatePreferencesHandler,
   UpdateBirthdayHandler,
+  UpdateUsualChairHandler,
 } from './client-profile-commands';
 export { AddNoteHandler, RemoveNoteHandler } from './client-note-commands';
 export { SetVipDiscountHandler, SetLoyaltyVisitsHandler } from './client-discount-commands';

@@ -63,6 +63,16 @@ export class UpdatePreferencesHandler {
   }
 }
 
+export interface UpdateUsualChairInput {
+  clientId: string;
+  locationId?: string | null;
+  barberId?: string | null;
+}
+
+export interface UpdateUsualChairOutput {
+  client: ClientProfile;
+}
+
 export interface UpdateBirthdayInput {
   clientId: string;
   birthday: { day: number; month: number } | null;
@@ -70,6 +80,33 @@ export interface UpdateBirthdayInput {
 
 export interface UpdateBirthdayOutput {
   client: ClientProfile;
+}
+
+/**
+ * Зберігає звичну локацію і барбера (T-4725). Нічого не надсилає і не чіпає
+ * записи: це вподобання профілю, не перенос візиту. null очищає поле.
+ */
+export class UpdateUsualChairHandler {
+  constructor(private readonly ctx: CrmCommandContext) {}
+
+  async handle(input: UpdateUsualChairInput): Promise<UpdateUsualChairOutput> {
+    return this.ctx.uow.run(async () => {
+      const profile = await this.ctx.profiles.findById(input.clientId as never);
+      if (!profile) throw new ClientProfileNotFoundError(input.clientId);
+
+      // Відсутнє поле лишається як було; null — явне очищення саме цього поля.
+      const current = profile.usualChair;
+      profile.setUsualChair(
+        {
+          locationId: input.locationId !== undefined ? input.locationId : current.locationId,
+          barberId: input.barberId !== undefined ? input.barberId : current.barberId,
+        },
+        this.ctx.clock
+      );
+      await this.ctx.profiles.save(profile);
+      return { client: profile };
+    });
+  }
 }
 
 /** Зберігає або очищає день і місяць народження (T-4730). Нічого не надсилає. */

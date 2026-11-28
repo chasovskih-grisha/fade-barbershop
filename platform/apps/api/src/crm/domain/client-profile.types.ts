@@ -40,6 +40,15 @@ export interface Birthday {
   month: number;
 }
 
+/**
+ * Звична локація і звичний барбер (T-4725). Порожнє поле — реальне значення
+ * «клієнт не обрав», а не відсутність даних: кожне поле незалежне.
+ */
+export interface UsualChair {
+  locationId: string | null;
+  barberId: string | null;
+}
+
 export interface ClientProfileProps {
   id: ClientId;
   userId: string;
@@ -47,6 +56,8 @@ export interface ClientProfileProps {
   phone: string;
   /** Необов'язковий день і місяць народження (T-4730); порожнє — дефолт. */
   birthday?: Birthday | null;
+  /** Звична локація і барбер (T-4725); порожня пара — клієнт не обрав. */
+  usualChair?: UsualChair | null;
   inviteCode?: string;
   referredBy?: string | null;
   preferences: Preference[];

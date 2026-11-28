@@ -39,6 +39,8 @@ export interface PrClientProfile {
   phone: string;
   birthDay: number | null;
   birthMonth: number | null;
+  usualLocationId: string | null;
+  usualBarberId: string | null;
   inviteCode: string;
   referredBy: string | null;
   preferences: unknown;
@@ -56,6 +58,7 @@ export function toDomainProfile(data: PrClientProfile): ClientProfile {
     name: data.name,
     phone: data.phone,
     birthday: toBirthday(data.birthDay, data.birthMonth),
+    usualChair: { locationId: data.usualLocationId ?? null, barberId: data.usualBarberId ?? null },
     inviteCode: data.inviteCode ?? `REF-${data.id.substring(0, 6).toUpperCase()}`,
     referredBy: data.referredBy ?? null,
     preferences: (Array.isArray(data.preferences) ? data.preferences : []).map((p) => {
@@ -90,6 +93,8 @@ export function toPrismaProfile(
     phone: props.phone,
     birthDay: props.birthday?.day ?? null,
     birthMonth: props.birthday?.month ?? null,
+    usualLocationId: props.usualChair?.locationId ?? null,
+    usualBarberId: props.usualChair?.barberId ?? null,
     preferences: props.preferences as unknown as Prisma.InputJsonValue[],
     notes: props.notes as unknown as Prisma.InputJsonValue[],
     vipDiscountPercent: props.vipDiscountPercent,

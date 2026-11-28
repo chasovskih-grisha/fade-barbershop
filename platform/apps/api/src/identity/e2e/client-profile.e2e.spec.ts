@@ -39,6 +39,8 @@ describe('ClientProfileController (e2e) — /identity/profile', () => {
       vipDiscountPercent: null,
       loyaltyVisitsCount: 2,
       birthday: null,
+      // T-4725b: звичне місце — частина контракту профілю; порожнє = не обрано.
+      usualChair: { locationId: null, barberId: null },
       createdAt: PROFILE_NOW.toISOString(),
       updatedAt: PROFILE_NOW.toISOString(),
     });

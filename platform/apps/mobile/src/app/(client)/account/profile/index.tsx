@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
-import { getProfile, type Birthday } from '@/lib/api/identity';
+import { getProfile, type Birthday, type UsualChair } from '@/lib/api/identity';
 import { styles } from './profile-styles';
 import { BirthdayCard } from './birthday-card';
 import { NameCard } from './name-card';
 import { NoteCard } from './note-card';
 import { PhoneCard } from './phone-card';
 import { NotificationSwitches } from './notification-switches';
+import { UsualChairCard } from './usual-chair-card';
 import { ProfileDoors } from './profile-doors';
 import { SignOutCard } from './sign-out-card';
 import { UnsavedPrompt } from './unsaved-prompt';
@@ -20,6 +21,7 @@ export function ProfileScreen() {
   const [profilePhone, setProfilePhone] = useState('');
   const [birthday, setBirthday] = useState<Birthday | null>(null);
   const [preferences, setPreferences] = useState<string[]>([]);
+  const [usualChair, setUsualChair] = useState<UsualChair | null>(null);
   const name = useNameDraft(profileName);
   const note = useNoteDraft(preferences);
   const dirty = isProfileDirty(name.name, name.storedName, note.changed);
@@ -32,6 +34,7 @@ export function ProfileScreen() {
         setProfilePhone(p.phone);
         setBirthday(p.birthday ?? null);
         setPreferences(p.preferences ?? []);
+        setUsualChair(p.usualChair ?? null);
       })
       .catch(() => {});
   }, []);
@@ -50,6 +53,8 @@ export function ProfileScreen() {
       <PhoneCard phone={profilePhone} />
 
       <BirthdayCard initial={birthday} />
+
+      <UsualChairCard initial={usualChair} />
 
       <NoteCard draft={note} />
 

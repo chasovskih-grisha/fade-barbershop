@@ -109,6 +109,8 @@ export type ClientProfileResult = {
   phone: string;
   /** День і місяць народження без року (T-4730); порожнє — дефолт. */
   birthday: { day: number; month: number } | null;
+  /** Звична локація і барбер (T-4725); кожне поле порожнє незалежно. */
+  usualChair: { locationId: Uuid | null; barberId: Uuid | null };
   preferences: { id: Uuid; text: string; createdAt: string }[];
   vipDiscountPercent: number | null;
   loyaltyVisitsCount: number;
@@ -119,6 +121,9 @@ export type ClientProfileResult = {
 export type PatchProfileNameInput = { name: string | null };
 
 export type PatchProfileBirthdayInput = { birthday: { day: number; month: number } | null };
+
+/** PATCH /identity/profile/usual-chair — null очищає поле, не чіпаючи друге. */
+export type PatchProfileUsualChairInput = { locationId: string | null; barberId: string | null };
 
 export type PatchProfilePreferencesInput = { preferences: string[] };
 

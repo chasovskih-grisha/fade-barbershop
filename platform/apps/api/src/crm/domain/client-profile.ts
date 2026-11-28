@@ -9,6 +9,7 @@ import type {
   ClientId,
   Note,
   Preference,
+  UsualChair,
 } from './client-profile.types';
 import { isValidBirthday, InvalidBirthdayError } from './birthday';
 
@@ -31,6 +32,8 @@ export class ClientProfile {
   get phone(): string { return this.props.phone; }
   // prettier-ignore
   get birthday(): Birthday | null { return this.props.birthday ?? null; }
+  // prettier-ignore
+  get usualChair(): UsualChair { return this.props.usualChair ?? { locationId: null, barberId: null }; }
   // prettier-ignore
   get preferences(): Preference[] { return [...this.props.preferences]; }
   // prettier-ignore
@@ -61,6 +64,18 @@ export class ClientProfile {
       throw new InvalidBirthdayError(birthday);
     }
     this.props.birthday = birthday;
+    this.touch(clock);
+  }
+
+  /**
+   * Зберігає звичну локацію/барбера; null — явне очищення поля (T-4725).
+   * Порожнє значення лишається вибором клієнта, тому пара не згортається в null.
+   */
+  setUsualChair(chair: UsualChair, clock: Clock): void {
+    this.props.usualChair = {
+      locationId: chair.locationId ?? null,
+      barberId: chair.barberId ?? null,
+    };
     this.touch(clock);
   }
 

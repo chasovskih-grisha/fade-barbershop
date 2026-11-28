@@ -9,6 +9,7 @@ import {
   Max,
   ValidateNested,
   IsObject,
+  IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -47,6 +48,21 @@ export class PatchProfileBirthdayInputDto {
   /** Дозволяємо явне null — очищення дня народження. */
   @IsOptional()
   birthdayExplicitNull?: null;
+}
+
+/**
+ * PATCH /identity/profile/usual-chair — звична локація і барбер (T-4725).
+ * Кожне поле опційне й може бути явним null: порожнє значення очищає саме
+ * його, друге лишається як було.
+ */
+export class PatchProfileUsualChairInputDto {
+  @IsOptional()
+  @IsUUID()
+  locationId?: string | null;
+
+  @IsOptional()
+  @IsUUID()
+  barberId?: string | null;
 }
 
 /** PATCH /identity/profile/preferences — масив непорожніх рядків. */

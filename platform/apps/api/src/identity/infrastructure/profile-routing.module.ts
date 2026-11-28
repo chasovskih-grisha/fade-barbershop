@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ClientProfileController } from './client-profile.controller';
 import { ClientBirthdayController } from './client-birthday.controller';
+import { ClientUsualChairController } from './client-usual-chair.controller';
 import { PrismaClientProfileRepository } from '../../crm/infrastructure/prisma-client-profile.repository';
 import { CrmModule } from '../../crm/crm.module';
 import { PrismaService } from '../../shared/prisma/prisma.service';
@@ -28,7 +29,7 @@ import { PrismaUnitOfWork } from '../../shared/prisma/prisma-context';
 // потреб; реальна бізнес-логіка залишається в CrmModule.
 @Module({
   imports: [CrmModule],
-  controllers: [ClientProfileController, ClientBirthdayController],
+  controllers: [ClientProfileController, ClientBirthdayController, ClientUsualChairController],
   providers: [
     PrismaService,
     PrismaSessionRepository,

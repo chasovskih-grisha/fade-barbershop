@@ -2,9 +2,11 @@
 // профілів, CRM-хендлери і контролер з допуском за сесією. Окремо від спеки — гейт max-lines.
 import { ClientProfileController } from './client-profile.controller';
 import { ClientBirthdayController } from './client-birthday.controller';
+import { ClientUsualChairController } from './client-usual-chair.controller';
 import {
   UpdateClientProfileHandler,
   UpdateBirthdayHandler,
+  UpdateUsualChairHandler,
   UpdatePreferencesHandler,
   GetClientProfileByUserIdHandler,
 } from '../../crm/application/crm-handlers';
@@ -24,6 +26,7 @@ function clientProfile(profileId: string, userId: string): ClientProfile {
     userId,
     name: 'Олег',
     phone: '+380671111111',
+    usualChair: { locationId: null, barberId: null },
     preferences: [],
     notes: [],
     vipDiscountPercent: null,
@@ -61,6 +64,7 @@ export interface ClientProfileControllerEnv {
   ctx: CrmCommandContext;
   controller: ClientProfileController;
   birthday: ClientBirthdayController;
+  usualChair: ClientUsualChairController;
   session: ClientSession;
 }
 
@@ -84,10 +88,12 @@ export function makeClientProfileController(): ClientProfileControllerEnv {
     getProfileByUserId: new GetClientProfileByUserIdHandler(profiles),
     updateProfile: new UpdateClientProfileHandler(ctx),
     updateBirthday: new UpdateBirthdayHandler(ctx),
+    updateUsualChair: new UpdateUsualChairHandler(ctx),
     updatePreferences: new UpdatePreferencesHandler(ctx),
   };
   const controller = new ClientProfileController(handlers as never);
   const birthday = new ClientBirthdayController(handlers as never);
+  const usualChair = new ClientUsualChairController(handlers as never);
   const session: ClientSession = { userId, sessionId: SESSION_1 };
-  return { profiles, events, ctx, controller, birthday, session };
+  return { profiles, events, ctx, controller, birthday, usualChair, session };
 }

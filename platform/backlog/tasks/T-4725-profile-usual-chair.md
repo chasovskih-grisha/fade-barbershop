@@ -24,18 +24,28 @@ Repeat clients already know the chair. The account, which is where they would se
 
 ## Done
 
-- [ ] Slices a, b, and c are `done`
-- [ ] A choice saved on the site is the choice on the app
-- [ ] Empty stays empty, including when the catalog has rows
-- [ ] An existing visit does not change when the preference changes
+- [x] Slices a, b, and c are `done`
+- [x] A choice saved on the site is the choice on the app
+- [x] Empty stays empty, including when the catalog has rows
+- [x] An existing visit does not change when the preference changes
 
 ## Risks
 
-- [ ] **Prefilling the booking flow.** Showing the preference on the profile does not change step 0 or step 2 of booking. That would be a later task
-- [ ] **A free-text shop name.** The choices are ids from the catalog the booking screens use
+- [x] **Prefilling the booking flow.** Showing the preference on the profile does not change step 0 or step 2 of booking. That would be a later task
+- [x] **A free-text shop name.** The choices are ids from the catalog the booking screens use
 
 ## Out of scope
 
 - Booking pin tasks (T-4711, T-4714)
 - Admin assignment of a barber
 - Moving an existing visit
+
+## Verified
+
+`docs/web-cabinet-screens.md` §2 «Звична локація і барбер» and `docs/client-screens.md` §5 now
+carry the rule, and the rule is implemented on both surfaces: `ClientUsualChairController`
+(`PATCH /identity/profile/usual-chair`, CRM `UpdateUsualChairHandler`, `ClientProfile.usualChair`),
+web `AccountUsualChairCard` + `/api/account/usual-chair`, app `UsualChairCard`. Covered by
+`client-usual-chair.controller.spec.ts`, `usual-chair.test.tsx` (web), `usual-chair-card.test.tsx`
+(app). Empty saves empty, a stale id shows «Більше не доступно» and clears, and no booking command
+runs.

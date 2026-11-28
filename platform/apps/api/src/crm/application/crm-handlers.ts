@@ -7,6 +7,8 @@ export type {
   UpdateClientProfileOutput,
   UpdateBirthdayInput,
   UpdateBirthdayOutput,
+  UpdateUsualChairInput,
+  UpdateUsualChairOutput,
   UpdatePreferencesInput,
   UpdatePreferencesOutput,
 } from './client-profile-commands';

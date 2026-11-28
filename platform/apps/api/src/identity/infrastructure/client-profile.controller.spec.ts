@@ -29,6 +29,7 @@ describe('ClientProfileController (T-??): клієнтський профіль'
       name: 'Олег',
       phone: '+380671111111',
       birthday: null,
+      usualChair: { locationId: null, barberId: null },
       preferences: [],
       vipDiscountPercent: null,
       loyaltyVisitsCount: 2,

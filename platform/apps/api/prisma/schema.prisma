@@ -688,6 +688,11 @@ model ClientProfile {
   birthMonth         Int?
   preferences        Json     @default("[]")
   notes              Json     @default("[]")
+  // Звична локація і звичний барбер (T-4725): необов'язкові, порожнє — реальне
+  // значення (клієнт не обрав). Без FK: id може перестати резолвитись (локацію
+  // закрили), і профіль мусить це пережити — UI показує «Більше не доступно».
+  usualLocationId    String?  @db.Uuid
+  usualBarberId      String?  @db.Uuid
   vipDiscountPercent Int?
   loyaltyVisitsCount Int      @default(0)
   createdAt          DateTime @default(now()) @db.Timestamptz

@@ -13,6 +13,10 @@ export function toProfileResult(dto: ClientProfileDto): ClientProfileResult {
       createdAt: p.createdAt.toISOString(),
     })),
     birthday: dto.birthday ?? null,
+    usualChair: {
+      locationId: dto.usualChair?.locationId ?? null,
+      barberId: dto.usualChair?.barberId ?? null,
+    },
     vipDiscountPercent: dto.vipDiscountPercent,
     loyaltyVisitsCount: dto.loyaltyVisitsCount,
     createdAt: dto.createdAt.toISOString(),

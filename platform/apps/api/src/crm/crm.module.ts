@@ -19,6 +19,7 @@ import { PrismaVisitClientLookup } from './infrastructure/prisma-visit-client.lo
 import {
   UpdateClientProfileHandler,
   UpdateBirthdayHandler,
+  UpdateUsualChairHandler,
   UpdatePreferencesHandler,
   AddNoteHandler,
   RemoveNoteHandler,
@@ -46,6 +47,7 @@ const ADMIN_CLIENTS_HANDLERS_PROVIDER = {
     return {
       updateProfile: new UpdateClientProfileHandler(commands),
       updateBirthday: new UpdateBirthdayHandler(commands),
+      updateUsualChair: new UpdateUsualChairHandler(commands),
       updatePreferences: new UpdatePreferencesHandler(commands),
       addNote: new AddNoteHandler(commands),
       removeNote: new RemoveNoteHandler(commands),

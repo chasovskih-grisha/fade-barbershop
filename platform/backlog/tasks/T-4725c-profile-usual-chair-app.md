@@ -18,14 +18,19 @@ A preference that exists only on the site is not the client's preference.
 
 ## Done
 
-- [ ] The app shows a choice saved on the site
-- [ ] «Не обрано» and «Більше не доступно» match the site
+- [x] The app shows a choice saved on the site
+- [x] «Не обрано» and «Більше не доступно» match the site
 
 ## Risks
 
-- [ ] **A private catalog.** Use the location and barber endpoints the app home already calls
+- [x] **A private catalog.** Use the location and barber endpoints the app home already calls
 
-## Re-verified at 91202f68
+## Verified
 
-Same dependency as T-4725b: T-4725a is `review` with a docs-only review commit `92199659`, so
-`claimBlock` refuses. The app slice is independently implementable once that spec row is resolved.
+`docs/web-cabinet-screens.md` §2 «Звична локація і барбер» and `docs/client-screens.md` §5 now
+carry the rule, and the rule is implemented on both surfaces: `ClientUsualChairController`
+(`PATCH /identity/profile/usual-chair`, CRM `UpdateUsualChairHandler`, `ClientProfile.usualChair`),
+web `AccountUsualChairCard` + `/api/account/usual-chair`, app `UsualChairCard`. Covered by
+`client-usual-chair.controller.spec.ts`, `usual-chair.test.tsx` (web), `usual-chair-card.test.tsx`
+(app). Empty saves empty, a stale id shows «Більше не доступно» and clears, and no booking command
+runs.
