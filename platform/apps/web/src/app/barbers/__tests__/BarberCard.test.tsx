@@ -89,6 +89,15 @@ describe('BarberCard — факти запису (T-4851a)', () => {
     expect(links[0]).toHaveAttribute('aria-label', 'Олександр');
   });
 
+  it('tells a screen reader where the card goes (T-4859)', () => {
+    render(<BarberCard {...base} role="Барбер" />);
+
+    const link = screen.getByRole('link', { name: 'Олександр' });
+    const describedBy = link.getAttribute('aria-describedby');
+    expect(describedBy).toBeTruthy();
+    expect(document.getElementById(describedBy ?? '')?.textContent).toContain('Профіль майстра');
+  });
+
   it('shows one chip per distinct specialty and trims padding (T-4851)', () => {
     render(<BarberCard {...base} specialties={['Fade', ' Fade ', 'Борода']} />);
 

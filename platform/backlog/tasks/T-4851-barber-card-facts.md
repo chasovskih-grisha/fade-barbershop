@@ -21,17 +21,24 @@ A guest choosing a person is reading a promise. The same promise on every card i
 
 ## Implementation plan
 
+The card itself stopped inventing facts in T-4851a. The same promise still
+leaked from the listing page: `/barbers` writes JSON-LD `Person` entries for the
+cards and gives every barber without a role the title «Майстер-барбер». The plan
+builds that entry from the record only, so a role-less barber has no job title.
+
 Paths:
-- apps/web/src/app/barbers/BarberCard.tsx
-- apps/web/src/app/barbers/__tests__/BarberCard.test.tsx
+- apps/web/src/app/barbers/page.tsx
+- apps/web/src/app/barbers/barbers-json-ld.ts
+- apps/web/src/app/barbers/__tests__/barbers-json-ld.test.ts
 
 Checks:
-- npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/BarberCard.test.tsx
+- npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/barbers-json-ld.test.ts
 
 ## Done
 
+- [x] The listing's `Person` entry carries a job title only when the record has one
+- [x] No card or listing entry says «Вільні вікна сьогодні» or «Експерт Fade»
 - [x] T-4851a and T-4851b are done
-- [x] No card says «Вільні вікна сьогодні» or «Експерт Fade»
 
 ## Risks
 
@@ -45,9 +52,11 @@ Checks:
 
 ## Implementation notes
 
-- apps/web/src/app/barbers/BarberCard.tsx
-- apps/web/src/app/barbers/__tests__/BarberCard.test.tsx
+- apps/web/src/app/barbers/__tests__/barbers-json-ld.test.ts
+- apps/web/src/app/barbers/barbers-json-ld.ts
 
 ## QA
 
-- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/BarberCard.test.tsx` exit 0
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/barbers-json-ld.test.ts` exit 0
+
+

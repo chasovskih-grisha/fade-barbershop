@@ -19,6 +19,12 @@ A card that offers a portfolio, a slot, and a selection, and then opens one page
 
 ## Implementation plan
 
+The card already has one href and one footer line. What it does not do is say
+that destination to someone who cannot see the footer: the link's accessible
+name is the person's name, so a screen reader announces «Олександр, посилання»
+and stops there. The plan points the link at the footer line as its description,
+so the destination is spoken while the visible copy stays the same one line.
+
 Paths:
 - apps/web/src/app/barbers/BarberCard.tsx
 - apps/web/src/app/barbers/__tests__/BarberCard.test.tsx
@@ -31,6 +37,7 @@ Checks:
 - [x] The footer does not say "free slots"
 - [x] The card has a single href, the profile
 - [x] A test asserts that href and the absence of the slot sentence
+- [x] The link names the footer line as its description, so the destination is spoken
 
 ## Risks
 
@@ -48,3 +55,5 @@ Checks:
 ## QA
 
 - `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/BarberCard.test.tsx` exit 0
+
+

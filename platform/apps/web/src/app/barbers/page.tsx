@@ -5,6 +5,7 @@ import { pageMetadata } from '@/lib/metadata';
 import { ErrorState } from '@/app/components/states/ErrorState';
 import { ActionLink } from '@/app/components/ActionLink';
 import { BOOKING_OPENS_SOON_TEXT } from '@/lib/booking-availability';
+import { barbersJsonLd } from './barbers-json-ld';
 import { BarbersClient } from './BarbersClient';
 
 // T-4854: опис маршруту обіцяв портфоліо, ціни та вільні вікна, яких немає в
@@ -24,29 +25,9 @@ export default async function BarbersPage() {
   const everyone = result.state === 'ok' ? result.data.flatMap((studio) => studio.barbers) : [];
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://fade.com.ua';
-  const jsonLd =
-    result.state === 'ok'
-      ? {
-          '@context': 'https://schema.org',
-          '@type': 'ItemList',
-          itemListElement: everyone.map((barber, index) => ({
-            '@type': 'ListItem',
-            position: index + 1,
-            item: {
-              '@type': 'Person',
-              name: barber.name,
-              jobTitle: barber.role || 'Майстер-барбер',
-              url: `${siteUrl}/barbers/${barber.slug}`,
-              image: barber.photoUrl ?? undefined,
-              worksFor: {
-                '@type': 'HairSalon',
-                name: 'FADE Barbershop',
-                url: siteUrl,
-              },
-            },
-          })),
-        }
-      : null;
+  // T-4851: структуровані дані картки будуються з самого запису, тож майстер
+  // без ролі не отримує вигаданої посади.
+  const jsonLd = result.state === 'ok' ? barbersJsonLd(everyone, siteUrl) : null;
 
   return (
     <>

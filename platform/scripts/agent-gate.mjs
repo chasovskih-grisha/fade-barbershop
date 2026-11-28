@@ -51,16 +51,16 @@ export function tagsFromTask(text) {
   return line.split(':').slice(1).join(':').split(',').map((tag) => tag.trim()).filter(Boolean);
 }
 
-export function dependencyIds(taskText, source) {
+export function dependencyIds(taskText) {
   const ids = new Set();
-  // Authoritative declaration: the task's own «Depends on» line or a Dependencies
-  // section. The index «Джерело» column mixes real prerequisites with mere
-  // references (T-4851 cites T-130 as an out-of-scope feature), so it only speaks
-  // for task files that declare no dependencies at all.
+  // Only the task's own declaration — its «Depends on» line or a Dependencies
+  // section. The index «Джерело» column is a reading list: it mixes real
+  // prerequisites with mere references (T-4851 cites T-130 as an out-of-scope
+  // feature), so it never decides whether a row may be claimed.
   const header = taskText.match(/\*\*(?:Depends on|Dependencies)\*\*:\s*(.*)/);
   const section =
     taskText.split(/^## (?:Depends on|Dependencies)\s*$/m)[1]?.split(/^## /m)[0] ?? '';
-  const blobs = header || section ? [header?.[1] ?? '', section] : [source ?? ''];
+  const blobs = [header?.[1] ?? '', section];
   for (const blob of blobs) {
     for (const match of blob.matchAll(/\b(T-\d[\w-]*)/g)) ids.add(match[1]);
   }
@@ -105,7 +105,7 @@ export function claimBlock(row, taskText, statusById, seatTag, taskTextArchive) 
   if (!tags.includes(seatTag)) return `${row.id} is not tagged ${seatTag}`;
   const craft = craftTags(tags);
   if (craft.length !== 1) return `${row.id} has ${craft.length} craft tags`;
-  for (const dep of dependencyIds(taskText, row.source)) {
+  for (const dep of dependencyIds(taskText)) {
     if (dep === row.id) continue;
     let status = statusById.get(dep);
     // Fall back to archive if not in index

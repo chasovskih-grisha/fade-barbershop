@@ -422,11 +422,19 @@ test('archive fallback allows claim when dependency is in archive', () => {
 test('a sources-column reference is not a dependency', () => {
   const text = '# T-4851\n\n- **Tags**: frontend, ux · **Depends on**: T-030, T-4610b\n';
   // T-130 is cited in the index «Джерело» column as an out-of-scope feature.
-  assert.deepEqual(dependencyIds(text, 'BarberCard.tsx; T-4610b; T-130'), ['T-030', 'T-4610b']);
+  assert.deepEqual(dependencyIds(text), ['T-030', 'T-4610b']);
 });
 
-test('a task that declares no dependency keeps the index fallback', () => {
-  assert.deepEqual(dependencyIds('- **Tags**: backend\n', 'backlog/index/m0.md; T-123'), ['T-123']);
+test('an index source cell never supplies a dependency', () => {
+  // A row that declares nothing depends on nothing: the cell is a reading list.
+  const row = parseIndexRow(
+    '| [T-4821](../tasks/T-4821.md) | Barber card | backlog/index/m0.md; T-123 | frontend | middle | todo |'
+  );
+  assert.deepEqual(dependencyIds('- **Tags**: frontend\n'), []);
+  assert.strictEqual(
+    claimBlock(row, '- **Tags**: frontend\n', new Map([['T-123', 'todo']]), 'frontend'),
+    null
+  );
 });
 
 test('next lists ready rows first and names what blocks the rest', async () => {

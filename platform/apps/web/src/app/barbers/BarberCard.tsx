@@ -41,9 +41,17 @@ export function BarberCard({
 }: BarberCardProps) {
   const facts = uniqueTexts([role, experience]);
   const chips = uniqueTexts(specialties ?? []);
+  // T-4859: доступна назва — ім'я людини, а рядок підвалу стає описом
+  // посилання, тож екранний читач чує, куди картка веде.
+  const footerId = `barber-card-profile-${slug}`;
 
   return (
-    <Link href={`/barbers/${slug}`} aria-label={name} className="group block">
+    <Link
+      href={`/barbers/${slug}`}
+      aria-label={name}
+      aria-describedby={footerId}
+      className="group block"
+    >
       <Card className="flex flex-col h-full overflow-hidden transition-colors group-hover:border-accent border-line bg-surface">
         <BarberPortrait name={name} photoUrl={photoUrl} />
 
@@ -86,7 +94,7 @@ export function BarberCard({
           </div>
 
           {/* T-4859: картка веде в одне місце, тож і підпис один — профіль. */}
-          <div className="pt-4 border-t border-line text-body">
+          <div id={footerId} className="pt-4 border-t border-line text-body">
             <span className="text-accent font-semibold group-hover:translate-x-1.5 transition-transform">
               Профіль майстра &rarr;
             </span>
