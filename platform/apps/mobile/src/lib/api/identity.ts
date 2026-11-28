@@ -1,4 +1,8 @@
 import { apiBase } from './api-base';
+import type { UsualChair } from './usual-chair';
+// Звична локація і барбер (T-4725c) живуть окремим модулем; реекспорт
+// зберігає колишній путь імпорту для екранів профілю.
+export * from './usual-chair';
 
 export interface Birthday {
   day: number;
@@ -17,13 +21,6 @@ export interface UserProfile {
   /** Звична локація і барбер (T-4725c); кожне поле порожнє незалежно. */
   usualChair?: UsualChair | null;
 }
-
-/** Звична локація і барбер (T-4725c). Порожнє — реальний вибір «Не обрано». */
-export interface UsualChair {
-  locationId: string | null;
-  barberId: string | null;
-}
-
 
 export async function getProfile(): Promise<UserProfile> {
   const res = await fetch(`${apiBase()}/identity/profile`, { credentials: 'include' });
@@ -53,19 +50,6 @@ export async function updateProfileBirthday(birthday: Birthday | null): Promise<
   if (!res.ok) throw new Error('Failed to update birthday');
   const body = (await res.json()) as { birthday?: Birthday | null };
   return body.birthday ?? null;
-}
-
-/** Звична локація і барбер (T-4725c); `null` у полі очищає саме його. */
-export async function updateProfileUsualChair(chair: UsualChair): Promise<UsualChair> {
-  const res = await fetch(`${apiBase()}/identity/profile/usual-chair`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(chair),
-  });
-  if (!res.ok) throw new Error('Failed to update usual chair');
-  const body = (await res.json()) as { usualChair?: UsualChair | null };
-  return body.usualChair ?? { locationId: null, barberId: null };
 }
 
 /** Нотатка для майстра (T-4721): рядки, до 20 рядків по 100 символів. */

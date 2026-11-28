@@ -1,0 +1,44 @@
+# Одноразовий стек для fresh-bootstrap e2e (apps/api/src/e2e/fresh-bootstrap.*).
+#
+# Навіщо окремий файл: сюїта доводить, що *чиста* база піднімається з нуля —
+# міграції застосовуються по порядку, а сід створює CRM-профіль кожному
+# клієнту. Для цього їй потрібен `down -v`, тобто знищення тому з даними.
+# Робити це на робочому стеку `fade-platform` не можна: там лежать dev-дані
+# розробника і контейнери, які він тримає запущеними.
+#
+# Тому сюїта піднімає ЦЕЙ файл разом з infra/docker-compose.yml, з власним
+# проєктом (`-p fade-fresh-bootstrap`) і цим override, який прибирає всі три
+# шари спільного стеку:
+#   - імена контейнерів (у базовому файлі вони явні, `-p` їх не змінює);
+#   - ім'я мережі (у базовому файлі теж явне);
+#   - хост-порти (інакше другий postgres не займе 15432).
+# Томи в базовому файлі без `name:` — вони проєктні, тож у
+# `fade-fresh-bootstrap_*` лежить окрема копія, а `down -v` знищує лише її.
+#
+# Самі застосунки (профіль apps) сюди не входять: твердження сюїти стосується
+# бази й сіду, а свіжий том node_modules у контейнері — це інсталяція образу,
+# не bootstrap бази.
+
+# `!override` обов'язковий: списки compose зливає додаванням, тож звичайний
+# `ports:` лишив би в контейнері ОБИДВА мапінги — і базовий 15432 теж, тобто
+# свіжий postgres упав би на "port is already allocated" поруч із робочим.
+services:
+  postgres:
+    container_name: fade-fresh-bootstrap-postgres
+    ports: !override
+      - '127.0.0.1:${FADE_FRESH_BOOTSTRAP_PG_PORT:-25432}:5432'
+
+  redis:
+    container_name: fade-fresh-bootstrap-redis
+    ports: !override
+      - '127.0.0.1:${FADE_FRESH_BOOTSTRAP_REDIS_PORT:-26379}:6379'
+
+  minio:
+    container_name: fade-fresh-bootstrap-minio
+    ports: !override
+      - '127.0.0.1:${FADE_FRESH_BOOTSTRAP_MINIO_PORT:-29000}:9000'
+      - '127.0.0.1:${FADE_FRESH_BOOTSTRAP_MINIO_CONSOLE_PORT:-29001}:9001'
+
+networks:
+  fade-platform-net:
+    name: fade-fresh-bootstrap-net
