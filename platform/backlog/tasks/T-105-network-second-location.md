@@ -24,3 +24,7 @@ Index — `todo` (2026-10-02). Closing 2026-09-14 was planning: criteria below o
 
 - [ ] Second location accepts bookings and money on its own register
 - [ ] Manager manages their point without access to network settings
+
+## Blocking evidence
+
+The row is an operations change, not code: creating CLT-02 needs the production database and the PRRO cash register of the new point (T-131), and the `location_manager` role needs the identity migration to run against real users. Nothing in this workspace can create a second studio, so the row stays un-claimed.

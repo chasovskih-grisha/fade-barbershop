@@ -1,6 +1,6 @@
 # T-4617 · Записатися знову з завершеного візиту
 
-- **Stage**: M2 (phase 6) · **Tags**: frontend, backend, scheduling · **Complexity**: middle · **Depends on**: T-042, T-072, T-032
+- **Stage**: M2 (phase 6) · **Tags**: frontend, scheduling · **Complexity**: middle · **Depends on**: T-042, T-072, T-032
 - **StoryPoints**: 10
 
 ## What

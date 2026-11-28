@@ -1,6 +1,6 @@
 # T-4528b · Статистика клієнта (4/8)
 
-- **Stage**: M3 (phase 14) · **Tags**: frontend, backend, analytics · **Complexity**: middle · **Depends on**: T-110, T-060, T-4528a
+- **Stage**: M3 (phase 14) · **Tags**: frontend, analytics · **Complexity**: middle · **Depends on**: T-110, T-060, T-4528a
 - **StoryPoints**: 4
 
 ## What

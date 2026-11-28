@@ -48,11 +48,21 @@ export interface LocationLogo {
   alt: string;
 }
 
+/** Адреса частинами (T-4405): місто — джерело правди для екрана й JSON-LD. */
+export interface AddressParts {
+  street: string;
+  building: string;
+  city: string;
+  postalCode?: string;
+  country?: string;
+}
+
 export interface Location {
   id: string;
   code: string;
   name: string;
   address: string;
+  addressParts?: AddressParts | null;
   lat: number;
   lng: number;
   phone: string | null;

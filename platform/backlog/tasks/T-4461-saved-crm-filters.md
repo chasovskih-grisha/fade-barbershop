@@ -1,6 +1,6 @@
 # T-4461 · Збережені CRM-фільтри
 
-- **Stage**: M4 (phase 8) · **Tags**: backend, frontend, crm · **Complexity**: junior · **Depends on**: T-060, T-4424
+- **Stage**: M4 (phase 8) · **Tags**: backend, crm · **Complexity**: junior · **Depends on**: T-060, T-4424
 - **StoryPoints**: 3
 
 ## What

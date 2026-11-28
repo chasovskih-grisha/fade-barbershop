@@ -1,6 +1,6 @@
 # T-4210 · Hardening безпеки
 
-- **Stage**: M5 (phase 30) · **Tags**: backend, security, devops, high-risk · **Complexity**: senior · **Depends on**: T-3600, T-3802, T-3803
+- **Stage**: M5 (phase 30) · **Tags**: backend, security, high-risk · **Complexity**: senior · **Depends on**: T-3600, T-3802, T-3803
 - **StoryPoints**: 25
 
 ## What

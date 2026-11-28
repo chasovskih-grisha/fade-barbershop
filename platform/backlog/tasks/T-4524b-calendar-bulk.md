@@ -1,6 +1,6 @@
 # T-4524b · Bulk-вибір і групові дії (4/8)
 
-- **Stage**: M1 (phase 4) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-4524a, T-042, T-4474 (скасування з причиною)
+- **Stage**: M1 (phase 4) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-4524a, T-042, T-4474 (скасування з причиною)
 - **StoryPoints**: 4
 
 ## What

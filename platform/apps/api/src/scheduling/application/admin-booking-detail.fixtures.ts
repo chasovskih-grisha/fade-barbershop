@@ -11,6 +11,8 @@ export const bookingRow = {
   locationId: 'loc-1',
   serviceId: 'svc-1',
   agreedPrice: 600,
+  agreedDuration: 60,
+  durationVariant: 'long',
   fulfillmentMode: 'sequential',
   partyId: null,
   partyRole: null,

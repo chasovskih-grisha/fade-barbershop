@@ -1,6 +1,6 @@
 # T-4741b · Father-and-son step on the website
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, backend · **Complexity**: senior · **Depends on**: T-4741a
+- **Stage**: M1 (phase 3) · **Tags**: frontend · **Complexity**: senior · **Depends on**: T-4741a
 - **StoryPoints**: 8
 
 ## What

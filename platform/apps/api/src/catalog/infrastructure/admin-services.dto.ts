@@ -1,4 +1,5 @@
 import type { Request } from 'express';
+import type { DurationVariant } from '../domain/duration-variant';
 import { CreateServiceHandler, type CreateServiceInput } from '../application/create-service';
 import { UpdateServiceHandler } from '../application/update-service';
 import { SetServiceActiveHandler } from '../application/set-service-active';
@@ -29,6 +30,7 @@ export type CreateServiceDto = {
   slug?: string | null;
   seoDescription?: string | null;
   faq?: any | null;
+  variants?: DurationVariant[] | null;
   sortOrder?: number;
 };
 export type UpdateServiceDto = {
@@ -40,6 +42,7 @@ export type UpdateServiceDto = {
   slug?: string | null;
   seoDescription?: string | null;
   faq?: any | null;
+  variants?: DurationVariant[] | null;
   sortOrder?: number;
   active?: boolean;
 };
@@ -57,6 +60,7 @@ export function toCreateServiceInput(dto: CreateServiceDto): CreateServiceInput 
     ...(dto.slug !== undefined ? { slug: dto.slug } : {}),
     ...(dto.seoDescription !== undefined ? { seoDescription: dto.seoDescription } : {}),
     ...(dto.faq !== undefined ? { faq: dto.faq } : {}),
+    ...(dto.variants !== undefined ? { variants: dto.variants } : {}),
     ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
   };
 }

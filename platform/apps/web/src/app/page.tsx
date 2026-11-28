@@ -28,9 +28,9 @@ import { HomeNearestLocation } from '@/app/components/home/HomeNearestLocation';
 import { buildHomeJsonLd } from './homeJsonLd';
 
 export const metadata: Metadata = pageMetadata({
-  title: 'Fade — приватний барбершоп на 2 крісла, запис онлайн',
+  title: 'Fade — приватний барбершоп на 2 крісла',
   description:
-    'Мережа приватних барбершопів Fade. Точність форми, спокій і якість центру Києва поруч із домом. Стрижки від 600 ₴. Запис за 60 секунд.',
+    'Мережа приватних барбершопів Fade. Точність форми, спокій і якість центру Києва поруч із домом. Онлайн-запис відкривається разом із першою студією.',
   path: '/',
 });
 
@@ -40,14 +40,27 @@ export default async function HomePage() {
   const bookingOpen = isBookingOpen(locations);
   const jsonLd = buildHomeJsonLd();
 
+  // T-4614e: підтверджено порожній каталог — жодних CTA запису чи цін.
+  // Показуємо лише обіцянку відкриття й матеріали, які не продають послугу.
+  if (!bookingOpen) {
+    return (
+      <div className="mx-auto flex max-w-container flex-col gap-16 px-4 py-12 md:py-16">
+        <HomePreparingHero />
+        <HomePillars />
+        <HomeBrandStory />
+        <BlogTeaser />
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto flex max-w-container flex-col gap-16 px-4 py-12 md:py-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {bookingOpen ? <HomeHero /> : <HomePreparingHero />}
-      {bookingOpen && <QuickBookingBar />}
+      <HomeHero />
+      <QuickBookingBar />
 
       <section className="flex flex-col gap-6">
         <HomeFirstVisitPerk />

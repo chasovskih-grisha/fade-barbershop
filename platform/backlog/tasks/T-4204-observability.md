@@ -1,6 +1,6 @@
 # T-4204 · Observability Stack
 
-- **Stage**: M5 (phase 30) · **Tags**: backend, devops, infra, high-risk · **Complexity**: senior · **Depends on**: T-002, T-300, T-3804
+- **Stage**: M5 (phase 30) · **Tags**: devops, infra, high-risk · **Complexity**: senior · **Depends on**: T-002, T-300, T-3804
 - **StoryPoints**: 30 (sum of slices a–f; production channel, retention, RUM, and profiling without a separate slice yet)
 
 ## What

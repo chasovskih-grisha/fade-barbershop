@@ -1,6 +1,6 @@
 # T-053 · Quick-booking `fade.com.ua/booking`: 5-step booking
 
-- **Stage**: M1 (phase 4) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-041, T-040, T-022, T-023
+- **Stage**: M1 (phase 4) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-041, T-040, T-022, T-023
 - **StoryPoints**: 95 (sum of slices a–w; own estimate of 5 SP does not count while children exist)
 
 ## What
@@ -35,3 +35,9 @@ Main scenarios are context-free: click from Instagram/Facebook creative, QR on b
 ## Risks
 
 - [ ] **Scope creep**: keeping quick-booking free of blog/gallery/footer bloat
+
+### Re-verified at 78dab8f8 (2026-11-26)
+
+The parent owns 30 open children in `backlog/index/m1.md`; `T-053as-book-loading-states` and
+`T-053at-book-empty-states` are `in_progress` and `T-053ar-book-api-integration` is `review`. An
+umbrella row cannot be claimed while its slices are mid-flight.

@@ -1,6 +1,6 @@
 # T-4602 · QA Stand: GTM Preview, DebugView, Realtime and "Exactly Once" Tests
 
-- **Stage**: M3 (phase 14 — analytics) · **Tags**: analytics, qa, testing, validation · **Complexity**: middle · **Depends on**: T-4596, T-4597, T-4600, T-4601
+- **Stage**: M3 (phase 14 — analytics) · **Tags**: analytics, qa, testing, validation, frontend · **Complexity**: middle · **Depends on**: T-4596, T-4597, T-4600, T-4601
 - **StoryPoints**: 5
 
 ## What

@@ -1,6 +1,6 @@
 # T-4477 · Barber Public Portfolio Page
 
-- **Stage**: M3 (phase 12) · **Tags**: frontend, public, seo · **Complexity**: middle · **Depends on**: T-030, T-024, T-4610a
+- **Stage**: M3 (phase 12) · **Tags**: backend, public · **Complexity**: middle · **Depends on**: T-030, T-024, T-4610a
 - **StoryPoints**: 5
 
 ## What

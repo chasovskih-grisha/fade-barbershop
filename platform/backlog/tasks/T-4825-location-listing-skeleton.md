@@ -1,6 +1,6 @@
 # T-4825 · The listing skeleton matches the card grid
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, design · **Complexity**: junior · **Depends on**: T-4513, T-4822, T-4824
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: junior · **Depends on**: T-4513, T-4822, T-4824
 - **StoryPoints**: 3
 
 ## What

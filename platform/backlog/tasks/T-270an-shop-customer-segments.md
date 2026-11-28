@@ -1,6 +1,6 @@
 # T-270an · Customer segments shop.fade.com.ua
 
-- **Stage**: M5 (phase 26) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-270x, T-4424
+- **Stage**: M5 (phase 26) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270x, T-4424
 - **StoryPoints**: 5
 
 ## What

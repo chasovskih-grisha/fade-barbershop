@@ -1,6 +1,6 @@
 # T-270ao · Automated emails shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-270i, T-4434
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270i, T-4434
 - **StoryPoints**: 5
 
 ## What

@@ -8,6 +8,7 @@ import { RescheduleAppointment } from '../application/reschedule-appointment.use
 import { SetAppointmentReference } from '../application/set-appointment-reference.use-case';
 import { ClientAppointmentsController } from './client-appointments.controller';
 import { ClientCancelController } from './client-cancel.controller';
+import { PrismaAppointmentHistoryRepository } from './prisma-appointment-history.repository';
 import { WEB_SESSION_TOKEN as TOKEN, prismaForClient } from './client-web-session.fakes';
 
 describe('клієнтські команди візиту', () => {
@@ -23,6 +24,10 @@ describe('клієнтські команди візиту', () => {
         { provide: RescheduleAppointment, useValue: { handle } },
         { provide: SetAppointmentReference, useValue: { handle: jest.fn() } },
         { provide: PrismaService, useValue: prismaForClient(true) },
+        {
+          provide: PrismaAppointmentHistoryRepository,
+          useValue: { findByAppointmentId: jest.fn(async () => []) },
+        },
       ],
     }).compile();
     app = moduleRef.createNestApplication();

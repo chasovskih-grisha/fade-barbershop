@@ -73,7 +73,7 @@ describe('blog feed search', () => {
 
     render(await BlogPage({ searchParams: Promise.resolve({ q: 'стрижка' }) }));
 
-    expect(getPublishedArticles).toHaveBeenCalledWith({ q: 'стрижка' });
+    expect(getPublishedArticles).toHaveBeenCalledWith({ q: 'стрижка', limit: 13 });
     expect(screen.getByDisplayValue('стрижка')).toBeInTheDocument();
     expect(screen.getByText('Стрижка по-київськи')).toBeInTheDocument();
   });
@@ -92,7 +92,7 @@ describe('blog feed search', () => {
 
     render(await BlogPage({ searchParams: Promise.resolve({ q: '  ' }) }));
 
-    expect(getPublishedArticles).toHaveBeenCalledWith({});
+    expect(getPublishedArticles).toHaveBeenCalledWith({ limit: 13 });
   });
 });
 

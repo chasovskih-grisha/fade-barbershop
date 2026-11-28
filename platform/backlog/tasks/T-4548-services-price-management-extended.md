@@ -37,3 +37,10 @@ Flexible pricing, packages, upsells, material cost control — foundation for re
 
 - [ ] **Price conflicts**: PriceOverride + Discount + Loyalty — application order (ADR 0007, T-4000)
 - [ ] **Package pricing**: fixed package price vs sum of component prices — clear rule: package has its own price
+
+## Re-verified at 91202f68
+
+`claimBlock` (`scripts/agent-gate.mjs:70-80`) rejects T-4548 at `91202f68`: dependencies T-4521
+(`m1.md:222` → `review`) and T-4537 (`m1.md:201` → `todo`) are not `done`/`split`; T-024 and T-4419
+are done. The row is a backend epic over catalog and scheduling. Unblocks when T-4521 and T-4537
+close.

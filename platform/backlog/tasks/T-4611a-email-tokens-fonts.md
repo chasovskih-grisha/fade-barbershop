@@ -1,6 +1,6 @@
 # T-4611a · Email Tokens and Font Rule (3/11)
 
-- **Stage**: M2 (phase 7) · **Tags**: design, backend · **Complexity**: junior · **Depends on**: T-4608
+- **Stage**: M2 (phase 7) · **Tags**: design · **Complexity**: junior · **Depends on**: T-4608
 - **StoryPoints**: 3
 - **Priority**: highest in email lane, immediately after chrome T-4609 and before T-4611b.
 

@@ -1,6 +1,6 @@
 # T-3500 · Third+ Languages, RTL, and Pseudolocalization
 
-- **Stage**: M6 (phase 40) · **Tags**: frontend, backend, quality · **Complexity**: senior · **Depends on**: T-4613
+- **Stage**: M6 (phase 40) · **Tags**: frontend, quality · **Complexity**: senior · **Depends on**: T-4613
 - **StoryPoints**: 20
 
 ## What

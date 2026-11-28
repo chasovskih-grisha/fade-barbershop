@@ -1,6 +1,6 @@
 # T-4605e · Documentation and specifications alignment with new convention (3/19)
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, architecture, quality · **Complexity**: middle · **Depends on**: T-4605a
+- **Stage**: M6 (phase 40) · **Tags**: backend, architecture, quality · **Complexity**: middle · **Depends on**: T-4605a
 - **StoryPoints**: 3
 
 ## What

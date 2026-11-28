@@ -4,6 +4,7 @@ domain: commerce
 tag: backend
 owns:
   - apps/api/src/billing
+  - apps/api/src/payment
   - apps/api/src/loyalty
   - apps/api/src/discounts
   - apps/api/src/gift-certificates

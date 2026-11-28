@@ -50,6 +50,26 @@ export class BarberScheduleController {
     private readonly prisma: PrismaService
   ) {}
 
+  /**
+   * Локації самого барбера (T-4616b): екран «не вийду» мусить знати, де він
+   * працює, інакше клієнт вгадує `locationId` навмання.
+   */
+  @Get()
+  async locations(@Req() req: Request) {
+    const barberId = await this.barberOf(req);
+    const assignments = await this.prisma.staffAssignment.findMany({
+      where: { barberId },
+      select: { locationId: true },
+    });
+    if (assignments.length === 0) return { barberId, locations: [] };
+    const locations = await this.prisma.location.findMany({
+      where: { id: { in: assignments.map((assignment) => assignment.locationId) } },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+    return { barberId, locations };
+  }
+
   @Get(':locationId')
   async view(@Param('locationId') locationId: string, @Req() req: Request) {
     const barberId = await this.barberOf(req);

@@ -1,6 +1,6 @@
 # T-3901 · Пакети послуг
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, marketing · **Complexity**: middle · **Depends on**: T-250, T-090, T-140
+- **Stage**: M6 (phase 40) · **Tags**: backend, marketing · **Complexity**: middle · **Depends on**: T-250, T-090, T-140
 - **StoryPoints**: 18
 
 ## What

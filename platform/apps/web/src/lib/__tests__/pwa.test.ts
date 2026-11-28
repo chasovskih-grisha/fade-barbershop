@@ -7,7 +7,7 @@ import {
   SERVICE_WORKER_PATH,
 } from '../pwa';
 
-const publicDir = path.join(process.cwd(), 'public');
+const publicDir = path.join(__dirname, '../../../public');
 
 describe('service worker registration (T-5027)', () => {
   it('registers the worker path and reports success', async () => {

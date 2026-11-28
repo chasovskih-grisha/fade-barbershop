@@ -11,6 +11,10 @@ export type CabinetStatus = 'upcoming' | 'confirmed' | 'completed' | 'cancelled'
  * Умови депозиту, які візит несе із собою: снепшот політики на момент
  * запису (PAY-ADM-09) — API віддає його в GET /booking/appointments.
  * Діалог скасування читає лише їх — жодних запитів до billing (T-4737).
+ *
+ * До 2026-10-03 тут було лише amount і freeCancelUntil. Server-side
+ * утримання крісла (T-4619a) додає bookingId, expiresAt і holdStatus —
+ * опціональні, бо їх ще не всі візити мають.
  */
 export interface DepositTerms {
   /** Сума депозиту в грн; 0 — грошей у візиті немає (безкоштовний візит). */
@@ -21,6 +25,31 @@ export interface DepositTerms {
    * null — вікно на візиті не збереглося, і діалог мовчить про гроші.
    */
   freeCancelUntil: string | null;
+  /**
+   * Booking id для запиту доплати (POST /payment/bookings/:bookingId/deposit).
+   * Присутній лише коли на візиті є server-side утримання крісла (T-4619a).
+   */
+  bookingId?: string;
+  /**
+   * Дедлайн серверного утримання крісла (ISO); null — утримання не створювали
+   * або відмінили. Присутній разом із holdStatus, коли hold існує.
+   */
+  expiresAt?: string | null;
+  /**
+   * Стан утримання крісла: active | captured | expired | cancelled.
+   * absent — візит без hold (старий API або візит без депозитного утримання).
+   */
+  holdStatus?: 'active' | 'captured' | 'expired' | 'cancelled';
+  /**
+   * Повернення депозиту (T-094): `processing`/`pending` — гроші в дорозі,
+   * `completed` — повернуто, `failed` — потрібен зв'язок із салоном.
+   * absent — повернень не було.
+   */
+  refund?: {
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    /** Сума повернення в грн. */
+    amount: number;
+  };
 }
 
 export interface ExtendedAppointment {
@@ -28,6 +57,10 @@ export interface ExtendedAppointment {
   date: string;
   startTime: string;
   endTime: string;
+  /** ISO-початок візиту; відсутній — старий API, календарних посилань немає. */
+  startsAt?: string;
+  /** ISO-кінець візиту (T-4446b). */
+  endsAt?: string;
   serviceName: string;
   barberName: string;
   locationName: string;
@@ -45,6 +78,12 @@ export interface ExtendedAppointment {
   canBookAgain: boolean;
   /** Немає поля або null — депозиту немає, наслідок скасування не називається. */
   deposit?: DepositTerms | null;
+  /**
+   * Причина скасування з сервера (T-4616a). `BARBER_UNAVAILABLE_CANCEL_REASON`
+   * (`@fade/contracts`) — барбер недоступний: кабінет каже це прямим текстом і
+   * пропонує записатися знову.
+   */
+  cancelReason?: string | null;
 }
 
 /**
@@ -73,6 +112,8 @@ export interface AppointmentResponse {
   date: string;
   startTime: string;
   endTime?: string;
+  startsAt?: string;
+  endsAt?: string;
   serviceName: string;
   barberName: string;
   locationName: string;
@@ -83,6 +124,7 @@ export interface AppointmentResponse {
   canEditReference?: boolean;
   /** Правило партії (T-4617); відсутність — старий API, дію не ховаємо. */
   canBookAgain?: boolean;
+  cancelReason?: string | null;
   /** Снепшот умов депозиту візиту; відсутність — візит без депозиту. */
   deposit?: Partial<DepositTerms> | null;
 }

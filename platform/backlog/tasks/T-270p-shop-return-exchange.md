@@ -1,6 +1,6 @@
 # T-270p · Return and exchange shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-270i, T-4470
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270i, T-4470
 - **StoryPoints**: 5
 
 ## What

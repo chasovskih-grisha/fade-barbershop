@@ -1,6 +1,6 @@
 # T-4851 · A barber card states only what that barber record knows
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, design · **Complexity**: middle · **Depends on**: T-030, T-4610b
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: middle · **Depends on**: T-030, T-4610b
 - **StoryPoints**: 8
 
 ## What
@@ -19,10 +19,19 @@ A guest choosing a person is reading a promise. The same promise on every card i
 - `apps/web/src/app/barbers/page.tsx`
 - T-130 (real free windows), T-4477a (the profile biography)
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/barbers/BarberCard.tsx
+- apps/web/src/app/barbers/__tests__/BarberCard.test.tsx
+
+Checks:
+- npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/BarberCard.test.tsx
+
 ## Done
 
-- [ ] T-4851a and T-4851b are done
-- [ ] No card says «Вільні вікна сьогодні» or «Експерт Fade»
+- [x] T-4851a and T-4851b are done
+- [x] No card says «Вільні вікна сьогодні» or «Експерт Fade»
 
 ## Risks
 
@@ -33,3 +42,12 @@ A guest choosing a person is reading a promise. The same promise on every card i
 - The live slot block (T-130)
 - The profile biography and the mapper’s invented bios (T-4477a)
 - The photo pipeline and the initials fallback (T-4610b)
+
+## Implementation notes
+
+- apps/web/src/app/barbers/BarberCard.tsx
+- apps/web/src/app/barbers/__tests__/BarberCard.test.tsx
+
+## QA
+
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/BarberCard.test.tsx` exit 0

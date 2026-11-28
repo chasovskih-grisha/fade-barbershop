@@ -1,6 +1,6 @@
 # T-3700 · App Store Release
 
-- **Stage**: M6 (phase 40) · **Tags**: frontend, devops, mobile · **Complexity**: senior · **Depends on**: T-070, T-303
+- **Stage**: M6 (phase 40) · **Tags**: frontend · **Complexity**: senior · **Depends on**: T-070, T-303
 - **StoryPoints**: 20
 
 ## What

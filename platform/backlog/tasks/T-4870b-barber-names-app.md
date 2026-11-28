@@ -1,6 +1,6 @@
 # T-4870b · Slice: names on the app barber card and screen
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, a11y, mobile · **Complexity**: junior · **Depends on**: T-4870, T-4866, T-4867
+- **Stage**: M5 (phase 30) · **Tags**: frontend, a11y · **Complexity**: junior · **Depends on**: T-4870, T-4866, T-4867
 - **StoryPoints**: 3
 
 ## What

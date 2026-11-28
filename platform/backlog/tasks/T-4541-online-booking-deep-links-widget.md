@@ -1,6 +1,6 @@
 # T-4541 · Online booking: deep links, shareable URL, embeddable widget
 
-- **Stage**: M1 (phase 3-4) · **Tags**: frontend, backend, marketing · **Complexity**: middle · **Depends on**: T-041, T-053, T-4532
+- **Stage**: M1 (phase 3-4) · **Tags**: frontend, marketing · **Complexity**: middle · **Depends on**: T-041, T-053, T-4532
 - **StoryPoints**: 8
 
 ## What

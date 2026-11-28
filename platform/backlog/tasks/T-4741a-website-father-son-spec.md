@@ -26,8 +26,8 @@ Screen 1b is written as if the website has it. The website does not, and the onl
 
 ## Done
 
-- [ ] The section states opt-in, the fields, the client session, and the untouched duration question
-- [ ] `pnpm docs:validate` reports no new error from this file
+- [x] The section states opt-in, the fields, the client session, and the untouched duration question
+- [x] `pnpm docs:validate` reports no new error from this file (7 pre-existing errors unchanged: 6× status «qa», 1× unescaped `|` in m5)
 
 ## Risks
 

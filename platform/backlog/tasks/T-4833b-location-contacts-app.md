@@ -1,6 +1,6 @@
 # T-4833b · Slice: one phone and a channel row in the app
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4833, T-4844, T-4850
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: junior · **Depends on**: T-4833, T-4844, T-4850
 - **StoryPoints**: 3
 
 ## What

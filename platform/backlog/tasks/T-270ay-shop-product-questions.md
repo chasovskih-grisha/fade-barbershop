@@ -1,6 +1,6 @@
 # T-270ay · Product Q&A shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: middle · **Dependencies**: T-270d, T-270o
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Dependencies**: T-270d, T-270o
 - **StoryPoints**: 5
 
 ## What

@@ -1,6 +1,6 @@
 # T-4460 · Онбординг першого візиту
 
-- **Stage**: M4 (phase 8) · **Tags**: backend, frontend, client-app · **Complexity**: middle · **Depends on**: T-152, T-041, T-4413
+- **Stage**: M4 (phase 8) · **Tags**: backend, client-app · **Complexity**: middle · **Depends on**: T-152, T-041, T-4413
 - **StoryPoints**: 5
 
 ## What

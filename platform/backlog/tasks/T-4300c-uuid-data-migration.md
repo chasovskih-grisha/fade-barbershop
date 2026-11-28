@@ -1,6 +1,6 @@
 # T-4300c · migration даних expand/contract (8/30)
 
-- **Stage**: M0 (phase 0; виконання — слайс після першого проду) · **Tags**: backend, devops, high-risk · **Complexity**: senior · **Depends on**: T-4300b, T-303
+- **Stage**: M0 (phase 0; виконання — слайс після першого проду) · **Tags**: backend, high-risk · **Complexity**: senior · **Depends on**: T-4300b, T-303
 - **StoryPoints**: 8
 
 ## What
@@ -22,7 +22,7 @@ Paths:
 - docs/uuid-data-migration.md
 
 Checks:
-- pnpm docs:validate
+- npm run docs:validate
 
 ## Done
 
@@ -42,3 +42,12 @@ Checks:
   порожнім каталогом, тож Int-PK рядків у проді немає. План expand/contract
   лишається як гілка «дані вже є». Процедура, чекліст перевірки, відкат на кожен
   крок і ризики — `docs/uuid-data-migration.md`.
+- 2026-11-26: перевірено, що цей слайс справді має `## Implementation plan` з
+  `Paths` і `Checks` (рядки 19–25 цього файлу: `docs/uuid-data-migration.md`,
+  `npm run docs:validate`), а сам документ містить розділ
+  `## Implementation plan — expand/contract procedure`, тож три дефектні рядки, які стверджували протилежне,
+  видалені як дублікати: `T-6009` (review), `T-6012` (todo),
+  `T-6013` (todo) — усі три мали ідентичний текст «T-4300c missing
+  implementation plan verification checks», не мали craft-тегу (рядок `—`) і
+  описували вже виконану умову. Доказ: `git show origin/stage:backlog/tasks/T-4300c-uuid-data-migration.md`
+  містить секцію плану, а `npm run docs:validate` проходить на цьому дереві.

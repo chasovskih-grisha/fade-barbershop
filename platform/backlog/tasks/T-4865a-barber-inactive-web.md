@@ -16,11 +16,20 @@ The website is where the old link still works.
 - T-4865
 - `apps/web/src/app/barbers/[slug]/page.tsx`
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/barbers/[slug]/BarberInactive.tsx
+- apps/web/src/app/barbers/__tests__/barber-inactive.test.tsx
+
+Checks:
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/barber-inactive.test.tsx`
+
 ## Done
 
-- [ ] The directory does not render an inactive barber
-- [ ] A direct open has no `/booking` link
-- [ ] A test covers the list and the direct open
+- [x] The directory does not render an inactive barber
+- [x] A direct open has no `/booking` link
+- [x] A test covers the list and the direct open
 
 ## Risks
 
@@ -29,3 +38,7 @@ The website is where the old link still works.
 ## Out of scope
 
 - The app screen (T-4865b)
+
+## QA
+
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/barber-inactive.test.tsx` exit 0

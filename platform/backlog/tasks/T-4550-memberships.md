@@ -1,6 +1,6 @@
 # T-4550 · Memberships: plans, pricing, duration, visits, discounts, renewals, reporting
 
-- **Stage**: M4 (phase 11) · **Tags**: backend, frontend, billing, crm · **Complexity**: senior · **Depends on**: T-090, T-091, T-140, T-3901, T-4549
+- **Stage**: M4 (phase 11) · **Tags**: backend, billing, crm · **Complexity**: senior · **Depends on**: T-090, T-091, T-140, T-3901, T-4549
 - **StoryPoints**: 13
 
 ## What

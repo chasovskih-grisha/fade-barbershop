@@ -1,6 +1,6 @@
 # T-3801 · Search engine
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, integration · **Complexity**: senior · **Dependencies**: T-002, T-3802
+- **Stage**: M6 (phase 40) · **Tags**: backend, integration · **Complexity**: senior · **Dependencies**: T-002, T-3802
 - **StoryPoints**: 25
 
 ## What

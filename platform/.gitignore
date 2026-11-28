@@ -36,3 +36,8 @@ repro.diff
 /repro/
 
 pnpm-lock.yaml
+
+# Per-agent git worktrees and scratch checkouts (never commit these).
+.[a-z-]*-worktree/
+.worktrees/
+.openhands/

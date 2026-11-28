@@ -1,6 +1,6 @@
 # T-4457 · Сторінка «Мій код» реферальної програми
 
-- **Stage**: M4 (phase 8) · **Tags**: backend, frontend, client-app · **Complexity**: junior · **Depends on**: T-220, T-142
+- **Stage**: M4 (phase 8) · **Tags**: backend, client-app · **Complexity**: junior · **Depends on**: T-220, T-142
 - **StoryPoints**: 3
 
 ## What

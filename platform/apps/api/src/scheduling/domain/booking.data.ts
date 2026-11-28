@@ -21,6 +21,8 @@ export interface BookingData {
   /** Підсумкова ціна візиту (AgreedPrice − Σ AppliedDiscounts), ≥ 0 (DSC-004). */
   finalPrice?: number | null;
   agreedDuration?: number | null;
+  /** Обраний варіант тривалості (T-4419); null — базова тривалість. */
+  durationVariant?: string | null;
   fulfillmentMode?: 'sequential' | 'parallel' | null;
   start: Date;
   end: Date;
@@ -77,6 +79,8 @@ export interface BookingCreateParams {
   /** Підсумкова ціна візиту (DSC-004); без неї — `agreedPrice` без знижок. */
   finalPrice?: number;
   agreedDuration?: number;
+  /** Підпис обраного варіанта тривалості (T-4419) — снепшот на записі. */
+  durationVariant?: string;
   fulfillmentMode?: 'sequential' | 'parallel';
   haircutReferenceId?: string;
   appointmentComment?: string;
@@ -135,6 +139,7 @@ export function newBookingData(params: BookingCreateParams): BookingData {
     ...(params.requiresPayment === undefined ? {} : { requiresPayment: params.requiresPayment }),
     finalPrice: resolveFinalPrice(params),
     ...(params.servicePositions === undefined ? {} : { servicePositions: params.servicePositions }),
+    ...(params.durationVariant === undefined ? {} : { durationVariant: params.durationVariant }),
   };
 }
 

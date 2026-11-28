@@ -1,6 +1,6 @@
 # T-4524a · drag&drop перенесення запису (4/8)
 
-- **Stage**: M1 (phase 4) · **Tags**: frontend, backend, design · **Complexity**: middle · **Depends on**: T-045, T-042, T-4520b
+- **Stage**: M1 (phase 4) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-045, T-042, T-4520b
 - **StoryPoints**: 4
 
 ## What

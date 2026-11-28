@@ -1,6 +1,6 @@
 # T-4544 · Client CRM: extended profile, tags, categories, merge, import/export, blacklist
 
-- **Stage**: M2 (phase 5) · **Tags**: backend, frontend, crm · **Complexity**: middle · **Depends on**: T-060, T-061, T-4423, T-4424, T-4461
+- **Stage**: M2 (phase 5) · **Tags**: backend, crm · **Complexity**: middle · **Depends on**: T-060, T-061, T-4423, T-4424, T-4461
 - **StoryPoints**: 13
 
 ## What

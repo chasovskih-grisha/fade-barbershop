@@ -1,6 +1,6 @@
 # T-2300g · Мова статті
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, backend, content, i18n · **Complexity**: middle · **Depends on**: T-2300a, T-4613a
+- **Stage**: M5 (phase 30) · **Tags**: frontend, content, i18n · **Complexity**: middle · **Depends on**: T-2300a, T-4613a
 - **StoryPoints**: 5
 
 ## What

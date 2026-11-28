@@ -1,8 +1,5 @@
-// Специфікація спільної підготовки послуги (T-041): адмінський і клієнтський
-// контролери ведуть той самий BookAppointment, тож валідація каталогу одна —
-// активність послуги/ціни (MNG-ADM-10…12), тривалість за режимом, снепшот
-// ціни (ADR 0006). Гілки: без serviceId (дефолт 30/явна), неактивні → 404,
-// parallel → parallelDuration (0 → 400), dayOfWeekFor (Пн/Нд).
+// T-041: одна підготовка послуги для адмінки й клієнта. T-4419: варіант
+// задає тривалість і поправку до ціни, без варіанта — як раніше.
 import { prepareService } from './service-preparation';
 import { dayOfWeekFor } from '../domain/day-of-week';
 
@@ -68,5 +65,54 @@ describe('service-preparation (T-041, спільна валідація ката
   it('dayOfWeekFor: понеділок 0, неділя 6 (Monday-first модель тижня)', () => {
     expect(dayOfWeekFor('2026-11-09')).toBe(0); // понеділок
     expect(dayOfWeekFor('2026-11-15')).toBe(6); // неділя
+  });
+
+  it('варіант задає тривалість і поправку до ціни (T-4419 S2)', async () => {
+    const variants = [
+      { label: 'short', duration: 30, parallelDuration: 25, priceDelta: 0, description: null },
+      { label: 'long', duration: 60, parallelDuration: 50, priceDelta: 150, description: null },
+    ];
+    const prepared = await prepareService(
+      repo({ amount: 600 }, { duration: 45, parallelDuration: null, variants } as never),
+      { locationId: 'l', serviceId: 's', variantLabel: 'long' }
+    );
+    expect(prepared).toMatchObject({
+      duration: 60,
+      snapshot: { agreedPrice: 750, agreedDuration: 60, durationVariant: 'long' },
+    });
+  });
+
+  it('без варіанта — базова тривалість і ціна (T-4419 back-compat)', async () => {
+    const prepared = await prepareService(
+      repo({ amount: 600 }, { duration: 45, parallelDuration: null } as never),
+      { locationId: 'l', serviceId: 's' }
+    );
+    expect(prepared).toMatchObject({
+      duration: 45,
+      snapshot: { agreedPrice: 600, agreedDuration: 45 },
+    });
+    expect(prepared.snapshot?.durationVariant).toBeUndefined();
+  });
+
+  it('невідомий варіант — 400, а не відкат до базової тривалості (T-4419 S2)', async () => {
+    const variants = [
+      { label: 'long', duration: 60, parallelDuration: 50, priceDelta: 150, description: null },
+    ];
+    await expect(
+      prepareService(
+        repo({ amount: 600 }, { duration: 45, parallelDuration: null, variants } as never),
+        { locationId: 'l', serviceId: 's', variantLabel: 'huge' }
+      )
+    ).rejects.toMatchObject({ status: 400 });
+  });
+
+  it('варіант на послузі без варіантів — теж 400 (T-4419 S2)', async () => {
+    await expect(
+      prepareService(repo({ amount: 600 }, { duration: 45, parallelDuration: null }), {
+        locationId: 'l',
+        serviceId: 's',
+        variantLabel: 'long',
+      })
+    ).rejects.toMatchObject({ status: 400 });
   });
 });

@@ -1,6 +1,6 @@
 # T-2500d · DRY Refactor (8/48)
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, quality · **Complexity**: middle · **Depends on**: T-2500a
+- **Stage**: M6 (phase 40) · **Tags**: backend, quality · **Complexity**: middle · **Depends on**: T-2500a
 - **StoryPoints**: 8
 
 ## What

@@ -1,6 +1,6 @@
 # T-4552 · Gift cards: digital/physical, balance, expiry, partial redeem, transfer, reporting
 
-- **Stage**: M4 (phase 20) · **Tags**: backend, frontend, billing, marketing · **Complexity**: middle · **Depends on**: T-210, T-211, T-4456, T-4549
+- **Stage**: M4 (phase 20) · **Tags**: backend, billing, marketing · **Complexity**: middle · **Depends on**: T-210, T-211, T-4456, T-4549
 - **StoryPoints**: 8
 
 ## What

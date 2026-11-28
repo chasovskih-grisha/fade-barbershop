@@ -1,6 +1,6 @@
 # T-4599 · Зв'язка Google Search Console ↔ GA4 (M5)
 
-- **Stage**: M5 (перед запуском v1) · **Tags**: seo, analytics, marketing, devops · **Complexity**: junior · **Depends on**: T-250, T-303, T-2600a, T-4593
+- **Stage**: M5 (перед запуском v1) · **Tags**: seo, analytics, marketing · **Complexity**: junior · **Depends on**: T-250, T-303, T-2600a, T-4593
 - **StoryPoints**: 3
 
 ## What

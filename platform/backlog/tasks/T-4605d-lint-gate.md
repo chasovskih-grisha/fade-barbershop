@@ -1,6 +1,6 @@
 # T-4605d · Лінтер-гейт на суфікс (3/19)
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, quality, devops · **Complexity**: senior · **Depends on**: T-4605a, T-4605b, T-4605c
+- **Stage**: M6 (phase 40) · **Tags**: frontend, quality · **Complexity**: senior · **Depends on**: T-4605a, T-4605b, T-4605c
 - **StoryPoints**: 3
 
 ## What

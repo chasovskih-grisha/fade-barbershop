@@ -1,6 +1,6 @@
 # T-4812 · Automated Database Migration Safety & Rollback Validation in CI
 
-- **Stage**: M0 · **Tags**: backend, database, devops · **Complexity**: senior · **Depends on**: T-001, T-002
+- **Stage**: M0 · **Tags**: backend, database · **Complexity**: senior · **Depends on**: T-001, T-002
 - **StoryPoints**: 5
 
 ## What

@@ -1,6 +1,6 @@
 # T-270be · Reorder products shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: junior · **Depends on**: T-270x, T-4471
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-270x, T-4471
 - **StoryPoints**: 3
 
 ## What

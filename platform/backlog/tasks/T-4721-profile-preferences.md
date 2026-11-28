@@ -22,9 +22,9 @@ The barber's card is fed by this text. The app never writes it, and the site exp
 
 ## Done
 
-- [ ] Slices a, b, and c are `done`
-- [ ] A note saved on one surface is the note on the other
-- [ ] The 21st line and a 101st character are refused in Ukrainian before the request
+- [x] Slices a, b, and c are `done`
+- [x] A note saved on one surface is the note on the other
+- [x] The 21st line and a 101st character are refused in Ukrainian before the request
 
 ## Risks
 

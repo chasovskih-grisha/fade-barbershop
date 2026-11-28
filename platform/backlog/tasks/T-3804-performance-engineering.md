@@ -1,6 +1,6 @@
 # T-3804 · Інженерія продуктивності
 
-- **Stage**: M6 (phase 40) · **Tags**: frontend, backend, devops, high-risk · **Complexity**: senior · **Depends on**: T-001, T-002, T-3803
+- **Stage**: M6 (phase 40) · **Tags**: frontend, high-risk · **Complexity**: senior · **Depends on**: T-001, T-002, T-3803
 - **StoryPoints**: 30
 
 ## What

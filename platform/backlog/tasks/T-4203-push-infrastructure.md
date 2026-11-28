@@ -1,6 +1,6 @@
 # T-4203 · infrastructure push-сповіщень
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, mobile, integration · **Complexity**: middle · **Depends on**: T-080, T-3100
+- **Stage**: M6 (phase 40) · **Tags**: backend, integration · **Complexity**: middle · **Depends on**: T-080, T-3100
 - **StoryPoints**: 15
 
 ## What

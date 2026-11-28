@@ -63,6 +63,34 @@ describe('PublicShell', () => {
     expect(screen.getByRole('link', { name: 'Увійти' }).getAttribute('href')).toBe('/login');
   });
 
+  it('порожній каталог: шапка й мобільне меню без CTA запису (T-4614e)', () => {
+    render(
+      <PublicShell bookingOpen={false}>
+        <p />
+      </PublicShell>
+    );
+
+    expect(screen.queryByRole('link', { name: 'Записатися' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Відкрити меню' }));
+    const mobileNav = screen.getByRole('navigation', { name: 'Мобільна навігація' });
+    expect(within(mobileNav).queryByRole('link', { name: 'Записатися' })).toBeNull();
+  });
+
+  it('активний каталог: CTA запису лишається у шапці й мобільному меню', () => {
+    render(
+      <PublicShell bookingOpen>
+        <p />
+      </PublicShell>
+    );
+
+    expect(screen.getAllByRole('link', { name: 'Записатися' }).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('button', { name: 'Відкрити меню' }));
+    const mobileNav = screen.getByRole('navigation', { name: 'Мобільна навігація' });
+    expect(within(mobileNav).getByRole('link', { name: 'Записатися' }).getAttribute('href')).toBe(
+      '/booking'
+    );
+  });
+
   it('мобільне меню розкривається і закривається по Escape', () => {
     render(
       <PublicShell>

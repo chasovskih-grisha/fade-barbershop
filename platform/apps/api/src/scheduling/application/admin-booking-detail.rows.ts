@@ -10,6 +10,9 @@ export interface BookingRow {
   start: Date;
   end: Date;
   agreedPrice: number | null;
+  /** Снепшот узгодженої тривалості й обраного варіанта (T-4419). */
+  agreedDuration: number | null;
+  durationVariant: string | null;
   fulfillmentMode: string | null;
   source: string | null;
   appointmentComment: string | null;

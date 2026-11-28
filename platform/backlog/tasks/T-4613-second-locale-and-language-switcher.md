@@ -1,6 +1,6 @@
 # T-4613 · Друга мова `en` і перемикач мов для клієнта
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, backend, i18n, content, seo · **Complexity**: complex · **Depends on**: T-4612, T-031, T-024, T-270a
+- **Stage**: M1 (phase 3) · **Tags**: frontend, i18n, content · **Complexity**: complex · **Depends on**: T-4612, T-031, T-024, T-270a
 - **StoryPoints**: 26
 
 ## What

@@ -1,6 +1,6 @@
 # T-4524 · Admin Calendar: Drag & Drop, Bulk Reschedule, Quick Actions
 
-- **Stage**: M1 (phase 4) · **Tags**: frontend, backend, design · **Complexity**: middle · **Depends on**: T-045, T-042, T-4507
+- **Stage**: M1 (phase 4) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-045, T-042, T-4507
 - **StoryPoints**: 8
 
 ## What

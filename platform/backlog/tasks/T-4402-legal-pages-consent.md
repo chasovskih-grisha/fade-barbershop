@@ -1,6 +1,6 @@
 # T-4402 · Legal Pages and Consent (Terms, Privacy, Cookies, Consent)
 
-- **Stage**: M3 (v1 launch gate) · **Tags**: frontend, backend, legal · **Complexity**: junior · **Depends on**: T-030, T-032
+- **Stage**: M3 (v1 launch gate) · **Tags**: frontend, legal · **Complexity**: junior · **Depends on**: T-030, T-032
 - **StoryPoints**: 3
 
 ## What
@@ -33,3 +33,15 @@ A public site with registration without offer and privacy policy is a legal risk
 ## Risks
 
 - [ ] **Texts are not from lawyers**: finalize with lawyer before launch — task closes publication, not text editing
+
+### Re-verified at 78dab8f8 (2026-11-26)
+
+`business/legal-ua/` does not exist in the repository, so the texts this row publishes have no source.
+Unblock: the owner supplies privacy/offer texts; the code side is a page that renders them.
+
+## Re-verified at 91202f68
+
+No legal source text in the repo at `91202f68`: `business/` has no `legal-ua/` directory, and
+`docs/` carries no approved Terms/Privacy/Cookies copy. The code side (routes, footer, consent
+banner) is implementable, but the three documents and the consent wording are a lawyer/founder
+decision, so the row must not invent them. Unblocks with approved texts dropped into the repo.

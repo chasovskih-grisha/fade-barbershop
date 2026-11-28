@@ -1,6 +1,6 @@
 # T-4605c · Contracts і клієнти: узгодження конвенції (5/19)
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, architecture, quality · **Complexity**: middle · **Depends on**: T-4605a, T-4605b
+- **Stage**: M6 (phase 40) · **Tags**: frontend, architecture, quality · **Complexity**: middle · **Depends on**: T-4605a, T-4605b
 - **StoryPoints**: 5
 
 ## What

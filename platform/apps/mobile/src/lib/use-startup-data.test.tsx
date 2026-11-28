@@ -28,7 +28,7 @@ describe('useStartupData (T-4429)', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.stale).toBe(false);
-    expect(result.current.locations).toEqual([{ id: 'l1' }]);
+    expect(result.current.locations.data).toEqual([{ id: 'l1' }]);
     expect(locations).toHaveBeenCalledTimes(1);
   });
 
@@ -47,7 +47,7 @@ describe('useStartupData (T-4429)', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.stale).toBe(false);
-    expect(result.current.locations).toEqual([{ id: 'cached-l' }]);
+    expect(result.current.locations.data).toEqual([{ id: 'cached-l' }]);
     expect(locations).not.toHaveBeenCalled();
   });
 
@@ -63,7 +63,7 @@ describe('useStartupData (T-4429)', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.stale).toBe(true);
-    expect(result.current.locations).toEqual([{ id: 'old-l' }]);
+    expect(result.current.locations.data).toEqual([{ id: 'old-l' }]);
   });
 
   it('офлайн без кешу: порожній стан без баннера', async () => {
@@ -74,6 +74,6 @@ describe('useStartupData (T-4429)', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.stale).toBe(false);
-    expect(result.current.locations).toEqual([]);
+    expect(result.current.locations.data).toEqual([]);
   });
 });

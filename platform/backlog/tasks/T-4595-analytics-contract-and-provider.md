@@ -1,6 +1,6 @@
 # T-4595 · Спільний контракт подій і `AnalyticsProvider`: один пуш — два напрями
 
-- **Stage**: M2 (перед фазою 3 — сайт) · **Tags**: frontend, analytics, integration, design · **Complexity**: middle · **Depends on**: T-4575, T-4576, T-4591
+- **Stage**: M2 (перед фазою 3 — сайт) · **Tags**: frontend, analytics, integration · **Complexity**: middle · **Depends on**: T-4575, T-4576, T-4591
 - **StoryPoints**: 5
 
 ## What

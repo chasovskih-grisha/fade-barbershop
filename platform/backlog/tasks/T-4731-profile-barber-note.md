@@ -21,10 +21,10 @@ Clients write a paragraph and wonder what arrives in the chair. Showing the save
 
 ## Done
 
-- [ ] Slices a, b, and c are `done`
-- [ ] The quote matches the last successful save
-- [ ] Typing without saving leaves the quote unchanged
-- [ ] An empty save shows "The barber won't see anything yet"
+- [x] Slices a, b, and c are `done`
+- [x] The quote matches the last successful save
+- [x] Typing without saving leaves the quote unchanged
+- [x] An empty save shows "The barber won't see anything yet"
 
 ## Risks
 
@@ -35,3 +35,9 @@ Clients write a paragraph and wonder what arrives in the chair. Showing the save
 
 - Admin or barber editing of the note
 - The preference limit rules (T-4721). This task only displays the saved value
+
+## Re-verified at 91202f68
+
+Parent of three slices: T-4731b and T-4731c closed at `91202f68`, T-4731a (`m1.md:101` → `review`)
+is a docs-only spec whose review commit `dcf43975` adds no owned product file, so it cannot pass
+`qaTask`. The umbrella stays open on that slice alone.

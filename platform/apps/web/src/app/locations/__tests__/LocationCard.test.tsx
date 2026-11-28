@@ -67,9 +67,9 @@ describe('LocationCard (T-4822)', () => {
     expect(screen.getByAltText('Логотип Fade на Баумана')).toBeTruthy();
   });
 
-  it('links to booking and to the location detail page', () => {
+  it('links the card to the studio and keeps booking a separate control (T-4823)', () => {
     render(<LocationCard location={base} />);
-    expect(screen.getByRole('link', { name: 'Деталі' }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: 'Fade на Баумана' }).getAttribute('href')).toBe(
       '/locations/BAUMANA'
     );
     expect(screen.getByRole('link', { name: 'Записатися' }).getAttribute('href')).toBe('/booking');

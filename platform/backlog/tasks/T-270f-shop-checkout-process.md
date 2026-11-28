@@ -1,6 +1,6 @@
 # T-270f · Checkout process shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: middle · **Dependencies**: T-270e, T-274
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Dependencies**: T-270e, T-274
 - **StoryPoints**: 5
 
 ## What

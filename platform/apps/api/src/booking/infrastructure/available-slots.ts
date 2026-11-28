@@ -24,15 +24,15 @@ export class AvailableSlots {
   constructor(private readonly deps: AvailableSlotsDeps) {}
 
   async handle(dto: SlotRequestDto): Promise<AvailableSlotDto[]> {
-    const { locationId, date, serviceId, barberId, fulfillmentMode } = dto;
+    const { locationId, date, serviceId, barberId, fulfillmentMode, variantLabel } = dto;
     const requestedDate = dayStart(date);
     const dayOfWeek = dayOfWeekIndex(requestedDate);
-    const duration = await resolveDuration(
-      this.deps,
-      fulfillmentMode === undefined
-        ? { locationId, serviceId }
-        : { locationId, serviceId, fulfillmentMode }
-    );
+    const duration = await resolveDuration(this.deps, {
+      locationId,
+      serviceId,
+      ...(fulfillmentMode === undefined ? {} : { fulfillmentMode }),
+      ...(variantLabel === undefined ? {} : { variantLabel }),
+    });
     const location = await this.deps.locationRepo.findById(locationId);
     if (!location?.active) throw new HttpException('Location not found', HttpStatus.NOT_FOUND);
     const opening = location.hours;

@@ -1,6 +1,6 @@
 # T-4523 · Notification Text Editing (lite, pre-v1)
 
-- **Stage**: M2 (phase 7) · **Tags**: backend, frontend, notifications · **Complexity**: middle · **Depends on**: T-080, T-3100, T-4507
+- **Stage**: M2 (phase 7) · **Tags**: backend, notifications · **Complexity**: middle · **Depends on**: T-080, T-3100, T-4507
 - **StoryPoints**: 5
 
 ## What

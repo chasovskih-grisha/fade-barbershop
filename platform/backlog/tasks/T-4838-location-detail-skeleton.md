@@ -1,6 +1,6 @@
 # T-4838 · The studio skeleton, the error, and the inactive page share one width
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, design · **Complexity**: junior · **Depends on**: T-4513, T-4831
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: junior · **Depends on**: T-4513, T-4831
 - **StoryPoints**: 3
 
 ## What

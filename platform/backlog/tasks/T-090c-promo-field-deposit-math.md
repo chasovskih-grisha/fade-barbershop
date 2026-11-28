@@ -1,6 +1,6 @@
 # T-090c · Promo field + deposit math (2/12)
 
-- **Stage**: M2 (phase 8) · **Tags**: backend, frontend · **Complexity**: middle · **Depends on**: T-090b, T-091
+- **Stage**: M2 (phase 8) · **Tags**: backend · **Complexity**: middle · **Depends on**: T-090b, T-091
 - **StoryPoints**: 2
 
 ## What

@@ -1,6 +1,6 @@
 # T-4809 · Automated Availability Engine Benchmark & k6 Load Testing Suite
 
-- **Stage**: M3 · **Tags**: testing, performance, reliability · **Complexity**: senior · **Depends on**: T-040, T-4802
+- **Stage**: M3 · **Tags**: testing, performance, reliability, backend · **Complexity**: senior · **Depends on**: T-040, T-4802
 - **StoryPoints**: 8
 
 ## What

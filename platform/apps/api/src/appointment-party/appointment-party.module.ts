@@ -4,6 +4,7 @@ import { PrismaService } from '../shared/prisma/prisma.service';
 import { PrismaAppointmentPartyRepository } from './infrastructure/prisma-appointment-party.repository';
 import { CreateAppointmentParty } from './application/create-appointment-party.use-case';
 import { ServicesModule } from '../catalog/infrastructure/services.module';
+import { PrismaBarberServiceAssignmentRepository } from '../scheduling/infrastructure/prisma-barber-service-assignment.repository';
 
 /**
  * Feature module for the Appointment Party bounded context.
@@ -18,9 +19,13 @@ import { ServicesModule } from '../catalog/infrastructure/services.module';
       useClass: PrismaAppointmentPartyRepository,
     },
     {
+      provide: 'BarberServiceAssignmentRepository',
+      useClass: PrismaBarberServiceAssignmentRepository,
+    },
+    {
       provide: CreateAppointmentParty,
-      useFactory: (repo: any) => new CreateAppointmentParty(repo),
-      inject: ['AppointmentPartyRepository'],
+      useFactory: (repo: any, matrix: any) => new CreateAppointmentParty(repo, { matrix }),
+      inject: ['AppointmentPartyRepository', 'BarberServiceAssignmentRepository'],
     },
   ],
 })

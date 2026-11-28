@@ -55,7 +55,7 @@ describe('Booking page — UTM атрибуція (регресія збою о�
 
   it('монтує перший крок без module-level виклику хука', async () => {
     render(<BookingPage />);
-    expect(await screen.findByText('Крок 1 з 7: Локація')).toBeInTheDocument();
+    expect(await screen.findByText('Крок 1 з 8: Локація')).toBeInTheDocument();
   });
 
   it('додає збережені UTM до booking_started', async () => {
@@ -66,7 +66,7 @@ describe('Booking page — UTM атрибуція (регресія збою о�
 
     render(<BookingPage />);
 
-    expect(await screen.findByText('Крок 1 з 7: Локація')).toBeInTheDocument();
+    expect(await screen.findByText('Крок 1 з 8: Локація')).toBeInTheDocument();
     expect(window.dataLayer).toContainEqual(
       expect.objectContaining({
         event: 'booking_started',
@@ -80,7 +80,7 @@ describe('Booking page — UTM атрибуція (регресія збою о�
   it('працює без збережених UTM (прямий вхід)', async () => {
     render(<BookingPage />);
 
-    expect(await screen.findByText('Крок 1 з 7: Локація')).toBeInTheDocument();
+    expect(await screen.findByText('Крок 1 з 8: Локація')).toBeInTheDocument();
     expect(window.dataLayer).toContainEqual(
       expect.objectContaining({ event: 'booking_started', entry_point: 'web_direct' })
     );

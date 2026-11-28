@@ -34,6 +34,14 @@
 - [ ] Юніт-Tests на інваріант і стан згоди; e2e на завантаження, заміну, видалення, відкликання
 - [ ] `pnpm docs:validate` зелений
 
+## Audit 2026-11-24
+
+Reopened. The model, migration, invariant, admin section and consent path are
+present, but `SetBarberPhotoHandler` stores the media pipeline’s default resize
+and writes `width: null`/`height: null`; there is no square crop or focus point.
+There is no upload/replace/delete/revoke e2e, only application/unit specs. The
+Done claim for square-with-focus and the e2e coverage is therefore false.
+
 ## Risks
 
 - [ ] **Consent зроблено формальністю** (чекбокс без фіксації часу/хто підтвердив) — знецінює доказову базу; `consentAt`/`consentBy` обов'язкові в схемі

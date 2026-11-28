@@ -1,6 +1,6 @@
 # T-4546 · Barber workspace: commissions, tips, performance stats, add-on services
 
-- **Stage**: M2 (phase 7-8) · **Tags**: frontend, backend, barber · **Complexity**: middle · **Depends on**: T-082, T-083, T-084, T-3300, T-4212
+- **Stage**: M2 (phase 7-8) · **Tags**: frontend, barber · **Complexity**: middle · **Depends on**: T-082, T-083, T-084, T-3300, T-4212
 - **StoryPoints**: 8
 
 ## What

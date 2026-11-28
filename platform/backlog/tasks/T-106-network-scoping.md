@@ -27,3 +27,7 @@ Index — `todo` (2026-10-02). Closing on 2026-09-14 was planning: criteria belo
 
 - [ ] **Migrations**: schema change breaks existing data — migration with backfill plan
 - [ ] **Domain events**: subscriptions are idempotent (ADR 0009/0016 pattern)
+
+## Blocking evidence
+
+The scoping audit needs a second location and real per-location data to be meaningful (T-105 is open, and every analytics/calendar query currently runs against one seeded studio). Without that data the 403 checks would assert against empty result sets, which is a fixture standing in for behaviour.

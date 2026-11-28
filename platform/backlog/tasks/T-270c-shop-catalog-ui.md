@@ -1,6 +1,6 @@
 # T-270c · Catalog UI shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, design · **Complexity**: middle · **Depends on**: T-270a, T-024
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270a, T-024
 - **StoryPoints**: 5
 
 ## What

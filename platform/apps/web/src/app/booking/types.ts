@@ -70,6 +70,8 @@ export interface ServiceDto {
   name: string;
   duration: number; // minutes
   price: number;
+  /** Пакет із двома ногами (T-4521c): тривалість parallel-режиму, інакше null. */
+  parallelDuration?: number | null;
 }
 
 export interface BarberPhotoDto {

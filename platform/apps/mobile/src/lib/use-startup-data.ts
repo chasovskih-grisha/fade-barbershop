@@ -1,17 +1,31 @@
 // Стартові дані екрана «Головна» з offline-кешем (T-4429): свіже з кешу без
 // мережі, фонове оновлення, при офлайні — «застарілі» дані з банером.
-import { useEffect, useRef, useState } from 'react';
+// T-4846: локації й послуги — два незалежні запити. Один, що впав, не стирає
+// другий: у кожної секції свій статус і свій повтор.
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchLocations, type LocationDto } from './api/locations';
 import { fetchServices, type ServiceDto } from './api/catalog';
 import { singleFlight, type CacheStorage } from './offline-cache';
 import { loadStartupSection, type StartupKey } from './startup-data';
 import { deviceStorage } from './cache-storage';
 
+/** `loading` — запит у дорозі, `error` — запит упав і даних немає. */
+export type StartupSectionStatus = 'loading' | 'ready' | 'error';
+
+export interface StartupSection<T> {
+  data: T;
+  status: StartupSectionStatus;
+  stale: boolean;
+}
+
 export interface StartupState {
   loading: boolean;
   stale: boolean;
-  locations: LocationDto[];
-  services: ServiceDto[];
+  locations: StartupSection<LocationDto[]>;
+  services: StartupSection<ServiceDto[]>;
+  /** Повторний запит своєї секції; іншу секцію не чіпає. */
+  retryLocations: () => void;
+  retryServices: () => void;
 }
 
 function loadSection<T>(storage: CacheStorage, key: StartupKey, fetcher: () => Promise<T>) {
@@ -20,38 +34,59 @@ function loadSection<T>(storage: CacheStorage, key: StartupKey, fetcher: () => P
   );
 }
 
-export function useStartupData(storage: CacheStorage = deviceStorage()): StartupState {
-  const [state, setState] = useState<StartupState>({
-    loading: true,
-    stale: false,
-    locations: [],
-    services: [],
-  });
-  const storageRef = useRef(storage);
+const initialSection = <T,>(data: T): StartupSection<T> => ({
+  data,
+  status: 'loading',
+  stale: false,
+});
 
-  useEffect(() => {
-    let alive = true;
-    Promise.all([
-      loadSection(storageRef.current, 'locations', fetchLocations),
-      loadSection(storageRef.current, 'services', fetchServices),
-    ])
-      .then(([locs, srvs]) => {
-        if (!alive) return;
-        setState({
-          loading: false,
-          stale: locs.stale || srvs.stale,
-          locations: locs.data,
-          services: srvs.data,
-        });
+export function useStartupData(storage: CacheStorage = deviceStorage()): StartupState {
+  const storageRef = useRef(storage);
+  const aliveRef = useRef(true);
+  const [locations, setLocations] = useState<StartupSection<LocationDto[]>>(() =>
+    initialSection<LocationDto[]>([])
+  );
+  const [services, setServices] = useState<StartupSection<ServiceDto[]>>(() =>
+    initialSection<ServiceDto[]>([])
+  );
+
+  const loadLocations = useCallback(() => {
+    setLocations((prev) => ({ ...prev, status: 'loading' }));
+    loadSection<LocationDto[]>(storageRef.current, 'locations', fetchLocations)
+      .then((res) => {
+        if (aliveRef.current) setLocations({ data: res.data, status: 'ready', stale: res.stale });
       })
       .catch(() => {
-        // Перший запуск без мережі й без кешу: порожній стан, без баннера.
-        if (alive) setState((prev) => ({ ...prev, loading: false }));
+        if (aliveRef.current) setLocations({ data: [], status: 'error', stale: false });
       });
-    return () => {
-      alive = false;
-    };
   }, []);
 
-  return state;
+  const loadServices = useCallback(() => {
+    setServices((prev) => ({ ...prev, status: 'loading' }));
+    loadSection<ServiceDto[]>(storageRef.current, 'services', fetchServices)
+      .then((res) => {
+        if (aliveRef.current) setServices({ data: res.data, status: 'ready', stale: res.stale });
+      })
+      .catch(() => {
+        if (aliveRef.current) setServices({ data: [], status: 'error', stale: false });
+      });
+  }, []);
+
+  useEffect(() => {
+    aliveRef.current = true;
+    loadLocations();
+    loadServices();
+    return () => {
+      aliveRef.current = false;
+    };
+  }, [loadLocations, loadServices]);
+
+  return {
+    loading: locations.status === 'loading' || services.status === 'loading',
+    stale: locations.stale || services.stale,
+    locations,
+    services,
+    retryLocations: loadLocations,
+    retryServices: loadServices,
+  };
 }

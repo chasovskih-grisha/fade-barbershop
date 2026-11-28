@@ -1,6 +1,6 @@
 # T-270ap · In-store pickup shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-270f, T-4469
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270f, T-4469
 - **StoryPoints**: 5
 
 ## What

@@ -1,6 +1,6 @@
 # T-4728a · Specify the profile theme constraint
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, design, mobile · **Complexity**: junior · **Depends on**: T-4728
+- **Stage**: M1 (phase 3) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-4728
 - **StoryPoints**: 2
 
 ## What

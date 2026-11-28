@@ -1,6 +1,6 @@
 # T-3701 · Beta Distribution
 
-- **Stage**: M6 (phase 40) · **Tags**: frontend, devops, mobile · **Complexity**: middle · **Depends on**: T-3700
+- **Stage**: M6 (phase 40) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-3700
 - **StoryPoints**: 12
 
 ## What

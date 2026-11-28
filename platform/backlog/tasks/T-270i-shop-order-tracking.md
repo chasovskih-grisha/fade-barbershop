@@ -1,6 +1,6 @@
 # T-270i · Order tracking shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: junior · **Depends on**: T-270h, T-276
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-270h, T-276
 - **StoryPoints**: 3
 
 ## What

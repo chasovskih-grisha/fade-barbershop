@@ -1,37 +1,23 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import AccountPage from './page';
-
-const mockUser = {
-  id: 'usr_1',
-  name: 'Олександр',
-  phone: '+380991234567',
-  preferences: ['Короткий вісок', 'Без бороди'],
-};
+import { mockFetch, renderAccountPage, smsToggle, storedNotifications } from './account-notifications.harness';
 
 jest.mock('../components/auth/AuthProvider', () => ({
   useAuth: () => ({
-    user: mockUser,
+    user: {
+      id: 'usr_1',
+      name: 'Олександр',
+      phone: '+380991234567',
+      preferences: ['Короткий вісок', 'Без бороди'],
+    },
     token: 'test-token',
     logout: jest.fn(),
   }),
 }));
 
-describe('AccountPage Notifications & Profile', () => {
+describe('AccountPage notification switches', () => {
   beforeEach(() => {
-    global.fetch = jest.fn().mockImplementation((url) => {
-      if (typeof url === 'string' && url.includes('/haircut-ai/assets')) {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ photos: [], generations: [], remainingToday: 3 }),
-        });
-      }
-      return Promise.resolve({
-        ok: true,
-        json: async () => ({ success: true }),
-      });
-    });
+    mockFetch();
   });
 
   afterEach(() => {
@@ -39,7 +25,7 @@ describe('AccountPage Notifications & Profile', () => {
   });
 
   it('renders profile and notification preferences correctly', async () => {
-    render(<AccountPage />);
+    renderAccountPage();
 
     expect(screen.getByDisplayValue('Олександр')).toBeInTheDocument();
     expect(screen.getByDisplayValue('+380991234567')).toBeInTheDocument();
@@ -47,18 +33,41 @@ describe('AccountPage Notifications & Profile', () => {
     expect(await screen.findAllByText('SMS-нагадування')).not.toHaveLength(0);
   });
 
-  it('allows updating notification preferences and saving them', async () => {
-    render(<AccountPage />);
+  it('shows the stored values once they load', async () => {
+    mockFetch(() =>
+      Promise.resolve({ ok: true, json: async () => ({ ...storedNotifications, smsReminders: false }) })
+    );
 
-    // Wait for initial load
+    renderAccountPage();
+
+    await waitFor(() => expect(smsToggle()).toBeEnabled());
+    expect(smsToggle()).not.toBeChecked();
+  });
+
+  it('keeps the switches disabled until the stored values load', async () => {
+    let release: (value: unknown) => void = () => undefined;
+    const pending = new Promise((resolve) => {
+      release = resolve;
+    });
+    mockFetch(() => pending);
+
+    renderAccountPage();
     await screen.findByText('Сповіщення');
 
-    const smsToggles = screen.getAllByRole('checkbox', { name: /SMS-нагадування/i });
-    const smsToggle = smsToggles[0]!;
-    expect(smsToggle).toBeChecked();
+    expect(smsToggle()).toBeDisabled();
 
-    fireEvent.click(smsToggle);
-    expect(smsToggle).not.toBeChecked();
+    release({ ok: true, json: async () => storedNotifications });
+    await waitFor(() => expect(smsToggle()).toBeEnabled());
+  });
+
+  it('allows updating notification preferences and saving them', async () => {
+    renderAccountPage();
+
+    await waitFor(() => expect(smsToggle()).toBeEnabled());
+    expect(smsToggle()).toBeChecked();
+
+    fireEvent.click(smsToggle());
+    expect(smsToggle()).not.toBeChecked();
 
     const saveButton = screen.getByText('Зберегти налаштування');
     expect(saveButton).not.toBeDisabled();

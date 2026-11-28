@@ -22,7 +22,7 @@ export default function LocationHours({
 }) {
   if (hours.length === 0) {
     return (
-      <section aria-label="Години роботи" className="flex flex-col gap-2">
+      <section className="flex flex-col gap-2">
         <h2 className="font-display text-h4">Години роботи</h2>
         <p className="text-body text-fg-secondary">Графік ще не вказано</p>
       </section>
@@ -37,7 +37,7 @@ export default function LocationHours({
   ];
 
   return (
-    <section aria-label="Години роботи" className="flex flex-col gap-2">
+    <section className="flex flex-col gap-2">
       <h2 className="font-display text-h4">Години роботи</h2>
       <ul className="flex flex-col gap-1 text-body">
         {ordered.map((day) => {

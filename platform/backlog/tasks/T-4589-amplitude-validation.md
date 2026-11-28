@@ -1,6 +1,6 @@
 # T-4589 · Amplitude Event Taxonomy Validation & Dashboard Verification
 
-- **Stage**: M5 (після фаз 3–8, перед запуском v1) · **Tags**: analytics, qa, validation, launch · **Complexity**: middle · **Depends on**: T-4575, T-4576, T-4577, T-4578, T-4579, T-4580, T-4581, T-4582, T-4583, T-4584, T-4587, T-4588
+- **Stage**: M5 (після фаз 3–8, перед запуском v1) · **Tags**: analytics, qa, validation, launch, backend · **Complexity**: middle · **Depends on**: T-4575, T-4576, T-4577, T-4578, T-4579, T-4580, T-4581, T-4582, T-4583, T-4584, T-4587, T-4588
 - **StoryPoints**: 5
 
 ## What

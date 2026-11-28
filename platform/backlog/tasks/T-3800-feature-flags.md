@@ -1,6 +1,6 @@
 # T-3800 · Feature Flags
 
-- **Stage**: M5 (phase 30) · **Tags**: backend, frontend, devops · **Complexity**: middle · **Depends on**: T-3802
+- **Stage**: M5 (phase 30) · **Tags**: backend · **Complexity**: middle · **Depends on**: T-3802
 - **StoryPoints**: 15
 
 ## What

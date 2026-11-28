@@ -1,6 +1,6 @@
 # T-053ar · API integration book.fade.com.ua
 
-- **Stage**: M1 (phase 4) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-053c, T-041
+- **Stage**: M1 (phase 4) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-053c, T-041
 - **StoryPoints**: 5
 
 ## What

@@ -45,6 +45,12 @@ Checks:
 - [ ] **Rebuilding the shell.** The spec lists Home, Locations, Services, My visits, Profile. Those tabs are not this task. Only the «Sign in» control changes
 - [ ] **The demo code.** `handleLogin` verifies a fixed code. Leave it. Identity is not this task
 
+## Audit 2026-11-24
+
+Reopened to `in_progress`: the parent was marked `done` while slice b
+(`T-4717b`, the actual home control) is still `review`, and none of the parent Done
+boxes are checked. The parent cannot close before its UI slice is accepted.
+
 ## Out of scope
 
 - The five-tab shell, the greeting, and the next-visit card on the home. Those are already specified for the shell

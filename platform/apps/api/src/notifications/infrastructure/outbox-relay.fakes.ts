@@ -27,6 +27,10 @@ const makeConsumer = (outcomes: HandleOutcome[] | Error) => {
   };
 };
 
+/** Споживач чату з тією ж чергою результатів — для кейсів «один push на повідомлення». */
+export const makeChatPushConsumer = (outcomes: HandleOutcome[] | Error) =>
+  makeConsumer(outcomes) as OutboxConsumers['chatPush'];
+
 export const makeConsumers = (outcomes: HandleOutcome[] | Error): OutboxConsumers => ({
   confirmations: makeConsumer(outcomes) as OutboxConsumers['confirmations'],
   alerts: makeConsumer(outcomes) as OutboxConsumers['alerts'],
@@ -34,6 +38,7 @@ export const makeConsumers = (outcomes: HandleOutcome[] | Error): OutboxConsumer
   reminders: makeConsumer(outcomes) as OutboxConsumers['reminders'],
   loyalty: makeConsumer(outcomes) as OutboxConsumers['loyalty'],
   appointmentPush: makeConsumer(outcomes) as OutboxConsumers['appointmentPush'],
+  chatPush: makeChatPushConsumer(outcomes),
 });
 
 export const makeRelay = (

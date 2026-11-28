@@ -18,6 +18,12 @@ jest.mock('@/lib/notifications', () => ({
   }),
 }));
 
+jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
+
+jest.mock('@/lib/api/client-sessions', () => ({
+  getClientSessions: jest.fn().mockResolvedValue([]),
+}));
+
 describe('ProfileScreen — тема (T-4728)', () => {
   it('показує заголовок і блок сповіщень', () => {
     const { getByText } = render(<ProfileScreen />);

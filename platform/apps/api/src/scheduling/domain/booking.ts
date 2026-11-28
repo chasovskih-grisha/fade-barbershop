@@ -57,6 +57,10 @@ export class Booking {
   get finalPrice(): number | null {
     return this.data.finalPrice ?? null;
   }
+  /** Обраний варіант тривалості на момент запису (T-4419). */
+  get durationVariant(): string | null {
+    return this.data.durationVariant ?? null;
+  }
   /** Снепшот surge (T-4811): множник, застосований до базової ціни. */
   get surgeBasisPoints(): number | null {
     return this.data.surgeBasisPoints ?? null;

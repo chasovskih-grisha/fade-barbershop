@@ -1,6 +1,6 @@
 # T-4609 · Логотип локації: асети бренду, модель, адмін-UI і публічне використання
 
-- **Stage**: M1 (phase 2) · **Tags**: backend, frontend, design, branding · **Complexity**: middle · **Depends on**: T-021, T-4406, T-4508, T-002
+- **Stage**: M1 (phase 2) · **Tags**: backend, branding · **Complexity**: middle · **Depends on**: T-021, T-4406, T-4508, T-002
 - **StoryPoints**: 14
 - **Пріоритет**: найвищий (2026-11-09). Береться до T-4614 і до решти M1–M3. Порядок слайсів: a → b, c, d паралельно. Лист (T-4611) — одразу після.
 

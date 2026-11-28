@@ -1,6 +1,6 @@
 # T-4614f · Admin panel on a database without locations and barbers
 
-- **Stage**: horizontal · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-4614, T-4614b, T-013, T-021
+- **Stage**: horizontal · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-4614, T-4614b, T-013, T-021
 - **StoryPoints**: 5
 
 ## Blocker

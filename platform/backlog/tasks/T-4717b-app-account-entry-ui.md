@@ -1,6 +1,6 @@
 # T-4717b · Account control on the app home
 
-- **Stage**: M2 (phase 10) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4717a
+- **Stage**: M2 (phase 10) · **Tags**: mobile, ux · **Complexity**: junior · **Depends on**: T-4717a
 - **StoryPoints**: 3
 
 ## What

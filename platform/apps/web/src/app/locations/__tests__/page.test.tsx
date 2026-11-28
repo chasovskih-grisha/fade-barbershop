@@ -72,13 +72,14 @@ describe('LocationsPage — стани', () => {
     expect(screen.queryByRole('link', { name: 'Записатися' })).toBeNull();
   });
 
-  it('дані: картки локацій із посиланнями на деталі та запис', async () => {
+  it('дані: картка студії веде на деталі, «Записатися» — окремий контрол (T-4823)', async () => {
     getLocationsMock.mockResolvedValue({ state: 'ok', data: [location] });
     render(await LocationsPage());
     expect(screen.getByRole('heading', { name: 'Fade на Баумана' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Деталі' }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: 'Fade на Баумана' }).getAttribute('href')).toBe(
       '/locations/BAUMANA'
     );
+    expect(screen.getByRole('link', { name: 'Записатися' }).getAttribute('href')).toBe('/booking');
     expect(screen.queryAllByRole('alert')).toHaveLength(0);
   });
 

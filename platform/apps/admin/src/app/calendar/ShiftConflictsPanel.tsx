@@ -6,20 +6,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card } from '@fade/ui';
 import { ConflictRowItem, type ShiftConflictRow } from './ShiftConflictRow';
-
-function settlementNotice(body: unknown): string | null {
-  const settlements = (body as { settlements?: Array<{ outcome: string }> }).settlements;
-  const refunded = settlements?.some(
-    (entry) => entry.outcome === 'refund_initiated' || entry.outcome === 'refund_replayed'
-  );
-  return refunded ? 'Візит скасовано, депозит повертається' : 'Рішення збережено';
-}
+import { retryNotice, settlementNotice, type SettlementNotice } from './settlement-notice';
+import { SettlementNoticeLine } from './SettlementNoticeLine';
 
 export function ShiftConflictsPanel() {
   const [rows, setRows] = useState<ShiftConflictRow[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<SettlementNotice | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -55,9 +50,29 @@ export function ShiftConflictsPanel() {
       setNotice(settlementNotice(await res.json()));
       await load();
     } catch {
-      setNotice('Рішення не збереглося — спробуйте ще раз');
+      setNotice({ text: 'Рішення не збереглося — спробуйте ще раз' });
     } finally {
       setBusyId(null);
+    }
+  }
+
+  async function retryRefund(refundId: string) {
+    setRetrying(true);
+    setNotice(null);
+    try {
+      const res = await fetch(`/payment/refunds/${encodeURIComponent(refundId)}/retry`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const body = (await res.json()) as { refund?: { status?: string } };
+      setNotice(retryNotice(body.refund?.status));
+      await load();
+    } catch {
+      setNotice({ text: 'Повторне повернення не спрацювало — спробуйте пізніше' });
+    } finally {
+      setRetrying(false);
     }
   }
 
@@ -71,7 +86,13 @@ export function ShiftConflictsPanel() {
           {error}
         </p>
       )}
-      {notice && <p className="mb-2 text-sm">{notice}</p>}
+      {notice && (
+        <SettlementNoticeLine
+          notice={notice}
+          retrying={retrying}
+          onRetry={(refundId) => void retryRefund(refundId)}
+        />
+      )}
       <ul className="flex flex-col gap-3">
         {rows.map((row) => (
           <ConflictRowItem

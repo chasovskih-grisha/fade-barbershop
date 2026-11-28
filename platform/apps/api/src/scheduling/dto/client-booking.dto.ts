@@ -13,6 +13,8 @@ export interface ClientBookingDto {
   locationId: string;
   serviceId?: string;
   fulfillmentMode?: 'sequential' | 'parallel';
+  /** Обраний варіант тривалості послуги (T-4419). */
+  variantLabel?: string;
   date: string;
   start: string;
   end: string;

@@ -24,9 +24,9 @@ The devices screens exist. The profile spec does not mention them, so they stay 
 
 ## Done
 
-- [ ] §2 describes the row, the count, and the error
-- [ ] §5 points at §2
-- [ ] `pnpm docs:validate` reports no new error from these files
+- [x] §2 describes the row, the count, and the error
+- [x] §5 points at §2
+- [x] `pnpm docs:validate` reports no new error from these files
 
 ## Risks
 

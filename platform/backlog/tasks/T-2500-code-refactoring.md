@@ -1,6 +1,6 @@
 # T-2500 · Refactor кодебази (48/48)
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, architecture, high-risk · **Complexity**: senior · **Depends on**: T-004, T-012, T-021
+- **Stage**: M6 (phase 40) · **Tags**: backend, architecture, high-risk · **Complexity**: senior · **Depends on**: T-004, T-012, T-021
 - **StoryPoints**: 48
 
 ## What

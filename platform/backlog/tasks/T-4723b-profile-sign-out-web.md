@@ -19,9 +19,9 @@ The profile header and the aside currently do the same thing with no confirm.
 
 ## Done
 
-- [ ] The profile page has no «Вийти»
-- [ ] The aside button confirms, and cancel does not call logout
+- [x] The profile page has no «Вийти»
+- [x] The aside button confirms, and cancel does not call logout
 
 ## Risks
 
-- [ ] **A second dialog component.** Use the cabinet's existing dialog pattern if one is already on the visits page. Do not invent a new modal system
+- [x] **A second dialog component.** Use the cabinet's existing dialog pattern if one is already on the visits page. Do not invent a new modal system

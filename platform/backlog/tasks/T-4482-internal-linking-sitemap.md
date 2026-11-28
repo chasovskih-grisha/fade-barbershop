@@ -1,6 +1,6 @@
 # T-4482 · Internal Linking + Dynamic Sitemap
 
-- **Stage**: M5 (phase 10) · **Tags**: backend, seo, content · **Complexity**: junior · **Depends on**: T-250, T-2300b, T-2600
+- **Stage**: M5 (phase 10) · **Tags**: backend, content · **Complexity**: junior · **Depends on**: T-250, T-2300b, T-2600
 - **StoryPoints**: 5
 
 ## What

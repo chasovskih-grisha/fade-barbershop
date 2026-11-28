@@ -15,10 +15,10 @@ export function useAccountPreferences(initialPreferences: string[], token: strin
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<SaveStatus>('idle');
 
-  const save = useCallback(async () => {
+  const save = useCallback(async (): Promise<boolean> => {
     const prefs = splitPreferenceLines(preferences);
-    if (!isWithinPreferenceLimit(prefs)) return;
-    if (!token || preferences === savedPreferences.join('\n')) return;
+    if (!isWithinPreferenceLimit(prefs)) return false;
+    if (!token || preferences === savedPreferences.join('\n')) return true;
     setSaving(true);
     setStatus('idle');
     try {
@@ -31,8 +31,10 @@ export function useAccountPreferences(initialPreferences: string[], token: strin
       setSavedPreferences(prefs);
       setStatus('success');
       setTimeout(() => setStatus('idle'), 2000);
+      return true;
     } catch {
       setStatus('error');
+      return false;
     } finally {
       setSaving(false);
     }

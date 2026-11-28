@@ -1,6 +1,6 @@
 # T-4522 · Гнучкі слот-політики: крок, буфер, горизонт
 
-- **Stage**: M1 (phase 4) · **Tags**: backend, frontend, catalog · **Complexity**: middle · **Depends on**: T-040, T-042, T-4507
+- **Stage**: M1 (phase 4) · **Tags**: backend, catalog · **Complexity**: middle · **Depends on**: T-040, T-042, T-4507
 - **StoryPoints**: 5
 
 ## What

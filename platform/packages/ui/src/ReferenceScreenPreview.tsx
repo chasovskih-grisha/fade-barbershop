@@ -1,48 +1,55 @@
 import type { HTMLAttributes } from 'react';
 import { cn } from './cn';
-import { Button } from './Button';
-import { StatusPill } from './StatusPill';
+import { AdminShellPreview } from './reference-screens/AdminShellPreview';
+import { MobileHomePreview } from './reference-screens/MobileHomePreview';
+import { SlotFlowPreview } from './reference-screens/SlotFlowPreview';
+import { WebHomePreview } from './reference-screens/WebHomePreview';
+
+export type ReferenceScreenType = 'web-home' | 'admin-shell' | 'slot-flow' | 'mobile-home';
 
 export interface ReferenceScreenPreviewProps extends HTMLAttributes<HTMLDivElement> {
-  screenType: 'web-home' | 'admin-shell' | 'slot-flow' | 'mobile-home';
+  screenType: ReferenceScreenType;
 }
 
+const SCREENS = {
+  'web-home': WebHomePreview,
+  'admin-shell': AdminShellPreview,
+  'slot-flow': SlotFlowPreview,
+  'mobile-home': MobileHomePreview,
+} as const;
+
+const CAPTIONS: Record<ReferenceScreenType, string> = {
+  'web-home': 'Web · головна',
+  'admin-shell': 'Admin · каркас',
+  'slot-flow': 'Web · крок часу',
+  'mobile-home': 'Mobile · головна',
+};
+
+/**
+ * Еталонний екран дизайн-системи: кожен `screenType` — справжня композиція
+ * з примітивів @fade/ui на семантичних токенах, а не одна заглушка на всі.
+ */
 export function ReferenceScreenPreview({
   screenType,
   className,
   ...rest
 }: ReferenceScreenPreviewProps) {
+  const Screen = SCREENS[screenType];
   return (
     <div
       role="region"
       aria-label={`Reference screen: ${screenType}`}
       className={cn(
-        'p-6 rounded-xl border bg-white dark:bg-zinc-950 dark:border-zinc-800 shadow-sm transition-colors',
-        'sm:p-8 lg:p-10',
+        'rounded-card border border-line bg-surface-base p-4 text-fg transition-colors',
+        'sm:p-6 lg:p-8',
         className
       )}
       {...rest}
     >
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-          {screenType}
-        </span>
-        <StatusPill status="confirmed">Token Verified</StatusPill>
-      </div>
-      <div className="space-y-4">
-        <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-          FADE Reference Screen: {screenType}
-        </h3>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Neighborhood luxury and friction-free interaction showcase adhering to design tokens and
-          accessibility standards.
-        </p>
-        <div className="pt-2">
-          <Button variant="primary" aria-label={`Action for ${screenType}`}>
-            Interact / Book
-          </Button>
-        </div>
-      </div>
+      <p className="mb-4 text-caption uppercase tracking-wider text-fg-muted">
+        {CAPTIONS[screenType]}
+      </p>
+      <Screen />
     </div>
   );
 }

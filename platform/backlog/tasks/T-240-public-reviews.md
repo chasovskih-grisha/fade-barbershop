@@ -1,6 +1,6 @@
 # T-240 · Публічні відгуки: згода, модерація, /reviews
 
-- **Stage**: M5 (phase 25) · **Tags**: backend, frontend · **Complexity**: middle · **Depends on**: T-150, T-030
+- **Stage**: M5 (phase 25) · **Tags**: backend · **Complexity**: middle · **Depends on**: T-150, T-030
 - **StoryPoints**: 5
 
 ## What

@@ -1,6 +1,6 @@
 # T-4605 · Перейменування DTO на Request/Response/Payload (19/19)
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, architecture, quality · **Complexity**: senior · **Depends on**: T-2500
+- **Stage**: M6 (phase 40) · **Tags**: frontend, architecture, quality · **Complexity**: senior · **Depends on**: T-2500
 - **StoryPoints**: 19
 
 ## What

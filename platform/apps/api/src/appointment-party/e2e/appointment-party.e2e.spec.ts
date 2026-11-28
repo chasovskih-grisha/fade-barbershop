@@ -39,6 +39,8 @@ describe('AppointmentPartyController (e2e)', () => {
         findMany: async ({ where }: { where: { barberId: { in: string[] } } }) =>
           where.barberId.in.map((barberId) => ({ barberId })),
       },
+      // T-4521: матрix «барбер виконує послугу». Порожня матрix — дефолт «усі».
+      barberServiceAssignment: { findMany: async () => [] },
       availabilityWindow: { findMany: availabilityQuery },
       openingHour: { findUnique: async () => ({ open: '08:00', close: '18:00', closed: false }) },
     };

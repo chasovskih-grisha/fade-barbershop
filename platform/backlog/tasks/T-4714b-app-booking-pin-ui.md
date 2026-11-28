@@ -1,6 +1,6 @@
 # T-4714b · Booking pin in the client app
 
-- **Stage**: M2 (phase 6) · **Tags**: frontend, ux, a11y, mobile · **Complexity**: middle · **Depends on**: T-4714a, T-071
+- **Stage**: M2 (phase 6) · **Tags**: mobile, ux, a11y · **Complexity**: middle · **Depends on**: T-4714a, T-071
 - **StoryPoints**: 5
 
 ## What

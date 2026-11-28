@@ -1,6 +1,6 @@
 # T-270d · Product detail page shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, design · **Complexity**: middle · **Depends on**: T-270c, T-270
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270c, T-270
 - **StoryPoints**: 5
 
 ## What

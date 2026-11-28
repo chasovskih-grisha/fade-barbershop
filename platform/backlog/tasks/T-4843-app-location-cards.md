@@ -1,6 +1,6 @@
 # T-4843 · The app home lists studios as cards that open
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile, design · **Complexity**: middle · **Depends on**: T-070, T-4844, T-4609d
+- **Stage**: M5 (phase 30) · **Tags**: mobile, ux · **Complexity**: middle · **Depends on**: T-070, T-4844, T-4609d
 - **StoryPoints**: 5
 
 ## What
@@ -35,3 +35,24 @@ The app’s location “list” cannot be chosen. It is a paragraph.
 - The network mark (T-4609d)
 - Card facts that have their own slices (city T-4821b, chairs T-4830b, today’s hours T-4832b)
 - The find field (T-4828b)
+
+## Implementation plan
+
+The card and its press already ship; what is missing is the route test and one
+place that owns the href.
+
+Paths:
+- `apps/mobile/src/app/location-city-groups.tsx`
+- `apps/mobile/src/app/location-city-groups.test.tsx`
+
+Checks:
+- `npx jest --config apps/mobile/jest.config.js --runTestsByPath apps/mobile/src/app/location-city-groups.test.tsx`
+
+## Implementation notes
+
+- apps/mobile/src/app/location-city-groups.test.tsx
+- apps/mobile/src/app/location-city-groups.tsx
+
+## QA
+
+- `npx jest --config apps/mobile/jest.config.js --runTestsByPath apps/mobile/src/app/location-city-groups.test.tsx` exit 0

@@ -16,6 +16,23 @@
 - [ ] Pushes delivered to devices with tokens
 - [ ] Templates in Ukrainian; unsubscription respected
 
+## Implementation plan
+
+Paths:
+- apps/api/src/notifications/application/appointment-push.ts
+- apps/api/src/notifications/application/appointment-push-messages.ts
+- apps/api/src/notifications/application/appointment-push.spec.ts
+- apps/api/src/notifications/infrastructure/outbox-routing.ts
+- apps/api/src/notifications/infrastructure/outbox-routing.spec.ts
+
+Checks:
+- pnpm --filter @fade/api exec jest apps/api/src/notifications/application/appointment-push.spec.ts --forceExit
+
+## Done verified at HEAD (2026-11-26)
+
+- [x] Pushes delivered to devices with tokens — `PushToken`/`DevicePushToken` реєструються через `identity` (`RegisterPushToken`), `appointment-push.ts` бере токени візиту, `ExpoPushSender`/`ConsolePushSender` обираються `PUSH_PROVIDER`.
+- [x] Templates in Ukrainian; unsubscription respected — `appointment-push-messages.ts` (укр. тексти для booked/rescheduled/cancelled, ім'я майстра й новий час), `client-push-preferences.ts` глушить канал за вибором клієнта.
+
 ## Risks
 
 - [ ] **Expo/FCM/APNs quotas**: push tokens expire — rotation
@@ -38,3 +55,7 @@
 **Slice "Admin SSE updates" — 2026-10-07:** live calendar and dashboard updates via outbox relay implementing feature requirement "appointments appear without reload": `GET /admin/live/events` — SSE stream (event name `appointment`, body `{type,appointmentId}` — no personal data); client hook `useAdminLive` (EventSource, close on unmount; server render without EventSource does not crash). Relay `OutboxLiveWatcher` hooks live-grid events appearing after process start into `AdminLiveFeed` (Subject, SSE via rxjs map → MessageEvent); third constructor parameter — clock notified via module factory. Watermark = construction time: "history" events before start are not replayed (client loads current state anyway). Empty pass does not shift watermark; pass error does not kill setTimeout restart. Autostart disabled when NODE_ENV==='test' (similar approach as NotificationsDispatcher). SSE spec on real HTTP response (raw http.get, because supertest does not emit 'response' for SSE stream) confirms content-type `text/event-stream` and event delivery. Verified: tsc/jest (5 suites/11 tests) + admin tsc/lint/jest/prettier — except known e2e failures (ClientProfileController · ADMIN_CLIENTS_HANDLERS).
 
 **Risks verified on live run:** EventSource proxied by next-rewrite `/admin/:path*` → API and does not buffer SSE response (StreamableFile / SSE stream waits for client close — planned verify on live admin + API run; if preview proxying buffers — need custom route handler in admin piping stream directly to API without next rewrite).
+
+## QA
+
+- `pnpm --filter @fade/api exec jest apps/api/src/notifications/application/appointment-push.spec.ts --forceExit` exit 0

@@ -16,6 +16,16 @@ The component already receives captions and then hides them.
 - T-4834
 - `apps/web/src/app/locations/[code]/LocationGallery.tsx`
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/locations/[code]/LocationGallery.tsx
+- apps/web/src/app/locations/[code]/LocationGalleryDialog.tsx
+- apps/web/src/app/locations/[code]/__tests__/gallery.test.tsx
+
+Checks:
+- `npx jest --config apps/web/jest.config.js --runTestsByPath 'apps/web/src/app/locations/[code]/__tests__/gallery.test.tsx'`
+
 ## Done
 
 - [ ] Enter and click open the dialog on that photo
@@ -31,3 +41,13 @@ The component already receives captions and then hides them.
 ## Out of scope
 
 - The app gallery (T-4834b)
+
+## Implementation notes
+
+- apps/web/src/app/locations/[code]/LocationGallery.tsx
+- apps/web/src/app/locations/[code]/LocationGalleryDialog.tsx
+- apps/web/src/app/locations/[code]/__tests__/gallery.test.tsx
+
+## QA
+
+- `npx jest --config apps/web/jest.config.js --runTestsByPath 'apps/web/src/app/locations/[code]/__tests__/gallery.test.tsx'` exit 0

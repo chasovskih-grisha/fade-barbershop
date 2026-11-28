@@ -1,6 +1,6 @@
 # T-4723c · Sign out on the app profile
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4723a, T-4722c
+- **Stage**: M1 (phase 3) · **Tags**: mobile, ux · **Complexity**: junior · **Depends on**: T-4723a, T-4722c
 - **StoryPoints**: 3
 
 ## What

@@ -1,6 +1,6 @@
 # T-3604 · Audit Logging
 
-- **Stage**: M5 (phase 30) · **Tags**: backend, security, devops · **Complexity**: middle · **Depends on**: T-2400, T-300
+- **Stage**: M5 (phase 30) · **Tags**: backend, security · **Complexity**: middle · **Depends on**: T-2400, T-300
 - **StoryPoints**: 12
 
 ## What

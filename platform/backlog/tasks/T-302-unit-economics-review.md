@@ -1,6 +1,6 @@
 # T-302 · Unit economics review by dashboard data
 
-- **Stage**: horizontal (monthly from M3) · **Tags**: — · **Complexity**: — · **Dependencies**: T-110, T-111
+- **Stage**: horizontal (monthly from M3) · **Tags**: —, backend · **Complexity**: — · **Dependencies**: T-110, T-111
 
 ## What
 

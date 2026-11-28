@@ -1,6 +1,6 @@
 # T-4567 · Mobile experience: responsive/PWA for Admin, Barber, Client
 
-- **Stage**: M2-M3 (phase 6-7, 14) · **Tags**: frontend, mobile, design · **Complexity**: senior · **Depends on**: T-070, T-071, T-072, T-082, T-083, T-084, T-4509, T-4515, T-4510
+- **Stage**: M2-M3 (phase 6-7, 14) · **Tags**: frontend · **Complexity**: senior · **Depends on**: T-070, T-071, T-072, T-082, T-083, T-084, T-4509, T-4515, T-4510
 - **StoryPoints**: 21
 
 ## What

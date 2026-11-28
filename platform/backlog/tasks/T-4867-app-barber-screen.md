@@ -1,6 +1,6 @@
 # T-4867 · The app has a barber screen
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile, design · **Complexity**: middle · **Depends on**: T-070, T-4869, T-071
+- **Stage**: M5 (phase 30) · **Tags**: mobile, ux · **Complexity**: middle · **Depends on**: T-070, T-4869, T-071
 - **StoryPoints**: 5
 
 ## What
@@ -35,3 +35,26 @@ Every other app barber task needs a screen. Today the only mention of a barber i
 
 - Website deep link behavior (T-4477b)
 - Prices, gallery, and reviews (T-4477a, T-191, T-240)
+
+## Implementation plan
+
+The screen ships; the booking handoff is untested and every route is spelled
+inline, so one module owns them.
+
+Paths:
+- `apps/mobile/src/lib/routes.ts`
+- `apps/mobile/src/app/(client)/barbers/[slug]/page.tsx`
+- `apps/mobile/src/app/(client)/barbers/[slug]/page.test.tsx`
+
+Checks:
+- `npx jest --config apps/mobile/jest.config.js --runTestsByPath 'apps/mobile/src/app/(client)/barbers/[slug]/page.test.tsx'`
+
+## Implementation notes
+
+- apps/mobile/src/app/(client)/barbers/[slug]/page.test.tsx
+- apps/mobile/src/app/(client)/barbers/[slug]/page.tsx
+- apps/mobile/src/lib/routes.ts
+
+## QA
+
+- `npx jest --config apps/mobile/jest.config.js --runTestsByPath 'apps/mobile/src/app/(client)/barbers/[slug]/page.test.tsx'` exit 0

@@ -6,15 +6,12 @@ export interface Barber {
   photoUrl?: string | null;
   specialties?: string[] | null;
   experience?: string | null;
+  portfolioThumbUrl?: string | null;
+  /** Студії людини (T-4852a): код і назва локації, де вона працює. */
+  studios?: { code: string; name: string }[] | null;
 }
 
 export type BarberFilter = 'all' | 'top' | 'beard' | 'fade';
-
-function matchesSearch(barber: Barber, query: string): boolean {
-  if (barber.name.toLowerCase().includes(query)) return true;
-  if (barber.role && barber.role.toLowerCase().includes(query)) return true;
-  return Boolean(barber.specialties?.some((s) => s.toLowerCase().includes(query)));
-}
 
 function matchesTop(barber: Barber): boolean {
   const role = barber.role?.toLowerCase() ?? '';
@@ -41,24 +38,23 @@ function matchesFade(barber: Barber): boolean {
   );
 }
 
-/** Applies the search query and the active category filter to the barber list. */
+const CATEGORY: Record<BarberFilter, (barber: Barber) => boolean> = {
+  all: () => true,
+  top: matchesTop,
+  beard: matchesBeard,
+  fade: matchesFade,
+};
+
+// T-4857a: пошук звужує картки за ім'ям майстра без урахування регістру, а
+// категорія — за спеціалізацією; порожній запит (самі пробіли) не звужує.
 export function filterBarbers(
   barbers: Barber[],
   activeFilter: BarberFilter,
   searchQuery: string
 ): Barber[] {
-  const query = searchQuery.toLowerCase();
-  return barbers.filter((barber) => {
-    if (!matchesSearch(barber, query)) return false;
-    switch (activeFilter) {
-      case 'top':
-        return matchesTop(barber);
-      case 'beard':
-        return matchesBeard(barber);
-      case 'fade':
-        return matchesFade(barber);
-      default:
-        return true;
-    }
-  });
+  const needle = searchQuery.trim().toLowerCase();
+  const category = CATEGORY[activeFilter];
+  return barbers.filter(
+    (barber) => (!needle || barber.name.toLowerCase().includes(needle)) && category(barber)
+  );
 }

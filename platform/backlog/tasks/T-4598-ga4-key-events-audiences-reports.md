@@ -1,6 +1,6 @@
 # T-4598 · GA4 key events, аудиторії та звіти
 
-- **Stage**: M3 (phase 14 — аналітика) · **Tags**: analytics, marketing, conversion, qa · **Complexity**: middle · **Depends on**: T-4594, T-4596, T-4597
+- **Stage**: M3 (phase 14 — аналітика) · **Tags**: analytics, marketing, conversion, qa, backend · **Complexity**: middle · **Depends on**: T-4594, T-4596, T-4597
 - **StoryPoints**: 5
 
 ## What

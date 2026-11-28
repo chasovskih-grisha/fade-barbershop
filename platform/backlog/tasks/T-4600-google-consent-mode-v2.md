@@ -1,6 +1,6 @@
 # T-4600 · Google Consent Mode v2
 
-- **Stage**: M2 (перед фазою 3 — сайт) · **Tags**: analytics, legal, privacy, integration · **Complexity**: middle · **Depends on**: T-4402, T-4588, T-4591, T-4593
+- **Stage**: M2 (перед фазою 3 — сайт) · **Tags**: analytics, legal, privacy, integration, backend · **Complexity**: middle · **Depends on**: T-4402, T-4588, T-4591, T-4593
 - **StoryPoints**: 5
 
 ## What

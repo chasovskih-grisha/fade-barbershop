@@ -1,6 +1,6 @@
 # T-4468 · City haircut landing page (submit city)
 
-- **Stage**: M5 (phase 10) · **Tags**: backend, frontend, seo · **Complexity**: middle · **Depends on**: T-250, T-2600
+- **Stage**: M5 (phase 10) · **Tags**: backend · **Complexity**: middle · **Depends on**: T-250, T-2600
 - **StoryPoints**: 8
 
 ## What

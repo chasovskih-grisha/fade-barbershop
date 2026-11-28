@@ -1,6 +1,6 @@
 # T-4520 · Композитний слот: кілька послуг в один запис
 
-- **Stage**: M1 (phase 4) · **Tags**: backend, catalog, frontend, high-risk · **Complexity**: senior · **Depends on**: T-040, T-042, T-090 (снепшот ціни), T-041
+- **Stage**: M1 (phase 4) · **Tags**: backend, catalog, high-risk · **Complexity**: senior · **Depends on**: T-040, T-042, T-090 (снепшот ціни), T-041
 - **StoryPoints**: 8
 
 ## What
@@ -37,3 +37,7 @@
 1. **T-4520a · Складений запис: домен і ціна** *(middle, 3 SP)* — позиції запису, сумарна тривалість/ціна, снепшот `AgreedPrice`.
 2. **T-4520b · Доступність і слоти композиції** *(senior, 3 SP)* — слот за сумарною тривалістю, обрізання по робочому дню, інваріант крісел.
 3. **T-4520c · Флоу багатовибору і адмін-картка** *(junior, 2 SP)* — вибір послуг у флоу, compose-Slice в адмінці.
+
+## Blocking evidence
+
+Composed slots change the booking domain (`ComposedSlot`, per-position `AgreedPrice`), the public booking contract in `@fade/contracts`, the admin slice card and the multi-select in the booking flow. One row cannot close it under the gate: `reviewTask` accepts only files its single craft tag owns, while this work spans `apps/api` and `apps/web`, and a backend-only diff would leave four of the five `Done` boxes unproven.

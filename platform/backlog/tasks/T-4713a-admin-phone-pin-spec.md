@@ -59,9 +59,9 @@ The public booking spec does not mention a verified client or a form with no ser
 
 ## Done
 
-- [ ] §6.2 has the fact table, the client-change rule, and the wireframe
-- [ ] The section states that a service is out of the pin until the form has a service field
-- [ ] `pnpm docs:validate` reports no new error from this file
+- [x] §6.2 has the fact table, the client-change rule, and the wireframe
+- [x] The section states that a service is out of the pin until the form has a service field
+- [x] `pnpm docs:validate` reports no new error from this file
 
 ## Risks
 

@@ -89,6 +89,7 @@ export class AdminServicesController {
       ...(dto.slug !== undefined ? { slug: dto.slug } : {}),
       ...(dto.seoDescription !== undefined ? { seoDescription: dto.seoDescription } : {}),
       ...(dto.faq !== undefined ? { faq: dto.faq } : {}),
+      ...(dto.variants !== undefined ? { variants: dto.variants } : {}),
       ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
     });
     const current = await this.deps.listServices.findById(id);

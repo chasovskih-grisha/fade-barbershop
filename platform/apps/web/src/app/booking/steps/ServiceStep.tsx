@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useState, type KeyboardEvent } from 'react';
 import { Card, Button, Skeleton } from '@fade/ui';
 import { ServiceDto } from '../types';
+
+// Обрана картка повторює кістяну плитку SlotPicker; класи скопійовані, не імпортовані.
+const SELECTED_CARD =
+  'rounded-card border border-accent bg-accent p-4 font-medium text-accent-fg cursor-pointer transition-colors hover:bg-fg-secondary active:bg-fg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue';
 
 interface Props {
   services: ServiceDto[];
@@ -12,15 +16,7 @@ interface Props {
   retryServices?: () => void;
 }
 
-export default function ServiceStep({
-  services,
-  loading = false,
-  error,
-  onBack,
-  onSelect,
-  retryServices,
-  optimisticSetStep: _optimisticSetStep,
-}: Props) {
+export default function ServiceStep({ services, loading = false, error, onBack, onSelect, retryServices, optimisticSetStep: _optimisticSetStep }: Props) {
   const [selected, setSelected] = useState('');
   if (loading) {
     return (
@@ -53,28 +49,38 @@ export default function ServiceStep({
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {services.map((svc) => (
-          <Card
-            key={svc.id}
-            interactive={true}
-            role="button"
-            tabIndex={0}
-            aria-pressed={selected === svc.id}
-            className={`p-4 ${selected === svc.id ? 'ring-2 ring-fg' : ''}`}
-            onClick={() => setSelected(svc.id)}
-            onKeyDown={(e) => {
+        {services.map((svc) => {
+          const isSelected = selected === svc.id;
+          const content = (
+            <>
+              <h3 className="font-text text-h4 font-semibold">{svc.name}</h3>
+              <p>
+                {svc.duration} хв, {svc.price} ₴
+              </p>
+            </>
+          );
+          const choiceProps = {
+            role: 'button' as const,
+            tabIndex: 0,
+            'aria-pressed': isSelected,
+            onClick: () => setSelected(svc.id),
+            onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 setSelected(svc.id);
               }
-            }}
-          >
-            <h3 className="font-text text-h4 font-semibold">{svc.name}</h3>
-            <p>
-              {svc.duration} хв, {svc.price} ₴
-            </p>
-          </Card>
-        ))}
+            },
+          };
+          return isSelected ? (
+            <div key={svc.id} {...choiceProps} className={SELECTED_CARD}>
+              {content}
+            </div>
+          ) : (
+            <Card key={svc.id} interactive={true} {...choiceProps} className="p-4">
+              {content}
+            </Card>
+          );
+        })}
       </div>
       <Button
         disabled={!selected}

@@ -60,10 +60,13 @@ describe('ServicesPage', () => {
     });
 
     const jsx = await ServicesPage();
-    render(jsx);
+    const { container } = render(jsx);
 
     expect(screen.getByText('Послуг ще немає')).toBeInTheDocument();
     // T-4614e: без активної локації порожній каталог не веде на /booking.
     expect(screen.queryByRole('link', { name: 'Записатися онлайн' })).toBeNull();
+    expect(screen.queryByText('Послуги та фіксований прайс')).toBeNull();
+    expect(screen.queryByRole('link', { name: /Скористатися знижкою/ })).toBeNull();
+    expect(container.textContent).not.toContain('₴');
   });
 });

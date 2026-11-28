@@ -1,16 +1,16 @@
 'use client';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import PageHeader from '../components/PageHeader';
+import { ListSkeleton, ListStateRegion } from '../components/ListStateRegion';
 import { useAdminToasts } from '../components/use-admin-toasts';
 import { ServiceCreateForm } from './ServiceCreateForm';
 import { ServicesTable } from './ServicesTable';
 import { RevenuePricingManager } from './RevenuePricingManager';
-import type { CatalogService, ServiceLocation } from './service-types';
+import { useCatalog } from './use-catalog';
 
 export default function ServicesManager() {
   const { push, viewport } = useAdminToasts();
-  const [services, setServices] = useState<CatalogService[]>([]);
-  const [locations, setLocations] = useState<ServiceLocation[]>([]);
+  const { services, locations, loading, retrying, loadError, reload, retry } = useCatalog();
   const [name, setName] = useState('');
   const [duration, setDuration] = useState(30);
   const [parallelDuration, setParallelDuration] = useState<number | ''>('');
@@ -18,18 +18,6 @@ export default function ServicesManager() {
   const [category, setCategory] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-
-  const reload = async () => {
-    // prettier-ignore
-    const [res, locRes] = await Promise.all([fetch('/admin/services', { credentials: 'include' }), fetch('/admin/locations', { credentials: 'include' })]);
-    if (!res.ok || !locRes.ok) throw new Error();
-    setServices((await res.json()) as CatalogService[]);
-    setLocations((await locRes.json()) as ServiceLocation[]);
-  };
-
-  useEffect(() => {
-    void reload().catch(() => setError('Не вдалося завантажити каталог'));
-  }, []);
 
   async function create(event: FormEvent) {
     event.preventDefault();
@@ -85,13 +73,26 @@ export default function ServicesManager() {
           {error}
         </p>
       )}
-      <ServicesTable
-        services={services}
-        locations={locations}
-        onError={setError}
-        onReload={reload}
-        onSaved={() => push('Послугу збережено')}
-      />
+      <ListStateRegion
+        state={{
+          loading,
+          error: loadError,
+          retrying,
+          empty: services.length === 0,
+          onRetry: retry,
+        }}
+        emptyTitle="Каталог порожній"
+        emptyDescription="Додайте першу послугу, щоб клієнт міг її записати."
+        skeleton={<ListSkeleton />}
+      >
+        <ServicesTable
+          services={services}
+          locations={locations}
+          onError={setError}
+          onReload={reload}
+          onSaved={() => push('Послугу збережено')}
+        />
+      </ListStateRegion>
       <RevenuePricingManager onSaveRule={() => push('Правило ціноутворення збережено')} />
       {viewport}
     </main>

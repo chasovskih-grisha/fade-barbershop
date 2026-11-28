@@ -1,6 +1,6 @@
 # T-3900 · Повторювані записи
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, high-risk · **Complexity**: senior · **Depends on**: T-040, T-041, T-053
+- **Stage**: M6 (phase 40) · **Tags**: backend, high-risk · **Complexity**: senior · **Depends on**: T-040, T-041, T-053
 - **StoryPoints**: 20
 
 ## What

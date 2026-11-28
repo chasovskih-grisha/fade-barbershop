@@ -1,6 +1,6 @@
 # T-4821b · Slice: city groups on the app location list
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4821, T-4850, T-4843
+- **Stage**: M5 (phase 30) · **Tags**: mobile, ux · **Complexity**: junior · **Depends on**: T-4821, T-4850, T-4843
 - **StoryPoints**: 3
 
 ## What

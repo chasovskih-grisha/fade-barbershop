@@ -18,10 +18,10 @@ The website list is short enough to filter on the client.
 
 ## Done
 
-- [ ] Typing a street leaves only the studios whose name or address contains it
-- [ ] No match shows a sentence and a way to clear the field
-- [ ] Clearing the field shows every studio again
-- [ ] The field is reachable by keyboard before the cards
+- [x] Typing a street leaves only the studios whose name or address contains it
+- [x] No match shows a sentence and a way to clear the field
+- [x] Clearing the field shows every studio again
+- [x] The field is reachable by keyboard before the cards
 
 ## Risks
 

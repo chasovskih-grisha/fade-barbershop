@@ -1,6 +1,6 @@
 # T-4734c · Visit count on the app profile
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4734a
+- **Stage**: M1 (phase 3) · **Tags**: mobile, ux · **Complexity**: junior · **Depends on**: T-4734a
 - **StoryPoints**: 3
 
 ## What

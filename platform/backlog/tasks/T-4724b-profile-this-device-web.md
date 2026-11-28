@@ -19,10 +19,10 @@ The aside links to devices by name only. The account card, where the phone is, n
 
 ## Done
 
-- [ ] The row shows «Цей пристрій» and links to `/account/devices`
-- [ ] «Ще N» appears only for a loaded count above zero
-- [ ] A failed session load still shows the link
+- [x] The row shows «Цей пристрій» and links to `/account/devices`
+- [x] «Ще N» appears only for a loaded count above zero
+- [x] A failed session load still shows the link
 
 ## Risks
 
-- [ ] **A second fetch shape.** Read the same session list the devices page reads
+- [x] **A second fetch shape.** Read the same session list the devices page reads

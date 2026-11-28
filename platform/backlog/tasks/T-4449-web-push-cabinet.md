@@ -1,6 +1,6 @@
 # T-4449 · Web Push для кабінету
 
-- **Stage**: M3 (phase 7) · **Tags**: backend, frontend, notifications · **Complexity**: junior · **Depends on**: T-032, T-4410
+- **Stage**: M3 (phase 7) · **Tags**: backend, notifications · **Complexity**: junior · **Depends on**: T-032, T-4410
 - **StoryPoints**: 3
 
 ## What

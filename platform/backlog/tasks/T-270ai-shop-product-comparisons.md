@@ -1,6 +1,6 @@
 # T-270ai · Product comparisons shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-270d, T-270y
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270d, T-270y
 - **StoryPoints**: 5
 
 ## What

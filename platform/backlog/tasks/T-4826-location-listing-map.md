@@ -1,6 +1,6 @@
 # T-4826 · The listing shows every studio on one map
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, design · **Complexity**: senior · **Depends on**: T-030, T-4823
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: senior · **Depends on**: T-030, T-4823
 - **StoryPoints**: 8
 
 ## What
@@ -19,6 +19,23 @@ The guest who does not know the street names is looking at a directory of addres
 - `apps/web/src/app/locations/page.tsx`
 - T-4405 (coordinates already stored; the admin picker is done)
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/locations/LocationsExplorer.tsx
+- apps/web/src/app/locations/LocationsMap.tsx
+- apps/web/src/app/locations/use-locations-map.ts
+- apps/web/src/app/locations/LocationFinder.tsx
+- apps/web/src/app/locations/LocationCityGroups.tsx
+- apps/web/src/app/locations/LocationCard.tsx
+- apps/web/src/app/locations/page.tsx
+- apps/web/src/app/locations/__tests__/map.test.tsx
+- apps/web/src/app/locations/__tests__/map-failure.test.tsx
+
+Checks:
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/locations/__tests__/map.test.tsx`
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/locations/__tests__/map-failure.test.tsx`
+
 ## Done
 
 - [ ] Every active studio with coordinates has one pin
@@ -36,3 +53,19 @@ The guest who does not know the street names is looking at a directory of addres
 - The single-studio map on the detail page (T-4835)
 - The admin address picker (T-4405, done)
 - Walking times and transit instructions
+
+## Implementation notes
+
+- apps/web/src/app/locations/LocationCard.tsx
+- apps/web/src/app/locations/LocationCityGroups.tsx
+- apps/web/src/app/locations/LocationFinder.tsx
+- apps/web/src/app/locations/LocationsExplorer.tsx
+- apps/web/src/app/locations/LocationsMap.tsx
+- apps/web/src/app/locations/__tests__/map-failure.test.tsx
+- apps/web/src/app/locations/__tests__/map.test.tsx
+- apps/web/src/app/locations/use-locations-map.ts
+
+## QA
+
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/locations/__tests__/map.test.tsx` exit 0
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/locations/__tests__/map-failure.test.tsx` exit 0

@@ -1,6 +1,6 @@
 # T-4467 · AggregateRating-віджет
 
-- **Stage**: M5 (phase 10) · **Tags**: backend, seo, cache · **Complexity**: junior · **Depends on**: T-240, T-260
+- **Stage**: M5 (phase 10) · **Tags**: backend, cache · **Complexity**: junior · **Depends on**: T-240, T-260
 - **StoryPoints**: 5
 
 ## What

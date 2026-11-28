@@ -1,6 +1,6 @@
 # T-3301 · Облік робочого часу
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, hr, frontend · **Complexity**: middle · **Depends on**: T-023, T-230
+- **Stage**: M6 (phase 40) · **Tags**: backend, hr · **Complexity**: middle · **Depends on**: T-023, T-230
 - **StoryPoints**: 18
 
 ## What

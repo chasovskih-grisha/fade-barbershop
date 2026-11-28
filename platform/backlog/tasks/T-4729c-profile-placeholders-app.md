@@ -1,6 +1,6 @@
 # T-4729c · The app profile does not copy the empty cards
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4729a
+- **Stage**: M1 (phase 3) · **Tags**: mobile, ux · **Complexity**: junior · **Depends on**: T-4729a
 - **StoryPoints**: 3
 
 ## What

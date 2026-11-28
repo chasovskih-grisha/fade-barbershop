@@ -1,6 +1,6 @@
 # T-4489 · A/B-експерименти продукту
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, marketing · **Complexity**: middle · **Depends on**: T-3800, T-041, T-274
+- **Stage**: M6 (phase 40) · **Tags**: backend, marketing · **Complexity**: middle · **Depends on**: T-3800, T-041, T-274
 - **StoryPoints**: 8
 
 ## What

@@ -1,6 +1,6 @@
 # T-4822 · The listing card shows the studio, and the logo stays a mark
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, design · **Complexity**: middle · **Depends on**: T-4406, T-4609b
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: middle · **Depends on**: T-4406, T-4609b
 - **StoryPoints**: 5
 
 ## What

@@ -1,12 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import {
-  existsSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseFrontmatter } from './validate-agents.mjs';
@@ -30,10 +23,7 @@ export function craftTags(tags) {
 
 export function parseIndexRow(line) {
   if (!line.startsWith('|')) return null;
-  const cells = line
-    .split('|')
-    .slice(1, -1)
-    .map((cell) => cell.trim());
+  const cells = line.split('|').slice(1, -1).map((cell) => cell.trim());
   if (cells.length < 6) return null;
   const id = cells[0].match(/\[(T-[\w-]+)\]\(([^)]+)\)/);
   if (!id) return null;
@@ -41,10 +31,7 @@ export function parseIndexRow(line) {
     id: id[1],
     href: id[2],
     source: cells[2],
-    tags: cells[3]
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter(Boolean),
+    tags: cells[3].split(',').map((tag) => tag.trim()).filter(Boolean),
     status: cells[5],
     line,
   };
@@ -61,24 +48,50 @@ export function replaceStatus(line, status) {
 export function tagsFromTask(text) {
   const line = text.split('\n').find((entry) => /\*\*Tags\*\*/.test(entry));
   if (!line) return [];
-  return line
-    .split(':')
-    .slice(1)
-    .join(':')
-    .split(',')
-    .map((tag) => tag.trim())
-    .filter(Boolean);
+  return line.split(':').slice(1).join(':').split(',').map((tag) => tag.trim()).filter(Boolean);
 }
 
 export function dependencyIds(taskText, source) {
   const ids = new Set();
-  const header = taskText.match(/\*\*Dependencies\*\*:\s*(.*)/);
-  const section = taskText.split(/^## Dependencies\s*$/m)[1]?.split(/^## /m)[0] ?? '';
-  const blobs = [header?.[1] ?? '', section, source ?? ''];
+  // Authoritative declaration: the task's own «Depends on» line or a Dependencies
+  // section. The index «Джерело» column mixes real prerequisites with mere
+  // references (T-4851 cites T-130 as an out-of-scope feature), so it only speaks
+  // for task files that declare no dependencies at all.
+  const header = taskText.match(/\*\*(?:Depends on|Dependencies)\*\*:\s*(.*)/);
+  const section =
+    taskText.split(/^## (?:Depends on|Dependencies)\s*$/m)[1]?.split(/^## /m)[0] ?? '';
+  const blobs = header || section ? [header?.[1] ?? '', section] : [source ?? ''];
   for (const blob of blobs) {
     for (const match of blob.matchAll(/\b(T-\d[\w-]*)/g)) ids.add(match[1]);
   }
   return [...ids];
+}
+
+/** Todo rows of one seat with the reason each one is or is not claimable. */
+export function nextTasks(root, seat) {
+  const seatTag = SEAT_TAG[seat];
+  if (!seatTag) throw new Error(`unknown seat ${seat}`);
+  const rows = loadRows(root);
+  const statusById = new Map(rows.map((row) => [row.id, row.status]));
+  const taskTextArchive = (slug) => {
+    const archivePath = join(root, 'backlog', 'tasks', '_archive', slug + '.md');
+    return existsSync(archivePath) ? readFileSync(archivePath, 'utf8') : '';
+  };
+  return rows
+    .filter((row) => row.status === 'todo')
+    .map((row) => {
+      const text = taskText(root, row);
+      return {
+        id: row.id,
+        tags: combinedTags(row, text),
+        reason: claimBlock(row, text, statusById, seatTag, taskTextArchive),
+      };
+    })
+    .filter((entry) => entry.tags.includes(seatTag))
+    .sort((left, right) => {
+      if (!left.reason !== !right.reason) return left.reason ? 1 : -1;
+      return left.id.localeCompare(right.id);
+    });
 }
 
 export function combinedTags(row, taskText) {
@@ -86,7 +99,7 @@ export function combinedTags(row, taskText) {
 }
 
 /** Null when the row can be claimed. Otherwise a short reason. */
-export function claimBlock(row, taskText, statusById, seatTag) {
+export function claimBlock(row, taskText, statusById, seatTag, taskTextArchive) {
   const tags = combinedTags(row, taskText);
   if (row.status !== 'todo') return `${row.id} is ${row.status}`;
   if (!tags.includes(seatTag)) return `${row.id} is not tagged ${seatTag}`;
@@ -94,7 +107,15 @@ export function claimBlock(row, taskText, statusById, seatTag) {
   if (craft.length !== 1) return `${row.id} has ${craft.length} craft tags`;
   for (const dep of dependencyIds(taskText, row.source)) {
     if (dep === row.id) continue;
-    const status = statusById.get(dep);
+    let status = statusById.get(dep);
+    // Fall back to archive if not in index
+    if (status == null && taskTextArchive) {
+      const archivedDep = taskTextArchive(dep);
+      if (archivedDep) {
+        const depMatch = archivedDep.match(/\*\*Done\*\*:\s*\[(true|false)\]/);
+        status = depMatch && depMatch[1] === 'true' ? 'done' : 'todo';
+      }
+    }
     if (status !== 'done' && status !== 'split') return `${row.id} depends on ${dep}`;
   }
   return null;
@@ -116,18 +137,11 @@ export function sectionBody(text, heading) {
 
 export function parsePlan(text) {
   const body = sectionBody(text, 'Implementation plan');
-  const paths = [...body.matchAll(/(?:apps|packages|infra)\/[A-Za-z0-9_./[\]()-]+/g)].map(
-    (match) => match[0]
-  );
+  const paths = [...body.matchAll(/(?:apps|packages|infra)\/[A-Za-z0-9_./[\]()-]+/g)].map((match) => match[0]);
   const checks = body.split(/^Checks:\s*$/m)[1]?.split(/^## /m)[0] ?? '';
   const commands = checks
     .split('\n')
-    .map((line) =>
-      line
-        .replace(/^[-*]\s*/, '')
-        .replace(/^`|`$/g, '')
-        .trim()
-    )
+    .map((line) => line.replace(/^[-*]\s*/, '').replace(/^`|`$/g, '').trim())
     .filter((line) => line && !line.endsWith(':'));
   return { paths: [...new Set(paths)], commands };
 }
@@ -185,10 +199,7 @@ export function substantialFiles(patches, owns) {
 }
 
 export function notesBody(files) {
-  return [...files]
-    .sort()
-    .map((file) => `- ${file}`)
-    .join('\n');
+  return [...files].sort().map((file) => `- ${file}`).join('\n');
 }
 
 export function qaBody(commands) {
@@ -280,9 +291,7 @@ export function assessRange({
 }) {
   const errors = [];
   if (files.includes('agents/LOCK')) errors.push('agents/LOCK is not used');
-  const product = files.filter(
-    (file) => !file.startsWith('backlog/') && !file.startsWith('agents/')
-  );
+  const product = files.filter((file) => !file.startsWith('backlog/') && !file.startsWith('agents/'));
   for (const change of changes) {
     const allowed = STATUS_FROM[change.to];
     if (allowed && !allowed.has(change.from)) {
@@ -305,7 +314,9 @@ export function assessRange({
       );
       const open = afterRows.filter(
         (row) =>
-          row.status === 'in_progress' && row.tags?.includes(craft[0]) && !wasOpen.has(row.id)
+          row.status === 'in_progress' &&
+          row.tags?.includes(craft[0]) &&
+          !wasOpen.has(row.id)
       );
       if (open.length > 1) errors.push(`${change.id} seat already has an in_progress task`);
     }
@@ -319,10 +330,7 @@ export function assessRange({
       if (outside.length) errors.push(`${change.id} review touches ${outside[0]}`);
       const substantial = substantialFiles(patches, owns);
       for (const gap of reviewGaps(text, patches, owns)) errors.push(`${change.id} ${gap}`);
-      if (
-        substantial.length > 0 &&
-        sectionBody(text, 'Implementation notes').trim() !== notesBody(substantial)
-      ) {
+      if (substantial.length > 0 && sectionBody(text, 'Implementation notes').trim() !== notesBody(substantial)) {
         errors.push(`${change.id} implementation notes must list the files in the diff`);
       }
     }
@@ -332,17 +340,14 @@ export function assessRange({
       );
       if (extra.length) errors.push(`${change.id} qa commit changes ${extra[0]}`);
       const commands = parsePlan(text).commands;
-      if (!qaPasses(text, commands))
-        errors.push(`${change.id} QA section must record exit 0 for each plan check`);
+      if (!qaPasses(text, commands)) errors.push(`${change.id} QA section must record exit 0 for each plan check`);
     }
     if (change.to === 'done') {
       const commands = parsePlan(text).commands;
       if (!qaPasses(text, commands)) errors.push(`${change.id} done without a QA record`);
-      if (!publishedQa.has(change.id))
-        errors.push(`${change.id} qa commit is not on origin/stage yet`);
+      if (!publishedQa.has(change.id)) errors.push(`${change.id} qa commit is not on origin/stage yet`);
       const reviewed = changes.some((entry) => entry.id === change.id && entry.to === 'review');
-      if (product.length && !reviewed)
-        errors.push(`${change.id} done commit changes product files`);
+      if (product.length && !reviewed) errors.push(`${change.id} done commit changes product files`);
     }
   }
   return { ok: errors.length === 0, errors };
@@ -379,9 +384,7 @@ export function loadOwns(root) {
 }
 
 const listMd = (dir) =>
-  existsSync(dir)
-    ? readdirSync(dir).filter((name) => name.endsWith('.md') && statSync(join(dir, name)).isFile())
-    : [];
+  existsSync(dir) ? readdirSync(dir).filter((name) => name.endsWith('.md') && statSync(join(dir, name)).isFile()) : [];
 
 function indexFiles(root) {
   return listMd(join(root, 'backlog', 'index')).sort((a, b) => {
@@ -412,9 +415,13 @@ export function readyTodos(root, seat) {
   const rows = loadRows(root);
   const statusById = new Map(rows.map((row) => [row.id, row.status]));
   const ready = [];
+  const taskTextArchive = (slug) => {
+    const archivePath = join(root, 'backlog', 'tasks', '_archive', slug + '.md');
+    return existsSync(archivePath) ? readFileSync(archivePath, 'utf8') : '';
+  };
   for (const row of rows) {
     const text = taskText(root, row);
-    if (!claimBlock(row, text, statusById, seatTag)) ready.push(row);
+    if (!claimBlock(row, text, statusById, seatTag, taskTextArchive)) ready.push(row);
   }
   return ready;
 }
@@ -442,13 +449,10 @@ function journalFile(root, date = new Date()) {
 function writeStatus(root, row, status) {
   const path = join(root, 'backlog', 'index', row.file);
   const text = readFileSync(path, 'utf8');
-  const next = text
-    .split('\n')
-    .map((line) => {
-      const parsed = parseIndexRow(line);
-      return parsed?.id === row.id ? replaceStatus(line, status) : line;
-    })
-    .join('\n');
+  const next = text.split('\n').map((line) => {
+    const parsed = parseIndexRow(line);
+    return parsed?.id === row.id ? replaceStatus(line, status) : line;
+  }).join('\n');
   writeFileSync(path, next);
   return path;
 }
@@ -539,18 +543,11 @@ export function classifyOpenReviews(root) {
   const statusOnly = [];
   const real = [];
   for (const [file, group] of byFile) {
-    const log = git(
-      root,
-      ['log', '--format=%H', '-n', '200', 'HEAD', '--', `backlog/index/${file}`],
-      {
-        allowFail: true,
-      }
-    );
+    const log = git(root, ['log', '--format=%H', '-n', '200', 'HEAD', '--', `backlog/index/${file}`], {
+      allowFail: true,
+    });
     const shas = log.status === 0 ? log.stdout.split('\n').filter(Boolean) : [];
-    const specs = shas.flatMap((sha) => [
-      `${sha}:backlog/index/${file}`,
-      `${sha}^:backlog/index/${file}`,
-    ]);
+    const specs = shas.flatMap((sha) => [`${sha}:backlog/index/${file}`, `${sha}^:backlog/index/${file}`]);
     const bodies = specs.length ? catBatch(root, specs) : new Map();
     const parsed = (spec) => parseIndex(bodies.get(spec) ?? '');
     for (const row of group) {
@@ -560,9 +557,7 @@ export function classifyOpenReviews(root) {
       let claim = null;
       for (const sha of shas) {
         const current = parsed(`${sha}:backlog/index/${file}`).find((entry) => entry.id === row.id);
-        const previous = parsed(`${sha}^:backlog/index/${file}`).find(
-          (entry) => entry.id === row.id
-        );
+        const previous = parsed(`${sha}^:backlog/index/${file}`).find((entry) => entry.id === row.id);
         if (!review && current?.status === 'review' && previous?.status !== 'review') review = sha;
         if (review && current?.status === 'in_progress' && previous?.status !== 'in_progress') {
           claim = sha;
@@ -576,9 +571,7 @@ export function classifyOpenReviews(root) {
       const from = claim ? `${claim}^` : `${review}^`;
       const diff = git(root, ['diff', '--name-only', from, review], { allowFail: true });
       const names = diff.status === 0 ? diff.stdout.split('\n').filter(Boolean) : [];
-      const product = names.filter(
-        (path) => !path.startsWith('backlog/') && !path.startsWith('agents/')
-      );
+      const product = names.filter((path) => !path.startsWith('backlog/') && !path.startsWith('agents/'));
       const owns = {
         owns: craft.flatMap((tag) => ownsByTag[tag]?.owns ?? []),
         except: craft.flatMap((tag) => ownsByTag[tag]?.except ?? []),
@@ -630,23 +623,18 @@ export function qaIsPublished(root, taskId, tip) {
   if (!tip) return false;
   const listed = git(root, ['rev-parse', '--verify', `${tip}^{commit}`], { allowFail: true });
   if (listed.status !== 0) return false;
-  const listing = git(root, ['ls-tree', '-r', '--name-only', tip, '--', 'backlog/index'], {
-    allowFail: true,
-  });
+  const listing = git(root, ['ls-tree', '-r', '--name-only', tip, '--', 'backlog/index'], { allowFail: true });
   if (listing.status !== 0) return false;
-  const file = listing.stdout
-    .split('\n')
-    .find((path) => showText(root, tip, path).includes(`[${taskId}]`));
+  const file = listing.stdout.split('\n').find((path) => showText(root, tip, path).includes(`[${taskId}]`));
   if (!file) return false;
   const log = git(root, ['log', '--format=%H', '-n', '400', tip, '--', file], { allowFail: true });
   if (log.status !== 0) return false;
   for (const sha of log.stdout.split('\n').filter(Boolean)) {
     const current = parseIndex(showText(root, sha, file)).find((row) => row.id === taskId);
     const parent = git(root, ['rev-parse', '--verify', `${sha}^`], { allowFail: true });
-    const previous =
-      parent.status === 0
-        ? parseIndex(showText(root, parent.stdout.trim(), file)).find((row) => row.id === taskId)
-        : null;
+    const previous = parent.status === 0
+      ? parseIndex(showText(root, parent.stdout.trim(), file)).find((row) => row.id === taskId)
+      : null;
     if (current?.status === 'qa' && previous?.status === 'review') return true;
   }
   return false;
@@ -654,9 +642,7 @@ export function qaIsPublished(root, taskId, tip) {
 
 function rangeSnapshot(root, from, to) {
   const names = git(root, ['diff', '--name-only', from, to]).stdout.split('\n').filter(Boolean);
-  const journalDiff = git(root, ['diff', '-U0', from, to, '--', 'backlog/journal'], {
-    allowFail: true,
-  });
+  const journalDiff = git(root, ['diff', '-U0', from, to, '--', 'backlog/journal'], { allowFail: true });
   const journalAdded = (journalDiff.stdout || '')
     .split('\n')
     .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
@@ -696,6 +682,8 @@ export function verifyRange(root, from, to) {
   let previous = from;
   for (const sha of list.stdout.split('\n').filter(Boolean)) {
     const snap = rangeSnapshot(root, previous, sha);
+    // The qa commit must already be published when the range starts: a done
+    // that lands in the same push as its qa is exactly what the policy forbids.
     const publishedQa = new Set(
       snap.changes
         .filter((change) => change.to === 'done' && qaIsPublished(root, change.id, from))
@@ -738,7 +726,7 @@ function writeTask(root, row, text) {
   return path;
 }
 
-export function claimTask(root, seat, { push = true } = {}) {
+export function claimTask(root, seat, { push = true, taskId } = {}) {
   const seatTag = SEAT_TAG[seat];
   if (!seatTag) throw new Error(`unknown seat ${seat}`);
   const ready = readyTodos(root, seat);
@@ -746,17 +734,13 @@ export function claimTask(root, seat, { push = true } = {}) {
     console.log('none');
     return null;
   }
-  const row = ready[0];
-  const open = loadRows(root).filter(
-    (entry) => entry.status === 'in_progress' && entry.tags.includes(seatTag)
-  );
-  if (open.length > 0) throw new Error(`this seat already has ${open[0].id} in progress`);
+  const row = taskId ? ready.find((entry) => entry.id === taskId) : ready[0];
+  if (!row) throw new Error(`${taskId} is not ready for ${seat}`);
+  // Baseline in_progress rows are grandfathered by assessRange; the range
+  // check rejects opening a second task without freezing legacy work forever.
   const dirty = dirtyPaths(root).filter((file) => file !== taskRel(row));
   if (dirty.length) throw new Error('worktree is dirty');
-  const problem = planProblems(
-    taskText(root, row),
-    loadOwns(root)[seatTag] ?? { owns: [], except: [] }
-  );
+  const problem = planProblems(taskText(root, row), loadOwns(root)[seatTag] ?? { owns: [], except: [] });
   if (problem) throw new Error(`${row.id} ${problem}`);
   const indexPath = writeStatus(root, row, 'in_progress');
   commit(root, [indexPath, join(root, taskRel(row))], `claim: ${row.id}`, push);
@@ -785,11 +769,7 @@ export function reviewTask(root, seat, taskId, { push = true } = {}) {
   const substantial = substantialFiles(patches, owns);
   const gap = reviewGaps(taskText(root, row), patches, owns)[0];
   if (gap) throw new Error(`${taskId} ${gap}`);
-  const taskPath = writeTask(
-    root,
-    row,
-    upsertSection(taskText(root, row), 'Implementation notes', notesBody(substantial))
-  );
+  const taskPath = writeTask(root, row, upsertSection(taskText(root, row), 'Implementation notes', notesBody(substantial)));
   const indexPath = writeStatus(root, row, 'review');
   const journal = appendJournal(root, reviewJournalLine(taskId, substantial));
   commit(root, [...substantial, taskPath, indexPath, journal], `review: ${taskId}`, push);
@@ -865,13 +845,9 @@ export function doneTask(root, taskId, { push = true } = {}) {
   const row = rowById(root, taskId);
   if (row.status !== 'qa') throw new Error(`${taskId} is ${row.status}`);
   const text = taskText(root, row);
-  if (!qaPasses(text, parsePlan(text).commands))
-    throw new Error(`${taskId} done without a QA record`);
-  const recorded = existsSync(join(root, '.agent-run'))
-    ? readFileSync(join(root, '.agent-run'), 'utf8').trim()
-    : '';
-  if (!qaIsPublished(root, taskId, recorded))
-    throw new Error(`${taskId} qa commit is not on origin/stage yet`);
+  if (!qaPasses(text, parsePlan(text).commands)) throw new Error(`${taskId} done without a QA record`);
+  const recorded = existsSync(join(root, '.agent-run')) ? readFileSync(join(root, '.agent-run'), 'utf8').trim() : '';
+  if (!qaIsPublished(root, taskId, recorded)) throw new Error(`${taskId} qa commit is not on origin/stage yet`);
   const product = dirtyPaths(root).filter(
     (file) => file !== '.agent-run' && !file.startsWith('backlog/') && !file.startsWith('agents/')
   );
@@ -917,13 +893,9 @@ export function withdrawTask(root, taskId, { push = true } = {}) {
   if (row.status !== 'review') throw new Error(`${taskId} is ${row.status}`);
   const tags = combinedTags(row, taskText(root, row));
   const craft = craftTags(tags);
-  const owns =
-    craft.length === 1
-      ? (loadOwns(root)[craft[0]] ?? { owns: [], except: [] })
-      : { owns: [], except: [] };
+  const owns = craft.length === 1 ? loadOwns(root)[craft[0]] ?? { owns: [], except: [] } : { owns: [], except: [] };
   const evidence = filesCoveringReview(root, taskId, owns);
-  if (craft.length === 1 && !evidence.found)
-    throw new Error(`${taskId} review commit was not found`);
+  if (craft.length === 1 && !evidence.found) throw new Error(`${taskId} review commit was not found`);
   if (craft.length === 1 && evidence.files.length > 0) {
     throw new Error(`${taskId} review has product files`);
   }
@@ -946,17 +918,27 @@ if (isCli) {
   const push = !process.argv.includes('--no-push');
   const command = process.argv[2];
   try {
-    if (command === 'claim') claimTask(root, flag(process.argv, '--seat'), { push });
+    if (command === 'claim')
+      claimTask(root, flag(process.argv, '--seat'), { push, taskId: flag(process.argv, '--task') });
     else if (command === 'review') {
       reviewTask(root, flag(process.argv, '--seat'), flag(process.argv, '--task'), { push });
-    } else if (command === 'qa') qaTask(root, flag(process.argv, '--task'), { push });
+    }     else if (command === 'qa') qaTask(root, flag(process.argv, '--task'), { push });
     else if (command === 'done') doneTask(root, flag(process.argv, '--task'), { push });
     else if (command === 'withdraw') withdrawTask(root, flag(process.argv, '--task'), { push });
+    else if (command === 'next') {
+      const entries = nextTasks(root, flag(process.argv, '--seat'));
+      const ready = entries.filter((entry) => !entry.reason);
+      for (const entry of ready) console.log(`ready  ${entry.id}`);
+      for (const entry of entries) {
+        if (entry.reason) console.log(`blocked ${entry.id}: ${entry.reason}`);
+      }
+      if (ready.length === 0) console.log('none ready');
+    }
     else if (command === 'verify-range') {
       const result = verifyRange(root, flag(process.argv, '--from'), flag(process.argv, '--to'));
       if (!result.ok) fail(result.errors);
     } else {
-      throw new Error('use claim, review, qa, done, withdraw, or verify-range');
+      throw new Error('use claim, next, review, qa, done, withdraw, or verify-range');
     }
   } catch (error) {
     console.error(error.message);

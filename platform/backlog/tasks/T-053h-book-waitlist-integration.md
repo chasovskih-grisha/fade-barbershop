@@ -1,6 +1,6 @@
 # T-053h · Waitlist integration book.fade.com.ua
 
-- **Stage**: M4 (phase 13) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-053c, T-170
+- **Stage**: M4 (phase 13) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-053c, T-170
 - **StoryPoints**: 5
 
 ## What

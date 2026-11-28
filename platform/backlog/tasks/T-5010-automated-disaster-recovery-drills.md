@@ -32,3 +32,11 @@ This task implements automated chaos engineering experiments (using LitmusChaos 
 1. Automated chaos drills run successfully in staging environment every Sunday at 03:00 UTC.
 2. System achieves RTO < 60 seconds and RPO = 0 for database failovers and stateless service restarts.
 3. Comprehensive resilience dashboard live in Grafana with historical pass/fail drill metrics.
+
+## Gate evidence (T-6008)
+
+`agent-gate qa` cannot finish this row: chaos drills are executed against staging Kubernetes, which
+does not exist in this repository, so no executable `Checks:` command can be named. The review commit
+(`review: T-5010`) touched only `infra/chaos/README.md`, so the gate also finds no test file to prove
+the plan against. Blocking dependency: a staging cluster plus LitmusChaos and Grafana — an account and
+pipeline, not code in `platform/`.

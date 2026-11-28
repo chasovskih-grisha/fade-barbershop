@@ -1,6 +1,6 @@
 # T-270ak · Referral program shop.fade.com.ua
 
-- **Stage**: M4 (phase 14) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-270x, T-062
+- **Stage**: M4 (phase 14) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270x, T-062
 - **StoryPoints**: 5
 
 ## What

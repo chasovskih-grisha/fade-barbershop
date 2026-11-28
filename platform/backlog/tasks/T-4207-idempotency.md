@@ -38,4 +38,20 @@ Checks:
 - apps/api/src/shared/idempotency/idempotency.store.ts
 - apps/api/src/shared/idempotency/idempotency.ts
 - apps/api/src/shared/idempotency/prisma-idempotency.store.ts
+- apps/api/prisma/migrations/20261225000000_add_idempotency_response_headers/migration.sql
+
+## Integration
+
+- `IdempotencyInterceptor` зареєстрований глобально в `app.module.ts` для POST/PUT/PATCH/DELETE; ключ опційний, але валідується як UUID v4, коли присутній.
+- `IdempotencyGuard` захищає `POST /scheduling/waitlist/:waitlistId/deposit`; платіжний контролер проходить через глобальний interceptor.
+- Refund-запити до Stripe отримують стабільний `idempotencyKey`, тож повторний refund не створює другу операцію.
+- Повтор повертає збережені status, body і response headers (без hop-by-hop/content-length), плюс `idempotency-replayed: true`.
+
+## Verification
+
+- `cd apps/api && npx jest <all 22 committed payment/idempotency/billing specs> --runInBand` — 22 suites / 109 tests passed.
+- `cd apps/api && npx tsc --noEmit` — exit 0.
+- Scoped eslint over the changed API files — exit 0.
+- `cd apps/api && npx prisma validate` — schema valid.
+- `cd apps/web && npx tsc --noEmit` — exit 0 after removing the dead `waitlist-analytics` route.
 

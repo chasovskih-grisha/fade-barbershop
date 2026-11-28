@@ -1,6 +1,6 @@
 # T-4614 · Pre-opening MVP: site, admin and API in prod with zero catalog
 
-- **Stage**: horizontal (prod gate before first location; after the FADE mark T-4609/T-4611, then above the rest of M1–M3) · **Tags**: frontend, backend, devops, high-risk · **Complexity**: senior · **Dependencies**: slices a–f
+- **Stage**: horizontal (prod gate before first location; after the FADE mark T-4609/T-4611, then above the rest of M1–M3) · **Tags**: frontend, high-risk · **Complexity**: senior · **Dependencies**: slices a–f
 - **StoryPoints**: 28
 
 ## What

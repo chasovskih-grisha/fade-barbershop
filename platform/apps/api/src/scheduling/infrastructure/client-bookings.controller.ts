@@ -46,6 +46,7 @@ import { OnlineBookingBlockedError } from '../../booking/policy/evaluate-online-
 import { assertOnlinePolicyAllowed } from './client-online-policy';
 import type { ClientBookingsDeps } from './client-bookings.deps';
 import { depositResumeToken } from '../../shared/deposit-resume-token';
+import { barberPerformsService } from '../domain/barber-service-guard';
 
 /** Токен зібраних залежностей клієнтського підтвердження (провайдер у SchedulingModule). */
 export const CLIENT_BOOKINGS_IO = Symbol('CLIENT_BOOKINGS_IO');
@@ -71,6 +72,7 @@ export class ClientBookingsController {
     const location = await this.deps.locationRepo.findById(dto.locationId);
     if (!location?.active) throw new HttpException('Location not found', HttpStatus.NOT_FOUND);
     const prepared = await prepareService(this.deps.services, dto);
+    await this.assertBarberPerformsService(dto);
     // prettier-ignore
     const slot: TimeSlotData = { date: dto.date, dayOfWeek: dayOfWeekFor(dto.date), start: dto.start, end: dto.end };
     const held = await this.lockSlot(dto);
@@ -118,6 +120,23 @@ export class ClientBookingsController {
         ...(clientId ? {} : { resumeToken: depositResumeToken(booking.id) }),
       },
     };
+  }
+
+  /**
+   * Крок 2 флоу (T-041): прямий POST не має створювати візит барберу, який не
+   * виконує послугу — UI ховає таких барберів, сервер мусить відмовити сам.
+   */
+  private async assertBarberPerformsService(dto: ClientBookingDto): Promise<void> {
+    if (!this.deps.barberServices || !dto.barberId || !dto.serviceId) return;
+    const { matrix } = await this.deps.barberServices.snapshotForLocation(dto.locationId);
+    const allowed = barberPerformsService(matrix, {
+      locationId: dto.locationId,
+      barberId: dto.barberId,
+      serviceId: dto.serviceId,
+    });
+    if (!allowed) {
+      throw new HttpException('Barber does not perform this service', HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
 
   /** Checkout-резервація (T-4802): свій токен перевіряємо, інакше беремо лок. */

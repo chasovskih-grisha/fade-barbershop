@@ -1,6 +1,6 @@
 # T-4714a · Specify the app booking pin
 
-- **Stage**: M2 (phase 6) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4714, T-4711a
+- **Stage**: M2 (phase 6) · **Tags**: frontend, ux · **Complexity**: junior · **Depends on**: T-4714, T-4711a
 - **StoryPoints**: 2
 
 ## What
@@ -46,9 +46,9 @@ A copied website spec misses the safe area, the back gesture, and the bottom but
 
 ## Done
 
-- [ ] The mobile section points at the T-4711a fact rules and lists only the app differences
-- [ ] The wireframe shows the pin under the progress and the button at the bottom
-- [ ] `pnpm docs:validate` reports no new error from this file
+- [x] The mobile section points at the T-4711a fact rules and lists only the app differences
+- [x] The wireframe shows the pin under the progress and the button at the bottom
+- [x] `pnpm docs:validate` reports no new error from this file
 
 ## Risks
 

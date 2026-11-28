@@ -28,4 +28,9 @@ export interface ClientBookingsDeps {
   depositHolds?: Pick<DepositHoldService, 'open' | 'find'>;
   /** T-4616a: недоступність барбера блокує новий запис. */
   unavailable?: Pick<import('../domain/shift-conflict-ports').BarberUnavailabilityRepository, 'covers'>;
+  /** T-041/T-4521: матриця «барбер × послуга»; без порту обмеження немає. */
+  barberServices?: Pick<
+    import('../domain/ports.barber-service-assignment').BarberServiceAssignmentRepository,
+    'snapshotForLocation'
+  >;
 }

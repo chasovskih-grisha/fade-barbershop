@@ -1,6 +1,6 @@
 # T-053o · Book Promo Codes
 
-- **Stage**: M4 (phase 18) · **Tags**: backend, promo, marketing · **Complexity**: middle · **Depends on**: T-050, T-090
+- **Stage**: M4 (phase 18) · **Tags**: frontend, promo, marketing · **Complexity**: middle · **Depends on**: T-050, T-090
 - **StoryPoints**: 8
 
 ## What

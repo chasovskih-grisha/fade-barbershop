@@ -38,7 +38,7 @@ Two long-lived branches, and only them: `stage` and `main`. No other branches in
 
 Prod is the single GMHost VPS (ADR 0051). After green CI, GitHub Actions on `main` SSHs to that VPS and runs Docker Compose for api, web, admin, Postgres, Redis and Caddy. Secrets live in the GitHub Environment `production`, not in git. `prisma migrate deploy` runs in the `db-init` one-shot against that database before api starts (T-4614b); the same one-shot creates the founder account and never runs demo seeds. There is one database, so the migration runs there; the local Docker stack is where it was already applied.
 
-`.github/workflows/deploy.yml` still calls Coolify and exits 0 when the webhook secret is empty. T-4614c replaces that call with the SSH Compose deploy. Until then a green workflow is not a deploy.
+`.github/workflows/deploy.yml` (T-4614c) deploys only after green CI on `main`: it checks out that commit in `DEPLOY_PATH` on the VPS and runs `docker compose -f infra/docker-compose.prod.yml up -d --build`. A push to `stage` runs CI and stops there. An empty deploy secret fails the job instead of passing as a green deploy.
 
 ## Consequences
 

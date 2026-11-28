@@ -1,6 +1,6 @@
 # T-270bd · Quantity discounts shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-270e, T-152
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270e, T-152
 - **StoryPoints**: 5
 
 ## What

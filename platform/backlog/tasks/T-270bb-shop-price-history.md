@@ -1,6 +1,6 @@
 # T-270bb · Price history shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-270d, T-270
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270d, T-270
 - **StoryPoints**: 5
 
 ## What

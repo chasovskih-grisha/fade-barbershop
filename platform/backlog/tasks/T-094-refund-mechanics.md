@@ -11,6 +11,15 @@ PAY-005…010: triggers (cancellation ≥ 4 hrs — automatic; admin no-show rem
 
 - `PAY-005…010`, `PAY-WEB-08`, `PAY-MOB-05`, `PAY-ADM-08`; NSH-ADM-03
 
+## Implementation plan
+
+- `apps/api/src/payment/application/refund.use-case.ts`
+- `apps/api/src/payment/application/refund.spec.ts`
+
+Checks:
+
+- `npx jest apps/api/src/payment/application/refund.spec.ts --config apps/api/jest.config.js --runInBand`
+
 ## Done
 
 - [ ] Timely cancellation auto-refund works with expenditure receipt
@@ -20,3 +29,12 @@ PAY-005…010: triggers (cancellation ≥ 4 hrs — automatic; admin no-show rem
 
 - [ ] **Migrations**: schema changes break existing data — migration with backfill plan
 - [ ] **Domain events**: subscriptions are idempotent (pattern ADR 0009/0016)
+
+## Implementation notes
+
+- apps/api/src/payment/application/refund.spec.ts
+- apps/api/src/payment/application/refund.use-case.ts
+
+## QA
+
+- `npx jest apps/api/src/payment/application/refund.spec.ts --config apps/api/jest.config.js --runInBand` exit 0

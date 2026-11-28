@@ -13,6 +13,18 @@ The whole card navigates to `/locations/{code}`. «Записатися» is a s
 
 The guest who wants the address, the hours, and the photo is sent through a button that looks the same as the one that starts a booking.
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/locations/LocationCard.tsx
+- apps/web/src/app/locations/LocationCityGroups.tsx
+- apps/web/src/app/locations/__tests__/location-card-link.test.tsx
+- apps/web/src/app/locations/__tests__/LocationCard.test.tsx
+- apps/web/src/app/locations/__tests__/page.test.tsx
+
+Checks:
+- pnpm --filter @fade/web exec jest apps/web/src/app/locations/__tests__/location-card-link.test.tsx
+
 ## Sources
 
 - `apps/web/src/app/locations/page.tsx`
@@ -20,11 +32,11 @@ The guest who wants the address, the hours, and the photo is sent through a butt
 
 ## Done
 
-- [ ] Clicking the card title, photo, or address goes to `/locations/{code}`
-- [ ] Activating «Записатися» does not navigate to the studio, and its href is unchanged
-- [ ] Keyboard order is the card link, then the book control, and both show `focus-visible`
-- [ ] `role="feed"` is gone
-- [ ] A test asserts the two destinations
+- [x] Clicking the card title, photo, or address goes to `/locations/{code}`
+- [x] Activating «Записатися» does not navigate to the studio, and its href is unchanged
+- [x] Keyboard order is the card link, then the book control, and both show `focus-visible`
+- [x] `role="feed"` is gone
+- [x] A test asserts the two destinations
 
 ## Risks
 
@@ -34,3 +46,15 @@ The guest who wants the address, the hours, and the photo is sent through a butt
 
 - Changing the book path to `/booking/{code}` (T-4532)
 - The sticky book bar on the studio page (T-4831)
+
+## Implementation notes
+
+- apps/web/src/app/locations/LocationCard.tsx
+- apps/web/src/app/locations/LocationCityGroups.tsx
+- apps/web/src/app/locations/__tests__/location-card-link.test.tsx
+- apps/web/src/app/locations/__tests__/location-names.test.tsx
+- apps/web/src/app/locations/__tests__/page.test.tsx
+
+## QA
+
+- `pnpm --filter @fade/web exec jest apps/web/src/app/locations/__tests__/location-card-link.test.tsx` exit 0

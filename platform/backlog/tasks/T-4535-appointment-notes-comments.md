@@ -1,6 +1,6 @@
 # T-4535 · Appointment notes: internal, client-visible, comments
 
-- **Stage**: M1 (phase 4) · **Tags**: backend, frontend, scheduling · **Complexity**: junior · **Depends on**: T-042, T-043
+- **Stage**: M1 (phase 4) · **Tags**: backend, scheduling · **Complexity**: junior · **Depends on**: T-042, T-043
 - **StoryPoints**: 3
 
 ## What

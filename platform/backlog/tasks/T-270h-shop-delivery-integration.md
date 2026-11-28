@@ -1,6 +1,6 @@
 # T-270h · Delivery integration shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend, integration · **Complexity**: middle · **Dependencies**: T-270f, T-276
+- **Stage**: M5 (phase 27) · **Tags**: frontend, integration · **Complexity**: middle · **Dependencies**: T-270f, T-276
 - **StoryPoints**: 5
 
 ## What

@@ -1,6 +1,6 @@
 # T-4209 · Safe Database Migrations
 
-- **Stage**: M5 (phase 30) · **Tags**: backend, devops, infra, high-risk · **Complexity**: senior · **Depends on**: T-002, T-001
+- **Stage**: M5 (phase 30) · **Tags**: backend, infra, high-risk · **Complexity**: senior · **Depends on**: T-002, T-001
 - **StoryPoints**: 15
 
 ## What

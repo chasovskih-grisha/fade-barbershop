@@ -1,6 +1,6 @@
 # T-4448 · Data Export (CLT-01) & Pre-launch Backup Verification
 
-- **Stage**: M3 (phase 7) · **Tags**: backend, legal, devops · **Complexity**: junior · **Depends on**: T-131, T-300, T-4417
+- **Stage**: M3 (phase 7) · **Tags**: backend, legal · **Complexity**: junior · **Depends on**: T-131, T-300, T-4417
 - **StoryPoints**: 3
 
 ## What

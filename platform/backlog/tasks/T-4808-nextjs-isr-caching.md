@@ -1,6 +1,6 @@
 # T-4808 · Next.js ISR Caching & Edge Optimization for Public Pages
 
-- **Stage**: M5 · **Tags**: frontend, performance, seo · **Complexity**: middle · **Depends on**: T-030
+- **Stage**: M5 · **Tags**: frontend, performance · **Complexity**: middle · **Depends on**: T-030
 - **StoryPoints**: 5
 
 ## What

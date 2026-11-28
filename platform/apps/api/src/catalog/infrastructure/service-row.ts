@@ -1,6 +1,7 @@
-import type { Service as ServiceRow } from '@prisma/client';
+import { Prisma, type Service as ServiceRow } from '@prisma/client';
 import { Service } from '../domain/service';
 import type { ServiceProps } from '../domain/service';
+import type { DurationVariant } from '../domain/duration-variant';
 import type { ServicePriceData } from '../domain/ports';
 
 /** Поля Service для update/create в upsert (ідентичний набір, окрім id). */
@@ -14,6 +15,7 @@ export function serviceUpsertData(p: ServiceProps) {
     slug: p.slug,
     seoDescription: p.seoDescription,
     faq: p.faq,
+    durationVariants: (p.variants ?? Prisma.DbNull) as unknown as Prisma.InputJsonValue,
     active: p.active,
     sortOrder: p.sortOrder,
   };
@@ -30,6 +32,7 @@ export function toService(row: ServiceRow): Service {
     slug: row.slug,
     seoDescription: row.seoDescription,
     faq: row.faq,
+    variants: (row.durationVariants as DurationVariant[] | null) ?? null,
     active: row.active,
     sortOrder: row.sortOrder,
     createdAt: row.createdAt,

@@ -1,6 +1,6 @@
 # T-4510a · axe-core у CI + lang/структурна a11y (3/8)
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, quality, design · **Complexity**: senior · **Depends on**: T-030, T-004
+- **Stage**: M1 (phase 3) · **Tags**: frontend, quality · **Complexity**: senior · **Depends on**: T-030, T-004
 - **StoryPoints**: 3
 
 ## What

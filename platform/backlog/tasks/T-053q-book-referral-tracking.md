@@ -1,6 +1,6 @@
 # T-053q · Referral tracking book.fade.com.ua
 
-- **Stage**: M4 (phase 14) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-053c, T-062
+- **Stage**: M4 (phase 14) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-053c, T-062
 - **StoryPoints**: 5
 
 ## What

@@ -1,6 +1,6 @@
 # T-270l · Stock management shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-270, T-272
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270, T-272
 - **StoryPoints**: 5
 
 ## What

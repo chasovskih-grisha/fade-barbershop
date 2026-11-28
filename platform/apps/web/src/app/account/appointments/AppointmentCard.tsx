@@ -1,11 +1,14 @@
 'use client';
 
 import { Card, Badge, formatMoney } from '@fade/ui';
+import { isBarberUnavailableReason } from '@fade/contracts';
 import type { ExtendedAppointment } from '@/lib/api/appointments';
+import { VisitChatPanel } from '../visits/VisitChatPanel';
+import { AddToCalendar } from './AddToCalendar';
 import { AppointmentActions } from './AppointmentActions';
 import { AppointmentReference } from './AppointmentReference';
 import { BookAgainButton } from './BookAgainButton';
-import { depositDeadlineNote } from './deposit-summary';
+import { DepositPanel } from './DepositPanel';
 
 const statusLabels: Record<
   ExtendedAppointment['status'],
@@ -31,9 +34,6 @@ export function AppointmentCard({
   onEditReference: (app: ExtendedAppointment) => void;
 }) {
   const cfg = statusLabels[app.status];
-  const depositAmount = app.deposit?.amount ?? 0;
-  // Дедлайн рахується від снепшота візиту; сума 0 — грошей у візиті немає.
-  const depositNote = depositAmount > 0 ? depositDeadlineNote(app, new Date()) : null;
 
   return (
     <Card className="flex flex-col gap-4 p-5 transition-all duration-200 hover:border-fg/30 hover:shadow-sm">
@@ -63,21 +63,24 @@ export function AppointmentCard({
           {formatMoney(app.price)}
         </span>
       </div>
-      {depositAmount > 0 ? (
-        <div className="border-t border-border/60 pt-3 flex flex-col gap-1">
-          <div className="flex items-baseline justify-between gap-4">
-            <span className="text-body-s text-fg-secondary">Депозит</span>
-            <span className="font-medium text-fg tabular-nums">{formatMoney(depositAmount)}</span>
-          </div>
-          {depositNote ? <p className="text-body-s text-fg-secondary">{depositNote}</p> : null}
-        </div>
-      ) : null}
+      <DepositPanel app={app} />
+      <VisitChatPanel visitId={app.id} />
+      <AddToCalendar app={app} />
       <AppointmentActions
         app={app}
         processingAction={processingAction}
         onReschedule={onReschedule}
         onCancel={onCancel}
       />
+      {isBarberUnavailableReason(app.cancelReason) && app.status === 'cancelled' ? (
+        <div className="border-t border-border/60 pt-3 flex flex-col gap-2">
+          <p className="text-body-s text-fg-secondary">
+            Барбер недоступний — візит скасовано. Внесені гроші повертаємо повністю, незалежно від
+            вікна скасування; новий час можна обрати зараз.
+          </p>
+          {app.canBookAgain ? <BookAgainButton appointmentId={app.id} /> : null}
+        </div>
+      ) : null}
       {app.status === 'completed' && app.canBookAgain ? (
         <BookAgainButton appointmentId={app.id} />
       ) : null}

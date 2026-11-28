@@ -1,6 +1,6 @@
 # T-4848b · Slice: names on the app location card and studio screen
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, a11y, mobile · **Complexity**: junior · **Depends on**: T-4848, T-4843, T-4844
+- **Stage**: M5 (phase 30) · **Tags**: frontend, a11y · **Complexity**: junior · **Depends on**: T-4848, T-4843, T-4844
 - **StoryPoints**: 3
 
 ## What

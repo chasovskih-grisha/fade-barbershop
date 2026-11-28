@@ -57,6 +57,9 @@ export interface BookingDetail {
   end: string;
   durationMinutes: number;
   agreedPrice: number | null;
+  /** Снепшот узгодженої тривалості й обраного варіанта (T-4419). */
+  agreedDuration: number | null;
+  durationVariant: string | null;
   fulfillmentMode: string | null;
   source: string;
   comment: string | null;

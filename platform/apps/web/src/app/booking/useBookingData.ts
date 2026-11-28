@@ -6,6 +6,8 @@
 import { useEffect, useState } from 'react';
 import { listBarbers, listServices, listSlots } from './bookingApi';
 import { cancellable, noopCleanup } from './cancellable';
+import { isPartyService } from './party-flow';
+import type { PartyMode } from './party-flow';
 import { useWaitlist } from './useWaitlist';
 import type { AvailableSlotDto, BarberDto, LocationDto, ServiceDto } from './types';
 
@@ -14,10 +16,13 @@ export function useBookingData(input: {
   service: ServiceDto | null;
   barberId: string;
   date: string;
+  fulfillmentMode?: PartyMode | null;
 }) {
-  const { location, service, barberId, date } = input;
+  const { location, service, barberId, date, fulfillmentMode } = input;
   const [services, setServices] = useState<ServiceDto[]>([]);
   const [barbers, setBarbers] = useState<BarberDto[]>([]);
+  // T-4521c: повний склад локації для вибору пари — окремо від виконавців послуги.
+  const [roster, setRoster] = useState<BarberDto[]>([]);
   const [slots, setSlots] = useState<AvailableSlotDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -52,6 +57,14 @@ export function useBookingData(input: {
     });
   };
 
+  const loadRoster = () => {
+    if (!location || !isPartyService(service)) return noopCleanup;
+    return cancellable(listBarbers(location.id), {
+      onSuccess: setRoster,
+      onError: () => setRoster([]),
+    });
+  };
+
   const loadSlots = (hideWaitlist: boolean) => {
     if (!location || !service) return noopCleanup;
     return cancellable(
@@ -60,6 +73,7 @@ export function useBookingData(input: {
         date,
         serviceId: service.id,
         ...(barberId ? { barberId } : {}),
+        ...(fulfillmentMode ? { fulfillmentMode } : {}),
       }),
       {
         onSuccess: (s) => {
@@ -75,11 +89,13 @@ export function useBookingData(input: {
 
   useEffect(() => loadServices(), [location]);
   useEffect(() => loadBarbers(false), [location, service]);
-  useEffect(() => loadSlots(true), [location, service, date, barberId]);
+  useEffect(() => loadRoster(), [location, service]);
+  useEffect(() => loadSlots(true), [location, service, date, barberId, fulfillmentMode]);
 
   return {
     services,
     barbers,
+    roster,
     slots,
     loading,
     error,

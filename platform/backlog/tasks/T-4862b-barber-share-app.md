@@ -1,6 +1,6 @@
 # T-4862b · Slice: share the barber from the app
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4862, T-4867
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: junior · **Depends on**: T-4862, T-4867
 - **StoryPoints**: 3
 
 ## What

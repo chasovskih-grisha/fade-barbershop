@@ -1,6 +1,6 @@
 # T-4860 · The barber profile is a single column of regions
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, design · **Complexity**: senior · **Depends on**: T-4477a, T-4855
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: senior · **Depends on**: T-4477a, T-4855
 - **StoryPoints**: 8
 
 ## What
@@ -18,18 +18,30 @@ The guest who opened a person needs one sequence. The page is a poster beside a 
 - `apps/web/src/app/barbers/[slug]/BarberDetailContent.tsx`
 - T-4477a, T-4477b, T-191, T-240
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/barbers/[slug]/page.tsx
+- apps/web/src/app/barbers/[slug]/BarberDetailContent.tsx
+- apps/web/src/app/barbers/[slug]/BarberServices.tsx
+- apps/web/src/app/barbers/[slug]/BarberStructuredData.tsx
+- apps/web/src/app/barbers/__tests__/barber-profile-order.test.tsx
+
+Checks:
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/barber-profile-order.test.tsx`
+
 ## Done
 
-- [ ] The profile route uses the listing max width
-- [ ] The regions follow that order when they render
-- [ ] An empty portfolio does not render titled gradient tiles
-- [ ] Below the wide breakpoint the book control stays visible while the page scrolls, with end padding so the last region clears it
-- [ ] At 320px the page does not scroll sideways
-- [ ] A test asserts the region order for a full payload and for a payload with no portfolio
+- [x] The profile route uses the listing max width
+- [x] The regions follow that order when they render
+- [x] An empty portfolio does not render titled gradient tiles
+- [x] Below the wide breakpoint the book control stays visible while the page scrolls, with end padding so the last region clears it
+- [x] At 320px the page does not scroll sideways
+- [x] A test asserts the region order for a full payload and for a payload with no portfolio
 
 ## Risks
 
-- [ ] **The sticky bar covering the book target.** The bar is the book control. The in-flow button is not a second one
+- [x] **The sticky bar covering the book target.** The bar is the book control. The in-flow button is not a second one
 
 ## Out of scope
 
@@ -37,3 +49,15 @@ The guest who opened a person needs one sequence. The page is a poster beside a 
 - Making `/booking?barber=` select the barber (T-4477b)
 - Gallery photos (T-191) and reviews (T-240)
 - Live slots (T-130)
+
+## Implementation notes
+
+- apps/web/src/app/barbers/[slug]/BarberDetailContent.tsx
+- apps/web/src/app/barbers/[slug]/BarberServices.tsx
+- apps/web/src/app/barbers/[slug]/BarberStructuredData.tsx
+- apps/web/src/app/barbers/[slug]/page.tsx
+- apps/web/src/app/barbers/__tests__/barber-profile-order.test.tsx
+
+## QA
+
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/barber-profile-order.test.tsx` exit 0

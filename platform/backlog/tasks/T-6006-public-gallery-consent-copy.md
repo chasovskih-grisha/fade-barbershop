@@ -1,6 +1,6 @@
 # T-6006 · Публічна галерея: текст згоди клієнта та push-повідомлення
 
-- **Stage**: M5 (phase 19) · **Tags**: content · **Complexity**: junior · **Depends on**: T-4834
+- **Stage**: M5 (phase 19) · **Tags**: content, backend · **Complexity**: junior · **Depends on**: T-4834
 - **StoryPoints**: 3
 
 ## What
@@ -38,6 +38,15 @@
 
 ## Done
 
-- [ ] Тексти push-повідомлень та екранних формулювань згоди погоджені та задокументовані
-- [ ] Опрацьовано три сценарії (публічно, анонімно, відмова)
-- [ ] Готово для інтеграції у `content` та `notifications` модулі
+- [x] Тексти push-повідомлень та екранних формулювань згоди погоджені та задокументовані
+- [x] Опрацьовано три сценарії (публічно, анонімно, відмова)
+- [x] Готово для інтеграції у `content` та `notifications` модулі
+
+## Implementation plan
+
+Paths:
+- `apps/api/src/portfolio/application/gallery-consent-copy.ts`
+- `apps/api/src/portfolio/application/gallery-consent-copy.spec.ts`
+
+Checks:
+- `pnpm --filter @fade/api exec jest --runTestsByPath src/portfolio/application/gallery-consent-copy.spec.ts`

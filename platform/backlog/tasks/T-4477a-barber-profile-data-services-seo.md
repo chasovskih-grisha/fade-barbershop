@@ -1,6 +1,6 @@
 # T-4477a · Дані профілю, послуги з цінами, SEO і стани сторінки барбера (5/8)
 
-- **Stage**: M5 (phase 19) · **Tags**: frontend, backend, seo, portfolio · **Complexity**: middle · **Depends on**: T-4413, T-4610b, T-4513, T-4507d
+- **Stage**: M5 (phase 19) · **Tags**: frontend, portfolio · **Complexity**: middle · **Depends on**: T-4413, T-4610b, T-4513, T-4507d
 - **StoryPoints**: 5
 
 ## What
@@ -35,6 +35,20 @@ scaffold сторінки барбера без CTA — усе, що робит�
 - `design-system.md` §Компоненти (Avatar, EmptyState); ADR 0010 (без клієнтських цін), ADR 0015 (персональні дані), ADR 0019 (LOC < 100)
 - T-4413 (slug), T-4610b (`photoUrl`), T-4513 (стани), T-4507d (`Avatar`), T-191/T-240 (сусідні блоки)
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/barbers/[slug]/BarberDetailContent.tsx
+- apps/web/src/app/barbers/[slug]/BarberProfileFacts.tsx
+- apps/web/src/app/barbers/[slug]/BarberSections.tsx
+- apps/web/src/lib/api/staff.ts
+- apps/web/src/app/barbers/__tests__/barber-detail.test.tsx
+- apps/web/src/lib/api/__tests__/staff.test.ts
+
+Checks:
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/barber-detail.test.tsx`
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/lib/api/__tests__/staff.test.ts`
+
 ## Done
 
 - [ ] `slug` із канонічного поля T-4413; `id.toLowerCase()` видалено; невідомий slug → `notFound()`
@@ -56,3 +70,8 @@ scaffold сторінки барбера без CTA — усе, що робит�
 - [ ] **Ціна без локації** вигадається «на око» — невизначена ціна показується як невизначена
 - [ ] **Рейтинг «прилипає»** до картки (порушення `booking-flow.md:114`) — регрес-тест
 - [ ] **Заглушка відгуків** виглядає як справжній блок — порожній стан має бути чесним («відгуків ще none»), а не нульовим рейтингом
+
+## QA
+
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/barber-detail.test.tsx` exit 0
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/lib/api/__tests__/staff.test.ts` exit 0

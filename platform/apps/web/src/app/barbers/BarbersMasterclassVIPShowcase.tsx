@@ -66,6 +66,7 @@ export function BarbersMasterclassVIPShowcase() {
           bookedSuccess={bookedSuccess}
           onBook={handleBooking}
         />
+
       </div>
     </section>
   );

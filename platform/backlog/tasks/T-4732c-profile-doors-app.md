@@ -1,6 +1,6 @@
 # T-4732c · Visits and devices from the app profile
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, ux, mobile · **Complexity**: middle · **Depends on**: T-4732a
+- **Stage**: M1 (phase 3) · **Tags**: mobile, ux · **Complexity**: middle · **Depends on**: T-4732a
 - **StoryPoints**: 5
 
 ## What

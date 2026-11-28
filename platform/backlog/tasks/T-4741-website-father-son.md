@@ -1,6 +1,6 @@
 # T-4741 · The website booking flow can start a father-and-son visit
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, backend, ux · **Complexity**: senior · **Depends on**: T-044, T-041
+- **Stage**: M1 (phase 3) · **Tags**: backend, ux · **Complexity**: senior · **Depends on**: T-044, T-041
 - **StoryPoints**: 11
 
 ## What
@@ -40,3 +40,7 @@ The domain can hold two chairs for a father and a son. A client on the site cann
 - Phone booking (T-4738) stays one service
 - The price breakdown (T-090)
 - Mobile booking steps
+
+## Blocking evidence
+
+The only party route is `apps/api/src/appointment-party/infrastructure/appointment-party.controller.ts` — one `@Post()` behind the admin session; there is no client-facing party route and no client party shape in `@fade/contracts`. The website step therefore has nothing to call with the signed-in client, and inventing a second party model is what the row forbids. It needs the API slice first.

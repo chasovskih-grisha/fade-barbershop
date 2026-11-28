@@ -24,3 +24,11 @@ First incident without a plan = chaos and wasted time; a practiced scenario (res
 ## Risks
 
 - [ ] **Outdated plan**: update steps after every stack change (reminder procedure in CI)
+
+## Re-verified at 91202f68
+
+`node scripts/agent-gate.mjs claim --seat devops --task T-4504` would refuse: the row depends on T-300
+(`horizontal.md:15` → `review`) and T-4204 (`m5.md:240` → `todo`). T-300's review commit `8f86fb7d`
+adds one file, `infra/OPTIMIZATION_REPORT_devops.md`, so `qaTask` cannot find a plan test in it. The
+tabletop itself is a human session with a written report, not a code path. Unblocks when T-300 and
+T-4204 close and the tabletop is actually run.

@@ -19,6 +19,19 @@ async function fetchJson<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+/** ISO-моменти візиту для календарних посилань (T-4446b); старого API — без них. */
+function visitTimes(app: AppointmentResponse): Pick<ExtendedAppointment, 'startsAt' | 'endsAt'> {
+  return {
+    ...(app.startsAt ? { startsAt: app.startsAt } : {}),
+    ...(app.endsAt ? { endsAt: app.endsAt } : {}),
+  };
+}
+
+/** Необов'язковий текст від API → `null`, без гілки в мапі (complexity). */
+function optionalText(value: string | null | undefined): string | null {
+  return value ?? null;
+}
+
 export async function getAppointments(): Promise<ExtendedAppointment[]> {
   const result = await fetchJson<AppointmentResponse[]>('/booking/appointments');
   return result.map((app) => ({
@@ -26,6 +39,7 @@ export async function getAppointments(): Promise<ExtendedAppointment[]> {
     date: app.date,
     startTime: app.startTime,
     endTime: app.endTime ?? '',
+    ...visitTimes(app),
     serviceName: app.serviceName,
     barberName: app.barberName,
     locationName: app.locationName,
@@ -37,10 +51,17 @@ export async function getAppointments(): Promise<ExtendedAppointment[]> {
     canEditReference: app.canEditReference ?? false,
     // Відсутнє поле — старий API без правила партії: дію не ховаємо.
     canBookAgain: app.canBookAgain ?? true,
+    // T-4616a: причина скасування переживає нормалізацію.
+    cancelReason: optionalText(app.cancelReason),
     // Депозит — снепшот умов на візиті; немає його — грошового наслідку
     // скасування немає (T-4737).
     deposit: app.deposit
-      ? { amount: app.deposit.amount ?? 0, freeCancelUntil: app.deposit.freeCancelUntil ?? null }
+      ? {
+          amount: app.deposit.amount ?? 0,
+          freeCancelUntil: app.deposit.freeCancelUntil ?? null,
+          // T-094: стан повернення депозиту переживає нормалізацію.
+          ...(app.deposit.refund ? { refund: app.deposit.refund } : {}),
+        }
       : null,
   }));
 }

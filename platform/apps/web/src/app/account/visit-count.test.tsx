@@ -48,6 +48,7 @@ function card(visitCount: number | null) {
       name="Олександр"
       phone="+380991234567"
       visitCount={visitCount}
+      device={{ channel: null, others: null }}
       saving={false}
       canSave={false}
       onNameChange={jest.fn()}

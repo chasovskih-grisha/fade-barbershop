@@ -21,3 +21,8 @@
 - [ ] **Тип платежу `order`**: не змішувати з депозитами запису
 - [ ] **ПРРО дистанційної торгівлі**: верифікувати (відкрите рішення #5)
 
+## Re-verified at d92ff74d
+
+Blocked by T-270: there is no shop order to pay for at `d92ff74d` — `apps/api/src/shop` and the shop
+Prisma models do not exist, so `shop-order-payment.spec.ts` (in review `a37349cf`) tests the payment
+use case with a synthetic order, not a paid shop checkout.

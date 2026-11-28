@@ -16,12 +16,21 @@ The defaults live in the component, so they survive even after the profile data 
 - T-4851
 - `apps/web/src/app/barbers/BarberCard.tsx`
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/barbers/BarberCard.tsx
+- apps/web/src/app/barbers/__tests__/BarberCard.test.tsx
+
+Checks:
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/BarberCard.test.tsx`
+
 ## Done
 
-- [ ] Two barbers with different specialties render different chips
-- [ ] A barber with no specialties and no experience renders the name and no invented lines
-- [ ] The strings «Вільні вікна сьогодні» and «Експерт Fade» are absent
-- [ ] A test covers both payloads
+- [x] Two barbers with different specialties render different chips
+- [x] A barber with no specialties and no experience renders the name and no invented lines
+- [x] The strings «Вільні вікна сьогодні» and «Експерт Fade» are absent
+- [x] A test covers both payloads
 
 ## Risks
 
@@ -30,3 +39,7 @@ The defaults live in the component, so they survive even after the profile data 
 ## Out of scope
 
 - The app card (T-4851b)
+
+## QA
+
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/BarberCard.test.tsx` exit 0

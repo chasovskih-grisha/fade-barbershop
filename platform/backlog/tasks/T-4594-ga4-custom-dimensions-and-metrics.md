@@ -1,6 +1,6 @@
 # T-4594 · GA4 custom dimensions і custom metrics
 
-- **Stage**: M3 (phase 3 — сайт, після першої пачки даних) · **Tags**: analytics, marketing, data-quality · **Complexity**: middle · **Depends on**: T-4593, T-4595
+- **Stage**: M3 (phase 3 — сайт, після першої пачки даних) · **Tags**: analytics, marketing, data-quality, frontend · **Complexity**: middle · **Depends on**: T-4593, T-4595
 - **StoryPoints**: 5
 
 ## What

@@ -4,8 +4,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { fetchLocations } from '../../../../lib/api/locations';
 import { fetchBarberById, BarberDto } from '../../../../lib/api/barbers';
 import { BarberPortrait } from '../../../../components/BarberPortrait';
-import { BarberLoadingState, BarberNotFoundState } from './barber-screen-states';
+import { BarberInactiveState, BarberLoadingState, BarberNotFoundState } from './barber-screen-states';
 import { styles } from '../../../index.styles';
+import { barbersHref, bookingHref } from '../../../../lib/routes';
+import { shareBarberProfile } from '../../../../lib/share';
 
 export default function BarberScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -48,8 +50,12 @@ export default function BarberScreen() {
 
   if (error || !barber) {
     return (
-      <BarberNotFoundState slug={slug || ''} onBack={() => router.push('/(client)/barbers')} />
+      <BarberNotFoundState slug={slug || ''} onBack={() => router.push(barbersHref())} />
     );
+  }
+
+  if (barber.active === false) {
+    return <BarberInactiveState name={barber.name} onBack={() => router.push(barbersHref())} />;
   }
 
   return (
@@ -57,7 +63,7 @@ export default function BarberScreen() {
       <Pressable
         accessibilityRole="button"
         style={{ marginBottom: 16 }}
-        onPress={() => router.push('/(client)/barbers')}
+        onPress={() => router.push(barbersHref())}
       >
         <Text style={styles.cardMuted} testID="back-button">
           ← Назад до майстрів
@@ -75,15 +81,24 @@ export default function BarberScreen() {
         </Text>
       ) : null}
 
-      <View style={{ marginTop: 24 }}>
+      <View style={{ marginTop: 24, gap: 12 }}>
         <Pressable
           accessibilityRole="button"
           style={styles.cta}
           onPress={() =>
-            router.push({ pathname: '/(client)/booking', params: { barberId: barber.id } })
+            router.push(bookingHref(barber.id))
           }
         >
           <Text style={styles.ctaLabel}>Записатися</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Поділитися профілем ${barber.name}`}
+          testID="share-barber"
+          style={styles.cta}
+          onPress={() => shareBarberProfile(barber.name, slug || barber.id)}
+        >
+          <Text style={styles.ctaLabel}>Поділитися</Text>
         </Pressable>
       </View>
     </ScrollView>

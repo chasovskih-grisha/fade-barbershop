@@ -1,6 +1,6 @@
 # T-2300c · Blog SEO, feed and freshness
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, backend, seo · **Complexity**: middle · **Depends on**: T-2300a, T-2300b
+- **Stage**: M5 (phase 30) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-2300a, T-2300b
 - **StoryPoints**: 8
 
 ## What
@@ -36,11 +36,15 @@ An article without structure in search is just a long page. An article that was 
 - [ ] Published article outputs valid `BlogPosting` and `BreadcrumbList`; draft does not output them
 - [ ] `seoTitle` / `seoDescription` override title / excerpt when filled, and are not populated when empty
 - [ ] sitemap contains only published URLs and updates `lastmod`
-- [ ] RSS contains no drafts
+- [x] RSS contains no drafts
 - [ ] Old slug on site — single 301 to current
 - [ ] Publishing and unpublishing trigger revalidate; incorrect secret receives 401 and clears nothing
 - [ ] Revalidation failure does not change article status
 - [ ] Tests: markup, 301, secret, absence of drafts in sitemap and RSS
+
+## Progress
+
+- 2026-11-25 — `/blog/rss.xml` (`blog/rss.ts` + `blog/rss.xml/route.ts`, 8 tests) shipped: published only, block HTML escaped server-side. JSON-LD already in `blog/[slug]/articleJsonLd.ts` (no `dateModified` yet). Remaining: `seoTitle`/`seoDescription` (needs contract + API), sitemap `lastmod` = `updatedAt` (summary lacks the field), 301 for `SlugRedirect`, `POST /api/revalidate` on publish/unpublish.
 
 ## Risks
 

@@ -18,9 +18,9 @@ The misleading control is on this component.
 
 ## Done
 
-- [ ] The inactive page has no `/booking` link
-- [ ] «Обрати іншу локацію» remains and points at `/locations`
-- [ ] A test asserts the book link is absent and the list link is present
+- [x] The inactive page has no `/booking` link
+- [x] «Обрати іншу локацію» remains and points at `/locations`
+- [x] A test asserts the book link is absent and the list link is present
 
 ## Risks
 

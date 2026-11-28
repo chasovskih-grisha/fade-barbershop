@@ -1,6 +1,6 @@
 # T-130 · Живі слоти: OHS-проекція + блоки на сайті
 
-- **Stage**: M3 (phase 23, рекомендовано в v1) · **Tags**: backend, frontend · **Complexity**: middle · **Depends on**: T-040, T-030
+- **Stage**: M3 (phase 23, рекомендовано в v1) · **Tags**: backend · **Complexity**: middle · **Depends on**: T-040, T-030
 - **StoryPoints**: 5
 
 ## What
@@ -21,3 +21,7 @@
 - [ ] **Кеш 60 с vs реальний стан**: деградація — блок ховається (LST-005)
 - [ ] **Навантаження**: публічний ендпоінт без авторизації — rate limit
 
+
+## Blocking evidence
+
+`GET /public/availability` does not exist: `grep -rln "public/availability" apps/api/src` matches only `apps/api/src/scheduling/README.md`, and there is no Redis cache binding in the API. The web blocks the row asks for (home, `/services`, `/locations/{code}`, `/barbers/{slug}`) would have to invent slots, so the row waits on the availability endpoint.

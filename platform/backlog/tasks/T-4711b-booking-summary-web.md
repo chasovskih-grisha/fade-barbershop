@@ -41,3 +41,9 @@ The spec does not help the client who is looking at the slot grid. This slice is
 - [ ] **Empty id shown as any barber.** Steps 0–2 start with `barberId === ''`. The pin must use the step, not the empty string, before it prints «Будь-який барбер»
 - [ ] **Sticky under the site header.** A `top: 0` pin will slide under the public header. Offset it by the header
 - [ ] **Live region noise.** Announcing the whole pin on every step change repeats facts the step announcer already speaks. Announce only the newly chosen time
+
+## Re-verified at 91202f68
+
+`Depends on: T-4711a, T-041`; both are `todo` at `91202f68` (`m1.md:161` for T-4711, `m1.md:160`
+for T-041). The pin lives on the booking flow T-041 has not shipped, so this slice has no surface to
+attach to yet.

@@ -12,7 +12,7 @@ export interface AccountName {
   error: string | null;
   saving: boolean;
   saved: boolean;
-  save: () => Promise<void>;
+  save: () => Promise<boolean>;
 }
 
 /**
@@ -32,10 +32,10 @@ export function useAccountName(
 
   const save = useCallback(async () => {
     const trimmed = name.trim();
-    if (!token || trimmed === (user?.name ?? '')) return;
+    if (!token || trimmed === (user?.name ?? '')) return true;
     if (!trimmed) {
       setError(NAME_REQUIRED);
-      return;
+      return false;
     }
     setError(null);
     setSaving(true);
@@ -47,13 +47,16 @@ export function useAccountName(
       });
       if (res.status === 400) {
         setError(NAME_REQUIRED);
-        return;
+        return false;
       }
       if (!res.ok) throw new Error('Failed to save');
       setName(trimmed);
       await refreshUser();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+      return true;
+    } catch {
+      return false;
     } finally {
       setSaving(false);
     }

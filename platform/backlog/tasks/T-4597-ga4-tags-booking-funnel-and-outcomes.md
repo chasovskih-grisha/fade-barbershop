@@ -1,6 +1,6 @@
 # T-4597 · GTM/GA4 Tags: Booking Funnel and Server Outcomes
 
-- **Stage**: M3 (phase 4 — scheduling) · **Tags**: frontend, backend, analytics, conversion, data-quality · **Complexity**: middle · **Depends on**: T-4596, T-4579, T-4587, T-4536, T-041
+- **Stage**: M3 (phase 4 — scheduling) · **Tags**: frontend, analytics, conversion, data-quality · **Complexity**: middle · **Depends on**: T-4596, T-4579, T-4587, T-4536, T-041
 - **StoryPoints**: 8
 
 ## What

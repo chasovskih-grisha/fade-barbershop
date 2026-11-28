@@ -27,3 +27,24 @@ Both steps already know which id is selected. The class list is the bug.
 ## Risks
 
 - [ ] **Sharing one class string by importing from SlotPicker.** Copy the token classes. Do not couple the steps to the slot component
+
+## Implementation plan
+
+- apps/web/src/app/booking/steps/ServiceStep.tsx
+- apps/web/src/app/booking/steps/BarberCard.tsx
+- apps/web/src/app/booking/__tests__/service-step.selected.test.tsx
+- apps/web/src/app/booking/__tests__/barber-step.photo.test.tsx
+
+Checks:
+- pnpm --filter @fade/web exec jest --runTestsByPath $PWD/apps/web/src/app/booking/__tests__/service-step.selected.test.tsx $PWD/apps/web/src/app/booking/__tests__/barber-step.photo.test.tsx
+
+## Implementation notes
+
+- apps/web/src/app/booking/__tests__/barber-step.photo.test.tsx
+- apps/web/src/app/booking/__tests__/service-step.selected.test.tsx
+- apps/web/src/app/booking/steps/BarberCard.tsx
+- apps/web/src/app/booking/steps/ServiceStep.tsx
+
+## QA
+
+- `pnpm --filter @fade/web exec jest --runTestsByPath $PWD/apps/web/src/app/booking/__tests__/service-step.selected.test.tsx $PWD/apps/web/src/app/booking/__tests__/barber-step.photo.test.tsx` exit 0

@@ -1,5 +1,6 @@
 // Тексти push візиту українською (T-080) — функції, не листи: SMS/push не
 // проходять Liquid-рендерер. Час — Europe/Kyiv (formatWhen, ADR 0001).
+import { isBarberUnavailableReason } from '@fade/contracts';
 import { formatWhen } from './letter-fields';
 import type { PushEventType } from './appointment-push-ports';
 
@@ -18,9 +19,6 @@ export interface PushPayload {
   barberName?: string;
 }
 
-/** Барбер недоступний — це причина дії, а не діагноз: текст не називає хворобу (T-4616b). */
-const BARBER_UNAVAILABLE = /barber unavailable|недоступний/i;
-
 export function pushTitle(type: PushEventType): string {
   if (type === CANCELLED) return 'FADE: візит скасовано';
   if (type === RESCHEDULED) return 'FADE: візит перенесено';
@@ -29,7 +27,8 @@ export function pushTitle(type: PushEventType): string {
 
 export function pushBody(type: PushEventType, payload: PushPayload): string {
   if (type === CANCELLED) {
-    if (BARBER_UNAVAILABLE.test(payload.reason ?? ''))
+    // Барбер недоступний — це причина дії, а не діагноз: текст не називає хворобу (T-4616b).
+    if (isBarberUnavailableReason(payload.reason))
       return 'Барбер недоступний — візит скасовано. Оберіть новий час у кабінеті «Мої візити».';
     return 'Ваш візит скасовано. Якщо це помилка — зателефонуйте нам.';
   }

@@ -1,6 +1,6 @@
 # T-4563 · Analytics & reporting: marketing, loyalty, customer, barber dashboards, report builder
 
-- **Stage**: M3-M4 (phase 14, 40) · **Tags**: backend, analytics, frontend · **Complexity**: senior · **Depends on**: T-110, T-111, T-3201, T-3202, T-3203, T-4545, T-4551, T-4553, T-4554
+- **Stage**: M3-M4 (phase 14, 40) · **Tags**: backend, analytics · **Complexity**: senior · **Depends on**: T-110, T-111, T-3201, T-3202, T-3203, T-4545, T-4551, T-4553, T-4554
 - **StoryPoints**: 21
 
 ## What

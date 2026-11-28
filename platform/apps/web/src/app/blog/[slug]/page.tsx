@@ -80,7 +80,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           className="h-auto w-full rounded-card object-cover"
         />
       )}
-      <ArticleBody text={article.body} />
+      <ArticleBody blocks={article.blocks} body={article.body} />
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
         {article.tags.length > 0 && (
           <ul className="flex flex-wrap gap-2">

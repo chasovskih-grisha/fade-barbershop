@@ -10,7 +10,7 @@ import { useAccountControl } from './useAccountControl';
 // тому стан клієнтський; Escape і клік по пункту закривають меню, aria-expanded тримає
 // семантику disclosure. Десктопний варіант — у SiteHeader (без клієнтського JS).
 
-export function MobileNav() {
+export function MobileNav({ bookingOpen = true }: { bookingOpen?: boolean }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const account = useAccountControl();
@@ -69,13 +69,15 @@ export function MobileNav() {
                 )}
                 {account.label}
               </Link>
-              <Link
-                href={BOOKING_HREF}
-                onClick={() => setOpen(false)}
-                className="flex items-center justify-center rounded-input bg-accent px-4 py-3 font-medium text-accent-fg"
-              >
-                Записатися
-              </Link>
+              {bookingOpen && (
+                <Link
+                  href={BOOKING_HREF}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-center rounded-input bg-accent px-4 py-3 font-medium text-accent-fg"
+                >
+                  Записатися
+                </Link>
+              )}
             </div>
           </nav>
         </div>

@@ -2,6 +2,7 @@
 
 - **Stage**: M1 (phase 3) · **Tags**: frontend, ux · **Complexity**: junior · **Depends on**: T-4721
 - **StoryPoints**: 2
+- **Closed**: 2026-11-24 — spec was already present in the tree; reconciled
 
 ## What
 
@@ -24,10 +25,10 @@ The route enforces the limit and the screen docs do not mention it, so the app h
 
 ## Done
 
-- [ ] §2 states the limit, the Ukrainian refusal, and the hint
-- [ ] §5 points at §2
-- [ ] `pnpm docs:validate` reports no new error from these files
+- [x] §2 states the limit, the Ukrainian refusal, and the hint — `docs/web-cabinet-screens.md` §2 «Вподобання»: 20 непорожніх рядків, 100 символів після триму, відмова «Не більше 20 рядків, до 100 символів у рядку», підказка «Цей текст побачить ваш майстер перед візитом», порожня нотатка очищає
+- [x] §5 points at §2 — `docs/client-screens.md` §5 «Вподобання» cites `web-cabinet-screens.md` §2 for the limit and refusal
+- [x] `pnpm docs:validate` reports no new error from these files — 8 baseline errors only
 
 ## Risks
 
-- [ ] **Changing the storage.** The note remains the current string array. This slice does not add a new column
+- [x] **Changing the storage.** The note remains the current string array. This slice does not add a new column — `apps/web/src/app/api/account/preferences/route.ts` validates `preferences: string[]` with `.max(20)`, each `.max(100)`, then `.trim()`

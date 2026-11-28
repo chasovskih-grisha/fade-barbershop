@@ -1,6 +1,6 @@
 # T-4511 · Web: unit tests ≠ e2e (jest↔Playwright isolation) + visual regression base
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, quality, design · **Complexity**: junior · **Dependencies**: T-030
+- **Stage**: M1 (phase 3) · **Tags**: frontend, quality · **Complexity**: junior · **Dependencies**: T-030
 - **StoryPoints**: 3
 
 ## What

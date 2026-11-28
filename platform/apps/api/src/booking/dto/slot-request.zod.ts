@@ -5,6 +5,7 @@ export const slotRequestZodSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
   serviceId: z.string().min(1, 'serviceId is required'),
   fulfillmentMode: z.enum(['sequential', 'parallel']).optional(),
+  variantLabel: z.string().min(1).optional(),
   barberId: z.string().optional(),
 });
 

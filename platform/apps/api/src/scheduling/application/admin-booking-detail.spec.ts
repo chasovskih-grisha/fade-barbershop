@@ -14,6 +14,8 @@ describe('AdminBookingDetail (admin-screens §5.2)', () => {
       start: '2026-11-09T10:00:00.000Z',
       durationMinutes: 30,
       agreedPrice: 600,
+      agreedDuration: 60,
+      durationVariant: 'long',
       source: 'admin',
       comment: 'Без машинки',
       service: { name: 'Стрижка' },
@@ -72,5 +74,12 @@ describe('AdminBookingDetail (admin-screens §5.2)', () => {
       },
     });
     expect((await readModel.handle('bk-1'))?.client?.name).toBe('Марко К.');
+  });
+
+  it('читає обраний варіант тривалості зі снепшоту (T-4419)', async () => {
+    const { readModel } = setup();
+    const detail = await readModel.handle('bk-1');
+    expect(detail?.durationVariant).toBe('long');
+    expect(detail?.agreedDuration).toBe(60);
   });
 });

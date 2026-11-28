@@ -1,6 +1,6 @@
 # T-4520c · Multi-selection Flow and Admin Card (2/8)
 
-- **Stage**: M1 (phase 4) · **Tags**: frontend, backend · **Complexity**: junior · **Depends on**: T-041, T-4520a, T-4520b
+- **Stage**: M1 (phase 4) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-041, T-4520a, T-4520b
 - **StoryPoints**: 2
 
 ## What

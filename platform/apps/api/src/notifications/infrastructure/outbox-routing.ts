@@ -12,6 +12,7 @@ const RESCHEDULED_EVENT_TYPE = 'scheduling.appointment.rescheduled';
 const CANCELLED_EVENT_TYPE = 'scheduling.appointment.cancelled';
 const LOYALTY_INCREMENTED_TYPE = 'loyalty.counter.incremented';
 const LOYALTY_GRANTED_TYPE = 'loyalty.free_visit.granted';
+const CHAT_MESSAGE_TYPE = 'messaging.message.created';
 
 /** Споживач у контексті notifications: один контракт handleOne. */
 export interface RoutedConsumer {
@@ -27,6 +28,8 @@ export interface OutboxConsumers {
   loyalty: RoutedConsumer;
   /** Push-канал візиту (T-080): booked/rescheduled/cancelled → пристрої. */
   appointmentPush: RoutedConsumer;
+  /** Push чату візиту (T-081): нове повідомлення → пристрої співрозмовника. */
+  chatPush: RoutedConsumer;
 }
 
 /** Типи, які релей забирає: об'єднання всіх маршрутів. */
@@ -38,6 +41,7 @@ export const POLL_TYPES: readonly string[] = [
   REMINDER_DUE_EVENT_TYPE,
   LOYALTY_INCREMENTED_TYPE,
   LOYALTY_GRANTED_TYPE,
+  CHAT_MESSAGE_TYPE,
 ];
 
 /** Споживачі для типу події; порожній масив — тип нам не цікавий. */
@@ -48,5 +52,6 @@ export function consumersFor(type: string, deps: OutboxConsumers): RoutedConsume
   if (type === SESSION_STARTED_EVENT_TYPE) return [deps.alerts];
   if (type === REMINDER_DUE_EVENT_TYPE) return [deps.reminders];
   if (type === LOYALTY_INCREMENTED_TYPE || type === LOYALTY_GRANTED_TYPE) return [deps.loyalty];
+  if (type === CHAT_MESSAGE_TYPE) return [deps.chatPush];
   return [];
 }

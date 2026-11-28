@@ -1,7 +1,13 @@
 /* eslint-disable complexity -- 1 function with inherent domain branching (worst: changes, complexity 15 vs 10); refactor tracked in T-2500f */
+import type { DurationVariant } from '../domain/duration-variant';
 import type { ServiceRepository } from '../domain/ports';
 import { ServiceNotFoundError } from './services-errors';
-import { assertName, assertDuration, assertParallelDuration } from './create-service';
+import {
+  assertName,
+  assertDuration,
+  assertParallelDuration,
+  assertVariants,
+} from './create-service';
 
 export interface UpdateServiceInput {
   id: string;
@@ -13,6 +19,7 @@ export interface UpdateServiceInput {
   slug?: string | null;
   seoDescription?: string | null;
   faq?: any | null;
+  variants?: DurationVariant[] | null;
   sortOrder?: number;
 }
 
@@ -36,6 +43,7 @@ export class UpdateServiceHandler {
     slug?: string | null;
     seoDescription?: string | null;
     faq?: any | null;
+    variants?: DurationVariant[] | null;
     sortOrder?: number;
   } {
     const changes: {
@@ -47,6 +55,7 @@ export class UpdateServiceHandler {
       slug?: string | null;
       seoDescription?: string | null;
       faq?: any | null;
+      variants?: DurationVariant[] | null;
       sortOrder?: number;
     } = {};
     if (input.name !== undefined) changes.name = assertName(input.name);
@@ -59,6 +68,7 @@ export class UpdateServiceHandler {
     if (input.seoDescription !== undefined)
       changes.seoDescription = input.seoDescription?.trim() || null;
     if (input.faq !== undefined) changes.faq = input.faq ?? null;
+    if (input.variants !== undefined) changes.variants = assertVariants(input.variants);
     if (input.sortOrder !== undefined) changes.sortOrder = input.sortOrder;
     return changes;
   }

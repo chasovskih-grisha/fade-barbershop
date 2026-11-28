@@ -19,18 +19,39 @@ A bilingual error that talks about the logging system is not the guest’s sente
 - `apps/web/src/app/barbers/[slug]/page.tsx`
 - T-4612 (catalogs). This task removes the English duplicate. It does not migrate the route onto next-intl
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/barbers/[slug]/loading.tsx
+- apps/web/src/app/barbers/error.tsx
+- apps/web/src/app/barbers/__tests__/barber-profile-states.test.tsx
+
+Checks:
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/barber-profile-states.test.tsx`
+
 ## Done
 
-- [ ] `app/barbers/[slug]/loading.tsx` matches the profile width
-- [ ] The error title and the retry are Ukrainian, with no slash and no second language
-- [ ] The error body does not say телеметрія
-- [ ] A test covers the error render
+- [x] `app/barbers/[slug]/loading.tsx` matches the profile width
+- [x] The error title and the retry are Ukrainian, with no slash and no second language
+- [x] The error body does not say телеметрія
+- [x] A test covers the error render
 
 ## Risks
 
-- [ ] **The boundary swallowing a not-found.** `notFound()` stays the 404 path. The boundary is for a thrown error
+- [x] **The boundary swallowing a not-found.** `notFound()` stays the 404 path. The boundary is for a thrown error
 
 ## Out of scope
 
 - Message catalogs (T-4612)
 - The listing skeleton (T-4856)
+
+## Implementation notes
+
+- apps/web/src/app/barbers/[slug]/loading.tsx
+- apps/web/src/app/barbers/__tests__/barber-profile-states.test.tsx
+- apps/web/src/app/barbers/__tests__/error.test.tsx
+- apps/web/src/app/barbers/error.tsx
+
+## QA
+
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/barber-profile-states.test.tsx` exit 0

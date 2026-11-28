@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
-import Link from 'next/link';
 import type { BarberFilter } from './barbers-filter';
-import { BarbersHighlights } from './BarbersHighlights';
+import { BarberSearch } from './BarberSearch';
 
 interface FilterPillProps {
   active: boolean;
@@ -31,6 +30,7 @@ interface BarbersHeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   barberCount: number;
+  studioCount?: number;
 }
 
 const FILTERS: Array<{ value: BarberFilter; label: string }> = [
@@ -46,27 +46,29 @@ export function BarbersHeader({
   searchQuery,
   onSearchChange,
   barberCount,
+  studioCount = 1,
 }: BarbersHeaderProps) {
+  // T-4852a: довідник більше не одна студія, тож і підпис не каже «у студії»,
+  // коли студій кілька.
+  const where = studioCount > 1 ? 'у мережі' : 'у студії';
   return (
     <header className="flex flex-col gap-6 border-b border-line pb-12 rounded-card p-8 md:p-14">
-      <Link
-        href="/"
-        className="text-body text-fg-secondary hover:text-fg w-fit transition-colors flex items-center gap-2"
-      >
-        &larr; На головну
-      </Link>
       <div className="inline-flex items-center gap-2 rounded-pill border border-line px-4 py-2 text-caption font-semibold uppercase text-fg-muted w-fit">
         Топ-майстри та експерти бренду Fade
       </div>
       <h1 className="font-display text-display font-bold text-fg leading-none">
         Архітектори вашого стилю
       </h1>
+      {/* T-4854: замість «багаторічного досвіду» й трьох вигаданих цифр — те, що
+          сторінка знає напевно: скільки майстрів зараз у списку. */}
       <p className="text-bodyLg text-fg-secondary max-w-3xl">
-        Професіонали своєї справи з багаторічним досвідом, що пройшли суворий відбір. Жодних
-        компромісів у якості, увазі до деталей та геометрії вашої стрижки.
+        Майстри, які зараз працюють {where}: {barberCount}. Оберіть того, хто вам ближчий.
       </p>
 
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 pt-2">
+      {/* T-4870a: фокус іде ланцюжком, полем пошуку, чипами й аж потім
+          картками — тож поле стоїть перед чипами і в розмітці, і на екрані. */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 pt-2">
+        <BarberSearch value={searchQuery} onChange={onSearchChange} />
         <div className="flex flex-wrap items-center gap-2.5">
           {FILTERS.map(({ value, label }) => (
             <FilterPill
@@ -78,28 +80,7 @@ export function BarbersHeader({
             </FilterPill>
           ))}
         </div>
-
-        <div className="relative min-w-[260px]">
-          <input
-            type="text"
-            placeholder="Пошук за ім'ям або послугою..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full rounded-pill bg-surface-sunken border border-line px-5 py-2.5 text-caption text-fg placeholder:text-fg-secondary/60 focus:outline-none focus:border-accent shadow-inner transition-colors"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => onSearchChange('')}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-fg-secondary hover:text-fg text-caption cursor-pointer"
-            >
-              ✕
-            </button>
-          )}
-        </div>
       </div>
-
-      <BarbersHighlights />
     </header>
   );
 }

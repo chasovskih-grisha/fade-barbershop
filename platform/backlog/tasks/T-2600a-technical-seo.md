@@ -1,6 +1,6 @@
 # T-2600a · Technical SEO (6/30)
 
-- **Stage**: M5 (phase 30) · **Tags**: backend, devops, seo · **Complexity**: middle · **Depends on**: T-025
+- **Stage**: M5 (phase 30) · **Tags**: backend · **Complexity**: middle · **Depends on**: T-025
 - **StoryPoints**: 6
 
 ## What

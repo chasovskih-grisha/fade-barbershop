@@ -1,6 +1,6 @@
 # T-4588 · Consent Management & Privacy Compliance (GDPR, Amplitude)
 
-- **Stage**: M3 (before phase 3 — website) · **Tags**: frontend, backend, legal, analytics, privacy · **Complexity**: middle · **Depends on**: T-4402, T-4575, T-4576
+- **Stage**: M3 (before phase 3 — website) · **Tags**: frontend, legal, analytics, privacy · **Complexity**: middle · **Depends on**: T-4402, T-4575, T-4576
 - **StoryPoints**: 3
 
 ## What

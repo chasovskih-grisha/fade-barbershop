@@ -1,6 +1,6 @@
 # T-4206 · Real-time-infrastructure
 
-- **Stage**: M5 (phase 30) · **Tags**: backend, frontend, integration, high-risk · **Complexity**: senior · **Depends on**: T-040, T-081, T-130
+- **Stage**: M5 (phase 30) · **Tags**: backend, integration, high-risk · **Complexity**: senior · **Depends on**: T-040, T-081, T-130
 - **StoryPoints**: 20
 
 ## What

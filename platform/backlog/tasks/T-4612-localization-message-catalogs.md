@@ -1,6 +1,6 @@
 # T-4612 · Локалізація через `next-intl`: словники, ICU-множина, типізовані ключі, гейт на хардкод
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, i18n, design, quality · **Complexity**: middle · **Depends on**: T-4508, T-053, T-270a
+- **Stage**: M1 (phase 3) · **Tags**: frontend, i18n, quality · **Complexity**: middle · **Depends on**: T-4508, T-053, T-270a
 - **StoryPoints**: 13
 
 ## What
@@ -78,3 +78,10 @@
 1. **T-4612a · `next-intl`: словники, ICU-множина, типизовані ключі, гейт на хардкод** *(middle, 5 SP)* — пакети з `package.json`, доменні каталоги `uk`, ключі через `IntlMessages`, ESLint-правило й звірка в CI.
 2. **T-4612b · migration `apps/web` (сайт і `/booking`) на словники** *(middle, 5 SP)* — 46 файлів вертикальними порціями, `Intl`, мапінг помилок.
 3. **T-4612c · Контракт для `apps/shop` і правила контенту** *(junior, 3 SP)* — `shop` з `next-intl` і спільними ключами, межа «контент ≠ ключі», roadmap і T-3500/T-053r.
+
+### Re-verified at 78dab8f8 (2026-11-26)
+
+`apps/web/package.json` already depends on `next-intl ^4.9.2` and `apps/web/messages/{en,uk}.json`
+exists, because slice T-4612a is `done`; T-4612b (web migration) is `in_progress` and T-4612c (`apps/shop`)
+waits for a shop app that does not exist (`apps/` = api, admin, mobile, web). The parent is an umbrella
+while its own slice is mid-flight, so it is not claimable.

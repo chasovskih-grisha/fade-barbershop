@@ -1,6 +1,6 @@
 # T-2600 · SEO-стратегія і оптимізація (30/30)
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, backend, marketing, high-risk · **Complexity**: senior · **Depends on**: T-025, T-250, T-031
+- **Stage**: M5 (phase 30) · **Tags**: frontend, marketing, high-risk · **Complexity**: senior · **Depends on**: T-025, T-250, T-031
 - **StoryPoints**: 30
 
 ## What

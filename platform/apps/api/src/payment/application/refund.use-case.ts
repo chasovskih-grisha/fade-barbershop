@@ -260,6 +260,21 @@ export class T094Refund {
     return this.settle(booking, at);
   }
 
+  /**
+   * T-4616b: завершити повернення, яке застрягло в `processing` (крах між
+   * першим збереженням і settlement-ом). Повтор іде тим самим шляхом: вже
+   * зроблені алокації пропускаються, а ключ `${refundId}:${paymentId}`
+   * стабільний, тож провайдер не поверне ті самі гроші вдруге.
+   */
+  async resumeProcessing(refundId: string): Promise<RefundEntity> {
+    const booking = await this.findByRefundId(refundId);
+    if (!booking) throw new Error(`Refund ${refundId} not found`);
+    if (booking.refundStatus !== RefundStatus.PROCESSING) {
+      throw new Error(`Refund ${refundId} is not in processing status`);
+    }
+    return this.settle(booking, this.now());
+  }
+
   /** Стан повернення для адмінки й кабінету (PAY-WEB-08). */
   async refundStatus(refundId: string): Promise<RefundEntity | null> {
     const booking = await this.findByRefundId(refundId);

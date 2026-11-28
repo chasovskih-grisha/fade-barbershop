@@ -4,18 +4,30 @@ import { useRouter } from 'expo-router';
 import { styles } from './index.styles';
 import { LocationDto } from '../lib/api/locations';
 import { ServiceDto } from '../lib/api/catalog';
-import { LocationChairLine } from '../components/LocationChairLine';
+import type { StartupSection } from '../lib/use-startup-data';
+import { LocationsSection, ServicesSection } from './home-sections';
+
+// T-4846: у кожної секції три стани — скелет, порожній рядок, помилка з
+// повтором. Помилка локацій не ховає послуги, які завантажились, і навпаки:
+// секції приходять незалежно.
 
 export function IndexHome({
-  loading,
   stale,
   locations,
   services,
+  pushError = null,
+  onEnablePush,
+  onRetryLocations,
+  onRetryServices,
 }: {
-  loading: boolean;
   stale: boolean;
-  locations: LocationDto[];
-  services: ServiceDto[];
+  locations: StartupSection<LocationDto[]>;
+  services: StartupSection<ServiceDto[]>;
+  /** Стан push-каналу з хука реєстрації (T-070): відмова в дозволі не ховається. */
+  pushError?: string | null;
+  onEnablePush?: () => void;
+  onRetryLocations?: () => void;
+  onRetryServices?: () => void;
 }) {
   const router = useRouter();
 
@@ -37,42 +49,22 @@ export function IndexHome({
         </View>
       ) : null}
 
-      {loading ? (
-        <View testID="loading-skeleton" style={{ padding: 20 }}>
-          <Text style={styles.cardMuted}>Завантаження...</Text>
-        </View>
-      ) : (
-        <>
-          <Text style={styles.sectionTitle}>Локації</Text>
-          {locations.map((loc) => (
-            <Pressable
-              key={loc.id}
-              accessibilityRole="button"
-              accessibilityLabel={loc.name}
-              testID={`location-card-${loc.code}`}
-              style={styles.row}
-              onPress={() => router.push(`/(client)/locations/${loc.code}`)}
-            >
-              <View style={styles.rowBody}>
-                <Text style={styles.rowTitle}>{loc.name}</Text>
-                <Text style={styles.cardMuted}>{loc.address}</Text>
-                <LocationChairLine chairs={loc.chairs} />
-              </View>
+      {pushError ? (
+        <View testID="push-permission-notice" style={styles.offlineBanner}>
+          <Text style={styles.offlineText}>{pushError}</Text>
+          {onEnablePush ? (
+            <Pressable accessibilityRole="button" onPress={onEnablePush}>
+              <Text style={styles.ctaLabel}>Увімкнути сповіщення</Text>
             </Pressable>
-          ))}
+          ) : null}
+        </View>
+      ) : null}
 
-          <Text style={styles.sectionTitle}>Послуги</Text>
-          {services.map((srv) => (
-            <View key={srv.id} style={styles.row}>
-              <View style={styles.rowBody}>
-                <Text style={styles.rowTitle}>{srv.name}</Text>
-                <Text style={styles.cardMuted}>{srv.durationMinutes} хв</Text>
-              </View>
-              <Text style={styles.rowPrice}>{srv.price} ₴</Text>
-            </View>
-          ))}
-        </>
-      )}
+      <Text style={styles.sectionTitle}>Локації</Text>
+      <LocationsSection section={locations} onRetry={onRetryLocations} />
+
+      <Text style={styles.sectionTitle}>Послуги</Text>
+      <ServicesSection section={services} onRetry={onRetryServices} />
 
       <View style={styles.navAnchor}>
         <Text style={styles.sectionTitle}>Довідка</Text>

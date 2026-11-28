@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { Card } from '@fade/ui';
 import type { Location } from '@/lib/api/locations';
 import { ActionLink } from '@/app/components/ActionLink';
@@ -6,27 +7,58 @@ import { LocationBreadcrumb } from '../LocationBreadcrumb';
 import { LocationChairLine } from '../LocationChairLine';
 import LocationHours from './LocationHours';
 import LocationChannels from './LocationChannels';
+import { LocationPhoneLink } from './LocationPhoneLink';
 import LocationGallery from './LocationGallery';
 import { LocationDirections } from './LocationDirections';
 import { LocationBrandImpact } from './LocationBrandImpact';
+import { LocationShare } from './LocationShare';
 
-// Вміст активної локації (виділено зі сторінки, щоб page.tsx лишився лише
-// вибором стану — ADR 0019 LOC). Герой, CTA запису, карта, години, крісла,
-// галерея (web-screens §2).
-
+// T-4831: студія — один план візиту, а не колонка `max-w-3xl`. Порядок
+// регіонів фіксований: герой → дії → години → контакти → (майстри, ціни —
+// коли API їх віддасть) → як дійти → галерея. Герой бере перше фото галереї;
+// без фото жодного плейсхолдера. Кнопка запису тримається на екрані, поки
+// решта гортається, — лише до широкого брейкпойнта.
 export function LocationDetail({ location }: { location: Location }) {
   const mapUrl = `https://www.openstreetmap.org/?mlat=${location.lat}&mlon=${location.lng}#map=17/${location.lat}/${location.lng}`;
+  const cover = [...location.photos].sort((a, b) => a.sortOrder - b.sortOrder)[0];
+  const city = location.addressParts?.city?.trim();
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-10">
-      <header className="flex flex-col gap-2">
+    <div className="mx-auto flex max-w-container flex-col gap-10 px-4 py-10 md:py-16">
+      <section data-section="hero" className="flex flex-col gap-4">
         <LocationBreadcrumb current={location.name} />
-        <LocationLogo logo={location.logo} name={location.name} size="hero" />
-        <h1 className="font-display text-h2">{location.name}</h1>
-        <p className="text-bodyLg text-fg-secondary">{location.address}</p>
-      </header>
+        {cover ? (
+          <div
+            data-testid="location-hero-photo"
+            className="relative aspect-[16/9] w-full overflow-hidden rounded-card bg-interactive"
+          >
+            <Image
+              src={cover.url}
+              alt={cover.caption ?? location.name}
+              fill
+              sizes="(max-width: 768px) 100vw, 1100px"
+              className="object-cover"
+              priority
+            />
+          </div>
+        ) : null}
+        <div className="flex flex-wrap items-end gap-4">
+          <LocationLogo logo={location.logo} name={location.name} size="hero" />
+          <div className="flex flex-col gap-1">
+            <h1 className="font-display text-h2">{location.name}</h1>
+            <p className="text-bodyLg text-fg-secondary">
+              {location.address}
+              {city ? `, ${city}` : ''}
+            </p>
+          </div>
+        </div>
+      </section>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div
+        data-section="actions"
+        className="sticky top-0 z-20 -mx-4 flex flex-wrap items-center gap-3 border-b border-line bg-surface/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none"
+      >
+        <LocationPhoneLink phone={location.phone} channels={location.channels} />
         <ActionLink href="/booking">Записатися</ActionLink>
         <a
           href={mapUrl}
@@ -34,32 +66,33 @@ export function LocationDetail({ location }: { location: Location }) {
           rel="noreferrer"
           className="text-body-s underline decoration-fg-secondary underline-offset-4 hover:decoration-fg"
         >
-          Показати на карті ↗
+          Показати на карті <span aria-hidden="true">↗</span>
         </a>
+        <LocationShare name={location.name} code={location.code} />
       </div>
 
-      <LocationChairLine chairs={location.chairs} />
-
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <Card className="p-4">
-          <LocationChannels channels={location.channels} />
-        </Card>
+      <div data-section="hours">
         <Card className="p-4">
           <LocationHours hours={location.hours} />
         </Card>
       </div>
 
-      <LocationDirections address={location.address} />
+      <div data-section="contacts" className="flex flex-col gap-4">
+        <Card className="p-4">
+          <LocationChannels channels={location.channels} />
+        </Card>
+        <LocationChairLine chairs={location.chairs} />
+      </div>
 
-      <Card className="p-5 flex flex-col gap-3 border-border bg-surface-raised">
-        <h3 className="font-semibold text-h5">Парковка та орієнтири</h3>
-        <p className="text-sm text-fg-secondary">
-          Зручний під&rsquo;їзд у центрі району. Місця для паркування поруч із входом. Тихий
-          затишний простір без натовпу та черг — працює 2 крісла.
-        </p>
-      </Card>
+      <div data-section="directions">
+        <LocationDirections address={location.address} lat={location.lat} lng={location.lng} />
+      </div>
 
-      <LocationGallery photos={location.photos} />
+      {location.photos.length > 0 ? (
+        <div data-section="gallery">
+          <LocationGallery photos={location.photos} />
+        </div>
+      ) : null}
 
       <LocationBrandImpact name={location.name} />
     </div>

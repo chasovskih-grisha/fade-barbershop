@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import { rmSync } from 'node:fs';
+// Promisified counterparts: fs.mkdtemp/readFile without a callback throw on the
+// Node versions this repo runs, which silently broke every temp-repo test.
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -8,6 +12,8 @@ import {
   assessRange,
   claimBlock,
   claimTask,
+  dependencyIds,
+  nextTasks,
   doneTask,
   parseIndexRow,
   planProblems,
@@ -366,5 +372,80 @@ test('installGateHook copies pre-push into the git dir', async () => {
   const dests = installGateHook(root);
   const installed = await readFile(join(dests[0], 'pre-push'), 'utf8');
   assert.match(installed, /agent-gate/);
+  await rm(root, { recursive: true, force: true });
+});
+test('archive fallback allows claim when dependency is in archive', () => {
+  // T-4821 depends on T-4405, which is in the archive
+  const row = {
+    id: 'T-4821',
+    href: 'tasks/T-4821-location-city.md',
+    source: 'backlog/index/m0.md',
+    tags: ['backend'],
+    status: 'todo',
+    line: '| [T-4821] | City | — | backend | middle | todo |'
+  };
+  
+  // Create a temp archive task T-4405 (done)
+  const archiveDir = join(tmpdir(), 'backlog', 'tasks', '_archive', '2026', '11');
+  fs.mkdirSync(archiveDir, { recursive: true });
+  fs.writeFileSync(join(archiveDir, 'T-4405-location-address-map-picker.md'), `# T-4405 · Локація: точна адреса (структурована) + вибір точки на карті в адмінці
+
+- **Stage**: M1 (phase 2, розвиток T-021) · **Tags**: backend, frontend · **Complexity**: middle · **Depends on**: T-021 (done), T-004
+- **StoryPoints**: 8
+
+## Done
+
+- [x] All done
+`);
+  
+  const taskTextArchive = (slug) => {
+    const archivePath = join(tmpdir(), 'backlog', 'tasks', '_archive', '2026', slug + '.md');
+    return existsSync(archivePath) ? readFileSync(archivePath, 'utf8') : '';
+  };
+  
+  const statusById = new Map([
+    ['T-4405', 'done'],
+    ['T-4821', 'todo'],
+  ]);
+  
+  const text = '- **Tags**: backend\n';
+  
+  const blocked = claimBlock(row, text, statusById, 'backend', taskTextArchive);
+  
+  // T-4821 should be claimable because T-4405 is in archive as done
+  assert.strictEqual(blocked, null, `Expected null (claimable), got: ${blocked}`);
+  
+  // Cleanup
+  rmSync(archiveDir, { recursive: true, force: true });
+});
+
+test('a sources-column reference is not a dependency', () => {
+  const text = '# T-4851\n\n- **Tags**: frontend, ux · **Depends on**: T-030, T-4610b\n';
+  // T-130 is cited in the index «Джерело» column as an out-of-scope feature.
+  assert.deepEqual(dependencyIds(text, 'BarberCard.tsx; T-4610b; T-130'), ['T-030', 'T-4610b']);
+});
+
+test('a task that declares no dependency keeps the index fallback', () => {
+  assert.deepEqual(dependencyIds('- **Tags**: backend\n', 'backlog/index/m0.md; T-123'), ['T-123']);
+});
+
+test('next lists ready rows first and names what blocks the rest', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'gate-next-'));
+  await mkdir(join(root, 'backlog', 'index'), { recursive: true });
+  await mkdir(join(root, 'backlog', 'tasks'), { recursive: true });
+  await writeFile(
+    join(root, 'backlog', 'index', 'm0.md'),
+    [
+      '| [T-1](../tasks/T-1-a.md) | A | — | backend | middle | todo |',
+      '| [T-2](../tasks/T-2-b.md) | B | — | backend | middle | todo |',
+    ].join('\n')
+  );
+  await writeFile(join(root, 'backlog', 'tasks', 'T-1-a.md'), '- **Tags**: backend · **Depends on**: —\n');
+  await writeFile(join(root, 'backlog', 'tasks', 'T-2-b.md'), '- **Tags**: backend · **Depends on**: T-9\n');
+
+  const entries = nextTasks(root, 'backend-developer');
+  assert.equal(entries.find((entry) => entry.id === 'T-1').reason, null);
+  assert.equal(entries.find((entry) => entry.id === 'T-2').reason, 'T-2 depends on T-9');
+
   await rm(root, { recursive: true, force: true });
 });

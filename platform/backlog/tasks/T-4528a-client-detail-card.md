@@ -1,6 +1,6 @@
 # T-4528a · Картка клієнта, блоки §6.2 (4/8)
 
-- **Stage**: M3 (phase 14) · **Tags**: frontend, design · **Complexity**: middle · **Depends on**: T-060, T-032, T-4507
+- **Stage**: M3 (phase 14) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-060, T-032, T-4507
 - **StoryPoints**: 4
 
 ## What

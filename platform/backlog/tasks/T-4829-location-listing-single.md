@@ -1,6 +1,6 @@
 # T-4829 · One studio fills the listing row
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, design · **Complexity**: junior · **Depends on**: T-4822, T-4824
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: junior · **Depends on**: T-4822, T-4824
 - **StoryPoints**: 3
 
 ## What

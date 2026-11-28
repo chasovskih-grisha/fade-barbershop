@@ -1,6 +1,6 @@
 # T-4593 · GA4-властивість і тег GA4 Configuration у GTM
 
-- **Stage**: M2 (перед фазою 3 — сайт) · **Tags**: analytics, integration, marketing · **Complexity**: middle · **Depends on**: T-4590
+- **Stage**: M2 (перед фазою 3 — сайт) · **Tags**: analytics, integration, marketing, backend · **Complexity**: middle · **Depends on**: T-4590
 - **StoryPoints**: 5
 
 ## What

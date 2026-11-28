@@ -1,7 +1,7 @@
 // Картка барбера на екрані 2 (T-4610b): фото (опційно) + ім'я + чип локації;
 // фолбек — Avatar з ініціалами, коли фото немає. Рейтинг/середній чек поруч не
 // показуються (booking-flow.md:114 — лише після публічних відгуків).
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import BarberStep from '../steps/BarberStep';
 import { type BarberDto } from '../types';
@@ -53,6 +53,29 @@ describe('BarberStep card (T-4610b)', () => {
     render(<BarberStep barbers={WITH_PHOTO} {...NOOP} />);
 
     expect(screen.getByText('Будь‑який барбер')).toBeInTheDocument();
+  });
+
+  it('обрана картка бере кістяну плитку слота, а не ring (T-4742b)', () => {
+    render(<BarberStep barbers={WITH_PHOTO} {...NOOP} />);
+
+    const card = screen.getByText('Олексій').closest('[role="button"]');
+    const anyCard = screen.getByText('Будь‑який барбер').closest('[role="button"]');
+    if (!card || !anyCard) throw new Error('Картки барберів не знайдено');
+
+    expect(card).toHaveAttribute('aria-pressed', 'false');
+    expect(anyCard.className).not.toContain('bg-accent');
+
+    fireEvent.click(card);
+
+    const selectedCard = screen.getByText('Олексій').closest('[role="button"]');
+    if (!selectedCard) throw new Error('Обрану картку барбера не знайдено');
+    expect(selectedCard).toHaveAttribute('aria-pressed', 'true');
+    expect(selectedCard.className).toContain('bg-accent');
+    expect(selectedCard.className).toContain('text-accent-fg');
+    expect(selectedCard.className).toContain('font-medium');
+    expect(selectedCard.className).not.toContain('ring-fg');
+    expect(selectedCard.className).not.toContain('bg-surface-raised');
+    expect(anyCard.className).not.toContain('bg-accent');
   });
 
   it('не показує рейтинг чи середній чек поруч із фото', () => {

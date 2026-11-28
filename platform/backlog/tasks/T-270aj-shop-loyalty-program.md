@@ -1,6 +1,6 @@
 # T-270aj · Loyalty program shop.fade.com.ua
 
-- **Stage**: M4 (phase 11) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-270x, T-140
+- **Stage**: M4 (phase 11) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270x, T-140
 - **StoryPoints**: 5
 
 ## What

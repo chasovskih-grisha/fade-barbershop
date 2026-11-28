@@ -1,6 +1,6 @@
 # T-4837b · Slice: this studio’s prices on the app studio screen
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile · **Complexity**: middle · **Depends on**: T-4837, T-4844
+- **Stage**: M5 (phase 30) · **Tags**: mobile, ux · **Complexity**: middle · **Depends on**: T-4837, T-4844
 - **StoryPoints**: 5
 
 ## What

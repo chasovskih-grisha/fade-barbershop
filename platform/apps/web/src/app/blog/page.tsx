@@ -2,6 +2,8 @@ import { getPublishedArticles } from '@/lib/api/articles';
 import { ArticleCard } from './ArticleCard';
 import { pageMetadata } from '@/lib/metadata';
 import { ErrorState } from '@/app/components/states/ErrorState';
+import { BlogPagination } from './BlogPagination';
+import { BLOG_PAGE_SIZE, feedPage, readTrail, type SearchParamValue } from './feed-page';
 import { BlogHeader } from './BlogHeader';
 
 // Стричка блогу — /blog (web-screens §3). Стан API: помилка → AlertBanner з
@@ -26,11 +28,18 @@ export async function generateMetadata({
 export default async function BlogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; p?: SearchParamValue }>;
 }) {
-  const { q } = (await searchParams) ?? {};
+  const { q, p } = (await searchParams) ?? {};
   const query = q?.trim() ?? '';
-  const articles = await getPublishedArticles(query ? { q: query } : {});
+  const trail = readTrail(p);
+  const cursor = trail[trail.length - 1];
+  const articles = await getPublishedArticles({
+    limit: BLOG_PAGE_SIZE + 1,
+    ...(query ? { q: query } : {}),
+    ...(cursor ? { cursor } : {}),
+  });
+  const page = feedPage(articles, query, trail);
 
   return (
     <div className="mx-auto flex max-w-container flex-col gap-14 px-4 py-16 md:py-24">
@@ -65,15 +74,18 @@ export default async function BlogPage({
         </p>
       )}
       {articles.state === 'ok' && (
-        <ul
-          className="grid grid-cols-1 gap-8 md:grid-cols-2"
-          role="feed"
-          aria-label="Список статей блогу"
-        >
-          {articles.data.map((article) => (
-            <ArticleCard key={article.id} article={article} />
-          ))}
-        </ul>
+        <>
+          <ul
+            className="grid grid-cols-1 gap-8 md:grid-cols-2"
+            role="feed"
+            aria-label="Список статей блогу"
+          >
+            {page.items.map((article) => (
+              <ArticleCard key={article.id} article={article} />
+            ))}
+          </ul>
+          <BlogPagination prevHref={page.prevHref} nextHref={page.nextHref} />
+        </>
       )}
     </div>
   );

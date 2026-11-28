@@ -1,6 +1,6 @@
 # T-4830b · Slice: chair line on the app studio card
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4830, T-4850, T-4843
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: junior · **Depends on**: T-4830, T-4850, T-4843
 - **StoryPoints**: 3
 
 ## What

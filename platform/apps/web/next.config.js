@@ -43,6 +43,12 @@ const nextConfig = {
       { source: '/locations/nearest', destination: `${api}/locations/nearest` },
       { source: '/booking/:path*', destination: `${api}/booking/:path*` },
       { source: '/appointments/:path*', destination: `${api}/appointments/:path*` },
+      // T-4619b/T-4619c: лише публічне списання депозиту. Решта payment-ендпоінтів
+      // (refunds/onsite) не проксіюється на публічний origin.
+      {
+        source: '/payment/bookings/:bookingId/deposit',
+        destination: `${api}/payment/bookings/:bookingId/deposit`,
+      },
       { source: '/haircut-ai/:path*', destination: `${api}/haircut-ai/:path*` },
       { source: '/identity/:path*', destination: `${api}/identity/:path*` },
       { source: '/content/articles/:path*', destination: `${api}/content/articles/:path*` },

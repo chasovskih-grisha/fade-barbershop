@@ -1,6 +1,6 @@
 # T-153 · Admin Discounts Management
 
-- **Stage**: M3 (phase 5) · **Tags**: admin, backend, crm · **Complexity**: middle · **Depends on**: T-150, T-090
+- **Stage**: M3 (phase 5) · **Tags**: admin, frontend, crm · **Complexity**: middle · **Depends on**: T-150, T-090
 - **StoryPoints**: 5
 
 ## What

@@ -1,74 +1,97 @@
 import { useState } from 'react';
-import { ScrollView, StatusBar, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { MobileSkeleton } from '../../../ui/kit';
-import { wipStyles } from '../../wip-styles';
-import BookingStepView from './BookingStepView';
-import { buildSlots, nextStep, previousStep, selectedDuration } from './booking-model';
-import type { BarberDto, BookingSlot, BookingStep, LocationDto } from './booking-model';
+import { ScrollView } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import type { BarberDto } from '../../../lib/api/barbers';
+import type { BookingServiceDto } from '../../../lib/api/booking';
+import { BookingHeader } from './BookingHeader';
+import { BookingLoading } from './BookingLoading';
+import { BookingOutcomeSteps } from './BookingOutcomeSteps';
+import { BookingSelectionSteps } from './BookingSelectionSteps';
+import { STEP_TITLES, type Step } from './booking-step';
+import { useBookingActions, usePreselectBarber } from './use-booking-actions';
+import { useBookingCheckout } from './use-booking-checkout';
 import { useBookingData } from './use-booking-data';
+import { useBookingSlots } from './use-booking-slots';
+import { styles } from '../../index.styles';
 
 export default function BookingScreen() {
+  const params = useLocalSearchParams<{ locationCode?: string; barberId?: string }>();
   const router = useRouter();
-  const [step, setStep] = useState<BookingStep>('location');
-  const [location, setLocation] = useState<LocationDto | null>(null);
-  const [serviceIds, setServiceIds] = useState<string[]>([]);
+  const [step, setStep] = useState<Step>('service');
+  const [service, setService] = useState<BookingServiceDto | null>(null);
   const [barber, setBarber] = useState<BarberDto | null>(null);
-  const [slots, setSlots] = useState<BookingSlot[]>([]);
-  const [slot, setSlot] = useState<BookingSlot | null>(null);
-  const { locations, services, barbers, loading, failed } = useBookingData(location);
+  const [error, setError] = useState<string | null>(null);
 
-  const selectLocation = (next: LocationDto) => {
-    setLocation(next);
-    setStep('services');
-  };
+  const data = useBookingData(params.locationCode, setError);
+  const slots = useBookingSlots({ location: data.location, service, barber, setError });
+  const actions = useBookingActions({
+    step,
+    setStep,
+    setService,
+    setBarber,
+    setError,
+    date: slots.date,
+    loadSlots: slots.loadSlots,
+    clearSlot: slots.clearSlot,
+    back: router.back,
+  });
+  const checkout = useBookingCheckout({
+    location: data.location,
+    service,
+    barber,
+    slot: slots.slot,
+    date: slots.date,
+    setError,
+    onCreated: (booking) => setStep(booking.deposit ? 'payment' : 'done'),
+    onPaid: () => setStep('done'),
+    onConflict: actions.handleConflict,
+  });
+  usePreselectBarber(data.barbers, params.barberId, setBarber);
 
-  const toggleService = (id: string) => {
-    setServiceIds((current) =>
-      current.includes(id) ? current.filter((value) => value !== id) : [...current, id]
-    );
-  };
-
-  const selectBarber = (next: BarberDto) => {
-    setBarber(next);
-    setSlots(buildSlots(selectedDuration(services, serviceIds)));
-    setStep('slots');
-  };
-
-  const advance = () => setStep(nextStep(step));
-  const goBack = () => setStep(previousStep(step));
+  if (data.loading && step === 'service') return <BookingLoading />;
 
   return (
-    <SafeAreaView style={wipStyles.screen}>
-      <StatusBar barStyle="light-content" />
-      <ScrollView contentContainerStyle={wipStyles.content} style={wipStyles.scroll}>
-        <View style={wipStyles.header}>
-          <Text style={wipStyles.title}>Запис на візит</Text>
-        </View>
-        {loading ? <MobileSkeleton /> : null}
-        {failed ? <Text style={wipStyles.muted}>Не вдалося завантажити дані</Text> : null}
-        {!loading && !failed ? (
-          <BookingStepView
-            step={step}
-            locations={locations}
-            location={location}
-            services={services}
-            serviceIds={serviceIds}
-            barbers={barbers}
-            barber={barber}
-            slots={slots}
-            slot={slot}
-            onLocation={selectLocation}
-            onToggleService={toggleService}
-            onBarber={selectBarber}
-            onSlot={setSlot}
-            onNext={advance}
-            onBack={goBack}
-            onDone={() => router.back()}
-          />
-        ) : null}
-      </ScrollView>
-    </SafeAreaView>
+    <ScrollView contentContainerStyle={styles.content}>
+      <BookingHeader
+        title={STEP_TITLES[step]}
+        locationName={data.location?.name}
+        error={error}
+        onBack={actions.goBack}
+      />
+      <BookingSelectionSteps
+        step={step}
+        services={data.services}
+        barbers={data.barbers}
+        date={slots.date}
+        dateError={slots.dateError}
+        slots={slots.slots}
+        selectedSlot={slots.slot}
+        service={service}
+        barber={barber}
+        catalogLoading={data.loading}
+        slotsLoading={slots.loading}
+        confirmLoading={checkout.loading}
+        onService={actions.chooseService}
+        onAnyBarber={() => actions.chooseBarber(null)}
+        onBarber={actions.chooseBarber}
+        onChangeDate={slots.changeDate}
+        onLoadSlots={() => void slots.loadSlots()}
+        onSelectSlot={(slot) => {
+          slots.setSlot(slot);
+          setStep('confirm');
+        }}
+        onConfirm={() => void checkout.confirm()}
+      />
+      <BookingOutcomeSteps
+        step={step}
+        created={checkout.created}
+        payment={checkout.payment}
+        remaining={checkout.remaining}
+        paying={checkout.paying}
+        onPay={() => void checkout.pay()}
+        onChooseAnother={() => actions.chooseAnother(checkout.reset)}
+        onAppointments={() => router.replace('/(client)/account/appointments')}
+      />
+    </ScrollView>
   );
 }

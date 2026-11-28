@@ -48,3 +48,38 @@ Web (меню), mobile (запис), admin (редагування).
 Код домену не імпортує Nest, Prisma, React Native і HTTP-клієнти. Залежності спрямовані всередину: infrastructure → application → domain.
 
 Паралельне бронювання батька й сина на двох барберах потребує `AppointmentParty` за ADR 0011; тут зберігається SKU та його тривалості, а не дві ноги візиту.
+
+## Рекомендовані послуги (T-4445)
+
+Блок «рекомендуємо» для головної веба й кабінету. Спершу береться конфіг
+локації, якщо його немає — мережевий дефолт (`locationId = NULL`), інакше
+вбудоване правило (`top-week`, 4 позиції). `RecommendedServicesConfig`:
+
+- `mode: manual` — ручний вибір у заданому порядку (те, що адмін обрав);
+- `mode: top-week` — топ за кількістю записів за останні 7 днів (фільтр за
+  локацією, сортування за спаданням, нічия — за id, щоб відповідь була
+  стабільною);
+- без конфігу й без попиту — холодний старт у порядку каталогу
+  (`source: "fallback"`).
+
+Ліміт 1…8 (дефолт 4); дублі відкидаються; послуга, якої немає в локації
+(вимкнена або без активної ціни), не показується навіть якщо вона в конфігу.
+Блок кешується в процесі на 60 с (`RECOMMENDED_CACHE_TTL_SECONDS`), збереження
+конфігу скидає ключ своєї локації; зміна мережевого дефолту скидає кеш усіх
+локацій, бо він діє на кожну локацію без власного конфігу.
+
+- `GET /public/recommended-services?locationId=…` — `{locationId, mode,
+  source, services: [{id, name, duration, category, priceUah}], cachedUntil}`.
+- `POST /public/recommended-services/events` — `{serviceId, kind}` де `kind` —
+  `impression` або `click`; пише добовий лічильник (`RecommendedServiceMetric`,
+  доба в UTC) і повертає `{serviceId, kind, day}`.
+- `GET /admin/recommended-services?locationId=…` — поточний конфіг або `null`.
+- `PUT /admin/recommended-services` — `{locationId?, mode, serviceIds?, limit?}`;
+  невідома послуга → 404, поганий ліміт/режим → 400.
+- `POST /admin/recommended-services/invalidate?locationId=…` — скинути кеш
+  локації (без параметра — усіх), щоб головна побачила зміну цін одразу.
+- `GET /admin/recommended-services/metrics?from&to` — `[{serviceId, kind, count}]`
+  за період (дефолт — останні 7 днів).
+
+Клік веде у звичайний флоу запису з попередньо вибраною послугою — блок лише
+віддає `serviceId`, екран запису вже вміє прийняти послугу параметром.

@@ -38,6 +38,7 @@ export const styles = StyleSheet.create({
     borderRadius: RADIUS.card.value,
     padding: 16,
   },
+  cityTitle: { color: COLOR.text.secondary.value, fontSize: SIZE.h4.value, fontWeight: '700' },
   rowBody: { gap: 2 },
   rowTitle: { color: COLOR.text.primary.value, fontSize: SIZE.bodyLg.value, fontWeight: '600' },
   rowPrice: { color: COLOR.text.primary.value, fontSize: SIZE.bodyLg.value },
@@ -48,6 +49,13 @@ export const styles = StyleSheet.create({
     padding: 12,
   },
   offlineText: { color: COLOR.text.secondary.value, fontSize: SIZE.caption.value },
+  back: { marginBottom: 16 },
+  step: { gap: 12, marginTop: 24 },
+  center: { flexGrow: 1, justifyContent: 'center', alignItems: 'center' },
+  errorText: {
+    color: COLOR.accent.destructive?.value ?? COLOR.text.primary.value,
+    fontSize: SIZE.body.value,
+  },
   navCta: {
     backgroundColor: COLOR.surface.sunken.value,
     borderRadius: RADIUS.input.value,

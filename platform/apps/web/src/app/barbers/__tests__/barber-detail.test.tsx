@@ -17,6 +17,7 @@ describe('BarberDetailPage', () => {
     id: 'barber-1',
     slug: 'taras-shevchenko',
     name: 'Тарас Шевченко',
+    active: true,
     role: 'Top Barber',
     bio: 'Експерт з класичних та сучасних стрижок з досвідом понад 7 років.',
     experience: '7 років',
@@ -33,7 +34,7 @@ describe('BarberDetailPage', () => {
     const ui = await BarberDetailPage({ params: Promise.resolve({ slug: 'taras-shevchenko' }) });
     const { container } = render(ui);
 
-    expect(screen.getByText('Тарас Шевченко')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Тарас Шевченко' })).toBeInTheDocument();
     expect(screen.getByText('Top Barber')).toBeInTheDocument();
     expect(screen.getByText(/Експерт з класичних/)).toBeInTheDocument();
     expect(screen.getByText('Fade')).toBeInTheDocument();
@@ -75,7 +76,7 @@ describe('BarberDetailPage', () => {
     const ui = await BarberDetailPage({ params: Promise.resolve({ slug: 'barber-2' }) });
     render(ui);
 
-    expect(screen.getByText('Іван')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Іван' })).toBeInTheDocument();
     expect(screen.queryByText('Досвід роботи')).toBeNull();
     expect(screen.queryByText('Спеціалізації та навички')).toBeNull();
   });

@@ -12,7 +12,7 @@ const row = {
   end: '2026-11-27T10:00:00.000Z',
   clientName: 'Ірина',
   serviceName: 'Стрижка',
-  hasOtherBarber: true,
+  otherBarberAvailable: true,
 };
 
 function mockFetch(list: unknown[], resolveBody: unknown = { changed: true }) {
@@ -63,19 +63,56 @@ describe('ShiftConflictsPanel (T-4616b)', () => {
     expect(JSON.parse(String(post?.[1]?.body))).toMatchObject({ decision: 'cancel' });
   });
 
-  it('перенесення надсилає барбера, дату й час', async () => {
+  // Сервер сам перевірив графік і зайнятість: рядок має сказати, чи є куди
+  // переносити, бо інакше засновник шукає барбера навмання (T-4616b).
+  it('каже, коли вільного барбера немає', async () => {
+    mockFetch([{ ...row, otherBarberAvailable: false }]);
+    render(<ShiftConflictsPanel />);
+
+    await waitFor(() =>
+      expect(screen.getByText('Вільних барберів на цей час немає')).toBeInTheDocument()
+    );
+  });
+
+  // «Депозит повертається» поверх збитку — неправда: відмова провайдера має
+  // свій текст і кнопку повтору (T-4616b).
+  it('невдале повернення показує відмову і дає повторити', async () => {
+    const fetchMock = mockFetch([row], {
+      changed: true,
+      settlements: [{ outcome: 'refund_failed', refundId: 're_9', failureReason: 'declined' }],
+    });
+    render(<ShiftConflictsPanel />);
+
+    await waitFor(() => expect(screen.getByText('Скасувати візит')).toBeInTheDocument());
+    await userEvent.click(screen.getByText('Скасувати візит'));
+
+    await waitFor(() =>
+      expect(screen.getByText(/депозит не повернувся/)).toBeInTheDocument()
+    );
+    await userEvent.click(screen.getByText('Повторити повернення'));
+
+    await waitFor(() => {
+      const retry = fetchMock.mock.calls.find(([url]) =>
+        String(url).includes('/payment/refunds/re_9/retry')
+      );
+      expect(retry).toBeDefined();
+    });
+  });
+
+  it('перенесання вибирає барбера зі списку і надсилає дату й час', async () => {
     const fetchMock = mockFetch([row]);
     render(<ShiftConflictsPanel />);
 
-    await waitFor(() => expect(screen.getByLabelText('Барбер для conflict-1')).toBeInTheDocument());
-    await userEvent.type(screen.getByLabelText('Барбер для conflict-1'), 'barber-2');
+    await waitFor(() => expect(screen.getByLabelText('Барбер')).toBeInTheDocument());
+    await userEvent.click(screen.getByLabelText('Барбер'));
+    await userEvent.click(screen.getByRole('option', { name: row.barberId }));
     await userEvent.click(screen.getByText('Перенести'));
 
     await waitFor(() => {
       const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
       expect(JSON.parse(String(post?.[1]?.body))).toMatchObject({
         decision: 'reassign',
-        barberId: 'barber-2',
+        barberId: row.barberId,
       });
     });
   });

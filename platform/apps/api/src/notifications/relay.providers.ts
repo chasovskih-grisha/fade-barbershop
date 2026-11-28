@@ -10,19 +10,22 @@ import { ScheduleAppointmentReminder } from './application/schedule-appointment-
 import { SendAppointmentReminder } from './application/send-appointment-reminder';
 import { LoyaltyNotificationHandler } from './application/loyalty-notification';
 import { AppointmentPushNotification } from './application/appointment-push';
+import { ChatPushNotification } from './application/chat-push';
+import { chatPushProviders } from './chat-push.providers';
 import { OUTBOX_CONSUMERS } from './notifications.tokens';
 
 /** Реєстр споживачів релея: тип події → споживачі (outbox-routing). */
 export const OutboxConsumersProvider = {
   provide: OUTBOX_CONSUMERS,
   useFactory: (...deps: unknown[]) => {
-    const [confirmations, alerts, schedule, reminders, loyalty, appointmentPush] = deps as [
+    const [confirmations, alerts, schedule, reminders, loyalty, appointmentPush, chatPush] = deps as [
       SendBookingConfirmation,
       NewDeviceAlert,
       ScheduleAppointmentReminder,
       SendAppointmentReminder,
       LoyaltyNotificationHandler,
       AppointmentPushNotification,
+      ChatPushNotification,
     ];
     const consumers: OutboxConsumers = {
       confirmations,
@@ -31,6 +34,7 @@ export const OutboxConsumersProvider = {
       reminders,
       loyalty,
       appointmentPush,
+      chatPush,
     };
     return consumers;
   },
@@ -41,6 +45,7 @@ export const OutboxConsumersProvider = {
     SendAppointmentReminder,
     LoyaltyNotificationHandler,
     AppointmentPushNotification,
+    ChatPushNotification,
   ],
 };
 
@@ -54,4 +59,8 @@ export const OutboxDispatcherProvider = {
   inject: [PrismaService, OUTBOX_CONSUMERS],
 };
 
-export const relayProviders = [OutboxConsumersProvider, OutboxDispatcherProvider];
+export const relayProviders = [
+  OutboxConsumersProvider,
+  OutboxDispatcherProvider,
+  ...chatPushProviders,
+];

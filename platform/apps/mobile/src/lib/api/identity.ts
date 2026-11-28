@@ -12,6 +12,8 @@ export interface UserProfile {
   role: string;
   /** День і місяць народження без року (T-4730); порожнє — дефолт. */
   birthday: Birthday | null;
+  /** Нотатка для майстра (T-4721); порожній масив — нотатки немає. */
+  preferences?: string[];
 }
 
 export async function getProfile(): Promise<UserProfile> {
@@ -42,6 +44,19 @@ export async function updateProfileBirthday(birthday: Birthday | null): Promise<
   if (!res.ok) throw new Error('Failed to update birthday');
   const body = (await res.json()) as { birthday?: Birthday | null };
   return body.birthday ?? null;
+}
+
+/** Нотатка для майстра (T-4721): рядки, до 20 рядків по 100 символів. */
+export async function updateProfilePreferences(preferences: string[]): Promise<string[]> {
+  const res = await fetch(`${apiBase()}/identity/profile/preferences`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ preferences }),
+  });
+  if (!res.ok) throw new Error('Failed to update preferences');
+  const body = (await res.json()) as { preferences?: string[] };
+  return body.preferences ?? [];
 }
 
 export async function requestOtp(phone: string): Promise<void> {

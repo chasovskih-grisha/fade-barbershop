@@ -4,6 +4,8 @@ export interface SlotRequestDto {
   date: string;
   serviceId: string;
   fulfillmentMode?: 'sequential' | 'parallel';
+  /** Обраний варіант тривалості послуги (T-4419). */
+  variantLabel?: string;
   /** Optional specific barber – if omitted, any free barber is considered */
   barberId?: string;
 }

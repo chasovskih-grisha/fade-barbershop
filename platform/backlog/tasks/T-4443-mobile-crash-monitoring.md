@@ -1,6 +1,6 @@
 # T-4443 · Minimal Mobile Crash Monitoring
 
-- **Stage**: M2 (phase 5) · **Tags**: devops, mobile · **Complexity**: middle · **Depends on**: T-070, T-303
+- **Stage**: M2 (phase 5) · **Tags**: devops · **Complexity**: middle · **Depends on**: T-070, T-303
 - **StoryPoints**: 5
 
 ## What

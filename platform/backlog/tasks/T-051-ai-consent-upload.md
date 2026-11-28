@@ -1,6 +1,6 @@
 # T-051 · AI Photo Upload and Consent
 
-- **Stage**: M1 (phase 10A) · **Tags**: backend, frontend · **Complexity**: middle · **Depends on**: T-050
+- **Stage**: M1 (phase 10A) · **Tags**: backend · **Complexity**: middle · **Depends on**: T-050
 - **StoryPoints**: 5
 
 ## What

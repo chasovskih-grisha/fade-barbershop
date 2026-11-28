@@ -5,9 +5,11 @@
 // місту; без геолокації — звичайний список. Відмова/помилка не блокує запис.
 
 import { Badge, Button, Card, Skeleton } from '@fade/ui';
+import Link from 'next/link';
 import { useNearestLocations } from '../../hooks/useNearestLocations';
 import GeoLocationBanner from '../../components/GeoLocationBanner';
 import type { LocationDto } from '../types';
+import { BOOKING_OPENS_SOON_TEXT } from '@/lib/booking-availability';
 
 interface Props {
   onSelect: (loc: LocationDto) => void;
@@ -21,6 +23,34 @@ function formatDistance(km: number): string {
 // eslint-disable-next-line complexity
 export default function LocationStep({ onSelect }: Props) {
   const { data, loading, error, status, retryGeo, clearGeo, refresh } = useNearestLocations();
+
+  // T-4614e: підтверджено нуль активних локацій — не відкриваємо крок вибору,
+  // а пояснюємо, що запис стартує разом із першою студією.
+  if (!loading && !error && data && data.locations.length === 0) {
+    return (
+      <section className="flex flex-col items-start gap-4 rounded-card border border-line bg-surface-sunken p-6">
+        <div className="inline-flex items-center gap-2 rounded-pill border border-line px-3 py-1.5 text-caption font-semibold uppercase text-fg-muted">
+          Готуємось до відкриття
+        </div>
+        <h1 className="font-display text-h3 font-bold text-fg">Запис ще не відкрито</h1>
+        <p className="text-body text-fg-secondary">{BOOKING_OPENS_SOON_TEXT}</p>
+        <div className="flex flex-wrap gap-3 pt-2">
+          <Link
+            href="/locations"
+            className="inline-flex h-11 items-center justify-center rounded-input bg-accent px-5 text-body font-medium text-accent-fg"
+          >
+            Де ми відкриємось
+          </Link>
+          <Link
+            href="/services"
+            className="inline-flex h-11 items-center justify-center rounded-input border border-line px-5 text-body font-medium text-fg"
+          >
+            Послуги та прайс
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -46,10 +76,6 @@ export default function LocationStep({ onSelect }: Props) {
           <p className="text-fg-secondary">Не вдалося завантажити локації.</p>
           <Button onClick={refresh}>Спробувати ще раз</Button>
         </div>
-      )}
-
-      {!loading && !error && data && data.locations.length === 0 && (
-        <p className="text-fg-secondary">Локацій ще немає — скоро відкриваємось.</p>
       )}
 
       {!loading && !error && data && data.locations.length > 0 && (

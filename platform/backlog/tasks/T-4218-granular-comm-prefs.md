@@ -1,6 +1,6 @@
 # T-4218 · Гранулярні налаштування комунікацій
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, ux · **Complexity**: middle · **Depends on**: T-3100, T-3902
+- **Stage**: M6 (phase 40) · **Tags**: backend, ux · **Complexity**: middle · **Depends on**: T-3100, T-3902
 - **StoryPoints**: 12
 
 ## What

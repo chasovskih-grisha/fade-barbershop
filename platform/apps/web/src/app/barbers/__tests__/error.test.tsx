@@ -10,10 +10,10 @@ describe('BarbersErrorBoundary', () => {
 
     render(<BarbersErrorBoundary error={error} reset={mockReset} />);
 
-    expect(screen.getByText(/Помилка завантаження майстрів/i)).toBeInTheDocument();
-    expect(screen.getByText(/Не вдалося завантажити список майстрів/i)).toBeInTheDocument();
+    expect(screen.getByText('Не вдалося завантажити майстрів')).toBeInTheDocument();
+    expect(screen.getByText(/Спробуйте ще раз/)).toBeInTheDocument();
 
-    const button = screen.getByRole('button', { name: /Спробувати знову/i });
+    const button = screen.getByRole('button', { name: /Спробувати ще раз/i });
     expect(button).toBeInTheDocument();
 
     fireEvent.click(button);

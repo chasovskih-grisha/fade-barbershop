@@ -1,6 +1,6 @@
 # T-2300 · Редакційний блог
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, backend, content · **Complexity**: senior · **Depends on**: T-031
+- **Stage**: M5 (phase 30) · **Tags**: frontend, content · **Complexity**: senior · **Depends on**: T-031
 - **StoryPoints**: 50
 
 ## What

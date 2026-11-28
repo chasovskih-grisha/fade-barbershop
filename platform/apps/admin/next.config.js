@@ -31,6 +31,11 @@ const nextConfig = {
         source: '/identity/:path*',
         destination: `${API_ORIGIN}/identity/:path*`,
       },
+      // T-093/T-094: платіжні команди адмінки; API закриває їх AdminSessionGuard.
+      { source: '/payment/onsite', destination: `${API_ORIGIN}/payment/onsite` },
+      // :path* — щоб дійшли і `refunds/:id/retry` (T-4616b: повтор невдалого
+      // повернення прямо з конфлікту недоступності).
+      { source: '/payment/refunds/:path*', destination: `${API_ORIGIN}/payment/refunds/:path*` },
     ];
   },
   async headers() {

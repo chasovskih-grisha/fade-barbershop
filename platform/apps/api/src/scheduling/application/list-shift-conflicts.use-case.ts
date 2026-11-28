@@ -15,14 +15,24 @@ export interface ShiftConflictView {
   locationId: string;
   clientId: string | null;
   serviceId: string | null;
+  /** Ім'я клієнта для рядка рішення; null — імені немає, показуємо лише час. */
+  clientName: string | null;
+  serviceName: string | null;
   start: Date;
   end: Date;
   otherBarberAvailable: boolean;
 }
 
+/** Імена для рядка конфлікту — вони живуть в інших агрегатах (identity/services). */
+export interface ShiftConflictNames {
+  clientName(clientId: string | null): Promise<string | null>;
+  serviceName(serviceId: string | null): Promise<string | null>;
+}
+
 export interface ListShiftConflictsDeps {
   conflicts: ShiftConflictRepository;
   availability: ShiftConflictAvailability;
+  names: ShiftConflictNames;
 }
 
 export class ListShiftConflicts {
@@ -35,13 +45,17 @@ export class ListShiftConflicts {
     return Promise.all(
       conflicts.map(async (conflict) => ({
         ...toView(conflict),
+        clientName: await this.deps.names.clientName(conflict.clientId),
+        serviceName: await this.deps.names.serviceName(conflict.serviceId),
         otherBarberAvailable: await this.deps.availability.hasOtherBarber(conflict),
       }))
     );
   }
 }
 
-function toView(conflict: ShiftConflictData): Omit<ShiftConflictView, 'otherBarberAvailable'> {
+function toView(
+  conflict: ShiftConflictData
+): Omit<ShiftConflictView, 'clientName' | 'serviceName' | 'otherBarberAvailable'> {
   return {
     id: conflict.id,
     appointmentId: conflict.appointmentId,

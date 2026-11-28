@@ -1,6 +1,6 @@
 # T-4532 · Location-aware quick-booking routing
 
-- **Stage**: M1 (phase 4; entry surface for marketing site) · **Tags**: frontend, seo, marketing · **Complexity**: middle · **Dependencies**: T-021, T-030, T-053
+- **Stage**: M1 (phase 4; entry surface for marketing site) · **Tags**: frontend, marketing · **Complexity**: middle · **Dependencies**: T-021, T-030, T-053
 - **StoryPoints**: 5
 
 ## What

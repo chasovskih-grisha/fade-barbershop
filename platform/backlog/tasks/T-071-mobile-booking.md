@@ -13,8 +13,28 @@ Same flow, mobile differences `booking-flow.md`: separate screens with progress,
 
 ## Done
 
-- [x] Flow pass on iOS/Android
-- [x] GWT flow scenarios executed on mobile branches
+- [ ] Flow pass on iOS/Android
+- [ ] GWT flow scenarios executed on mobile branches
+
+## Audit 2026-11-24
+
+Reopened. `T-071a` now owns the real slots/booking/deposit flow and is done: the
+fake `buildSlots()` path is deleted. This parent still needs the camera/AI
+reference step, the offline/no-connection state, and recorded iOS/Android and
+GWT passes; the current Done claims have no device evidence.
+
+## Reassessment 2026-11-25
+
+T-071a is verified complete: the local pseudo-slot path is gone from the code, and the
+booking API, deposit and lint checks are recorded in that task's QA section (16/16
+focused tests). The iOS/Android device pass was not run, so T-071 stays open for:
+
+- device flow pass (tap-selection, back gesture, deposit on hardware) on iOS and on Android
+- the AI/camera reference step (AI-MOB-02)
+- the offline/no-connection state (AI-MOB-03)
+- GWT flow scenarios executed on the mobile branches
+
+No new code slice is needed for the booking API itself.
 
 ## Risks
 

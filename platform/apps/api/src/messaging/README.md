@@ -9,20 +9,32 @@
 - **Conversation** — діалог, прив’язаний до клієнта, барбера і (опційно) запису.
 - **Message** — одне повідомлення (текст, фото, системне).
 
-## Aggregates (план, ще не код)
+## Aggregates
 
 - `Conversation`
 
-## Domain events (план)
+## Domain events
 
 - `ConversationStarted`
 - `MessageSent`
 - `ConversationClosed`
 
-## Порти (план)
+## Порти
 
 - `ConversationRepository`
 - `RealtimePublisher`
+
+## Позначки доставки й прочитання (T-4432)
+
+- `ChatMessage.deliveredAt` ставиться, коли отримувач дістає історію
+  (`GET /messaging/visits/:visitId/messages`) або читає розмову.
+- `ChatMessage.readAt` ставиться явним `POST /messaging/visits/:visitId/read`;
+  прочитане завжди доставлене — read закриває доставку тим самим часом.
+- Бейдж: `GET /messaging/conversations` віддає `unreadCount` (вхідні без
+  `readAt`), історія — `unreadCount` розмови. Один запит на список розмов.
+- Push на нове повідомлення йде з outbox (`messaging.message.created`), а
+  швидке листування не дублюється: реплей із тим самим `clientMessageId` не
+  створює другий рядок і не шле другий push.
 
 ## Хто викликає
 

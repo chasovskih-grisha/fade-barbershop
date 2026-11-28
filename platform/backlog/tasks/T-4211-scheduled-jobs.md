@@ -1,6 +1,6 @@
 # T-4211 · Scheduled Jobs and Cron
 
-- **Stage**: M5 (phase 30) · **Tags**: backend, devops, infra · **Complexity**: middle · **Depends on**: T-4200, T-300
+- **Stage**: M5 (phase 30) · **Tags**: backend, infra · **Complexity**: middle · **Depends on**: T-4200, T-300
 - **StoryPoints**: 15
 
 ## What

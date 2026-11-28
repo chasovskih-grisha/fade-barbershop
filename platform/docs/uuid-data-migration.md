@@ -27,7 +27,7 @@ staging or a client database is filled before the retype.
       UUID schema.
 - [ ] The checklist is re-run before each release that carries a schema change.
 
-## Expand/contract procedure (data-exists branch)
+## Implementation plan — expand/contract procedure (data-exists branch)
 
 Each step is a separate release. Rolling deploy means the previous api instance
 still runs while the new schema is live, so every step stays compatible with the

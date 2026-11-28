@@ -1,6 +1,6 @@
 # T-4611 · Дизайн-система листів: email-токени, layout-примітиви та migration шаблонів
 
-- **Stage**: M2 (phase 7) · **Tags**: backend, frontend, design, notifications · **Complexity**: middle · **Depends on**: T-4608, T-4523, T-4555
+- **Stage**: M2 (phase 7) · **Tags**: backend, notifications · **Complexity**: middle · **Depends on**: T-4608, T-4523, T-4555
 - **StoryPoints**: 11
 - **Пріоритет**: найвищий одразу після хрому T-4609. Порядок: a → b (`lockup-on-milk.svg`) → c. До T-4614.
 

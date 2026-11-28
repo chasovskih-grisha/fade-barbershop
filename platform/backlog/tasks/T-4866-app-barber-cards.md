@@ -1,6 +1,6 @@
 # T-4866 · The app has a barber directory of cards
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile, design · **Complexity**: middle · **Depends on**: T-070, T-4867, T-4869
+- **Stage**: M5 (phase 30) · **Tags**: mobile, ux · **Complexity**: middle · **Depends on**: T-070, T-4867, T-4869
 - **StoryPoints**: 5
 
 ## What
@@ -33,3 +33,26 @@ The phone guest can book a place and cannot choose a person before they are insi
 
 - Card facts (T-4851b), groups (T-4852b), chips (T-4853b), find (T-4857b)
 - The location home (T-4843)
+
+## Implementation plan
+
+The directory route ships; the card's href and the way home move into the
+shared routes module and a test presses each card.
+
+Paths:
+- `apps/mobile/src/lib/routes.ts`
+- `apps/mobile/src/app/(client)/barbers/page.tsx`
+- `apps/mobile/src/app/(client)/barbers/page.test.tsx`
+
+Checks:
+- `npx jest --config apps/mobile/jest.config.js --runTestsByPath 'apps/mobile/src/app/(client)/barbers/page.test.tsx'`
+
+## Implementation notes
+
+- apps/mobile/src/app/(client)/barbers/page.test.tsx
+- apps/mobile/src/app/(client)/barbers/page.tsx
+- apps/mobile/src/lib/routes.ts
+
+## QA
+
+- `npx jest --config apps/mobile/jest.config.js --runTestsByPath 'apps/mobile/src/app/(client)/barbers/page.test.tsx'` exit 0

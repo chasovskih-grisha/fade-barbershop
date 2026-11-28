@@ -25,10 +25,17 @@ Without the empty rule, the first shop in the list becomes everyone's usual chai
 
 ## Done
 
-- [ ] §2 states empty, unavailable, and the booking boundary
-- [ ] §5 points at §2
-- [ ] `pnpm docs:validate` reports no new error from these files
+- [x] §2 states empty, unavailable, and the booking boundary
+- [x] §5 points at §2
+- [x] `pnpm docs:validate` reports no new error from these files
 
 ## Risks
 
 - [ ] **A booking change hidden in the spec.** The paragraph says the booking steps stay as they are
+
+## Re-verified at 91202f68
+
+The spec is delivered: review commit `92199659` adds only `docs/` files, so `filesCoveringReview`
+returns zero owned product files and `qaTask` (test required from the review diff) cannot accept it.
+Its three `Done` boxes are ticked. The code children are T-4725b (web) and T-4725c (app). Needs a
+`split` parent or a code child that carries the gate, not new work here.

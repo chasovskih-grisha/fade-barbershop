@@ -17,6 +17,7 @@ Geolocation failure/timeout/unavailability → banner message (`GeoLocationBanne
 - Sections marked with `aria-label` (gallery, working hours); status blocks — `role="status"`.
 - Clickable card = semantic element (`Card` with onClick or `Link`); focus and keyboard — like native elements.
 - Contrast and sizes — from design-system tokens, not "by eye".
+- **Gate (T-4510a):** `pnpm e2e:a11y` runs `axe-core` over the public pages; threshold is zero critical/serious violations. Moderate/minor findings stay for the full audit (T-3501).
 
 ## 4. Numbers, time, badges
 

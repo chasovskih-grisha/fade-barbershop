@@ -1,6 +1,6 @@
 # T-4832b · Slice: today’s hours on the app studio screen
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4832, T-4844, T-4850
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: junior · **Depends on**: T-4832, T-4844, T-4850
 - **StoryPoints**: 3
 
 ## What

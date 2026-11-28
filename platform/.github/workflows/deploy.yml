@@ -1,23 +1,24 @@
-# Deploys api, web, and admin after CI is green on stage or main (ADR 0052).
-# Mobile is not deployed from here.
+# Deploys api, web and admin to the GMHost VPS with Docker Compose over SSH
+# (ADR 0051, ADR 0052, T-4614c). Mobile is not deployed from here.
 #
-# Each GitHub Environment (stage, production) needs:
-#   COOLIFY_TOKEN    — Coolify API token
-#   COOLIFY_WEBHOOKS — space-separated Coolify deploy URLs, one per service
-#                      (api, web, admin), for example
-#                      https://<coolify>/api/v1/deploy?uuid=<app-uuid>
-# Until those secrets exist the job reports that and does not fail:
-# the VPS is not connected yet (T-303).
+# Only `main` deploys: a push to `stage` runs CI and stops there, because stage
+# has no remote host. Production is reached by merging the Release PR.
+#
+# The GitHub Environment `production` needs:
+#   DEPLOY_HOST     — VPS address
+#   DEPLOY_USER     — SSH user
+#   DEPLOY_SSH_KEY  — private key of that user
+#   DEPLOY_PATH     — checkout of this repository on the VPS
 name: Deploy
 
 on:
   workflow_run:
     workflows: [CI]
     types: [completed]
-    branches: [stage, main]
+    branches: [main]
 
 concurrency:
-  group: deploy-${{ github.event.workflow_run.head_branch }}
+  group: deploy-production
   cancel-in-progress: false
 
 permissions:
@@ -29,25 +30,38 @@ jobs:
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
-    environment: ${{ github.event.workflow_run.head_branch == 'main' && 'production' || 'stage' }}
+    environment: production
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
     steps:
-      - name: Trigger Coolify
-        env:
-          BRANCH: ${{ github.event.workflow_run.head_branch }}
-          TOKEN: ${{ secrets.COOLIFY_TOKEN }}
-          WEBHOOKS: ${{ secrets.COOLIFY_WEBHOOKS }}
+      - name: Check deploy secrets
         run: |
           set -eu
-          if [ -z "$WEBHOOKS" ]; then
-            echo "::notice title=Deploy not connected::Set COOLIFY_TOKEN and COOLIFY_WEBHOOKS on the ${BRANCH} environment. Coolify then deploys api, web, and admin."
-            exit 0
-          fi
-          if [ -z "$TOKEN" ]; then
-            echo "COOLIFY_TOKEN is empty."
+          missing=
+          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_PATH; do
+            eval "value=\${$name}"
+            if [ -z "$value" ]; then missing="$missing $name"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error title=Deploy secrets missing::Set$missing on the production environment."
             exit 1
           fi
-          for url in $WEBHOOKS; do
-            curl --fail-with-body --retry 3 --retry-delay 5 \
-              -H "Authorization: Bearer ${TOKEN}" \
-              "$url"
-          done
+      - name: Deploy by Compose over SSH
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -eu
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" "
+            set -eu
+            cd '$DEPLOY_PATH'
+            git fetch --prune origin
+            git checkout --detach '$SHA'
+            docker compose -f infra/docker-compose.prod.yml --env-file infra/.env.prod up -d --build --remove-orphans
+          "

@@ -17,6 +17,16 @@ Two cards of fiction sit where the map should sit.
 - `apps/web/src/app/locations/[code]/LocationDirections.tsx`
 - `apps/web/src/app/locations/[code]/LocationDetail.tsx`
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/locations/[code]/LocationDirections.tsx
+- apps/web/src/app/locations/[code]/LocationDetail.tsx
+- apps/web/src/app/locations/[code]/__tests__/directions.test.tsx
+
+Checks:
+- `npx jest --config apps/web/jest.config.js --runTestsByPath 'apps/web/src/app/locations/[code]/__tests__/directions.test.tsx'`
+
 ## Done
 
 - [ ] The metro, parking, and coffee paragraphs are not rendered for any location
@@ -32,3 +42,12 @@ Two cards of fiction sit where the map should sit.
 ## Out of scope
 
 - The app map (T-4835b)
+
+## Implementation notes
+
+- apps/web/src/app/locations/[code]/LocationDirections.tsx
+- apps/web/src/app/locations/[code]/__tests__/directions.test.tsx
+
+## QA
+
+- `npx jest --config apps/web/jest.config.js --runTestsByPath 'apps/web/src/app/locations/[code]/__tests__/directions.test.tsx'` exit 0

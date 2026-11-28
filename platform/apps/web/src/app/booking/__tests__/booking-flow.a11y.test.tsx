@@ -63,14 +63,14 @@ describe('Booking flow — анонси кроків і фокус (T-053av)', (
 
   it('перший крок анонсовано, але фокус при завантаженні не перехоплено', () => {
     render(<BookingPage />);
-    expect(screen.getByText('Крок 1 з 7: Локація')).toBeInTheDocument();
+    expect(screen.getByText('Крок 1 з 8: Локація')).toBeInTheDocument();
     expect(document.activeElement).toBe(document.body);
   });
 
   it('перехід далі анонсує новий крок і переносить фокус у його вміст', async () => {
     render(<BookingPage />);
     fireEvent.click(await screen.findByTestId('location-card-loc-1'));
-    expect(screen.getByText('Крок 2 з 7: Послуга')).toBeInTheDocument();
+    expect(screen.getByText('Крок 2 з 8: Послуга')).toBeInTheDocument();
     expect(document.activeElement).toBe(screen.getByTestId('booking-step'));
   });
 });

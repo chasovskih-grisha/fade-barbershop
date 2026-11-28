@@ -1,6 +1,6 @@
 # T-4526 · Admin Service Detail Page (Info + Statistics)
 
-- **Stage**: M3 (phase 14) · **Tags**: frontend, backend, analytics, design · **Complexity**: middle · **Depends on**: T-110, T-024, T-4419, T-4521, T-4507
+- **Stage**: M3 (phase 14) · **Tags**: frontend, analytics · **Complexity**: middle · **Depends on**: T-110, T-024, T-4419, T-4521, T-4507
 - **StoryPoints**: 8
 
 ## What

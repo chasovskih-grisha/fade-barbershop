@@ -19,9 +19,9 @@ The aside is how the client leaves the form.
 
 ## Done
 
-- [ ] A dirty note asks before «Мої візити»
-- [ ] A clean profile does not ask
-- [ ] A failed save stays on the profile
+- [x] A dirty note asks before «Мої візити»
+- [x] A clean profile does not ask
+- [x] A failed save stays on the profile
 
 ## Risks
 

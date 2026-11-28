@@ -1,6 +1,6 @@
 # T-4841 · The studio link preview uses a photo of the studio
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, seo · **Complexity**: junior · **Depends on**: T-4508, T-4822
+- **Stage**: M5 (phase 30) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-4508, T-4822
 - **StoryPoints**: 3
 
 ## What

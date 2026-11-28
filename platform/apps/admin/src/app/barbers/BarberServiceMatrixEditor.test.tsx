@@ -5,8 +5,21 @@ import BarberServiceMatrixEditor from './BarberServiceMatrixEditor';
 // (fallback), перше зняття чекбокса створює рядки решти; далі — почергові POST/PATCH.
 const locations = [{ id: 'loc-1', name: 'Сіті Лейк' }];
 const catalog = [
-  { id: 'svc-1', name: 'Стрижка', active: true, prices: [{ locationId: 'loc-1', active: true }] },
-  { id: 'svc-2', name: 'Борода', active: true, prices: [{ locationId: 'loc-1', active: true }] },
+  {
+    id: 'svc-1',
+    name: 'Стрижка',
+    category: 'Волосся',
+    active: true,
+    prices: [{ locationId: 'loc-1', active: true }],
+  },
+  {
+    id: 'svc-2',
+    name: 'Борода',
+    category: 'Борода і гоління',
+    active: true,
+    prices: [{ locationId: 'loc-1', active: true }],
+  },
+  { id: 'svc-4', name: 'Дитяча', active: true, prices: [{ locationId: 'loc-1', active: true }] },
   { id: 'svc-3', name: 'Чужа', active: true, prices: [{ locationId: 'loc-2', active: true }] },
 ];
 
@@ -36,6 +49,7 @@ describe('BarberServiceMatrixEditor (T-4521)', () => {
     expect(await screen.findByLabelText('Стрижка')).toBeChecked();
     expect(screen.getByLabelText('Борода')).toBeChecked();
     expect(screen.queryByLabelText('Чужа')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Дитяча')).toBeChecked();
   });
 
   it('first uncheck materializes rows for the remaining services', async () => {
@@ -45,7 +59,7 @@ describe('BarberServiceMatrixEditor (T-4521)', () => {
     fireEvent.click(await screen.findByLabelText('Борода'));
     await waitFor(() => expect(screen.getByLabelText('Борода')).not.toBeChecked());
     expect(screen.getByLabelText('Стрижка')).toBeChecked();
-    expect(global.fetch).toHaveBeenLastCalledWith(
+    expect(global.fetch).toHaveBeenCalledWith(
       `${io}/assignments`,
       expect.objectContaining({
         method: 'POST',
@@ -75,5 +89,14 @@ describe('BarberServiceMatrixEditor (T-4521)', () => {
       `${io}/assignments/b1/loc-1/svc-1/deactivate`,
       expect.objectContaining({ method: 'PATCH' })
     );
+  });
+
+  it('shows no matrix panels until a location is picked', async () => {
+    render(<BarberServiceMatrixEditor barberId="b1" locations={locations} />);
+
+    expect(screen.getByLabelText('Локація матриці барбера b1')).toHaveValue('');
+    expect(screen.queryByLabelText('Режим матриці')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Послуги локації')).not.toBeInTheDocument();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });

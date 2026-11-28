@@ -18,9 +18,18 @@
 //    додавали б connection_limit двічі — і в URL лишалися б дублікати
 //    pool_timeout, що робить розбір параметрів неоднозначним.
 
+// 0) Секрет resume-току депозиту (T-4619). Контролер підписує токен у відповіді
+//    на створення візиту, тож без змінної e2e падає ПІСЛЯ коміту Booking:
+//    retry у postWithRetry добиває слот і перетворює успіх на 409. Тестове
+//    значення детерміноване й локальне — справжній секрет лишається в .env.
+process.env.DEPOSIT_RESUME_SECRET ??= 'test-resume-secret';
+
 const { databaseNameOf, assertIsolated, e2eDatabaseUrl } = require('./scripts/e2e-db.cjs');
 
-if (process.env.FADE_E2E_ISOLATED === '1' && process.env.DATABASE_URL) {
+// DATABASE_URL може бути не в process.env (Prisma сама читає .env), тоді
+// e2eDatabaseUrl() бере документований локальний дефолт — ізоляція все одно
+// перевіряється assertIsolated.
+if (process.env.FADE_E2E_ISOLATED === '1') {
   const target = assertIsolated(e2eDatabaseUrl(process.env.DATABASE_URL));
   process.env.DATABASE_URL = target;
   console.log(`[jest] e2e ізольовано → ${databaseNameOf(target)}`);

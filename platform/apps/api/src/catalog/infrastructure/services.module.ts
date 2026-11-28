@@ -13,6 +13,9 @@ import { ClientServiceBookingsController } from './public-services.controller';
 import { RevenueOptimizationController } from './revenue-optimization.controller';
 import { ServicesReader } from './public-services.reader';
 import { PrismaCatalogAuditRepository } from './prisma-catalog-audit.repository';
+import { PublicRecommendedServicesController } from './public-recommended-services.controller';
+import { AdminRecommendedServicesController } from './admin-recommended-services.controller';
+import { RECOMMENDED_PROVIDERS } from './recommended.providers';
 
 const adminServicesIO = {
   provide: ADMIN_SERVICES_IO,
@@ -43,6 +46,8 @@ const adminServicesIO = {
     AdminProductsController,
     ClientServiceBookingsController,
     RevenueOptimizationController,
+    PublicRecommendedServicesController,
+    AdminRecommendedServicesController,
   ],
   providers: [
     PrismaService,
@@ -51,6 +56,7 @@ const adminServicesIO = {
     PrismaCatalogAuditRepository,
     ServicesReader,
     adminServicesIO,
+    ...RECOMMENDED_PROVIDERS,
     {
       provide: CreateServiceHandler,
       useFactory: (repo: PrismaServiceRepository) => new CreateServiceHandler(repo),
@@ -72,6 +78,11 @@ const adminServicesIO = {
       inject: [PrismaServiceRepository],
     },
   ],
-  exports: [PrismaServiceRepository, PrismaProductRepository, ServicesReader],
+  exports: [
+    PrismaServiceRepository,
+    PrismaProductRepository,
+    ServicesReader,
+    ...RECOMMENDED_PROVIDERS,
+  ],
 })
 export class ServicesModule {}

@@ -1,7 +1,7 @@
 # T-093 · Оплата на місці (POS/готівка)
 
-- **Stage**: M2 (phase 8) · **Tags**: backend, frontend · **Complexity**: middle · **Depends on**: T-091, T-045
-- **StoryPoints**: 5
+- **Stage**: M2 (phase 8) · **Tags**: backend · **Complexity**: middle · **Depends on**: T-091, T-045
+- **StoryPoints**: 5 · **Slices**: T-093a (API), T-093b (admin card)
 
 ## What
 
@@ -13,8 +13,8 @@ PAY-ONS-01…05: «Оплата на місці» на картці візиту
 
 ## Done
 
-- [ ] Позначка решти і walk-in працює з чеками
-- [ ] Ідемпотентність повторного позначення
+- [x] Позначка решти і walk-in працює з чеками → T-093a, T-093b
+- [x] Ідемпотентність повторного позначення → T-093a
 
 ## Risks
 

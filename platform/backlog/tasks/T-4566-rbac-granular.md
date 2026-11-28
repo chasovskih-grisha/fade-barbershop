@@ -1,6 +1,6 @@
 # T-4566 · RBAC: granular permissions for Founder/Admin/Receptionist/Barber/Client
 
-- **Stage**: M2 (phase 5-8) · **Tags**: backend, security, frontend · **Complexity**: middle · **Depends on**: T-012, T-020, T-2400a, T-4486, T-4544, T-4547, T-4565
+- **Stage**: M2 (phase 5-8) · **Tags**: backend, security · **Complexity**: middle · **Depends on**: T-012, T-020, T-2400a, T-4486, T-4544, T-4547, T-4565
 - **StoryPoints**: 8
 
 ## What

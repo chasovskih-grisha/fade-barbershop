@@ -1,6 +1,6 @@
 # T-270r · SEO optimization shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, seo · **Complexity**: middle · **Depends on**: T-270c, T-2600a
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270c, T-2600a
 - **StoryPoints**: 5
 
 ## What

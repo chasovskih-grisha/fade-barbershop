@@ -1,6 +1,6 @@
 # T-4613c · `app/[locale]/`, `next-intl` middleware and SEO: `hreflang`, canonical, sitemap
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, seo, i18n, infra · **Complexity**: middle · **Depends on**: T-4612a, T-4612b, T-4508, T-4532
+- **Stage**: M1 (phase 3) · **Tags**: frontend, i18n, infra · **Complexity**: middle · **Depends on**: T-4612a, T-4612b, T-4508, T-4532
 - **StoryPoints**: 8
 
 ## What

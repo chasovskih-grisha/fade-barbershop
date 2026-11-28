@@ -1,6 +1,6 @@
 # T-4525 · Детальна сторінка локації (інфо + статистика)
 
-- **Stage**: M3 (phase 14) · **Tags**: frontend, backend, analytics, design · **Complexity**: senior · **Depends on**: T-110, T-111, T-021, T-4406, T-4507
+- **Stage**: M3 (phase 14) · **Tags**: frontend, analytics · **Complexity**: senior · **Depends on**: T-110, T-111, T-021, T-4406, T-4507
 - **StoryPoints**: 13
 
 ## What

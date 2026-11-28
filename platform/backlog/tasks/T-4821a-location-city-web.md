@@ -1,6 +1,6 @@
 # T-4821a · Slice: city on the website listing and the studio page
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, seo · **Complexity**: middle · **Depends on**: T-4821
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: middle · **Depends on**: T-4821
 - **StoryPoints**: 5
 
 ## What

@@ -5,7 +5,7 @@
 // його звідси, тож циклу «панель ↔ рядок» немає. Вибір барбера — стан рядка:
 // панелі він не потрібен, а інакше вона тримала б мапу id → барбер.
 import { useState } from 'react';
-import { Button } from '@fade/ui';
+import { Button, Select } from '@fade/ui';
 
 export interface ShiftConflictRow {
   id: string;
@@ -15,6 +15,8 @@ export interface ShiftConflictRow {
   end: string;
   clientName?: string | null;
   serviceName?: string | null;
+  /** Сервер уже перевірив графік, години, матрицю й зайнятість (T-4616b). */
+  otherBarberAvailable?: boolean;
 }
 
 export interface ReassignSlot {
@@ -55,27 +57,39 @@ export function ConflictRowItem({
       <p className="font-medium">
         {start}–{end} · {row.clientName ?? 'Клієнт'} · {row.serviceName ?? 'Послуга'}
       </p>
+      {row.otherBarberAvailable === false && (
+        <p className="mt-1 text-fg-secondary">Вільних барберів на цей час немає</p>
+      )}
+      {row.otherBarberAvailable === true && (
+        <p className="mt-1 text-fg-secondary">Є вільний барбер — можна перенести візит</p>
+      )}
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <Button variant="secondary" size="md" disabled={busy} onClick={onCancel}>
           Скасувати візит
         </Button>
-        <label className="flex items-center gap-1">
-          Барбер
-          <input
-            aria-label={`Барбер для ${row.id}`}
-            className="w-32 rounded border border-border px-2 py-1"
-            value={barberId}
-            onChange={(event) => setBarberId(event.target.value)}
-          />
-        </label>
-        <Button
-          variant="primary"
-          size="md"
-          disabled={busy || !barberId}
-          onClick={() => onReassign({ barberId, date, start, end })}
-        >
-          Перенести
-        </Button>
+        <Select
+          id={`barber-select-${row.id}`}
+          label="Барбер"
+          options={row.otherBarberAvailable
+            ? [
+              { value: row.barberId, label: row.barberId },
+              { value: '', label: '---' },
+            ]
+            : []}
+          value={barberId}
+          onChange={(value) => setBarberId(value)}
+          disabled={!row.otherBarberAvailable || busy}
+        />
+        {row.otherBarberAvailable && (
+          <Button
+            variant="primary"
+            size="md"
+            disabled={busy || !barberId}
+            onClick={() => onReassign({ barberId, date, start, end })}
+          >
+            Перенести
+          </Button>
+        )}
       </div>
     </li>
   );

@@ -20,10 +20,19 @@
 
 ## Done
 
-- [x] `apps/mobile/ui` збирається з NativeWind-токенів (жодного hex у компонентах)
-- [x] Примітиви флоу (Button/Card/Field/PhoneInput/OtpInput/Sheet/Toast/SlotPicker/PriceBreakdown) готові
-- [x] T-070 (оболонка клієнта) використовує кіт, канонічний таб-бар
-- [x] Перевірено у симуляторі iOS/Android, юніт-Tests на примітиви
+- [ ] `apps/mobile/ui` збирається з NativeWind-токенів (жодного hex у компонентах)
+- [ ] Примітиви флоу (Button/Card/Field/PhoneInput/OtpInput/Sheet/Toast/SlotPicker/PriceBreakdown) готові
+- [ ] T-070 (оболонка клієнта) використовує кіт, канонічний таб-бар
+- [ ] Перевірено у симуляторі iOS/Android, юніт-Tests на примітиви
+
+## Audit 2026-11-24
+
+Reopened. Neither `apps/mobile/package.json` nor `pnpm-lock.yaml` contains
+NativeWind; there is no Tailwind/NativeWind config or theme import. The mobile UI
+still uses `StyleSheet`/`tokens.js`, and screens contain raw hex values. The archived
+slices a–d do not describe the code that is actually in the tree. The parent cannot
+be `done` until the NativeWind runtime exists and the kit/screens are migrated and
+verified on both simulators.
 
 ## Risks
 

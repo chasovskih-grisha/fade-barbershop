@@ -1,6 +1,6 @@
 # T-4714 · Pinned booking summary in the client app
 
-- **Stage**: M2 (phase 6) · **Tags**: frontend, ux, mobile · **Complexity**: middle · **Depends on**: T-071, T-4711a
+- **Stage**: M2 (phase 6) · **Tags**: frontend, ux · **Complexity**: middle · **Depends on**: T-071, T-4711a
 - **StoryPoints**: 7
 
 ## What

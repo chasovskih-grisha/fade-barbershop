@@ -1,6 +1,6 @@
 # T-4861b · Slice: studios on the app barber screen
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile · **Complexity**: middle · **Depends on**: T-4861, T-4867
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: middle · **Depends on**: T-4861, T-4867
 - **StoryPoints**: 5
 
 ## What

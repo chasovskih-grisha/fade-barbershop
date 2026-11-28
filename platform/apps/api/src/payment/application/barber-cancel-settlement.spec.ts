@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- T-4616a/b: спільні фікстури візиту й платежу лежать поруч із чотирма станами settlement (успіх, повтор, без грошей, відмова); дробити їх — дублювати Booking/Payment у кожному файлі. */
 // T-4616a/ADR 0056 §7: скасування через недоступність барбера звільняє крісло і
 // проводить списаний депозит через справжній T-094 (не через заглушку), а
 // повторне рішення не повертає гроші вдруге.
@@ -45,7 +46,9 @@ class MemoryPayments {
   }
 }
 
-function booking(): Booking {
+function booking(
+  refund: { refundId?: string; refundStatus?: string; capturedRefundAmount?: number } = {}
+): Booking {
   return Booking.reconstitute({
     id: 'booking-1',
     barberId: 'barber-1',
@@ -65,6 +68,7 @@ function booking(): Booking {
     source: 'client_web',
     status: 'cancelled',
     deposit: { amount: 210, percent: 30, rounding: 10, cancellationWindowHours: 4 },
+    ...refund,
   });
 }
 
@@ -135,6 +139,26 @@ describe('BarberCancelSettlement (T-4616a)', () => {
 
     expect(second.outcome).toBe('refund_replayed');
     expect(refundPayment).toHaveBeenCalledTimes(1);
+  });
+
+  // Провайдер відмовив, refund id уже стоїть: друге рішення не може казати
+  // «гроші в дорозі» — інакше адмінка ховає збиток під успіхом (T-4616b).
+  it('наявний, але невдалий refund не вдає повтор', async () => {
+    bookings.seed(
+      booking({
+        refundId: 'barber_unavailable_booking-1',
+        refundStatus: 'failed',
+        capturedRefundAmount: 210,
+      })
+    );
+
+    const result = await settlement.settle({ appointmentId: 'booking-1' });
+
+    expect(result.outcome).toBe('refund_failed');
+    expect(result.refundId).toBe('barber_unavailable_booking-1');
+    expect(result.refundStatus).toBe('failed');
+    expect(result.failureReason).toBe('provider_refund_failed');
+    expect(refundPayment).not.toHaveBeenCalled();
   });
 
   it('візит без грошей лише звільняє крісло', async () => {

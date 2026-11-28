@@ -21,10 +21,22 @@ The card already looks finished. The handler does not store anything.
 
 ## Done
 
-- [ ] Reload shows the saved four values
-- [ ] A failed save restores the last saved values
-- [ ] Marketing can be off while SMS stays on
+- [x] Reload shows the saved four values
+- [x] A failed save restores the last saved values
+- [x] Marketing can be off while SMS stays on
 
 ## Risks
 
-- [ ] **Sharing one banner with the name.** This card's confirmation is its own. The shared banner split is T-4727 if it is still shared
+- [x] **Sharing one banner with the name.** This card's confirmation is its own. The shared banner split is T-4727 if it is still shared
+
+## Implementation plan
+
+- `apps/web/src/app/api/account/notifications/route.ts` — GET/PATCH proxy: resolve the client id via
+  `GET /identity/profile`, then read or upsert `/client/notifications/preferences/:clientId`.
+- `apps/web/src/app/account/notification-preferences.ts` — the four card switches, API field mapping
+  (`marketingOffers` ↔ inverted `loyaltyOptOut`) and defaults for missing fields.
+- `apps/web/src/app/account/useNotificationPreferences.ts` — loads on mount, keeps switches disabled
+  until loaded, saves on demand and restores the last saved values on failure.
+- Tests: `apps/web/src/app/account/account-notifications.test.tsx`,
+  `apps/web/src/app/account/notification-preferences.test.ts`.
+- Checks: `pnpm --filter @fade/web exec jest src/app/account/account-notifications.test.tsx src/app/account/notification-preferences.test.ts`.

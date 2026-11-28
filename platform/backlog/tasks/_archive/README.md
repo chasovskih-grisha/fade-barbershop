@@ -81,6 +81,28 @@
 | T-6004 · Automated GDPR & CCPA Data Anonymization, Retention, and Subject Access Request Portal | [T-6004-gdpr-automated-privacy-compliance-dsar.md](2026/11/T-6004-gdpr-automated-privacy-compliance-dsar.md) |
 | T-4620a · └ Slice: swap the phone on the same user (8 SP) | [T-4620a-phone-swap.md](2026/11/T-4620a-phone-swap.md) |
 | T-4614d · └ Слайс: cookie стейджа не на `.fade.com.ua` (3 SP) | [T-4614d-staging-cookie-isolation.md](2026/11/T-4614d-staging-cookie-isolation.md) |
+| T-4619a · └ Slice: deposit hold and release (8 SP) | [T-4619a-release-unpaid-chair.md](2026/11/T-4619a-release-unpaid-chair.md) |
+| T-4619b-deposit-hold-ui · Web deposit hold UI — the site sees the hold and the release (5 SP) | [T-4619b-deposit-hold-ui.md](2026/11/T-4619b-deposit-hold-ui.md) |
+| T-4507d · └ Слайс: Avatar (2 SP) | [T-4507d-avatar.md](2026/11/T-4507d-avatar.md) |
+| T-4609d · └ Слайс: мережевий знак у застосунку (3 SP, пріоритет) | [T-4609d-mobile-network-mark.md](2026/11/T-4609d-mobile-network-mark.md) |
+| T-4803 · Database Connection Pooling Tuning with PgBouncer | [T-4803-pgbouncer-pooling.md](2026/11/T-4803-pgbouncer-pooling.md) |
+| T-4804 · Automated Partitioning & Archiving for Appointments | [T-4804-appointment-partitioning.md](2026/11/T-4804-appointment-partitioning.md) |
+| T-4805 · GDPR Right-to-Be-Forgotten & PII Anonymization Pipeline | [T-4805-gdpr-anonymization.md](2026/11/T-4805-gdpr-anonymization.md) |
+| T-081a · └ Слайс: чат у mobile (екрани візиту, офлайн-черга, realtime) (5 SP) | [T-081a-chat-mobile.md](2026/11/T-081a-chat-mobile.md) |
+| T-081b · └ Слайс: чат на web-картці візиту (3 SP) | [T-081b-chat-web.md](2026/11/T-081b-chat-web.md) |
+| T-081c · └ Слайс: файли чату в межах LOC-гейта (1 SP) | [T-081c-messaging-loc-gate.md](2026/11/T-081c-messaging-loc-gate.md) |
+| T-4446a · └ Слайс: власний ICS-фід візиту (3 SP) | [T-4446a-calendar-feed-api.md](2026/11/T-4446a-calendar-feed-api.md) |
+| T-4446b · └ Слайс: посилання «Додати в календар» у кабінеті (2 SP) | [T-4446b-calendar-links-web.md](2026/11/T-4446b-calendar-links-web.md) |
+| T-4516 · Web+admin: беклог станів екранів (empty/error/offline на адмін-списках ф2, кабінет) | [T-4516-web-admin-screen-states.md](2026/11/T-4516-web-admin-screen-states.md) |
+| T-4521a · └ Слайс: модель матриці та фільтр слотів (4 SP) | [T-4521a-matrix-model.md](2026/11/T-4521a-matrix-model.md) |
+| T-4521b · └ Слайс: адмін-UI матриці + вплив на флоу (4 SP) | [T-4521b-matrix-admin-ui.md](2026/11/T-4521b-matrix-admin-ui.md) |
+| T-4521c · └ Слайс: web-флоу «батько + син» (3 SP) | [T-4521c-party-web-flow.md](2026/11/T-4521c-party-web-flow.md) |
+| T-4521d · └ Слайс: категорія послуги в матриці без `undefined` (2 SP) | [T-4521d-matrix-category-type.md](2026/11/T-4521d-matrix-category-type.md) |
+| T-4521e · └ Слайс: редактор матриці в межах LOC-гейта (2 SP) | [T-4521e-matrix-loc-gate.md](2026/11/T-4521e-matrix-loc-gate.md) |
+| T-4614e · └ Слайс: вітрина порожнього каталогу (5 SP) | [T-4614e-preopening-site.md](2026/11/T-4614e-preopening-site.md) |
+| T-4727c · └ Slice: the same save sentences on the app (3 SP) | [T-4727c-profile-section-save-app.md](2026/11/T-4727c-profile-section-save-app.md) |
+| T-4731b · └ Slice: saved-note quote on the website (3 SP) | [T-4731b-profile-barber-note-web.md](2026/11/T-4731b-profile-barber-note-web.md) |
+| T-4731c · └ Slice: saved-note quote on the app (3 SP) | [T-4731c-profile-barber-note-app.md](2026/11/T-4731c-profile-barber-note-app.md) |
 
 ## Старі скасовані задачі (без підтеки YYYY/MM)
 

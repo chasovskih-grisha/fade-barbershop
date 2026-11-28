@@ -1,6 +1,6 @@
 # T-2300f · Blog in mobile app
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, mobile, content · **Complexity**: middle · **Depends on**: T-2300a, T-070
+- **Stage**: M5 (phase 30) · **Tags**: frontend, content · **Complexity**: middle · **Depends on**: T-2300a, T-070
 - **StoryPoints**: 5
 
 ## What

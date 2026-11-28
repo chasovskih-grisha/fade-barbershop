@@ -20,6 +20,14 @@ Consistent iconography across all platforms prevents visual clutter and aligns w
 
 ## Done
 
-- [ ] Icon package / component integrated across web, admin, and mobile
+- [x] `Icon` + `iconPaths` exist in `@fade/ui` and are consumed by web/admin
+- [ ] Mobile consumes the same icon set instead of having no icon path
 - [ ] Documentation updated in design system guide
 - [ ] Build/verify checks for missing icons
+
+## Audit 2026-11-24
+
+Reopened. `packages/ui/src/icons` and `Icon` exist and web/admin import them,
+but mobile has no `@fade/ui` or icon dependency and no `Icon` usage.
+`docs/design-system.md` has no icon-section reference, and there is no missing-icon
+verify gate. “Integrated across web, admin, and mobile” is false.

@@ -6,7 +6,7 @@ import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { root, read, fail } from './context.mjs';
 
-const TASK_STATUSES = new Set(['todo', 'in_progress', 'review', 'done', 'split']);
+const TASK_STATUSES = new Set(['todo', 'in_progress', 'review', 'qa', 'done', 'split']);
 const ROW_RE = /^\|\s*\[(T-[0-9A-Za-z-]+)\]\((?:\.\.\/)?tasks\/(T-[^)]+)\.md\)\s*\|(.*)\|$/;
 const MILESTONE_RE = /^### (M\d+|Горизонтальні)\b/;
 const splitCells = (text) => text.split(/(?<!\\)\|/).map((c) => c.trim());

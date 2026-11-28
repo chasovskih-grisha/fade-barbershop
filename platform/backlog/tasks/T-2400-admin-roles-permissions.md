@@ -1,6 +1,6 @@
 # T-2400 · Ролі і права доступу в адмінці (15/15)
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, backend, security, high-risk · **Complexity**: senior · **Depends on**: T-020, T-012
+- **Stage**: M5 (phase 30) · **Tags**: backend, security, high-risk · **Complexity**: senior · **Depends on**: T-020, T-012
 - **StoryPoints**: 15
 
 ## What

@@ -7,6 +7,14 @@ import { BarberPortrait } from './BarberPortrait';
 // «Експерт Fade»: однакова обіцянка на кожній картці — не вибір. Картка з
 // самим лише ім'ям — валідна картка.
 
+const cleanText = (value: string | null | undefined): string => (value ?? '').trim();
+
+// Одна спеціалізація — один чип: пробіли й дублі в записі не мають виглядати
+// як друга навичка, а порожній рядок — як факт.
+const uniqueTexts = (values: Array<string | null | undefined>): string[] => [
+  ...new Set(values.map(cleanText).filter(Boolean)),
+];
+
 interface BarberCardProps {
   id: string;
   slug: string;
@@ -15,6 +23,9 @@ interface BarberCardProps {
   photoUrl?: string | null | undefined;
   specialties?: string[] | null | undefined;
   experience?: string | null | undefined;
+  portfolioThumbUrl?: string | null | undefined;
+  /** Студії людини (T-4852a). Одна студія — заголовок групи вже її називає. */
+  studios?: string[] | undefined;
 }
 
 export function BarberCard({
@@ -25,12 +36,14 @@ export function BarberCard({
   photoUrl,
   specialties,
   experience,
+  portfolioThumbUrl,
+  studios,
 }: BarberCardProps) {
-  const facts = [role, experience].filter((fact): fact is string => Boolean(fact));
-  const chips = (specialties ?? []).filter((specialty) => specialty.length > 0);
+  const facts = uniqueTexts([role, experience]);
+  const chips = uniqueTexts(specialties ?? []);
 
   return (
-    <Link href={`/barbers/${slug}`} className="group block">
+    <Link href={`/barbers/${slug}`} aria-label={name} className="group block">
       <Card className="flex flex-col h-full overflow-hidden transition-colors group-hover:border-accent border-line bg-surface">
         <BarberPortrait name={name} photoUrl={photoUrl} />
 
@@ -42,6 +55,10 @@ export function BarberCard({
 
             {facts.length > 0 && (
               <p className="text-body font-medium text-fg-secondary">{facts.join(' • ')}</p>
+            )}
+
+            {(studios?.length ?? 0) > 1 && (
+              <p className="text-caption text-fg-secondary">{studios?.join(' · ')}</p>
             )}
 
             {chips.length > 0 && (
@@ -56,12 +73,22 @@ export function BarberCard({
                 ))}
               </div>
             )}
+
+            {portfolioThumbUrl && (
+              <div className="pt-2">
+                <img
+                  src={portfolioThumbUrl}
+                  alt="Portfolio thumbnail"
+                  className="w-16 h-16 rounded-md object-cover mx-auto"
+                />
+              </div>
+            )}
           </div>
 
-          <div className="pt-4 border-t border-line flex items-center justify-between text-body">
-            <span className="text-fg-secondary font-medium">Портфоліо майстра</span>
+          {/* T-4859: картка веде в одне місце, тож і підпис один — профіль. */}
+          <div className="pt-4 border-t border-line text-body">
             <span className="text-accent font-semibold group-hover:translate-x-1.5 transition-transform">
-              Вибрати майстра &rarr;
+              Профіль майстра &rarr;
             </span>
           </div>
         </div>

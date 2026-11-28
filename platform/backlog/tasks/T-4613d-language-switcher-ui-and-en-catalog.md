@@ -1,6 +1,6 @@
 # T-4613d · Language switcher, `en` catalog and consistent locale across sibling domains
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, i18n, design · **Complexity**: middle · **Depends on**: T-4613a, T-4613c, T-4612a, T-270a
+- **Stage**: M1 (phase 3) · **Tags**: frontend, i18n · **Complexity**: middle · **Depends on**: T-4613a, T-4613c, T-4612a, T-270a
 - **StoryPoints**: 5
 
 ## What

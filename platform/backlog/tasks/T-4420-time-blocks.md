@@ -1,6 +1,6 @@
 # T-4420 · Блокування часу (time-block) адміном
 
-- **Stage**: M1 (phase 4) · **Tags**: backend, frontend · **Complexity**: middle · **Depends on**: T-040, T-023
+- **Stage**: M1 (phase 4) · **Tags**: backend · **Complexity**: middle · **Depends on**: T-040, T-023
 - **StoryPoints**: 5
 
 ## What

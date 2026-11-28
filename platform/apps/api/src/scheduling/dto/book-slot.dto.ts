@@ -14,6 +14,8 @@ export interface BookSlotDto {
   serviceDuration?: number;
   serviceId?: string;
   fulfillmentMode?: 'sequential' | 'parallel';
+  /** Обраний варіант тривалості послуги (T-4419). */
+  variantLabel?: string;
   /** Референс зачіски і коментар (T-043): снепшот на записі. */
   reference?: { haircutReferenceId?: string; appointmentComment?: string };
   /** Джерело запису (T-046): канал аналітики + клієнт з CRM/identity. */
@@ -27,5 +29,7 @@ export interface ServicePreparation {
     agreedPrice: number;
     agreedDuration?: number;
     fulfillmentMode?: 'sequential' | 'parallel';
+    /** Підпис обраного варіанта тривалості (T-4419). */
+    durationVariant?: string;
   };
 }

@@ -1,6 +1,6 @@
 # T-270bf · Store credit shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-270f, T-094
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270f, T-094
 - **StoryPoints**: 5
 
 ## What

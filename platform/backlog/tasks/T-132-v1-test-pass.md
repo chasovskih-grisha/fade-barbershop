@@ -1,6 +1,6 @@
 # T-132 · Full Journey Test Pass on Production Integrations
 
-- **Stage**: M3 · **Tags**: integration · **Complexity**: middle · **Depends on**: T-131, all M1–M3 tasks
+- **Stage**: M3 · **Tags**: integration, backend · **Complexity**: middle · **Depends on**: T-131, all M1–M3 tasks
 - **StoryPoints**: 5
 
 ## What

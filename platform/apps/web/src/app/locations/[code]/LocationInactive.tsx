@@ -8,7 +8,7 @@ import { ActionLink } from '@/app/components/ActionLink';
 
 export function LocationInactive({ name }: { name: string }) {
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10">
+    <div className="mx-auto flex max-w-container flex-col gap-10 px-4 py-10 md:py-16">
       <h1 className="font-display text-h2">{name}</h1>
       <AlertBanner
         tone="info"
@@ -19,7 +19,6 @@ export function LocationInactive({ name }: { name: string }) {
           <ActionLink href="/locations" variant="secondary">
             Обрати іншу локацію
           </ActionLink>
-          <ActionLink href="/booking">Записатися онлайн</ActionLink>
         </div>
       </AlertBanner>
     </div>

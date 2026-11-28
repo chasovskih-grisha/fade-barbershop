@@ -1,6 +1,6 @@
 # T-003 · Brand Name Approval (Launch Gate)
 
-- **Stage**: M0 (phase 0) · **Tags**: — · **Complexity**: — · **Depends on**: none
+- **Stage**: M0 (phase 0) · **Tags**: devops · **Complexity**: — · **Depends on**: none
 
 ## What
 

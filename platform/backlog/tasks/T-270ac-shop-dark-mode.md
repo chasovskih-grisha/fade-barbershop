@@ -1,6 +1,6 @@
 # T-270ac · Dark mode shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, design · **Complexity**: junior · **Depends on**: T-270c, T-4515
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-270c, T-4515
 - **StoryPoints**: 3
 
 ## What

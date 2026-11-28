@@ -1,6 +1,6 @@
 # T-5002 · Realtime WebSocket Synchronization & Optimistic UI Conflict Resolution
 
-- **Stage**: M4 (phase 13) · **Tags**: backend, frontend, architecture, realtime · **Complexity**: senior · **Depends on**: T-4492, T-4508
+- **Stage**: M4 (phase 13) · **Tags**: backend, architecture, realtime · **Complexity**: senior · **Depends on**: T-4492, T-4508
 - **StoryPoints**: 13
 
 ## What

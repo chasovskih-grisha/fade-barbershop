@@ -1,6 +1,6 @@
 # T-4422 · Client Devices and Sessions
 
-- **Stage**: M1 (phase 1) · **Tags**: backend, frontend · **Complexity**: middle · **Depends on**: T-014, T-070
+- **Stage**: M1 (phase 1) · **Tags**: backend · **Complexity**: middle · **Depends on**: T-014, T-070
 - **StoryPoints**: 5
 
 ## What
@@ -22,6 +22,23 @@ Access from an unauthorized device after SMS login is a frequent loss of control
 - [x] New login → email to other devices (Mailpit, 2026-09-30)
 - [x] Push to other devices — only when channel is allowed (2026-10-07)
 - [x] Invalidation leaves no active refresh tokens (test)
+
+## Implementation plan
+
+Paths:
+- `apps/api/src/identity/application/list-client-sessions.ts` — active sessions of the signed-in client, current session decided by the server; admin sessions never listed (ADR 0017).
+- `apps/api/src/identity/application/revoke-all-sessions.ts` — revoke every other active session, keep the current one alive, emit one `identity.sessions.revoked.all` event with count and `exceptSessionId`.
+- `apps/api/src/identity/infrastructure/client-sessions.controller.ts` — `GET /identity/client/sessions` and `POST /identity/client/sessions/revoke-all` behind `ClientSessionGuard`.
+- `apps/web/src/app/account/devices/DeviceList.tsx` — list with channel, login time, «Цей пристрій» badge and the «Вийти з усіх інших пристроїв» control with confirmation.
+
+Tests:
+- `apps/api/src/identity/application/list-client-sessions.spec.ts`
+- `apps/api/src/identity/application/revoke-all-sessions.spec.ts`
+- `apps/web/src/app/account/devices/devices.test.tsx`
+
+Checks:
+- `pnpm --filter @fade/api exec jest apps/api/src/identity/application/list-client-sessions.spec.ts apps/api/src/identity/application/revoke-all-sessions.spec.ts`
+- `pnpm --filter @fade/web exec jest apps/web/src/app/account/devices/devices.test.tsx`
 
 ## Progress
 

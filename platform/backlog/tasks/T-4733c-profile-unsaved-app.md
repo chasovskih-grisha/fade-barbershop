@@ -1,6 +1,6 @@
 # T-4733c · Unsaved-edit prompt on the app
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4733a, T-4732c
+- **Stage**: M1 (phase 3) · **Tags**: mobile, ux · **Complexity**: junior · **Depends on**: T-4733a, T-4732c
 - **StoryPoints**: 3
 
 ## What
@@ -18,8 +18,8 @@ Those rows are the way off the profile. They are also the way to lose the draft.
 
 ## Done
 
-- [ ] A dirty name asks before «Мої візити»
-- [ ] «Залишитись» does not open visits
+- [x] A dirty name asks before «Мої візити»
+- [x] «Залишитись» does not open visits
 
 ## Risks
 

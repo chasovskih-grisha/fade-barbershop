@@ -1,6 +1,6 @@
 # T-4529a · Day timeline (4/8)
 
-- **Stage**: M3 (phase 14) · **Tags**: frontend, design · **Complexity**: middle · **Depends on**: T-045, T-4414, T-4420
+- **Stage**: M3 (phase 14) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-045, T-4414, T-4420
 - **StoryPoints**: 4
 
 ## What

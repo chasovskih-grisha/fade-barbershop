@@ -12,9 +12,9 @@ import { ServicesPageHeader } from './ServicesPageHeader';
 import { buildServicesJsonLd } from './services-json-ld';
 
 export const metadata: Metadata = pageMetadata({
-  title: 'Послуги та ціни — Fade Atelier',
+  title: 'Послуги — Fade Atelier',
   description:
-    'Ексклюзивний прайс барбершопу Fade: чоловічі стрижки, моделювання бороди, догляд та фірмові ритуали. Онлайн-запис за 60 секунд.',
+    'Меню послуг барбершопу Fade: чоловічі стрижки, моделювання бороди, догляд та фірмові ритуали.',
   path: '/services',
 });
 
@@ -30,7 +30,16 @@ export default async function ServicesPage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <ServicesPageHeader />
+      {result.state !== 'empty' && <ServicesPageHeader />}
+
+      {result.state === 'empty' && (
+        <header className="flex flex-col gap-4 border-b border-line pb-8">
+          <h1 className="font-display text-h1 font-bold text-fg">Послуги</h1>
+          <p className="max-w-3xl text-bodyLg text-fg-secondary">
+            Меню послуг і ціни зʼявляться разом із першою студією.
+          </p>
+        </header>
+      )}
 
       {result.state === 'error' && <ErrorState message={result.message} />}
 

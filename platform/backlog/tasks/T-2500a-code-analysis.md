@@ -1,6 +1,6 @@
 # T-2500a · Аналіз коду і пошук смолів (8/40)
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, quality · **Complexity**: senior · **Depends on**: T-004
+- **Stage**: M6 (phase 40) · **Tags**: backend, quality · **Complexity**: senior · **Depends on**: T-004
 - **StoryPoints**: 8
 
 ## What

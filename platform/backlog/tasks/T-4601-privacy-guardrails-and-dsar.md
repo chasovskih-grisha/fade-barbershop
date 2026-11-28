@@ -1,6 +1,6 @@
 # T-4601 · Privacy guardrails: parameter allowlist, PII-stop, DSAR in GA4
 
-- **Stage**: M3 (phase 3 — site) · **Tags**: analytics, privacy, legal, high-risk · **Complexity**: middle · **Dependencies**: T-4594, T-4595, T-4588
+- **Stage**: M3 (phase 3 — site) · **Tags**: analytics, privacy, legal, high-risk, frontend · **Complexity**: middle · **Dependencies**: T-4594, T-4595, T-4588
 - **StoryPoints**: 3
 
 ## What

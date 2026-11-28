@@ -1,6 +1,6 @@
 # T-4721c · Preference note on the app profile
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, ux, mobile · **Complexity**: middle · **Depends on**: T-4721a
+- **Stage**: M1 (phase 3) · **Tags**: mobile, ux · **Complexity**: middle · **Depends on**: T-4721a
 - **StoryPoints**: 5
 
 ## What
@@ -18,9 +18,9 @@ The barber reads one note. The app never writes it.
 
 ## Done
 
-- [ ] The app shows the stored note and the hint
-- [ ] Over the limit, it does not send
-- [ ] A site save is visible in the app
+- [x] The app shows the stored note and the hint
+- [x] Over the limit, it does not send
+- [x] A site save is visible in the app
 
 ## Risks
 

@@ -1,6 +1,6 @@
 # T-2600b · On-page SEO (8/38)
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, seo · **Complexity**: middle · **Depends on**: T-025, T-030, T-032
+- **Stage**: M5 (phase 30) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-025, T-030, T-032
 - **StoryPoints**: 8
 
 ## What

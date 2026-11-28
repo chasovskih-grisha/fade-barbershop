@@ -1,6 +1,6 @@
 # T-4728b · Remove raw colors from the app profile
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, design, mobile · **Complexity**: junior · **Depends on**: T-4728a
+- **Stage**: M1 (phase 3) · **Tags**: mobile · **Complexity**: junior · **Depends on**: T-4728a
 - **StoryPoints**: 3
 
 ## What

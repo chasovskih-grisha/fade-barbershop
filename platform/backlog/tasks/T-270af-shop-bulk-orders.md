@@ -1,6 +1,6 @@
 # T-270af · Bulk orders shop.fade.com.ua
 
-- **Stage**: M6 (phase 40) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-270e, T-270l
+- **Stage**: M6 (phase 40) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-270e, T-270l
 - **StoryPoints**: 5
 
 ## What

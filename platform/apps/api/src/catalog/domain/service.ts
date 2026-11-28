@@ -1,3 +1,5 @@
+import type { DurationVariant } from './duration-variant';
+
 export interface ServiceProps {
   id: string;
   name: string;
@@ -8,6 +10,8 @@ export interface ServiceProps {
   slug: string | null;
   seoDescription: string | null;
   faq: any | null;
+  /** Варіанти тривалості (T-4419); без них послуга — стандарт. */
+  variants?: DurationVariant[] | null;
   active: boolean;
   sortOrder: number;
   createdAt: Date;
@@ -54,6 +58,9 @@ export class Service {
   get faq(): any | null {
     return this.props.faq;
   }
+  get variants(): DurationVariant[] | null {
+    return this.props.variants ?? null;
+  }
   get active(): boolean {
     return this.props.active;
   }
@@ -74,27 +81,10 @@ export class Service {
     this.props.sortOrder = sortOrder;
   }
 
-  update(changes: {
-    name?: string;
-    duration?: number;
-    parallelDuration?: number | null;
-    description?: string | null;
-    category?: string | null;
-    slug?: string | null;
-    seoDescription?: string | null;
-    faq?: any | null;
-    sortOrder?: number;
-  }): void {
-    if (changes.name !== undefined) this.props.name = changes.name;
-    if (changes.duration !== undefined) this.props.duration = changes.duration;
-    if (changes.parallelDuration !== undefined)
-      this.props.parallelDuration = changes.parallelDuration;
-    if (changes.description !== undefined) this.props.description = changes.description;
-    if (changes.category !== undefined) this.props.category = changes.category;
-    if (changes.slug !== undefined) this.props.slug = changes.slug;
-    if (changes.seoDescription !== undefined) this.props.seoDescription = changes.seoDescription;
-    if (changes.faq !== undefined) this.props.faq = changes.faq;
-    if (changes.sortOrder !== undefined) this.props.sortOrder = changes.sortOrder;
+  update(changes: Partial<Omit<ServiceProps, 'id' | 'createdAt' | 'updatedAt'>>): void {
+    for (const [key, value] of Object.entries(changes)) {
+      if (value !== undefined) (this.props as unknown as Record<string, unknown>)[key] = value;
+    }
     this.props.updatedAt = new Date();
   }
 

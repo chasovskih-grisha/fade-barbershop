@@ -1,6 +1,6 @@
 # T-4510c · prefers-reduced-motion + анімація (2/8)
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, design · **Complexity**: junior · **Depends on**: T-4507
+- **Stage**: M1 (phase 3) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-4507
 - **StoryPoints**: 2
 
 ## What

@@ -1,6 +1,6 @@
 # T-4869 · The app reads the public barber the website already reads
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, mobile · **Complexity**: middle · **Depends on**: T-070, T-4852
+- **Stage**: M5 (phase 30) · **Tags**: mobile · **Complexity**: middle · **Depends on**: T-070, T-4852
 - **StoryPoints**: 5
 
 ## What
@@ -33,3 +33,24 @@ The app slices cannot render a person the client never fetched.
 
 - New profile columns (T-4477a)
 - The screens (T-4866, T-4867)
+
+## Implementation plan
+
+The client exists but spreads whatever JSON arrives; it will map the payload
+once, so a broken photo cannot reach a card.
+
+Paths:
+- `apps/mobile/src/lib/api/barbers.ts`
+- `apps/mobile/src/lib/api/barbers.test.ts`
+
+Checks:
+- `npx jest --config apps/mobile/jest.config.js --runTestsByPath apps/mobile/src/lib/api/barbers.test.ts`
+
+## Implementation notes
+
+- apps/mobile/src/lib/api/barbers.test.ts
+- apps/mobile/src/lib/api/barbers.ts
+
+## QA
+
+- `npx jest --config apps/mobile/jest.config.js --runTestsByPath apps/mobile/src/lib/api/barbers.test.ts` exit 0

@@ -1,6 +1,6 @@
 # T-4001 · B2B Accounts
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, marketing · **Complexity**: middle · **Depends on**: T-060, T-090, T-3300
+- **Stage**: M6 (phase 40) · **Tags**: backend, marketing · **Complexity**: middle · **Depends on**: T-060, T-090, T-3300
 - **StoryPoints**: 18
 
 ## What

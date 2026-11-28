@@ -20,9 +20,9 @@ Agents commit directly to `stage` (no feature branches and feature PR, ADR 0052)
 
 ## Done
 
-- [ ] `deploy.yml` on `main` SSHs to the GMHost VPS and runs Compose. The Coolify webhook is gone. An empty secret no longer exits 0 and looks like a deploy
-- [ ] Push to `stage` runs CI and does not deploy a remote host
-- [ ] Merge `stage` → `main` deploys prod. No other pull requests: neither in `stage` nor in `main` except Release PR
+- [x] `deploy.yml` on `main` SSHs to the GMHost VPS and runs Compose. The Coolify webhook is gone. An empty secret no longer exits 0 and looks like a deploy
+- [x] Push to `stage` runs CI and does not deploy a remote host
+- [x] Merge `stage` → `main` deploys prod. No other pull requests: neither in `stage` nor in `main` except Release PR
 - [ ] Required check "Typecheck (tsc --noEmit) and docs" on Release PR in `main`; push to `stage` remains direct and also runs CI
 
 ## Risks

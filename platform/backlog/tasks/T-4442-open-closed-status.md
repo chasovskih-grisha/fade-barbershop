@@ -1,6 +1,6 @@
 # T-4442 · Public "open/closed" status
 
-- **Stage**: M2 (phase 5) · **Tags**: backend, frontend · **Complexity**: junior · **Depends on**: T-030, T-022
+- **Stage**: M2 (phase 5) · **Tags**: backend · **Complexity**: junior · **Depends on**: T-030, T-022
 - **StoryPoints**: 3
 
 ## What

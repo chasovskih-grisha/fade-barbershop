@@ -1,6 +1,6 @@
 # T-3803 · Caching layer
 
-- **Stage**: M5 (phase 30) · **Tags**: backend, devops, performance · **Complexity**: middle · **Depends on**: T-002, T-3802
+- **Stage**: M5 (phase 30) · **Tags**: backend, performance · **Complexity**: middle · **Depends on**: T-002, T-3802
 - **StoryPoints**: 15
 
 ## What

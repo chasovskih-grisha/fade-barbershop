@@ -26,3 +26,22 @@ export function BarberNotFoundState({ slug, onBack }: { slug: string; onBack: ()
     </ScrollView>
   );
 }
+
+// T-4865b: прямий лінк може пережити роботу майстра — екран каже імʼя й
+// причину, веде назад до довідника і не пропонує запис.
+export function BarberInactiveState({ name, onBack }: { name: string; onBack: () => void }) {
+  return (
+    <ScrollView contentContainerStyle={styles.content}>
+      <Text style={styles.hero} testID="barber-inactive">
+        {name} зараз не приймає записів
+      </Text>
+      <Text style={styles.cardMuted}>
+        Майстер більше не працює в студії, тож записатися до нього не можна. Оберіть іншого
+        майстра в довіднику.
+      </Text>
+      <Pressable accessibilityRole="button" style={styles.cta} onPress={onBack}>
+        <Text style={styles.ctaLabel}>До каталогу майстрів</Text>
+      </Pressable>
+    </ScrollView>
+  );
+}

@@ -1,6 +1,6 @@
 # T-4835 · Directions follow the pin, and the invented route copy goes away
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, design · **Complexity**: middle · **Depends on**: T-4831, T-4850
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: middle · **Depends on**: T-4831, T-4850
 - **StoryPoints**: 10
 
 ## What

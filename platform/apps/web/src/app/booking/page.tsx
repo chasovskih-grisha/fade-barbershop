@@ -6,12 +6,14 @@
 import { StepIndicator } from '@fade/ui';
 import LocationStep from './steps/LocationStep';
 import ServiceStep from './steps/ServiceStep';
-import BarberStep from './steps/BarberStep';
+import Step2 from './steps/step2';
 import SlotStep from './steps/SlotStep';
 import HaircutReferenceStep from './steps/HaircutReferenceStep';
 import CommentStep from './steps/CommentStep';
+import PaymentStep from './steps/PaymentStep';
 import SuccessStep from './steps/SuccessStep';
 import BookingHeader from './BookingHeader';
+import BookingSummary from './BookingSummary';
 import { STEPS, useBookingFlow } from './useBookingFlow';
 import { useStepFocus } from './useStepFocus';
 import { pickInstantSlot } from './instant-slot';
@@ -19,6 +21,7 @@ import { pickInstantSlot } from './instant-slot';
 export default function BookingPage() {
   const flow = useBookingFlow();
   const { stepRef, errorRef } = useStepFocus(flow.step, flow.error);
+  // eslint-disable-next-line complexity -- dispatch лише за номером кроку
   const render = () => {
     switch (flow.step) {
       case 0:
@@ -27,8 +30,7 @@ export default function BookingPage() {
         // prettier-ignore
         return <ServiceStep services={flow.services} loading={flow.loading} onBack={() => flow.setStep(0)} onSelect={flow.chooseService} />;
       case 2:
-        // prettier-ignore
-        return <BarberStep barbers={flow.barbers} loading={flow.loading} error={flow.error} onBack={() => flow.setStep(1)} onSelect={flow.chooseBarber} retryBarbers={flow.retryBarbers} />;
+        return <Step2 flow={flow} />;
       case 3:
         // prettier-ignore
         return <SlotStep slots={flow.slots} days={flow.days} date={flow.date} loading={flow.loading} selectedSlot={flow.slot} onDate={flow.chooseDate} onSelect={flow.chooseSlot} onBack={() => flow.setStep(2)} onNext={() => flow.setStep(4)} onJoinWaitlist={flow.onJoinWaitlist} onCancelWaitlist={flow.onCancelWaitlist} waitlist={flow.waitlist} instantSlot={pickInstantSlot(flow.slots, flow.date)} onInstantBook={(slot) => { flow.chooseSlot(slot); flow.setStep(5); }} />;
@@ -63,6 +65,10 @@ export default function BookingPage() {
           time={flow.slot ? `${flow.slot.start}–${flow.slot.end}` : undefined}
         />;
       case 6:
+        // T-4619b: крок існує лише для візиту з фактичним утриманням.
+        // prettier-ignore
+        return flow.deposit ? <PaymentStep bookingId={flow.bookingId} amount={flow.deposit.amount} expiresAt={flow.deposit.expiresAt} serverNow={flow.deposit.serverNow} {...(flow.deposit.resumeToken ? { resumeToken: flow.deposit.resumeToken } : {})} onCaptured={() => flow.setStep(7)} /> : null;
+      case 7:
         return (
           <SuccessStep
             bookingId={flow.bookingId}
@@ -84,6 +90,7 @@ export default function BookingPage() {
     <div className="mx-auto flex max-w-2xl flex-col gap-6 p-4 md:py-10">
       {' '}
       <BookingHeader />
+      <BookingSummary flow={flow} />
       <StepIndicator steps={STEPS} current={flow.step} />
       {/* Анонс кроку (T-053av): скрін-рідер чує, куди перейшов флоу. */}
       <p role="status" aria-live="polite" className="sr-only">

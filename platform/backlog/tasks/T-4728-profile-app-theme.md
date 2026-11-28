@@ -1,6 +1,6 @@
 # T-4728 · The app profile uses the theme
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, design, mobile · **Complexity**: middle · **Depends on**: T-072
+- **Stage**: M1 (phase 3) · **Tags**: mobile · **Complexity**: middle · **Depends on**: T-072
 - **StoryPoints**: 5
 
 ## What

@@ -1,6 +1,6 @@
 # T-3200 · Business Reports
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, analytics, frontend · **Complexity**: senior · **Depends on**: T-110, T-111
+- **Stage**: M6 (phase 40) · **Tags**: backend, analytics · **Complexity**: senior · **Depends on**: T-110, T-111
 - **StoryPoints**: 20
 
 ## What

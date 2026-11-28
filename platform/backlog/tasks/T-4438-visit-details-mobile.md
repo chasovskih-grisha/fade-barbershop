@@ -1,6 +1,6 @@
 # T-4438 · Mobile Visit Details (Receipts, Certificates)
 
-- **Stage**: M2 (phase 5) · **Tags**: mobile, frontend · **Complexity**: junior · **Depends on**: T-071, T-4434
+- **Stage**: M2 (phase 5) · **Tags**: mobile · **Complexity**: junior · **Depends on**: T-071, T-4434
 - **StoryPoints**: 3
 
 ## What
@@ -24,3 +24,7 @@ Visit history on mobile (T-071) requires details; without this screen, the clien
 ## Risks
 
 - [ ] **Amount regression**: amount from read model T-071 — do not recalculate from scratch (Booking attack)
+
+## Blocking evidence
+
+The screen needs two server documents that do not exist: a fiscal receipt for a visit (T-4434 is open — `grep -r receipt apps/api/src` finds only `gift-certificates`) and a certificate balance read (`GET` on issued certificates). `apps/mobile` has no endpoint to call, so any screen built now would render client-invented numbers; the row waits on those API slices.

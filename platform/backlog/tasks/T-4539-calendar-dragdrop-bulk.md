@@ -1,6 +1,6 @@
 # T-4539 · Admin calendar: drag&drop reschedule, bulk actions, multi-view
 
-- **Stage**: M1 (phase 4) · **Tags**: frontend, backend, design · **Complexity**: middle · **Depends on**: T-045, T-4524, T-4524a, T-4524b
+- **Stage**: M1 (phase 4) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-045, T-4524, T-4524a, T-4524b
 - **StoryPoints**: 8
 
 ## What

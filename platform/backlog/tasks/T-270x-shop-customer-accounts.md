@@ -1,6 +1,6 @@
 # T-270x · Customer accounts shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: junior · **Depends on**: T-270f, T-032
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-270f, T-032
 - **StoryPoints**: 3
 
 ## What

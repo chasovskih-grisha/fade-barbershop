@@ -20,3 +20,11 @@
 
 - [ ] **Секрети і бекапи**: ротація; відновлення репетирується
 
+## Gate evidence (T-6011)
+
+`agent-gate qa` cannot finish this row: the checklist is operations work on infrastructure that is not
+in this repository, so there is no runnable check to put in a plan, and `qaTask` rejects a plan without
+`Checks:` before it looks at anything else. The review commit (`review: T-300`) touched only
+`infra/OPTIMIZATION_REPORT_devops.md`, so `filesCoveringReview` finds no product file and no test file
+either. Blocking dependency: a staging cluster (backups, secret store, alerting) — not code in
+`platform/`.

@@ -9,6 +9,7 @@ import { RescheduleAppointment } from '../application/reschedule-appointment.use
 import { AppointmentLifecycle } from '../application/appointment-lifecycle.use-case';
 import { PrismaUnitOfWork } from '../../shared/prisma/prisma-context';
 import { PrismaBarberUnavailabilityRepository } from './prisma-barber-unavailability.repository';
+import { PrismaShiftConflictNames } from './prisma-shift-conflict-names';
 import { PrismaShiftConflictRepository } from './prisma-shift-conflict.repository';
 import { PrismaBarberServiceAssignmentRepository } from './prisma-barber-service-assignment.repository';
 import { PrismaAvailabilityRepository } from './prisma-availability.repository';
@@ -21,6 +22,7 @@ export const barberUnavailabilityProviders: Provider[] = [
   PrismaBarberUnavailabilityRepository,
   PrismaShiftConflictRepository,
   PrismaBarberServiceAssignmentRepository,
+  PrismaShiftConflictNames,
   {
     provide: MarkBarberUnavailable,
     useFactory: (
@@ -51,9 +53,14 @@ export const barberUnavailabilityProviders: Provider[] = [
     provide: ListShiftConflicts,
     useFactory: (
       conflicts: PrismaShiftConflictRepository,
-      availability: SchedulingShiftConflictAvailability
-    ) => new ListShiftConflicts({ conflicts, availability }),
-    inject: [PrismaShiftConflictRepository, SchedulingShiftConflictAvailability],
+      availability: SchedulingShiftConflictAvailability,
+      names: PrismaShiftConflictNames
+    ) => new ListShiftConflicts({ conflicts, availability, names }),
+    inject: [
+      PrismaShiftConflictRepository,
+      SchedulingShiftConflictAvailability,
+      PrismaShiftConflictNames,
+    ],
   },
   {
     provide: ResolveShiftConflict,

@@ -1,6 +1,6 @@
 # T-4616b · Екран конфліктів і одне повідомлення клієнту
 
-- **Stage**: M2 (phase 7) · **Tags**: frontend, backend, notifications · **Complexity**: middle · **Depends on**: T-4616a, T-080
+- **Stage**: M2 (phase 7) · **Tags**: mobile, notifications · **Complexity**: middle · **Depends on**: T-4616a, T-080
 - **StoryPoints**: 8
 - **Policy**: [ADR 0056](../../docs/adr/0056-barber-unavailability-conflicts.md)
 
@@ -27,11 +27,28 @@
 
 ## Done
 
-- [x] Засновник закриває конфлікт з адмінки, не через прямий виклик use case — `ShiftConflictsPanel` у календарі адмінки: список відкритих конфліктів, «Скасувати візит» і «Перенести» → `POST /admin/shift-conflicts/:id/resolve`; 4 тести панелі
-- [ ] Барбер не бачить дій переносу і скасування чужого візиту — у застосунку барбера ще немає поверхні графіка (T-082/T-070: `apps/mobile` має лише `(client)`), тому крок «не вийду» доведений лише контролером `barber-schedule`, не екраном
+- [x] Засновник закриває конфлікт з адмінки, не через прямий виклик use case — `ShiftConflictsPanel` у календарі адмінки: список відкритих конфліктів, «Скасувати візит» і «Перенести» → `POST /admin/shift-conflicts/:id/resolve`; 6 тестів панелі
+- [x] Позначка недоступності має вхід в UI — `BarberUnavailabilityForm` у календарі (барбер, локація, межі, причина) → `POST /admin/barbers/:barberId/unavailability`; після успіху панель перечитує список; 3 тести форми
+- [x] Рядок каже, чи є куди переносити — серверне `otherBarberAvailable` (`SchedulingShiftConflictAvailability`: графік, години локації, матриця, недоступність, зайнятість) малюється як «Є вільний барбер» / «Вільних барберів немає»; 7 тестів матриці
+- [x] Відмова повернення не вдається успіхом — `refund_failed` (включно з повторним рішенням по вже невдалому refund) має свій текст і кнопку «Повторити повернення» → `POST /payment/refunds/:id/retry`
+- [x] Кожна нога партії проводиться окремо — збій settlement по одному візиту не валить решту відповіддю 500
+- [x] Застряглі в `processing` повернення доводяться до кінця — `ReconcileStuckRefunds` + `PrismaStuckRefunds` + `RefundReconciliationWorker` (`REFUND_RECONCILE_INTERVAL_MS`, `REFUND_RECONCILE_DISABLED`), 4 тести
+- [x] Одна причина скасування в контрактах — `BARBER_UNAVAILABLE_CANCEL_REASON` + `isBarberUnavailableReason()` (`@fade/contracts`), споживається рішенням, push-текстом і кабінетом
+- [x] Барбер не бачить дій переносу і скасування чужого візиту — екран «Мій графік» (`apps/mobile/src/app/(client)/barber-schedule/page.tsx`, вхід із профілю) позначає добу тим самим `POST /barber/schedule/:locationId/unavailability`, показує «N візитів чекають рішення засновника» і не має кнопок переносу/скасування; 5 тестів екрана, 4 тести клієнта API, 6 тестів чистої логіки доби, 5 тестів контролера (`barber-schedule.controller.spec.ts`: право `selfSchedule`, прив'язка до локації, 400 на порожній інтервал, локації самого барбера)
 - [x] На одне рішення — одне повідомлення; повторна доставка події не шле друге — `ResolveShiftConflict` скасовує через `AppointmentLifecycle`, а `PrismaAppointmentRepository.save` пише `scheduling.appointment.cancelled` в outbox у тій самій транзакції; релей віддає подію push-споживачу, журнал (`NotificationRecord.eventId`) глушить повторну доставку, а повтор рішення по закритому конфлікту — no-op без події (2 тести `resolve-shift-conflict.spec.ts`)
 - [x] Текст не містить причини «хвороба» чи інших подробиць — кабінет каже «Барбер недоступний — візит скасовано» і пропонує новий час (`AppointmentCard`, 3 тести); push скасування з причиною `barber unavailable` каже «Барбер недоступний — візит скасовано. Оберіть новий час у кабінеті «Мої візити»» без «зателефонуйте», а перенесення називає новий час і майстра (`appointment-push.spec.ts`, 6 тестів)
 - [x] Tests екрана: список, успішний перенос, успішне скасування, порожній день — `ShiftConflictsPanel.test.tsx`
+
+## Implementation plan
+
+Paths:
+- apps/mobile/src/app/(client)/barber-schedule/unavailability-body.tsx
+- apps/mobile/src/app/(client)/barber-schedule/use-barber-unavailability.ts
+- apps/mobile/src/app/(client)/barber-schedule/marked-day-text.ts
+- apps/mobile/src/app/(client)/barber-schedule/barber-schedule.test.tsx
+
+Checks:
+- `npx jest --config apps/mobile/jest.config.js --runTestsByPath "apps/mobile/src/app/(client)/barber-schedule/barber-schedule.test.tsx"`
 
 ## Risks
 
@@ -59,3 +76,46 @@
 графіка в `apps/mobile` немає (лише `(client)`), контролер `barber-schedule` приймає позначку, але
 UI-крок і заборона чужих дій не покриті тестом. Канал T-080 у проді лишається `none` за налаштуванням:
 рішення зберігається і журнал пише `skipped`, день не блокується (ризик нижче).
+
+**2026-11-26 (друге оновлення) — поверхня адмінки доведена до замкнутого кола.**
+Додано те, без чого ланцюг рвався на кінцях: форма позначки недоступності в календарі (раніше
+`POST /admin/barbers/:id/unavailability` існував лише для тестів), підказка «є вільний барбер / немає»
+з серверної перевірки (`otherBarberAvailable` ігнорувався панеллю), `refund_failed` з повторним
+поверненням (раніше будь-який settlement вважався «депозит повертається»), незалежне проведення ніг
+партії (збій одного settlement не валив відповідь 500) і тік `ReconcileStuckRefunds`, що доводить
+застряглі в `processing` повернення до кінця. Причина скасування переїхала в `@fade/contracts`
+(`BARBER_UNAVAILABLE_CANCEL_REASON`, `isBarberUnavailableReason()`): рішення, push-текст і кабінет більше
+не тримають три різні літерали. Гілку `dayOffs` у `ResolveShiftConflict` прибрано: у домену є тип, але
+немає ні таблиці, ні адаптера, тож вона не могла спрацювати — і не потрібна: за планом T-4447 `DayOff`
+стає інтервалом недоступності, який уже ловить `unavailabilities.covers()`.
+
+**2026-11-26 (третє оновлення) — крок «не вийду» має екран у застосунку.**
+`apps/mobile` отримав маршрут `(client)/barber-schedule` («Мій графік», вхід із
+профілю): локації беруться з нового `GET /barber/schedule` (прив'язки
+`StaffAssignment`, а не вгаданий `locationId`), право редагування — з
+`canEdit`, позначка дня йде в `POST /barber/schedule/:locationId/unavailability`
+(та сама команда, що з адмінки). Після позначки екран каже, скільки візитів
+чекають рішення засновника, а переносу/скасування чужого візиту в ньому немає
+(SCH-004). Контролер уперше покритий тестом: раніше маршрут існував без
+жодного виклику в тестах, тож ні право `selfSchedule`, ні прив'язка до локації,
+ні мапінг `InvalidUnavailabilityError` → 400 не були доведені.
+
+**2026-11-26 (четверте оновлення) — рядок закривається через гейт.**
+Позначка «не вийду» тепер лишається видимою на екрані: після успіху день
+показує «Цей день закритий» з кількістю візитів, що чекають рішення
+(`marked-day-text.ts`, відмінок — спільний `countVisits`), кнопка стає
+«День уже позначено» й вимкнена, тож повторний натиск не шле другу команду, а
+інший день знову доступний. Два тести екрана доводять ідемпотентність і
+перемикання дня. Craft-тег слайса зведено до одного (`mobile`), тому
+`claim → review → qa → done` проходить тим самим гейтом, що й решта беклогу.
+
+## Implementation notes
+
+- apps/mobile/src/app/(client)/barber-schedule/barber-schedule.test.tsx
+- apps/mobile/src/app/(client)/barber-schedule/marked-day-text.ts
+- apps/mobile/src/app/(client)/barber-schedule/unavailability-body.tsx
+- apps/mobile/src/app/(client)/barber-schedule/use-barber-unavailability.ts
+
+## QA
+
+- `npx jest --config apps/mobile/jest.config.js --runTestsByPath "apps/mobile/src/app/(client)/barber-schedule/barber-schedule.test.tsx"` exit 0

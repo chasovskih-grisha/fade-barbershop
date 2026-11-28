@@ -1,6 +1,6 @@
 # T-4584 · Waitlist, Gift Certificates & Walk-in Analytics
 
-- **Stage**: M4 (phase 17 — waitlist, phase 20 — gift certificates, phase 15 — walk-in) · **Tags**: frontend, backend, analytics, operations · **Complexity**: middle · **Dependencies**: T-4575, T-4576, T-4579, T-4581
+- **Stage**: M4 (phase 17 — waitlist, phase 20 — gift certificates, phase 15 — walk-in) · **Tags**: frontend, analytics, operations · **Complexity**: middle · **Dependencies**: T-4575, T-4576, T-4579, T-4581
 - **StoryPoints**: 5
 
 ## What

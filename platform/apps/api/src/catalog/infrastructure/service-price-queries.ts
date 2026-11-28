@@ -1,6 +1,7 @@
 import type { PrismaService } from '../../shared/prisma/prisma.service';
 import type { ServicePriceData } from '../domain/ports';
 import { toPriceData } from './service-row';
+import type { DurationVariant } from '../domain/duration-variant';
 
 export async function listPricesForService(
   prisma: PrismaService,
@@ -37,6 +38,7 @@ export async function catalogForLocation(
     duration: number;
     parallelDuration: number | null;
     price: number;
+    variants: DurationVariant[] | null;
   }>
 > {
   const rows = await prisma.servicePrice.findMany({
@@ -52,5 +54,6 @@ export async function catalogForLocation(
     duration: row.service.duration,
     parallelDuration: row.service.parallelDuration,
     price: row.amount,
+    variants: (row.service.durationVariants as DurationVariant[] | null) ?? null,
   }));
 }

@@ -1,6 +1,6 @@
 # T-4561 · Inventory & products: stock, SKU, barcode, consumables, write-offs, suppliers, profitability
 
-- **Stage**: M5 (phase 27) · **Tags**: backend, frontend, retail, finance · **Complexity**: senior · **Dependencies**: T-270, T-3401, T-4214, T-4548, T-4549
+- **Stage**: M5 (phase 27) · **Tags**: backend, retail, finance · **Complexity**: senior · **Dependencies**: T-270, T-3401, T-4214, T-4548, T-4549
 - **StoryPoints**: 21
 
 ## What

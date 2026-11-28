@@ -1,6 +1,6 @@
 # T-271 · Shop-lite: 48-hour 'to cash desk' reserve
 
-- **Stage**: M5 (v1.1, phase 27) · **Tags**: backend, frontend · **Complexity**: middle · **Depends on**: T-270, T-011 (shared session)
+- **Stage**: M5 (v1.1, phase 27) · **Tags**: backend · **Complexity**: middle · **Depends on**: T-270, T-011 (shared session)
 - **StoryPoints**: 5
 
 ## What

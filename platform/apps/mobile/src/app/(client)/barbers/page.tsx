@@ -1,34 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, View, Pressable } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ScrollView, Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { fetchLocations } from '../../../lib/api/locations';
-import { fetchBarbers, BarberDto } from '../../../lib/api/barbers';
-import { BarberCard } from '../../../components/BarberCard';
+import { fetchBarbersByStudio, type StudioRoster } from '../../../lib/api/studio-roster';
 import { styles } from '../../index.styles';
+import { barberHref, homeHref } from '../../../lib/routes';
+import { BarberDirectoryError, BarberDirectorySkeleton } from './barber-directory-states';
+import { BarberStudioGroups } from './barber-studio-groups';
 
 export default function BarbersDirectoryScreen() {
   const router = useRouter();
-  const [barbers, setBarbers] = useState<BarberDto[]>([]);
+  const [studios, setStudios] = useState<StudioRoster[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  // T-4868: повтор — це новий прогін того самого завантаження, а не вихід на
+  // головну: збій мережі не має відбирати в гостя довідник.
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let mounted = true;
-    fetchLocations()
-      .then(async (locs) => {
-        if (!mounted) return;
-        const activeLoc = locs.find((l) => l.active) || locs[0];
-        if (!activeLoc) {
-          if (mounted) setError(true);
-          return;
-        }
-        const list = await fetchBarbers(activeLoc.id);
-        if (!mounted) return;
-        setBarbers(list);
+    setLoading(true);
+    setError(false);
+    // T-4852b: довідник групує студії так само, як сайт (T-4852a).
+    fetchBarbersByStudio()
+      .then((rosters) => {
+        if (mounted) setStudios(rosters);
       })
       .catch(() => {
-        if (!mounted) return;
-        setError(true);
+        if (mounted) setError(true);
       })
       .finally(() => {
         if (mounted) setLoading(false);
@@ -36,25 +34,28 @@ export default function BarbersDirectoryScreen() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [attempt]);
+
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
 
   if (loading) {
     return (
-      <View style={[styles.content, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text testID="loading-skeleton" style={styles.cardMuted}>
-          Завантаження...
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.hero} testID="directory-title">
+          Наші майстри
         </Text>
-      </View>
+        <BarberDirectorySkeleton />
+      </ScrollView>
     );
   }
 
   if (error) {
     return (
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.hero}>Не вдалося завантажити майстрів</Text>
-        <Pressable accessibilityRole="button" style={styles.cta} onPress={() => router.push('/')}>
-          <Text style={styles.ctaLabel}>На головну</Text>
-        </Pressable>
+        <Text style={styles.hero} testID="directory-title">
+          Наші майстри
+        </Text>
+        <BarberDirectoryError onRetry={retry} />
       </ScrollView>
     );
   }
@@ -64,7 +65,7 @@ export default function BarbersDirectoryScreen() {
       <Pressable
         accessibilityRole="button"
         style={{ marginBottom: 16 }}
-        onPress={() => router.push('/')}
+        onPress={() => router.push(homeHref())}
       >
         <Text style={styles.cardMuted} testID="back-home">
           ← На головну
@@ -76,21 +77,7 @@ export default function BarbersDirectoryScreen() {
       </Text>
       <Text style={styles.heroSub}>Оберіть барбера для запису</Text>
 
-      <View style={{ marginTop: 16 }}>
-        {barbers.length === 0 ? (
-          <Text style={styles.cardMuted} testID="no-barbers">
-            Майстрів наразі немає
-          </Text>
-        ) : (
-          barbers.map((b) => (
-            <BarberCard
-              key={b.id}
-              barber={b}
-              onPress={() => router.push(`/(client)/barbers/${b.id}`)}
-            />
-          ))
-        )}
-      </View>
+      <BarberStudioGroups studios={studios} onOpen={(id) => router.push(barberHref(id))} />
     </ScrollView>
   );
 }

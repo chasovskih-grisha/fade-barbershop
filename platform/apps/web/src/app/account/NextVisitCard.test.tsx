@@ -39,6 +39,49 @@ describe('NextVisitCard (T-4716b)', () => {
     expect(screen.getByText('Очікує депозиту')).toBeInTheDocument();
   });
 
+  it('дає продовжити оплату з серверним дедлайном утримання', () => {
+    render(
+      <NextVisitCard
+        visit={{
+          ...nextVisit,
+          deposit: {
+            amount: 200,
+            freeCancelUntil: null,
+            bookingId: 'bk-1',
+            expiresAt: '2030-01-01T10:15:00.000Z',
+            holdStatus: 'active',
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByText(/Оплатіть депозит до/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Оплатити депозит' })).toHaveAttribute(
+      'href',
+      '/booking/deposit/bk-1'
+    );
+  });
+
+  it('показує звільнене крісло без кнопки оплати після прострочення', () => {
+    render(
+      <NextVisitCard
+        visit={{
+          ...nextVisit,
+          deposit: {
+            amount: 200,
+            freeCancelUntil: null,
+            bookingId: 'bk-1',
+            expiresAt: '2026-01-01T10:15:00.000Z',
+            holdStatus: 'expired',
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByText('Час на оплату минув — крісло звільнено')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Оплатити депозит' })).toBeNull();
+  });
+
   it('без майбутнього візиту показує порожній рядок і «Записатися»', () => {
     render(<NextVisitCard visit={null} />);
     expect(screen.getByText('Немає найближчого візиту')).toBeInTheDocument();

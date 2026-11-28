@@ -1,6 +1,6 @@
 # T-4610 · Фото барбера: модель, завантаження з погодженням, адмін-UI та публічні картки
 
-- **Stage**: M1 (phase 2) · **Tags**: backend, frontend, design, privacy · **Complexity**: middle · **Depends on**: T-4609a, T-023, T-4507, T-002
+- **Stage**: M1 (phase 2) · **Tags**: frontend, privacy · **Complexity**: middle · **Depends on**: T-4609a, T-023, T-4507, T-002
 - **StoryPoints**: 8
 
 ## What

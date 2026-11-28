@@ -1,6 +1,6 @@
 # T-4845 · The app home stops claiming one street and one price
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile · **Complexity**: middle · **Depends on**: T-070, T-4843
+- **Stage**: M5 (phase 30) · **Tags**: mobile, ux · **Complexity**: middle · **Depends on**: T-070, T-4843
 - **StoryPoints**: 5
 
 ## What

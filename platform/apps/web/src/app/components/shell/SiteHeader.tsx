@@ -13,7 +13,7 @@ import { BrandLockup } from './BrandLockup';
 const linkClass =
   'rounded-input px-2 py-1 text-body text-fg-secondary transition-colors hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue';
 
-export function SiteHeader() {
+export function SiteHeader({ bookingOpen = true }: { bookingOpen?: boolean }) {
   const [phone] = siteContacts();
 
   return (
@@ -42,15 +42,17 @@ export function SiteHeader() {
             </a>
           )}
           <HeaderAccountLink />
-          <Link
-            href={BOOKING_HREF}
-            className="inline-flex h-11 items-center justify-center rounded-input bg-accent px-4 text-body font-medium text-accent-fg transition-colors hover:bg-fg-secondary"
-          >
-            Записатися
-          </Link>
+          {bookingOpen && (
+            <Link
+              href={BOOKING_HREF}
+              className="inline-flex h-11 items-center justify-center rounded-input bg-accent px-4 text-body font-medium text-accent-fg transition-colors hover:bg-fg-secondary"
+            >
+              Записатися
+            </Link>
+          )}
         </div>
 
-        <MobileNav />
+        <MobileNav bookingOpen={bookingOpen} />
       </div>
     </header>
   );

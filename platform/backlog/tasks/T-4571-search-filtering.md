@@ -1,6 +1,6 @@
 # T-4571 · Search & filtering: full-text, filters, sorting, date ranges, saved filters, segments, bulk actions
 
-- **Stage**: M4 (phase 16+) · **Tags**: backend, frontend, search · **Complexity**: middle · **Depends on**: T-4544, T-4545, T-4563, T-3801
+- **Stage**: M4 (phase 16+) · **Tags**: backend, search · **Complexity**: middle · **Depends on**: T-4544, T-4545, T-4563, T-3801
 - **StoryPoints**: 13
 
 ## What

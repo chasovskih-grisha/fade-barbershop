@@ -1,6 +1,6 @@
 # T-4605a · Naming Convention and Rename Mapping (3/19)
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, architecture · **Complexity**: middle · **Depends on**: —
+- **Stage**: M6 (phase 40) · **Tags**: backend, architecture · **Complexity**: middle · **Depends on**: —
 - **StoryPoints**: 3
 
 ## What

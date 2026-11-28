@@ -1,6 +1,6 @@
 # T-4839b · Slice: an inactive studio in the app
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4839, T-4844
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: junior · **Depends on**: T-4839, T-4844
 - **StoryPoints**: 3
 
 ## What

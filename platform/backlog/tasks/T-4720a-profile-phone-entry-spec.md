@@ -25,9 +25,9 @@ In `docs/web-cabinet-screens.md` §2, replace the support hint with the profile 
 
 ## Done
 
-- [ ] §2 names the existing flow and drops the support sentence
-- [ ] §5 points at §2
-- [ ] `pnpm docs:validate` reports no new error from these files
+- [x] §2 names the existing flow and drops the support sentence — «Правило номера» (T-4720) and the «Змінити номер» entry in «Акаунт»
+- [x] §5 points at §2 — «той самий флоу, що в кабінеті: … «Правило номера»»
+- [x] `pnpm docs:validate` reports no new error from these files (7 pre-existing errors unchanged: 6× status «qa», 1× unescaped `|` in m5)
 
 ## Risks
 

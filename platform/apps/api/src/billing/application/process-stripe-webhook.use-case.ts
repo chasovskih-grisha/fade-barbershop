@@ -6,6 +6,7 @@ import {
   PaymentDisputed,
   PaymentDisputeResolved,
   OrderPaid,
+  PaymentRefundedEvent,
 } from '../domain/payment-events';
 import { PaymentStatus } from '../domain/payment-status.enum';
 import { DomainEvent } from '../../shared/domain/domain-event';
@@ -31,7 +32,6 @@ export class WebhookDeadLetterEvent extends DomainEvent {
     };
   }
 }
-
 export interface ProcessStripeWebhookInput {
   eventId?: string;
   eventType: string;
@@ -51,14 +51,12 @@ export interface ProcessStripeWebhookInput {
   };
   traceId: string;
 }
-
 export interface ProcessStripeWebhookResult {
   processed: boolean;
   paymentId?: string;
   alreadyProcessed?: boolean;
   deadLettered?: boolean;
 }
-
 export class ProcessStripeWebhookHandler {
   private readonly processedEventIds = new Set<string>();
 
@@ -68,7 +66,7 @@ export class ProcessStripeWebhookHandler {
     const eventId = input.eventId || input.eventObject.id;
 
     // Strict Webhook Idempotency Check. Повторна доставка все одно називає
-    // платіж: після краху між handler-ом і закриттям крісла redelivery мусить
+    // платіж: після краху між handler-ом і закриттям крісла redelivery муси
     // довести settlement до кінця, а не загубити його.
     if (eventId && this.processedEventIds.has(eventId)) {
       const existingPayment = await this.findPayment(input);
@@ -221,6 +219,65 @@ export class ProcessStripeWebhookHandler {
       return { processed: true, paymentId };
     }
 
+    if (
+      input.eventType === 'payment_intent.refunded' ||
+      input.eventType === 'charge.refunded' ||
+      input.eventType === 'refund.failed'
+    ) {
+      const refundId = input.eventObject.id;
+      const refundAmount = input.eventObject.amount ?? 0;
+      const reason = input.eventObject.last_payment_error?.message ||
+        input.eventObject.failure_message ||
+        'Stripe refund event';
+
+      if (payment.status === PaymentStatus.REFUNDED || payment.status === PaymentStatus.PARTIALLY_REFUNDED) {
+        return { processed: true, paymentId, alreadyProcessed: true };
+      }
+
+      if (payment.status === PaymentStatus.REFUNDING) {
+        // Refund was initiated internally or via webhook — complete it based on Stripe result
+        const isFailure = input.eventType === 'refund.failed';
+        payment.completeRefund(refundId, isFailure ? undefined : refundAmount);
+        if (isFailure) {
+          payment.failRefund(reason);
+        }
+        await this.ctx.payments.save(payment);
+        await this.ctx.outbox.append([
+          new PaymentRefundedEvent({
+            paymentId: payment.id,
+            ...(payment.appointmentId && { appointmentId: payment.appointmentId }),
+            ...(payment.orderId && { orderId: payment.orderId }),
+            amount: refundAmount,
+            refundId,
+            traceId: input.traceId,
+            occurredAt: now,
+          }),
+        ]);
+        return { processed: true, paymentId };
+      }
+
+      // Payment is in some other state (e.g. REFUND_FAILED from before) — try retry
+      if (payment.status === PaymentStatus.REFUND_FAILED) {
+        payment.retryRefund();
+        await this.ctx.payments.save(payment);
+        await this.ctx.outbox.append([
+          new PaymentRefundedEvent({
+            paymentId: payment.id,
+            ...(payment.appointmentId && { appointmentId: payment.appointmentId }),
+            ...(payment.orderId && { orderId: payment.orderId }),
+            amount: refundAmount,
+            refundId,
+            traceId: input.traceId,
+            occurredAt: now,
+          }),
+        ]);
+        return { processed: true, paymentId };
+      }
+
+      // Default: just mark as processed
+      await this.ctx.payments.save(payment);
+      return { processed: true, paymentId };
+    }
     return { processed: false, paymentId };
   }
 }

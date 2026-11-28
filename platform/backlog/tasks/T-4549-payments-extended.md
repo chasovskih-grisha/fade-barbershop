@@ -1,6 +1,6 @@
 # T-4549 · Payments: Split, Gift Card, Membership, Loyalty, Tip, Multi-Method, Receipts
 
-- **Stage**: M2 (phase 8) · **Tags**: backend, billing, frontend · **Complexity**: senior · **Depends on**: T-090, T-091, T-092, T-093, T-094, T-210, T-211, T-3901, T-140, T-4212
+- **Stage**: M2 (phase 8) · **Tags**: backend, billing · **Complexity**: senior · **Depends on**: T-090, T-091, T-092, T-093, T-094, T-210, T-211, T-3901, T-140, T-4212
 - **StoryPoints**: 13
 
 ## What

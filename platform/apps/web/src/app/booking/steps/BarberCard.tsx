@@ -1,5 +1,10 @@
+import type { KeyboardEvent } from 'react';
 import { Card, Avatar } from '@fade/ui';
 import type { BarberDto } from '../types';
+
+// Обрана картка повторює кістяну плитку SlotPicker; класи скопійовані, не імпортовані.
+const SELECTED_CARD =
+  'rounded-card border border-accent bg-accent p-4 font-medium text-accent-fg cursor-pointer transition-colors hover:bg-fg-secondary active:bg-fg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue';
 
 /** Картка барбера екрану 2: «Будь-який барбер», фото (опційно), ім'я, чип локації. */
 export function BarberCard({
@@ -11,21 +16,8 @@ export function BarberCard({
   selected: boolean;
   onChoose: (id: string) => void;
 }) {
-  return (
-    <Card
-      interactive={true}
-      role="button"
-      tabIndex={0}
-      aria-pressed={selected}
-      className={`p-4 flex items-center gap-4 ${selected ? 'ring-2 ring-fg' : ''}`}
-      onClick={() => onChoose(barber.id)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onChoose(barber.id);
-        }
-      }}
-    >
+  const content = (
+    <>
       {barber.any ? (
         <div
           className="w-12 h-12 rounded-full bg-surface-raised flex items-center justify-center font-semibold text-h4"
@@ -53,6 +45,28 @@ export function BarberCard({
           <span className="text-xs text-fg-secondary mt-0.5">{barber.locationName}</span>
         )}
       </div>
+    </>
+  );
+  const choiceProps = {
+    role: 'button' as const,
+    tabIndex: 0,
+    'aria-pressed': selected,
+    onClick: () => onChoose(barber.id),
+    onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onChoose(barber.id);
+      }
+    },
+  };
+
+  return selected ? (
+    <div {...choiceProps} className={`${SELECTED_CARD} flex items-center gap-4`}>
+      {content}
+    </div>
+  ) : (
+    <Card interactive={true} {...choiceProps} className="p-4 flex items-center gap-4">
+      {content}
     </Card>
   );
 }

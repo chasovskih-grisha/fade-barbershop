@@ -1,6 +1,6 @@
 # T-131 · Операційна готовність CLT-01 (не код)
 
-- **Stage**: M3 · **Tags**: — · **Complexity**: — · **Depends on**: T-092, T-003
+- **Stage**: M3 · **Tags**: —, backend · **Complexity**: — · **Depends on**: T-092, T-003
 
 ## What
 

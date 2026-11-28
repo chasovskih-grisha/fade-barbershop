@@ -1,6 +1,6 @@
 # T-3203 · Конструктор звітів
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, analytics · **Complexity**: middle · **Depends on**: T-3200
+- **Stage**: M6 (phase 40) · **Tags**: backend, analytics · **Complexity**: middle · **Depends on**: T-3200
 - **StoryPoints**: 12
 
 ## What

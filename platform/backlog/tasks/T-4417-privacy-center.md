@@ -1,6 +1,6 @@
 # T-4417 · Client Privacy Center (Self-Service GDPR)
 
-- **Stage**: M1 (phase 3) · **Tags**: backend, frontend, legal · **Complexity**: middle · **Depends on**: T-032, T-070, T-3601
+- **Stage**: M1 (phase 3) · **Tags**: backend, legal · **Complexity**: middle · **Depends on**: T-032, T-070, T-3601
 - **StoryPoints**: 5
 
 ## What

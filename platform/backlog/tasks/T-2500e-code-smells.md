@@ -1,6 +1,6 @@
 # T-2500e · Elimination of code smells (8/48)
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, quality · **Complexity**: senior · **Depends on**: T-2500a
+- **Stage**: M6 (phase 40) · **Tags**: backend, quality · **Complexity**: senior · **Depends on**: T-2500a
 - **StoryPoints**: 8
 
 ## What

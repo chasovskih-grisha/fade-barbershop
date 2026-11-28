@@ -18,9 +18,9 @@ Desktop browsers often have no share sheet. The copy has to be the reliable path
 
 ## Done
 
-- [ ] The copied text is the absolute URL of `/locations/{code}`
-- [ ] The confirmation is text, not only a color change
-- [ ] A test covers the copy path
+- [x] The copied text is the absolute URL of `/locations/{code}`
+- [x] The confirmation is text, not only a color change
+- [x] A test covers the copy path
 
 ## Risks
 

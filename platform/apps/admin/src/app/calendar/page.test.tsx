@@ -15,6 +15,25 @@ describe('CalendarPage', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
+  it('показує банер із повтором, коли календар не завантажився, і перечитує після кліку', async () => {
+    let calendarCalls = 0;
+    (global.fetch as jest.Mock).mockImplementation((url: string) => {
+      if (url.startsWith('/admin/calendar')) {
+        calendarCalls += 1;
+        if (calendarCalls === 1) return Promise.resolve({ ok: false });
+      }
+      return Promise.resolve(route(url));
+    });
+
+    render(<CalendarPage />);
+    // Панель конфліктів має власний банер — звіряємо саме календарний.
+    expect(await screen.findByText('Не вдалося завантажити календар')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Спробувати ще раз' }));
+    await waitFor(() => expect(screen.getByText('10:00–11:00')).toBeInTheDocument());
+    expect(screen.queryByText('Не вдалося завантажити календар')).not.toBeInTheDocument();
+  });
+
   it('renders visits from /admin/calendar after auth', async () => {
     (global.fetch as jest.Mock).mockImplementation((url: string) => Promise.resolve(route(url)));
     render(<CalendarPage />);

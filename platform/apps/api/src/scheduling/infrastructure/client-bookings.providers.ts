@@ -11,6 +11,7 @@ import { SurgePricing } from '../../pricing/pricing.module';
 import { DepositHoldService } from '../application/deposit-hold.service';
 import { PrismaBarberUnavailabilityRepository } from './prisma-barber-unavailability.repository';
 import { CLIENT_BOOKINGS_IO } from './client-bookings.controller';
+import { PrismaBarberServiceAssignmentRepository } from './prisma-barber-service-assignment.repository';
 
 export const clientBookingsProvider = {
   provide: CLIENT_BOOKINGS_IO,
@@ -25,6 +26,7 @@ export const clientBookingsProvider = {
     surge: deps[7],
     depositHolds: deps[8],
     unavailable: deps[9],
+    barberServices: deps[10],
   }),
   inject: [
     PrismaBookingRepository,
@@ -37,5 +39,6 @@ export const clientBookingsProvider = {
     SurgePricing,
     DepositHoldService,
     PrismaBarberUnavailabilityRepository,
+    PrismaBarberServiceAssignmentRepository,
   ],
 };

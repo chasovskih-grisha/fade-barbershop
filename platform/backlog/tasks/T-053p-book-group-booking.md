@@ -1,6 +1,6 @@
 # T-053p · Group booking book.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: middle · **Depends on**: T-053c, T-041
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-053c, T-041
 - **StoryPoints**: 5
 
 ## What

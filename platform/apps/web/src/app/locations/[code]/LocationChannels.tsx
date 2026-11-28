@@ -1,34 +1,30 @@
 import type { Channel } from '@/lib/api/locations';
 import { channelLabel, channelHref, channelDisplay } from './channel-format';
 
-// Контакти локації (web-screens §2): телефон клікабельний + решта каналів
-// (viber/telegram/instagram/…). Канал phone з профілю дублюється першим.
+// Контакти студії (T-4833a): телефон — окремий контрол у рядку дій
+// (LocationPhoneLink), тут лише решта каналів як ряд іменованих контролів.
+
+const NEW_TAB: Channel['channel'][] = ['website', 'facebook'];
 
 export default function LocationChannels({ channels }: { channels: Channel[] }) {
-  if (channels.length === 0) return null;
-  const sorted = [...channels].sort((a, b) => a.sortOrder - b.sortOrder);
+  const others = channels
+    .filter((channel) => channel.channel !== 'phone')
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+  if (others.length === 0) return null;
   return (
-    <section aria-label="Контакти" className="flex flex-col gap-2">
+    <section className="flex flex-col gap-2">
       <h2 className="font-display text-h4">Контакти</h2>
-      <ul className="flex flex-col gap-1">
-        {sorted.map((channel) => (
+      <ul className="flex flex-wrap gap-1">
+        {others.map((channel) => (
           <li key={channel.channel}>
             <a
               href={channelHref(channel)}
-              target={
-                channel.channel === 'website' || channel.channel === 'facebook'
-                  ? '_blank'
-                  : undefined
-              }
-              rel={
-                channel.channel === 'website' || channel.channel === 'facebook'
-                  ? 'noreferrer'
-                  : undefined
-              }
-              className="text-body text-fg underline decoration-fg-secondary underline-offset-4 hover:decoration-fg"
+              aria-label={`${channelLabel(channel.channel)}: ${channelDisplay(channel)}`}
+              target={NEW_TAB.includes(channel.channel) ? '_blank' : undefined}
+              rel={NEW_TAB.includes(channel.channel) ? 'noreferrer' : undefined}
+              className="inline-flex h-12 items-center rounded-input px-3 text-body text-fg underline decoration-fg-secondary underline-offset-4 hover:decoration-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
             >
-              <span className="text-fg-secondary">{channelLabel(channel.channel)}: </span>
-              {channelDisplay(channel)}
+              {channelLabel(channel.channel)}
             </a>
           </li>
         ))}

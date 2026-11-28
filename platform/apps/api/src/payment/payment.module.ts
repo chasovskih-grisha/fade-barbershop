@@ -18,6 +18,9 @@ import { SettleWebhookCapture } from './application/settle-webhook-capture.use-c
 import { BarberDayMoney } from './application/barber-day-money.use-case';
 import { PrismaBarberDayMoneyRepository } from './infrastructure/prisma-barber-day-money.repository';
 import { BarberCancelSettlement } from './application/barber-cancel-settlement.use-case';
+import { ReconcileStuckRefunds } from './application/reconcile-stuck-refunds.use-case';
+import { PrismaStuckRefunds } from './infrastructure/prisma-stuck-refunds';
+import { RefundReconciliationWorker } from './infrastructure/refund-reconciliation.worker';
 import { AdminBarberUnavailabilityController } from '../scheduling/infrastructure/admin-barber-unavailability.controller';
 import { ProcessStripeWebhookHandler } from '../billing/application/process-stripe-webhook.use-case';
 import { ClientSessionGuard } from '../identity/infrastructure/client-session.guard';
@@ -184,7 +187,15 @@ export const REFUND_RECEIPT_GATEWAY = Symbol('REFUND_RECEIPT_GATEWAY');
         StripeAcquiringGateway,
       ],
     },
+    PrismaStuckRefunds,
+    {
+      provide: ReconcileStuckRefunds,
+      useFactory: (stuck: PrismaStuckRefunds, refunds: T094Refund) =>
+        new ReconcileStuckRefunds({ stuck, refunds, clock: { now: () => new Date() } }),
+      inject: [PrismaStuckRefunds, T094Refund],
+    },
+    RefundReconciliationWorker,
   ],
-  exports: [DepositFlow, OnsitePayment, T094Refund],
+  exports: [DepositFlow, OnsitePayment, T094Refund, ReconcileStuckRefunds],
 })
 export class PaymentModule {}

@@ -1,6 +1,6 @@
 # T-4824 · The location listing uses the night system, not a blue poster
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, design · **Complexity**: middle · **Depends on**: T-004, T-4506
+- **Stage**: M5 (phase 30) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-004, T-4506
 - **StoryPoints**: 5
 
 ## What

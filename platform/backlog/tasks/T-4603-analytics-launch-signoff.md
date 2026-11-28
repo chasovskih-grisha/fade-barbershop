@@ -1,6 +1,6 @@
 # T-4603 · Launch-гейт вимірювання: підписання перед стартом реклами
 
-- **Stage**: M5 (перед запуском v1) · **Tags**: analytics, qa, validation, launch, marketing · **Complexity**: junior · **Depends on**: T-4602, T-4531, T-132
+- **Stage**: M5 (перед запуском v1) · **Tags**: analytics, qa, validation, launch, marketing, backend · **Complexity**: junior · **Depends on**: T-4602, T-4531, T-132
 - **StoryPoints**: 3
 
 ## What

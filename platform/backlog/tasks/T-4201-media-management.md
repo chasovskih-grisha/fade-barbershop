@@ -1,6 +1,6 @@
 # T-4201 · File and Media Management
 
-- **Stage**: M5 (phase 30) · **Tags**: backend, frontend, integration · **Complexity**: senior · **Depends on**: T-002, T-030, T-190, T-270
+- **Stage**: M5 (phase 30) · **Tags**: backend, integration · **Complexity**: senior · **Depends on**: T-002, T-030, T-190, T-270
 - **StoryPoints**: 20
 
 ## What

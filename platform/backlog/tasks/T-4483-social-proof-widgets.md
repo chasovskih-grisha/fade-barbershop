@@ -1,6 +1,6 @@
 # T-4483 · Social proof micro-widgets
 
-- **Stage**: M5 (phase 10) · **Tags**: backend, frontend, marketing · **Complexity**: junior · **Depends on**: T-030, T-240
+- **Stage**: M5 (phase 10) · **Tags**: backend, marketing · **Complexity**: junior · **Depends on**: T-030, T-240
 - **StoryPoints**: 3
 
 ## What

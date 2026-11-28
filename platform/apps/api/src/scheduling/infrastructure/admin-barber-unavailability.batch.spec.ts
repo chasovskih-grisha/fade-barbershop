@@ -57,6 +57,31 @@ describe('AdminBarberUnavailabilityController: batch resolve (T-4616b)', () => {
     ]);
   });
 
+  // Одна нога впала — решта все одно проводиться, а відповідь каже, що саме
+  // не повернулось, замість 500 на весь пакет (T-4616b).
+  it('збій settlement по одному візиту не валить партію', async () => {
+    const { controller, settle } = controllerWithBatch([
+      {
+        conflictId: 'conflict-1',
+        status: 'resolved',
+        changed: true,
+        cancelledBookingIds: ['booking-1', 'booking-2'],
+      },
+    ]);
+    settle.mockRejectedValueOnce(new Error('payment ledger down'));
+
+    const response = await controller.resolveBatch(
+      { decisions: [{ conflictId: 'conflict-1', decision: 'cancel' }] },
+      request
+    );
+
+    expect(settle.mock.calls.map(([input]) => input.appointmentId)).toEqual([
+      'booking-1',
+      'booking-2',
+    ]);
+    expect(response.outcomes[0]?.status).toBe('resolved');
+  });
+
   it('batch reassign не чіпає гроші', async () => {
     const { controller, settle } = controllerWithBatch([
       { conflictId: 'conflict-1', status: 'resolved', changed: true },

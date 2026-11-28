@@ -1,6 +1,6 @@
 # T-274 · Магазин: кошик і оформлення
 
-- **Stage**: M5 (phase 27, слайс 1 з 3) · **Tags**: backend, frontend · **Complexity**: senior · **Depends on**: T-270, T-271 (сесія і профіль покупця вже працюють)
+- **Stage**: M5 (phase 27, слайс 1 з 3) · **Tags**: backend · **Complexity**: senior · **Depends on**: T-270, T-271 (сесія і профіль покупця вже працюють)
 - **StoryPoints**: 8
 
 ## What

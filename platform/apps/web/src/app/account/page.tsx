@@ -9,19 +9,33 @@ import { AccountPreferencesCard, AccountReferralsLink } from './AccountPreferenc
 import { AccountNotificationsCard } from './AccountNotificationsCard';
 import { NextVisitSection } from './NextVisitSection';
 import { useAccountName } from './useAccountName';
-import { usePhoneChange } from './usePhoneChange';
-import { useVisitSummary } from './useVisitSummary';
 import { useAccountPreferences } from './useAccountPreferences';
 import { useNotificationPreferences } from './useNotificationPreferences';
+import { usePhoneChange } from './usePhoneChange';
+import { useVisitSummary } from './useVisitSummary';
+import { useThisDevice } from './useThisDevice';
 import { PhoneChangeDialog } from './PhoneChangeDialog';
+import { useProfileGuard } from './useProfileGuard';
 
 export default function AccountPage() {
   const { user, logout, token, refreshUser } = useAuth();
   const accountName = useAccountName(user, token, refreshUser);
   const phoneChange = usePhoneChange(logout);
   const visits = useVisitSummary();
+  const device = useThisDevice();
   const preferences = useAccountPreferences(user?.preferences ?? [], token);
-  const notifications = useNotificationPreferences();
+  const notifications = useNotificationPreferences(token);
+
+  useProfileGuard(
+    {
+      name: accountName.name,
+      savedName: user?.name ?? '',
+      note: preferences.preferences,
+      savedNote: preferences.savedPreferences.join('\n'),
+    },
+    accountName.save,
+    preferences.save
+  );
 
   if (!user) return null;
 
@@ -38,6 +52,7 @@ export default function AccountPage() {
         name={accountName.name}
         phone={user.phone}
         visitCount={visits.state === 'ready' ? visits.pastCount : null}
+        device={device}
         saving={accountName.saving}
         canSave={!accountName.saving && accountName.name.trim() !== (user?.name ?? '')}
         error={accountName.error}
@@ -58,9 +73,10 @@ export default function AccountPage() {
       <AccountNotificationsCard
         preferences={notifications.preferences}
         saving={notifications.saving}
+        loaded={notifications.loaded}
         canSave={!notifications.saving && notifications.changed}
         saveStatus={notifications.status}
-        onChange={notifications.onChange}
+        onChange={notifications.change}
         onSave={notifications.save}
       />
       <AISection />

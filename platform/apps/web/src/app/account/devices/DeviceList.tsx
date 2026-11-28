@@ -1,12 +1,9 @@
 'use client';
 
-import type { ClientSession, ClientSessionChannel } from '@fade/contracts';
+import type { ClientSession } from '@fade/contracts';
 import { Badge, Card } from '@fade/ui';
 
-const CHANNEL_LABEL: Record<ClientSessionChannel, string> = {
-  web: 'Вебсайт',
-  mobile: 'Мобільний застосунок',
-};
+import { CHANNEL_LABEL } from './labels';
 
 function formatDate(iso: string): string {
   return new Intl.DateTimeFormat('uk-UA', { dateStyle: 'long', timeStyle: 'short' }).format(

@@ -4,6 +4,7 @@ import { HttpStatus } from '@nestjs/common';
 import { uuidv7 } from '@fade/domain-shared';
 import request from 'supertest';
 import { postWithRetry } from '@fade/test-utils';
+import { PaymentModule } from '../../payment/payment.module';
 import { lifecycleSuite, type LifecycleSuite } from './appointment-lifecycle.suite';
 
 const DATE = '2027-01-04'; // Monday: seedLifecycle opens Monday 08:00-18:00.
@@ -20,7 +21,7 @@ describe('Admin barber unavailability (e2e, Postgres)', () => {
     request(ctx.app.getHttpServer()).get(`/admin/shift-conflicts?barberId=${ctx.ids.barber1}`);
 
   beforeAll(async () => {
-    ctx = await lifecycleSuite({ admin: true, adminId: uuidv7() });
+    ctx = await lifecycleSuite({ admin: true, adminId: uuidv7(), modules: [PaymentModule] });
     const booking = await postWithRetry((body) => post('/admin/bookings', body), {
       barberId: ctx.ids.barber1,
       locationId: ctx.ids.location,

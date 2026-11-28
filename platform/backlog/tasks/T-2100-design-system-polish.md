@@ -1,6 +1,6 @@
 # T-2100 · Design system polish (20/20)
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, design, high-risk · **Complexity**: senior · **Dependencies**: T-004
+- **Stage**: M5 (phase 30) · **Tags**: design, high-risk · **Complexity**: senior · **Dependencies**: T-004
 - **StoryPoints**: 20
 
 ## What

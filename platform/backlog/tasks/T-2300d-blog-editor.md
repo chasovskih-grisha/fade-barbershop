@@ -1,6 +1,6 @@
 # T-2300d · Article Editor
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, backend, content · **Complexity**: middle · **Depends on**: T-2300a
+- **Stage**: M5 (phase 30) · **Tags**: frontend, content · **Complexity**: middle · **Depends on**: T-2300a
 - **StoryPoints**: 8
 
 ## What

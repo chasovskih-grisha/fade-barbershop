@@ -1,6 +1,6 @@
 # T-2600d · SEO Performance (8/38)
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, seo, performance · **Complexity**: senior · **Depends on**: T-030, T-032
+- **Stage**: M5 (phase 30) · **Tags**: frontend, performance · **Complexity**: senior · **Depends on**: T-030, T-032
 - **StoryPoints**: 8
 
 ## What

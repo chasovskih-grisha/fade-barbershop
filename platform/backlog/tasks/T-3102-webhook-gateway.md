@@ -1,6 +1,6 @@
 # T-3102 · Webhook-шлюз
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, integration, devops · **Complexity**: middle · **Depends on**: T-3100, T-3802
+- **Stage**: M6 (phase 40) · **Tags**: backend, integration · **Complexity**: middle · **Depends on**: T-3100, T-3802
 - **StoryPoints**: 15
 
 ## What

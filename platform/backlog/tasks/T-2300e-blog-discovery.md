@@ -1,6 +1,6 @@
 # T-2300e · Пошук, tags і сторінки стрічки
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, backend, content · **Complexity**: middle · **Depends on**: T-2300a
+- **Stage**: M5 (phase 30) · **Tags**: backend, content · **Complexity**: middle · **Depends on**: T-2300a
 - **StoryPoints**: 5
 
 ## What

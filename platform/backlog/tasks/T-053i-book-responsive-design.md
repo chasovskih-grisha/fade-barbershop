@@ -1,6 +1,6 @@
 # T-053i · Responsive design book.fade.com.ua
 
-- **Stage**: M1 (phase 4) · **Tags**: frontend, design · **Complexity**: junior · **Depends on**: T-053c, T-4508
+- **Stage**: M1 (phase 4) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-053c, T-4508
 - **StoryPoints**: 3
 
 ## What

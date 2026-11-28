@@ -182,7 +182,14 @@ describe('MarkBarberUnavailable', () => {
     const availability: ShiftConflictAvailability = {
       hasOtherBarber: async (conflict) => conflict.bookingId === 'booking-1',
     };
-    const list = new ListShiftConflicts({ conflicts, availability });
+    const list = new ListShiftConflicts({
+      conflicts,
+      availability,
+      names: {
+        clientName: async (clientId) => (clientId ? `клієнт ${clientId}` : null),
+        serviceName: async (serviceId) => (serviceId === 'service-1' ? 'Стрижка' : null),
+      },
+    });
 
     const rows = await list.execute({ barberId: 'b1' });
 
@@ -191,6 +198,8 @@ describe('MarkBarberUnavailable', () => {
       bookingId: 'booking-1',
       clientId: 'client-1',
       serviceId: 'service-1',
+      clientName: 'клієнт client-1',
+      serviceName: 'Стрижка',
       otherBarberAvailable: true,
     });
     expect(rows[0]?.start).toEqual(new Date('2026-11-24T09:00:00.000Z'));

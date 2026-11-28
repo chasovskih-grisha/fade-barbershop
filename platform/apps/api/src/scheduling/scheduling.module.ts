@@ -26,9 +26,13 @@ import { NudgeExpiringHolds } from './application/nudge-expiring-holds';
 import { PrismaExpiringHoldNotice } from './infrastructure/prisma-expiring-hold-notice';
 import { AdminCalendar } from './application/admin-calendar';
 import { ListClientAppointments } from './application/list-client-appointments';
+import { AdminBookingDetail } from './application/admin-booking-detail';
+import { BookAgainIntentReader } from './application/book-again-intent';
 import { REFERENCE_PHOTO_URLS, type ReferencePhotoUrls } from './application/reference-photo-urls';
 import { HaircutAiReferencePhotoUrls } from './infrastructure/reference-photo-urls.adapter';
 import { AppointmentHistoryProjection } from './infrastructure/appointment-history.projection';
+import { PrismaAppointmentHistoryRepository } from './infrastructure/prisma-appointment-history.repository';
+import { referencePhotoProviders } from './infrastructure/reference-photo.providers';
 import { PrismaService } from '../shared/prisma/prisma.service';
 import { PrismaSessionRepository } from '../identity/infrastructure/prisma-session-repository';
 import { ClientSessionGuard } from '../identity/infrastructure/client-session.guard';
@@ -53,6 +57,12 @@ import { AdminAvailabilityController } from './infrastructure/admin-availability
 import { BarberAppointmentsController } from './infrastructure/barber-appointments.controller';
 import { BarberScheduleController } from './infrastructure/barber-schedule.controller';
 import { AdminScheduleLogController } from './infrastructure/admin-schedule-log.controller';
+import { AdminCalendarController } from './infrastructure/admin-calendar.controller';
+import { AdminBookingDetailController } from './infrastructure/admin-booking-detail.controller';
+import { ClientAppointmentsController } from './infrastructure/client-appointments.controller';
+import { ClientCancelController } from './infrastructure/client-cancel.controller';
+import { ClientAppointmentListController } from './infrastructure/client-appointment-list.controller';
+import { ClientBookAgainController } from './infrastructure/client-book-again.controller';
 import {
   AdminScheduleChangeController,
   ClientScheduleChangeController,
@@ -67,8 +77,14 @@ import {
   controllers: [
     NoShowStagedResponseController,
     ExportController,
-    
-    CalendarExportController,   AdminBookingsController,
+    CalendarExportController,
+    AdminBookingsController,
+    AdminBookingDetailController,
+    AdminCalendarController,
+    ClientAppointmentsController,
+    ClientCancelController,
+    ClientAppointmentListController,
+    ClientBookAgainController,
     AdminAppointmentsController,
     AdminAppointmentRescheduleController,
     AdminAppointmentReferenceController,
@@ -114,7 +130,11 @@ import {
     ...scheduleSelfServiceProviders,
     // T-4458: заявки на зміну часу, згода клієнта й перенесення.
     ...scheduleChangeProviders,
+    // T-045: деталі візиту й «записатися ще раз» — порти для своїх контролерів.
+    AdminBookingDetail,
+    BookAgainIntentReader,
     // T-4534: история статусів візитів (projection + repository).
+    PrismaAppointmentHistoryRepository,
     AppointmentHistoryProjection,
     // T-4619a: in-process тік звільняє крісла з простроченим утриманням.
     DepositHoldSweeper,
@@ -129,7 +149,7 @@ import {
     DepositHoldNudgeWorker,
     // Порт ReferencePhotoUrls — інтерфейс, тож Nest резоллює його лише через
     // явний токен (emitDecoratorMetadata стирає тип до Object).
-    HaircutAiReferencePhotoUrls,
+    ...referencePhotoProviders,
     { provide: REFERENCE_PHOTO_URLS, useExisting: HaircutAiReferencePhotoUrls },
     {
       provide: AdminCalendar,

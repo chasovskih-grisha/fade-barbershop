@@ -1,6 +1,6 @@
 # T-043 · Haircut Reference + Appointment Comment
 
-- **Stage**: M1 (phase 4) · **Tags**: backend, frontend · **Complexity**: middle · **Depends on**: T-041
+- **Stage**: M1 (phase 4) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-041
 - **StoryPoints**: 5
 
 ## What
@@ -100,3 +100,18 @@ Coverage: web **90/90** (21 suite), api unit **796/796**. Live: OTP via Mailpit 
 
 - [x] **Migrations**: schema changes break existing data — migration with backfill plan (nullable columns, no backfill — existing rows valid)
 - [x] **Domain events**: subscriptions are idempotent (ADR 0009/0016 pattern) (event written atomically with log; subscribers — T-061)
+
+### Re-verified at 78dab8f8 (2026-11-26)
+
+`grep -rn reference_changed apps/api/src` finds only the admin label
+(`scheduling/application/admin-booking-detail.events.ts:13`), the use case and its specs — there is no
+subscriber module, so the open Done item (idempotent subscription) is genuine backend work, while this
+row is tagged `frontend`. Unblock: a `backend` slice for the subscriber, or retag the row.
+
+## Re-verified at 91202f68
+
+Every `Done` box is ticked except the idempotent `reference_changed` subscriber, and that consumer
+still does not exist: `grep -rn reference_changed apps/api/src` finds the event class
+(`scheduling/domain/appointment.events.ts:71`), the use case and the outbox assertions, but no
+subscriber. That is backend work while the row is tagged `frontend`, and it depends on T-041
+(`todo`). Unblocks with a backend row that owns the subscriber.

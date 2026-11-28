@@ -1,6 +1,6 @@
 # T-4720c · Phone change from the app profile
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, ux, mobile, identity · **Complexity**: middle · **Depends on**: T-4720a
+- **Stage**: M1 (phase 3) · **Tags**: mobile, ux, identity · **Complexity**: middle · **Depends on**: T-4720a
 - **StoryPoints**: 5
 
 ## What
@@ -18,9 +18,9 @@ The app profile does not show a phone, so the client cannot start a change the s
 
 ## Done
 
-- [ ] The profile shows the phone and starts the existing change
-- [ ] Success opens sign-in
-- [ ] A collision uses the same refusal as the site
+- [x] The profile shows the phone and starts the existing change
+- [x] Success opens sign-in
+- [x] A collision uses the same refusal as the site
 
 ## Risks
 

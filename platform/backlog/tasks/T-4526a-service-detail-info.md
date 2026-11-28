@@ -1,6 +1,6 @@
 # T-4526a · Інфо-блоки послуги (4/8)
 
-- **Stage**: M3 (phase 14) · **Tags**: frontend, design · **Complexity**: middle · **Depends on**: T-024, T-4419, T-4521
+- **Stage**: M3 (phase 14) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-024, T-4419, T-4521
 - **StoryPoints**: 4
 
 ## What

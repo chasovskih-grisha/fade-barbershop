@@ -1,6 +1,6 @@
 # T-4828b · Slice: find a studio on the app list
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4828, T-4843
+- **Stage**: M5 (phase 30) · **Tags**: mobile, ux · **Complexity**: junior · **Depends on**: T-4828, T-4843
 - **StoryPoints**: 3
 
 ## What

@@ -1,6 +1,6 @@
 # T-4529 · Детальна сторінка дня (календар + підсумки)
 
-- **Stage**: M3 (phase 14) · **Tags**: frontend, backend, analytics, design · **Complexity**: middle · **Depends on**: T-045, T-110, T-4522, T-4524
+- **Stage**: M3 (phase 14) · **Tags**: frontend, analytics · **Complexity**: middle · **Depends on**: T-045, T-110, T-4522, T-4524
 - **StoryPoints**: 8
 
 ## What

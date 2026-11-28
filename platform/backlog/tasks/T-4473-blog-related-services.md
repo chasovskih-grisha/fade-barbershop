@@ -1,6 +1,6 @@
 # T-4473 · Блог: пов'язані послуги
 
-- **Stage**: M5 (phase 10) · **Tags**: backend, content, seo · **Complexity**: junior · **Depends on**: T-2300b
+- **Stage**: M5 (phase 10) · **Tags**: backend, content · **Complexity**: junior · **Depends on**: T-2300b
 - **StoryPoints**: 3
 
 ## What

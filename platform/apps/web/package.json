@@ -11,13 +11,15 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage"
+    "test:cov": "jest --coverage",
+    "e2e:a11y": "playwright test e2e/a11y.spec.ts"
   },
   "dependencies": {
     "@fade/brand-assets": "workspace:*",
     "@fade/contracts": "workspace:*",
     "@fade/design-tokens": "workspace:*",
     "@fade/ui": "workspace:*",
+    "leaflet": "^1.9.4",
     "next": "^15.5.27",
     "next-intl": "^4.9.2",
     "react": "^18.3.1",
@@ -26,6 +28,7 @@
     "zod": "^4.6.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.1",
     "@babel/core": "^7.23.0",
     "@babel/preset-env": "^7.23.0",
     "@babel/runtime": "7.29.7",
@@ -35,6 +38,7 @@
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.0.0",
     "@types/jest": "^29.5.2",
+    "@types/leaflet": "^1.9.22",
     "@types/node": "^20.3.1",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",

@@ -19,18 +19,38 @@ Two back links teach two maps of the same directory.
 - `apps/web/src/app/barbers/[slug]/BarberDetailContent.tsx`
 - T-4477a (the schema breadcrumb stays there)
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/barbers/BarberBreadcrumb.tsx
+- apps/web/src/app/barbers/BarbersClient.tsx
+- apps/web/src/app/barbers/[slug]/BarberDetailContent.tsx
+- apps/web/src/app/barbers/__tests__/barber-breadcrumb.test.tsx
+
+Checks:
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/barber-breadcrumb.test.tsx`
+
 ## Done
 
-- [ ] The listing crumb is Home → Barbers, and Barbers is not a link
-- [ ] The profile adds the person’s name as the current item
-- [ ] The old back-link sentences are gone
-- [ ] A test covers both pages
+- [x] The listing crumb is Home → Barbers, and Barbers is not a link
+- [x] The profile adds the person’s name as the current item
+- [x] The old back-link sentences are gone
+- [x] A test covers both pages
 
 ## Risks
 
-- [ ] **A long name wrapping over the portrait.** The crumb is one block above the title and does not overlay the photo
+- [x] **A long name wrapping over the portrait.** The crumb is one block above the title and does not overlay the photo
 
 ## Out of scope
 
 - Schema.org BreadcrumbList (T-4477a)
 - The app back control (T-4867)
+
+## Implementation notes
+
+- apps/web/src/app/barbers/BarberBreadcrumb.tsx
+- apps/web/src/app/barbers/__tests__/barber-breadcrumb.test.tsx
+
+## QA
+
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/barber-breadcrumb.test.tsx` exit 0

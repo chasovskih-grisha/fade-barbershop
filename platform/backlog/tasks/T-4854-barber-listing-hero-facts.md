@@ -13,6 +13,17 @@ The hero keeps a title and one short line. The three statistic cards are removed
 
 A directory that opens with a fake score has already spent the guest’s trust.
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/barbers/BarbersHeader.tsx
+- apps/web/src/app/barbers/BarbersHighlights.tsx
+- apps/web/src/app/barbers/page.tsx
+- apps/web/src/app/barbers/__tests__/hero-facts.test.tsx
+
+Checks:
+- pnpm --filter @fade/web exec jest apps/web/src/app/barbers/__tests__/hero-facts.test.tsx
+
 ## Sources
 
 - `apps/web/src/app/barbers/page.tsx`
@@ -20,9 +31,9 @@ A directory that opens with a fake score has already spent the guest’s trust.
 
 ## Done
 
-- [ ] The strings «5+ років» and «100%» are not on the listing
-- [ ] The description does not mention вільні вікна or ціни
-- [ ] A test reads the hero and the metadata
+- [x] The strings «5+ років» and «100%» are not on the listing
+- [x] The description does not mention вільні вікна or ціни
+- [x] A test reads the hero and the metadata
 
 ## Risks
 
@@ -32,3 +43,12 @@ A directory that opens with a fake score has already spent the guest’s trust.
 
 - Real tenure computed from hire dates
 - Prices on the profile (T-4477a) and free windows (T-130)
+
+## Implementation notes
+
+- apps/web/src/app/barbers/BarbersHeader.tsx
+- apps/web/src/app/barbers/__tests__/hero-facts.test.tsx
+
+## QA
+
+- `pnpm --filter @fade/web exec jest apps/web/src/app/barbers/__tests__/hero-facts.test.tsx` exit 0

@@ -1,27 +1,25 @@
-import type { CabinetStatus, ExtendedAppointment } from '@/lib/api/appointments';
+import type { ExtendedAppointment } from '@/lib/api/appointments';
+import type { DepositTerms } from '@/lib/api/appointment-types';
 
-/**
- * Фабрика візиту для тестів кабінету. Один вхід — щоб тест міняв лише те,
- * що перевіряє (статус, референс), а не мовчки тримав застарілі
- * поля контракту: після їхнього видалення TypeScript сам нагадає про себе.
- */
-export function makeVisit(
-  overrides: Partial<ExtendedAppointment> & { id?: string; status?: CabinetStatus } = {}
-): ExtendedAppointment {
-  return {
-    id: 'apt-1',
-    date: '2026-10-02',
-    startTime: '11:00',
-    endTime: '11:45',
-    serviceName: 'Стрижка',
-    barberName: 'Олексій',
-    locationName: 'Поділ',
-    price: 600,
-    status: 'upcoming',
-    referenceId: null,
-    referenceComment: '',
-    canEditReference: true,
-    canBookAgain: true,
-    ...overrides,
-  };
+const base: ExtendedAppointment = {
+  id: 'v1',
+  date: '2026-12-04',
+  startTime: '14:00',
+  endTime: '15:00',
+  serviceName: 'Стрижка',
+  barberName: 'Олександр',
+  locationName: 'Центр',
+  price: 600,
+  status: 'confirmed',
+  referenceId: null,
+  referenceComment: '',
+  canEditReference: true,
+  canBookAgain: true,
+  deposit: null,
+};
+
+export function makeVisit(over: Partial<ExtendedAppointment> = {}): ExtendedAppointment {
+  const merged = { ...base, ...over };
+  const deposit: DepositTerms | null = merged.deposit ?? null;
+  return { ...merged, deposit };
 }

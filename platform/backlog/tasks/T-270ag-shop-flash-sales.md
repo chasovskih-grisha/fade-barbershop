@@ -1,6 +1,6 @@
 # T-270ag · Shop Flash Sales and Promotional Events
 
-- **Stage**: M4 (phase 23) · **Tags**: shop, marketing, backend, frontend · **Complexity**: middle · **Depends on**: T-270, T-270f
+- **Stage**: M4 (phase 23) · **Tags**: shop, marketing, frontend · **Complexity**: middle · **Depends on**: T-270, T-270f
 - **StoryPoints**: 5
 
 ## What

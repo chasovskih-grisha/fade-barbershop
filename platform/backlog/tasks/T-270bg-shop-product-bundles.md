@@ -1,6 +1,6 @@
 # T-270bg · Product bundles shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: middle · **Dependencies**: T-270c, T-270
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: middle · **Dependencies**: T-270c, T-270
 - **StoryPoints**: 5
 
 ## What

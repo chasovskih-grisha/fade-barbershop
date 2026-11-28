@@ -17,6 +17,7 @@ export default function RootLayout() {
         <Stack.Screen name="(client)/account/appointments" options={{ title: 'Мої візити' }} />
         <Stack.Screen name="(client)/account/devices" options={{ title: 'Пристрої' }} />
         <Stack.Screen name="(client)/account/profile" options={{ title: 'Профіль' }} />
+        <Stack.Screen name="(client)/barber-schedule" options={{ title: 'Мій графік' }} />
       </Stack>
     </ErrorBoundary>
   );

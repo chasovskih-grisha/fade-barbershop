@@ -74,3 +74,13 @@ interface EventDef {
 - [ ] **Over-tracking**: не створювати подію на кожен клік — лише business-meaningful steps
 - [ ] **Property explosion**: обмежити до 10-15 властивостей на подію, решта — в окремі lookup таблиці
 - [ ] **Schema drift**: CI гейт — валідація подій проти схем (amplitude-js typegen або custom script)
+
+## Gate evidence (T-5015)
+
+`agent-gate qa` cannot finish this row under the current rules: `qaTask` requires the review commit to
+contain a test file listed in the plan (`review does not add a test from the implementation plan`), and
+this task's deliverable is a taxonomy document. No seat owns `docs/` — `frontend` owns only
+`apps/web`, `backend` owns `apps/api` and `packages/`, `qa` owns `apps/api/src/e2e` — so a docs-only
+diff can never satisfy `reviewGaps` (≥3 code lines in an owned product file plus a new `it(`) either.
+The plan is therefore a document review, not an executable check, and the row stays in `review` until
+a seat that owns documentation exists.

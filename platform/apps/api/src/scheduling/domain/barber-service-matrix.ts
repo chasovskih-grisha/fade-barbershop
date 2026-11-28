@@ -7,6 +7,26 @@ import type { BarberServiceAssignmentSnapshot } from './ports.barber-service-ass
 /** { barberId: { locationId: Set<serviceId> } } — форма снапшота матриці. */
 export type BarberServiceMatrix = BarberServiceAssignmentSnapshot['matrix'];
 
+/**
+ * Зі списку `barberIds` — ті, яких матриця не допускає до `serviceId` у локації.
+ * Порожній результат означає «усі допущені» (фолбек порожньої матриці — дефолт
+ * «барбер виконує всі активні послуги локації»). Потрібно там, де барберів уже
+ * обрано (партія «батько і син», T-044): пара стоїть лише в майстрів зі спільною
+ * послугою, інакше клієнт записався б до того, хто послугу не робить.
+ */
+export function barbersOutsideService(
+  matrix: BarberServiceMatrix,
+  input: { locationId: string; serviceId: string; barberIds: Iterable<string> }
+): string[] {
+  const wanted = [...new Set(input.barberIds)];
+  const allowed = barbersForService(
+    matrix,
+    { locationId: input.locationId, serviceId: input.serviceId },
+    wanted
+  );
+  return wanted.filter((barberId) => !allowed.has(barberId));
+}
+
 /** Барбери, які виконують `serviceId` у `locationId`; без збігів → `fallback`. */
 export function barbersForService(
   matrix: BarberServiceMatrix,

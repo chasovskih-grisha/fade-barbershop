@@ -1,6 +1,6 @@
 # T-4821 · The listing and the studio page name the studio’s city
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, design · **Complexity**: middle · **Depends on**: T-4405, T-030
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: middle · **Depends on**: T-4405, T-030
 - **StoryPoints**: 8
 
 ## What

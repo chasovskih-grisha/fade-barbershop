@@ -21,9 +21,9 @@ The card already edits the note. It waits for an English 400 to explain the limi
 
 ## Done
 
-- [ ] 21 lines do not call the route
-- [ ] A 101-character line shows the Ukrainian sentence
-- [ ] A note within the limit still saves
+- [x] 21 lines do not call the route
+- [x] A 101-character line shows the Ukrainian sentence
+- [x] A note within the limit still saves
 
 ## Risks
 

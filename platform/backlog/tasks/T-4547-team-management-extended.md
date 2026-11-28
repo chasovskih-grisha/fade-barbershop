@@ -1,6 +1,6 @@
 # T-4547 · Team management: specialties, breaks, vacations, commission rules, performance
 
-- **Stage**: M4 (phase 16+) · **Tags**: backend, frontend, hr · **Complexity**: middle · **Dependencies**: T-023, T-3300, T-4420, T-4447, T-4546
+- **Stage**: M4 (phase 16+) · **Tags**: backend, hr · **Complexity**: middle · **Dependencies**: T-023, T-3300, T-4420, T-4447, T-4546
 - **StoryPoints**: 13
 
 ## What

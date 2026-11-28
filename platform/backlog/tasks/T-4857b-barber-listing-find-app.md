@@ -1,6 +1,6 @@
 # T-4857b · Slice: find a barber in the app
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4857, T-4866
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: junior · **Depends on**: T-4857, T-4866
 - **StoryPoints**: 3
 
 ## What

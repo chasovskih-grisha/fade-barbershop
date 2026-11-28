@@ -1,6 +1,6 @@
 # T-4533 · Перенос запису зі збереженням зв’язків та історії
 
-- **Stage**: M1 (phase 4) · **Tags**: backend, frontend, integration, high-risk · **Complexity**: senior · **Depends on**: T-040, T-042, T-045
+- **Stage**: M1 (phase 4) · **Tags**: backend, integration, high-risk · **Complexity**: senior · **Depends on**: T-040, T-042, T-045
 - **StoryPoints**: 8
 
 ## What

@@ -1,7 +1,8 @@
 # T-4616 · Barber unable to work on a day with existing bookings
 
-- **Stage**: M2 (phase 7) · **Tags**: backend, frontend, scheduling · **Complexity**: senior · **Depends on**: T-042, T-4533, T-080
+- **Stage**: M2 (phase 7) · **Tags**: backend, scheduling · **Complexity**: senior · **Depends on**: T-042, T-4533, T-080
 - **StoryPoints**: 16
+- **Policy**: [ADR 0056](../../docs/adr/0056-barber-unavailability-conflicts.md)
 
 ## What
 
@@ -15,6 +16,8 @@ A single operational workflow is needed:
 2. For each conflict, the founder chooses: reschedule to another barber who performs this service and has an opening, or cancel. The client receives a single notification with the outcome.
 3. The chair is freed only after a decision is made, not at the moment of marking.
 
+This is the **only** policy for existing visits. Planned leave (T-4447) is another producer of the same unavailability mark and the same conflict queue — it is not a second automatic-reschedule path.
+
 Barbers do not reschedule other people's visits themselves. They only report that they won't be able to work. The decision regarding people remains with the founder (the same rule as in schedule self-service, phase 22).
 
 ## Why
@@ -24,6 +27,7 @@ Two chairs and one sick barber means half a day's salon capacity. Without a conf
 ## Sources
 
 - `docs/roadmap.md` phase 22 (barber does not reschedule clients themselves; admin decides)
+- ADR 0056 (one policy: mark, conflict per visit, founder decision)
 - ADR 0009 (event per visit, retry does not create a second reschedule)
 - T-042 (lifecycle), T-4533 (reschedule), T-080 (notification channel)
 - T-4521 (which barbers actually perform the service)
@@ -33,6 +37,7 @@ Two chairs and one sick barber means half a day's salon capacity. Without a conf
 - [ ] Slices a and b in status `done`
 - [ ] No visit changes status simply because a barber is marked unavailable
 - [ ] The client receives no more than one notification per decision
+- [ ] Planned leave from T-4447 uses the same mark/conflict/resolve path; no second automatic path exists
 
 ## Risks
 
@@ -43,6 +48,7 @@ Two chairs and one sick barber means half a day's salon capacity. Without a conf
 ## Out of scope
 
 - HR vacations and sick leave tracking — **T-4547**
+- Planned-leave entry, approval and calendar surface — **T-4447** (consumes this workflow; it does not redefine it)
 - Priority queue marker — **T-4574**. It can reference here once the conflict list exists
 - Standalone barber schedule editor — phase 22
 - No-show policy — phase 16

@@ -11,6 +11,8 @@ import { RumReporter } from './components/RumReporter';
 import { AnalyticsTracker } from './components/AnalyticsTracker';
 import { ConversionIntelligenceTracker } from './components/ConversionIntelligenceTracker';
 import { PwaRegistrar } from './components/PwaRegistrar';
+import { getLocations } from '@/lib/api/locations';
+import { isBookingOpen } from '@/lib/api/booking-readiness';
 
 // Кореневий layout публічного сайту (T-4508): спільний shell + SEO-шаблон сторінок.
 // Метадані сторінок перевизначають `title`/`description` через pageMetadata (lib/metadata).
@@ -23,7 +25,7 @@ export const metadata: Metadata = {
     default: 'Fade — барбершоп у Києві, запис онлайн',
     template: '%s · Fade',
   },
-  description: 'Мережа барбершопів: запис за 10 секунд, ціни й вільні вікна онлайн.',
+  description: 'Мережа барбершопів Fade: студії, майстри, послуги та онлайн-запис.',
   applicationName: 'Fade',
   formatDetection: { telephone: false },
   manifest: '/manifest.webmanifest',
@@ -44,6 +46,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   const messages = await getMessages();
+  const bookingOpen = isBookingOpen(await getLocations());
   return (
     <html lang={locale}>
       <body>
@@ -53,7 +56,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ConversionIntelligenceTracker />
           <PwaRegistrar />
           <AuthProvider>
-            <PublicShell>{children}</PublicShell>
+            <PublicShell bookingOpen={bookingOpen}>{children}</PublicShell>
           </AuthProvider>
         </NextIntlClientProvider>
       </body>

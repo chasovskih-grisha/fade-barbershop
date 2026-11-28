@@ -26,6 +26,13 @@ A single banner makes a failed preference save look like the name was lost, and 
 - [ ] Saving the name leaves the preference button usable
 - [ ] A preference error does not change the name banner
 
+## Audit 2026-11-24
+
+Reopened to `in_progress`: the parent was marked `done` while slice a is
+`in_progress`, slice b is `review`, and slice c is still `todo`. The web page has
+separate `saving` booleans for name/preferences/notifications, but the parent’s
+Done criteria cannot be claimed before the spec, web review, and app slice close.
+
 ## Risks
 
 - [ ] **Autosave on every keystroke.** Each section still has an explicit save. This task only separates them

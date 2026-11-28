@@ -2,17 +2,20 @@
 // /admin/barber-service; порожні рядки = «робить усі послуги» (fallback),
 // тож перше зняття чекбокса матеріалізує рядки решти послуг.
 
+import {
+  categoriesOf,
+  toMatrixService,
+  UNCATEGORIZED,
+  type MatrixService,
+} from './barber-matrix-categories';
+
 const IO = '/admin/barber-service';
 
-type CatalogPrice = { locationId: string; active?: boolean };
-type CatalogEntry = {
-  id: string;
-  name: string;
-  active?: boolean;
-  prices?: CatalogPrice[];
-};
+type CatalogEntry = { id: string; name: string; category?: string; active?: boolean; prices?: CatalogPrice[] };
 
-export type MatrixService = { id: string; name: string };
+type CatalogPrice = { locationId: string; active?: boolean };
+export { categoriesOf, UNCATEGORIZED };
+export type { MatrixService } from './barber-matrix-categories';
 
 /** Активні послуги, що мають ціну на цій локації (каталог локації). */
 export async function locationServices(locationId: string): Promise<MatrixService[]> {
@@ -24,7 +27,7 @@ export async function locationServices(locationId: string): Promise<MatrixServic
     .filter((service) =>
       service.prices?.some((price) => price.locationId === locationId && price.active !== false)
     )
-    .map((service) => ({ id: service.id, name: service.name }));
+    .map(toMatrixService);
 }
 
 /** Сет активних рядків матриці барбера на локації; порожній — «усі послуги». */
@@ -81,4 +84,36 @@ export async function toggleService(input: {
     next.add(service.id);
   }
   return next;
+}
+
+/**
+ * Режим «за категоріями» (T-4521b): матриця = усі послуги обраних категорій.
+ * Повертає новий активний сет; порожній сет означає «усі» лише тоді, коли
+ * обрано всі категорії — інакше рядки решти послуг матеріалізуються.
+ */
+export async function applyCategories(input: {
+  barberId: string;
+  locationId: string;
+  services: MatrixService[];
+  assigned: Set<string>;
+  categories: string[];
+}): Promise<Set<string>> {
+  const { barberId, locationId, services, assigned, categories } = input;
+  const chosen = new Set(categories);
+  const target = new Set(
+    categoriesOf(services)
+      .filter((group) => chosen.has(group.name))
+      .flatMap((group) => group.serviceIds)
+  );
+  const current = assigned.size > 0 ? new Set(assigned) : new Set(services.map((s) => s.id));
+  const base = `${IO}/assignments/${barberId}/${locationId}`;
+  for (const service of services) {
+    const want = target.has(service.id);
+    if (want && !current.has(service.id)) {
+      await call(`${IO}/assignments`, 'POST', { barberId, locationId, serviceId: service.id });
+    } else if (!want && current.has(service.id)) {
+      await call(`${base}/${service.id}/deactivate`, 'PATCH');
+    }
+  }
+  return target;
 }

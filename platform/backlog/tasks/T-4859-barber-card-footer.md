@@ -17,16 +17,34 @@ A card that offers a portfolio, a slot, and a selection, and then opens one page
 
 - `apps/web/src/app/barbers/BarberCard.tsx`
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/barbers/BarberCard.tsx
+- apps/web/src/app/barbers/__tests__/BarberCard.test.tsx
+
+Checks:
+- npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/BarberCard.test.tsx
+
 ## Done
 
-- [ ] The footer does not say "free slots"
-- [ ] The card has a single href, the profile
-- [ ] A test asserts that href and the absence of the slot sentence
+- [x] The footer does not say "free slots"
+- [x] The card has a single href, the profile
+- [x] A test asserts that href and the absence of the slot sentence
 
 ## Risks
 
-- [ ] **A nested link.** There is no second anchor inside the card
+- [x] **A nested link.** There is no second anchor inside the card
 
 ## Out of scope
 
 - The book control on the profile (T-4477b, T-4860)
+
+## Implementation notes
+
+- apps/web/src/app/barbers/BarberCard.tsx
+- apps/web/src/app/barbers/__tests__/BarberCard.test.tsx
+
+## QA
+
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/BarberCard.test.tsx` exit 0

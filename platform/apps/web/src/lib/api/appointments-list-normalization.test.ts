@@ -43,6 +43,7 @@ describe('список візитів — нормалізація', () => {
         referenceComment: '',
         canEditReference: true,
         canBookAgain: true,
+        cancelReason: null,
         deposit: null,
       },
     ]);

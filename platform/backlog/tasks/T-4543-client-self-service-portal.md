@@ -1,6 +1,6 @@
 # T-4543 · Client self-service portal: appointments, loyalty, memberships, gift cards, payments
 
-- **Stage**: M2 (phase 5-6) · **Tags**: frontend, backend, crm · **Complexity**: middle · **Depends on**: T-032, T-060, T-061, T-140, T-142, T-210, T-211, T-3901
+- **Stage**: M2 (phase 5-6) · **Tags**: frontend, crm · **Complexity**: middle · **Depends on**: T-032, T-060, T-061, T-140, T-142, T-210, T-211, T-3901
 - **StoryPoints**: 13
 
 ## What

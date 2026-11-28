@@ -1,6 +1,6 @@
 # T-273 · Full Online Shop: Cart, Checkout, Nova Poshta, Receipts
 
-- **Stage**: M5 (phase 27) · **Tags**: — · **Complexity**: — · **Depends on**: T-272, T-091 (acquiring), T-080
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: — · **Depends on**: T-272, T-091 (acquiring), T-080
 
 ## What
 

@@ -1,10 +1,10 @@
 /* eslint-disable max-lines -- T-4616a: per-visit isolation fixtures and replay assertions. */
 // T-4616a: рішення по кожному візиту окремо; збій одного не відкочує інші,
 // повторне рішення для closed — no-op без другої події.
+import { BARBER_UNAVAILABLE_CANCEL_REASON } from '@fade/contracts';
 import { closeConflict, type ShiftConflictData } from '../domain/barber-unavailability';
 import type { ShiftConflictRepository } from '../domain/shift-conflict-ports';
 import type { BarberServiceAssignmentSnapshot } from '../domain/ports.barber-service-assignment';
-import type { DayOffData } from '../domain/day-off';
 import { ResolveShiftConflict } from './resolve-shift-conflict.use-case';
 
 const at = new Date('2026-11-23T08:00:00.000Z');
@@ -66,7 +66,6 @@ const matrix: BarberServiceAssignmentSnapshot = {
 const setup = (
   options: {
     unavailableBarbers?: string[];
-    dayOffs?: DayOffData[];
     partyBookings?: Record<string, string[]>;
   } = {}
 ) => {
@@ -88,10 +87,6 @@ const setup = (
     barberServices: { snapshotForLocation: async () => matrix },
     unavailabilities: {
       covers: async ({ barberId }) => (options.unavailableBarbers ?? []).includes(barberId),
-    },
-    dayOffs: {
-      findByBarberId: async (barberId) =>
-        (options.dayOffs ?? []).filter((dayOff) => dayOff.barberId === barberId),
     },
     reschedule: {
       handle: async (cmd) => {
@@ -147,7 +142,10 @@ describe('ResolveShiftConflict', () => {
     expect(ctx.transactions()).toBe(3);
     expect(ctx.rescheduled).toHaveLength(1);
     expect(ctx.cancelled).toEqual([
-      expect.objectContaining({ appointmentId: 'appointment-c3', reason: 'barber unavailable' }),
+      expect.objectContaining({
+        appointmentId: 'appointment-c3',
+        reason: BARBER_UNAVAILABLE_CANCEL_REASON,
+      }),
     ]);
     expect(ctx.conflicts.rows.find((row) => row.id === 'c1')).toMatchObject({
       status: 'closed',
@@ -176,26 +174,6 @@ describe('ResolveShiftConflict', () => {
 
     await expect(ctx.resolve.execute(reassign('c1', 'b2'))).rejects.toThrow(
       'Barber is unavailable for this slot'
-    );
-    expect(ctx.rescheduled).toEqual([]);
-    expect(ctx.conflicts.rows[0]?.status).toBe('open');
-  });
-
-  it('rejects reassigning to a barber on leave when day-off data is available', async () => {
-    const ctx = setup({
-      dayOffs: [
-        {
-          id: 'day-off-1',
-          barberId: 'b2',
-          from: '2026-11-24',
-          to: '2026-11-24',
-          reason: 'vacation',
-        },
-      ],
-    });
-
-    await expect(ctx.resolve.execute(reassign('c1', 'b2'))).rejects.toThrow(
-      'Barber is on leave for this date'
     );
     expect(ctx.rescheduled).toEqual([]);
     expect(ctx.conflicts.rows[0]?.status).toBe('open');
@@ -244,8 +222,14 @@ describe('ResolveShiftConflict', () => {
     await ctx.resolve.execute({ conflictId: 'c4', actorId: 'admin-1', decision: 'cancel' });
 
     expect(ctx.cancelled).toEqual([
-      expect.objectContaining({ appointmentId: 'booking-father', reason: 'barber unavailable' }),
-      expect.objectContaining({ appointmentId: 'booking-son', reason: 'barber unavailable' }),
+      expect.objectContaining({
+        appointmentId: 'booking-father',
+        reason: BARBER_UNAVAILABLE_CANCEL_REASON,
+      }),
+      expect.objectContaining({
+        appointmentId: 'booking-son',
+        reason: BARBER_UNAVAILABLE_CANCEL_REASON,
+      }),
     ]);
     expect(ctx.conflicts.rows.find((row) => row.id === 'c4')).toMatchObject({
       partyId: 'party-1',

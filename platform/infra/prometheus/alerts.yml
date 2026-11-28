@@ -76,3 +76,39 @@ groups:
         annotations:
           summary: 'Booking latency burn rate > 6x (6h + 30m)'
           description: 'Стійке спалення бюджету latency booking — перевірити слоти/БД (docs/slo.md §3).'
+
+  # Застосункові алерти (T-6011a): недоступність, 5xx і латентність по застосунках.
+  # Недоступність — спільне правило на всі fade-цілі: `up` є для кожного scrape-job,
+  # тож правило оживає щойно в prometheus.yml з'являється fade-web/fade-admin.
+  - name: apps
+    rules:
+      - alert: AppTargetDown
+        expr: up{job=~"fade-(api|web|admin)"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: '{{ $labels.job }} is down ({{ $labels.instance }})'
+          description: 'Скрап не бачить ціль 2 хвилини — застосунок не відповідає на /metrics.'
+
+      - alert: ApiHigh5xxRate
+        expr: |
+          sum(rate(fade_http_requests_total{job="fade-api",code="5xx"}[5m]))
+          / sum(rate(fade_http_requests_total{job="fade-api"}[5m])) > 0.05
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'api: >5% відповідей 5xx за 5m'
+          description: 'Частка серверних помилок api вище 5% — дивитись логи §2 і трейси.'
+
+      - alert: WebPoorLcpShare
+        expr: |
+          sum(rate(fade_web_vitals_samples_total{job="fade-web",metric="LCP",rating="poor"}[30m]))
+          / sum(rate(fade_web_vitals_samples_total{job="fade-web",metric="LCP"}[30m])) > 0.25
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'web: >25% семплів LCP у рейтингу poor'
+          description: 'Core Web Vitals деградують (T-4204 RUM) — перевірити останній реліз web.'

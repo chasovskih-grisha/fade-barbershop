@@ -3,6 +3,8 @@ import { ScrollView, Text, View, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { fetchLocations, LocationDto } from '../../../../lib/api/locations';
 import { LocationChairLine } from '../../../../components/LocationChairLine';
+import { LocationMapPin } from '../../../../components/LocationMapPin';
+import { LocationGallery } from '../../../../components/LocationGallery';
 import { styles } from '../../../index.styles';
 
 export default function LocationScreen() {
@@ -71,10 +73,12 @@ export default function LocationScreen() {
       <Text style={styles.hero} testID="studio-name">
         {location.name}
       </Text>
-      <Text style={styles.heroSub} testID="studio-address">
+      <Text style={styles.heroSub} testID="studio-address" selectable>
         {location.address}
       </Text>
+      <LocationMapPin address={location.address} lat={location.lat} lng={location.lng} />
       <LocationChairLine chairs={location.chairs} />
+      <LocationGallery photos={location.photos} />
 
       <View style={{ marginTop: 24 }}>
         <Pressable

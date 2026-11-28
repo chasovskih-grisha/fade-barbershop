@@ -2,6 +2,7 @@
 // розмітки (LOC-гейт ADR 0019). Джерело — той самий список, що вантажить
 // сторінка візитів; картка не має другого джерела.
 import type { ExtendedAppointment } from '@/lib/api/appointments';
+import { depositHoldView } from './appointments/deposit-summary';
 
 const UPCOMING: ReadonlySet<ExtendedAppointment['status']> = new Set(['upcoming', 'confirmed']);
 // Та сама група «Минулі», що на сторінці візитів (T-4734b).
@@ -47,5 +48,5 @@ export function formatVisitWhere(visit: ExtendedAppointment): string {
 
 /** Бейдж-попередження: візит ще очікує депозит (T-4716). */
 export function waitingForDeposit(visit: ExtendedAppointment): boolean {
-  return (visit.deposit?.amount ?? 0) > 0;
+  return depositHoldView(visit, new Date()) === 'active';
 }

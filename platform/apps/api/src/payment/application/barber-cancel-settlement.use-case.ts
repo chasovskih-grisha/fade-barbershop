@@ -17,6 +17,9 @@ import {
 
 export * from './barber-cancel-settlement.ports';
 
+/** Провайдерський статус невдалого повернення (refund.entity: RefundStatus.FAILED). */
+const REFUND_FAILED = 'failed';
+
 export class BarberCancelSettlement {
   constructor(
     private readonly deps: {
@@ -56,7 +59,7 @@ export class BarberCancelSettlement {
         BARBER_UNAVAILABLE_REASON,
         `barber_unavailable_${appointmentId}`
       );
-      if (refund.status === 'failed') {
+      if (refund.status === REFUND_FAILED) {
         return {
           outcome: 'refund_failed',
           holdReleased,
@@ -86,16 +89,22 @@ export class BarberCancelSettlement {
   }
 }
 
-/** Візит уже має повернення — повторюємо наявний refund, без нового списання. */
+/**
+ * Візит уже має повернення — повторюємо наявний refund, без нового списання.
+ * Невдалий refund не можна показувати як «гроші в дорозі»: інакше адмінка
+ * ховає збиток під успіхом (T-4616b).
+ */
 function replayed(
   booking: RefundedBooking,
   holdReleased: boolean
 ): BarberCancelSettlementResult {
+  const failed = booking.refundStatus === REFUND_FAILED;
   return {
-    outcome: 'refund_replayed',
+    outcome: failed ? 'refund_failed' : 'refund_replayed',
     holdReleased,
     ...(booking.capturedRefundAmount != null ? { amount: booking.capturedRefundAmount } : {}),
     refundId: booking.refundId ?? '',
     ...(booking.refundStatus ? { refundStatus: booking.refundStatus } : {}),
+    ...(failed ? { failureReason: 'provider_refund_failed' } : {}),
   };
 }

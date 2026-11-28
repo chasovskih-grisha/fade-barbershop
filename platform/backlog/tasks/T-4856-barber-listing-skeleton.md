@@ -1,6 +1,6 @@
 # T-4856 · The barber listing has a skeleton that matches the cards
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, design · **Complexity**: junior · **Depends on**: T-4513, T-4855
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: junior · **Depends on**: T-4513, T-4855
 - **StoryPoints**: 3
 
 ## What
@@ -19,6 +19,16 @@ T-4513 covered the public states that existed. This route never got a skeleton o
 - T-4513
 - T-4825 (the location skeleton is a different grid)
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/barbers/loading.tsx
+- apps/web/src/app/barbers/BarberGridSkeleton.tsx
+- apps/web/src/app/barbers/__tests__/loading.test.tsx
+
+Checks:
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/loading.test.tsx`
+
 ## Done
 
 - [ ] `app/barbers/loading.tsx` renders a card grid at the listing width
@@ -33,3 +43,13 @@ T-4513 covered the public states that existed. This route never got a skeleton o
 
 - The profile skeleton (T-4864)
 - Empty and error copy already on the page (T-4513, T-4614e)
+
+## Implementation notes
+
+- apps/web/src/app/barbers/BarberGridSkeleton.tsx
+- apps/web/src/app/barbers/__tests__/loading.test.tsx
+- apps/web/src/app/barbers/loading.tsx
+
+## QA
+
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/loading.test.tsx` exit 0

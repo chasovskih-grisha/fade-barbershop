@@ -1,6 +1,6 @@
 # T-270aa · Gift wrapping shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: junior · **Depends on**: T-270f, T-270
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-270f, T-270
 - **StoryPoints**: 3
 
 ## What

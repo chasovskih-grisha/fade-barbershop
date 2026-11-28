@@ -1,6 +1,6 @@
 # T-4871 · The portrait shows the person
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, design · **Complexity**: middle · **Depends on**: T-4610b, T-4855
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: middle · **Depends on**: T-4610b, T-4855
 - **StoryPoints**: 8
 
 ## What

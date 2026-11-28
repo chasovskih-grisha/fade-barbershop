@@ -1,6 +1,8 @@
 import * as Notifications from 'expo-notifications';
 import { revokePushToken } from './api/push';
 
+export { revokePushToken };
+
 /** Знімає токен на сервері і локально. false — токена не було. */
 export async function revokeStoredPush(token: string | null): Promise<boolean> {
   if (!token) return false;

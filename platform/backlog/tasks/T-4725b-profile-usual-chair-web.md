@@ -25,3 +25,9 @@ The website profile is where the account fields already live.
 ## Risks
 
 - [ ] **Defaulting the select.** The control's first real option must not be submitted just because the client opened the page
+
+## Re-verified at 91202f68
+
+Blocked at `91202f68` by `Depends on: T-4725a`, which sits in `review` with a docs-only review
+commit (`92199659`). `claimBlock` only accepts `done`/`split` dependencies. Unblocks when T-4725a is
+split or closed.

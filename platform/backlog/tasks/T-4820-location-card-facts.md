@@ -1,6 +1,6 @@
 # T-4820 · A location card states only what that studio record knows
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, design · **Complexity**: middle · **Depends on**: T-030, T-022
+- **Stage**: M5 (phase 30) · **Tags**: frontend, ux · **Complexity**: middle · **Depends on**: T-030, T-022
 - **StoryPoints**: 5
 
 ## What

@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import IndexPage from './index';
-import { registerPushToken } from '../lib/api/push-tokens';
 
 let resolveLocations: (val: any) => void = () => {};
 let resolveServices: (val: any) => void = () => {};
@@ -33,11 +32,29 @@ jest.mock('../lib/api/push-tokens', () => ({
   registerPushToken: jest.fn(async () => {}),
 }));
 
+// T-070 (реopened): push-токен більше не реєструється відразу на старті —
+// тільки після створення сесії. Тому в тесті підмінюємо хук реєстрації,
+// а не реальний expo-notifications, і перевіряємо, коли екран викликає register.
+const mockPushRegister = jest.fn(async () => {});
+const mockPushRevoke = jest.fn(async () => {});
+let mockPushError: string | null = null;
+jest.mock('../lib/use-push-registration', () => ({
+  usePushRegistration: () => ({
+    register: mockPushRegister,
+    revoke: mockPushRevoke,
+    error: mockPushError,
+  }),
+}));
+
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: jest.fn() }),
 }));
 
 describe('T-070: Mobile Shell, Login, Push Tokens & API Data', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders brand lockup with FADE accessibility label', () => {
     render(<IndexPage />);
     expect(screen.getByTestId('brand-lockup')).toBeTruthy();
@@ -48,7 +65,7 @@ describe('T-070: Mobile Shell, Login, Push Tokens & API Data', () => {
   it('shows loading skeletons while locations/services load, then renders API data', async () => {
     render(<IndexPage />);
 
-    expect(screen.getByTestId('loading-skeleton')).toBeTruthy();
+    expect(screen.getByTestId('home-cards-skeleton')).toBeTruthy();
 
     await act(async () => {
       resolveLocations([
@@ -82,11 +99,23 @@ describe('T-070: Mobile Shell, Login, Push Tokens & API Data', () => {
     expect(screen.getByTestId('submit-spinner')).toBeTruthy();
   });
 
-  it('registers push tokens upon login / startup', async () => {
+  it('home shows the push permission state instead of hiding it (T-070)', () => {
+    mockPushError = 'Сповіщення вимкнено на цьому пристрої';
+    try {
+      render(<IndexPage />);
+      expect(screen.getByTestId('push-permission-notice')).toBeTruthy();
+      expect(screen.getByText('Увімкнути сповіщення')).toBeTruthy();
+    } finally {
+      mockPushError = null;
+    }
+  });
+
+  it('registers the push token for the current session', async () => {
     render(<IndexPage />);
 
+    // Сесія є → register отримує саме її токен, а не мок без сесії.
     await waitFor(() => {
-      expect(registerPushToken).toHaveBeenCalled();
+      expect(mockPushRegister).toHaveBeenCalledWith('token-123');
     });
   });
 });

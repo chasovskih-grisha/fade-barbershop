@@ -45,3 +45,26 @@ describe('BarbersTable — сортування', () => {
     expect(names()[2]).toContain('Іван');
   });
 });
+
+describe('BarbersTable — порожній список', () => {
+  it('без жодного барбера показує пояснення замість таблиці', () => {
+    render(<BarbersTable barbers={[]} selected="" onToggle={jest.fn()} onSelect={jest.fn()} />);
+    expect(screen.getByRole('region', { name: 'Ще немає барберів' })).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('фільтр без збігів пояснює, що список порожній', () => {
+    render(
+      <BarbersTable
+        barbers={[{ id: 'b1', name: 'Олена', phone: '+380501111111', active: true }]}
+        selected=""
+        onToggle={jest.fn()}
+        onSelect={jest.fn()}
+      />
+    );
+    fireEvent.change(screen.getByLabelText('Статус'), { target: { value: 'inactive' } });
+    expect(
+      screen.getByRole('region', { name: 'Немає барберів із цим статусом' })
+    ).toBeInTheDocument();
+  });
+});

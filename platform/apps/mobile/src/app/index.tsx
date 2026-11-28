@@ -4,9 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { styles } from './index.styles';
 import { requestOtp, verifyOtp } from '../lib/api/identity';
-import { registerPushToken } from '../lib/api/push-tokens';
 import { useBiometricLogin, type MobileSession } from '../lib/use-biometric-login';
+import { useSession, useSignInRequested, writeSession } from '../lib/session-store';
 import { useStartupData } from '../lib/use-startup-data';
+import { usePushRegistration } from '../lib/use-push-registration';
 import { IndexLogin } from './index-login';
 import { IndexHome } from './index-home';
 import { IndexNav } from './index-nav';
@@ -17,20 +18,29 @@ export default function IndexPage() {
   const [activeTab, setActiveTab] = useState<'home' | 'login'>('home');
   const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  // Сесія живе лише в стані цього екрана (T-4717b): жодного другого сховища.
-  // Забезпечує перемикання контролю «Вхід» на «Кабінет» після успішного входу.
-  const [session, setSession] = useState<MobileSession | null>(null);
+  // Сесія живе в одному сховищі застосунку (T-4717b, T-4723c): профіль гасить
+  // її виходом, і контрол «Вхід» знову показує форму входу.
+  const session = useSession();
+  const signInRequested = useSignInRequested();
+  const tab = signInRequested ? 'login' : activeTab;
   const [, startTransition] = useTransition();
 
   const openSession = useCallback((next: MobileSession) => {
-    setSession(next);
+    writeSession(next);
     startTransition(() => setActiveTab('home'));
   }, []);
   const biometric = useBiometricLogin(openSession);
 
+  // T-070 (реopened): реєстрація Expo push-токена після створення сесії.
+  // Мок-токен прибирається; реальний токен береться через getExpoPushTokenAsync
+  // після отримання дозволу ОС, і реєструється тільки коли є валідний сесійний
+  // токен (без анонімного кидання токена на сервер).
+  const push = usePushRegistration();
   useEffect(() => {
-    registerPushToken('mock-token', 'mobile').catch(() => {});
-  }, []);
+    if (session?.accessToken) {
+      push.register(session.accessToken).catch(() => {});
+    }
+  }, [session?.accessToken, push]);
 
   const handleLogin = async () => {
     if (!phone) return;
@@ -53,7 +63,7 @@ export default function IndexPage() {
       <StatusBar barStyle="light-content" />
       <View style={styles.content}>
         <IndexNav
-          activeTab={activeTab}
+          activeTab={tab}
           signedIn={session !== null}
           sessionName={session?.name}
           onHome={() => setActiveTab('home')}
@@ -62,7 +72,7 @@ export default function IndexPage() {
           onVisits={() => router.push('/(client)/account/appointments')}
         />
 
-        {activeTab === 'login' ? (
+        {tab === 'login' ? (
           <IndexLogin
             phone={phone}
             setPhone={setPhone}
@@ -74,10 +84,15 @@ export default function IndexPage() {
           />
         ) : (
           <IndexHome
-            loading={startup.loading}
             stale={startup.stale}
             locations={startup.locations}
             services={startup.services}
+            onRetryLocations={startup.retryLocations}
+            onRetryServices={startup.retryServices}
+            pushError={push.error}
+            onEnablePush={() => {
+              if (session?.accessToken) void push.register(session.accessToken);
+            }}
           />
         )}
       </View>

@@ -5,14 +5,13 @@ import { pageMetadata } from '@/lib/metadata';
 import { ActionLink } from '@/app/components/ActionLink';
 import { ErrorState } from '@/app/components/states/ErrorState';
 import { LocationBreadcrumb } from './LocationBreadcrumb';
-import { LocationCard } from './LocationCard';
+import { LocationsExplorer } from './LocationsExplorer';
 import { LocationNetworkStandard } from './LocationNetworkStandard';
 import { BOOKING_OPENS_SOON_TEXT } from '@/lib/booking-availability';
 
 export const metadata: Metadata = pageMetadata({
   title: 'Наші студії та локації — Fade Atelier',
-  description:
-    'Приватні студії Fade у Києві: адреси, години роботи, вільні крісла на онлайн-запис.',
+  description: 'Приватні студії Fade: адреси, години роботи, вільні крісла на онлайн-запис.',
   path: '/locations',
 });
 
@@ -28,8 +27,8 @@ export default async function LocationsPage() {
         </div>
         <h1 className="font-display text-display font-bold text-fg leading-none">Наші локації</h1>
         <p className="max-w-3xl text-bodyLg text-fg-secondary">
-          Камерні студії на два крісла у центрі Києва. Жодних черг і галасу — лише ідеальна
-          геометрія стрижки та розкіш тиші.
+          Камерні студії на два крісла. Жодних черг і галасу — лише ідеальна геометрія стрижки та
+          розкіш тиші.
         </p>
 
         {/* Переваги мережі локацій */}
@@ -71,15 +70,7 @@ export default async function LocationsPage() {
 
       {result.state === 'ok' && (
         <div className="flex flex-col gap-10">
-          <div
-            className="grid grid-cols-1 gap-8 md:grid-cols-2"
-            role="feed"
-            aria-label="Список локацій"
-          >
-            {result.data.map((loc) => (
-              <LocationCard key={loc.id} location={loc} />
-            ))}
-          </div>
+          <LocationsExplorer locations={result.data} />
 
           <LocationNetworkStandard />
         </div>

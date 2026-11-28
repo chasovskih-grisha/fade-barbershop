@@ -3,6 +3,7 @@ import { getAppointments } from '@/lib/api/appointments';
 import { makeVisit } from '../appointments/fixtures';
 import { ProfileScreen } from './index';
 
+jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 jest.mock('@/lib/notifications', () => ({
   usePush: () => ({
     token: null,

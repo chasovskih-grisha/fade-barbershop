@@ -46,6 +46,7 @@ export default function AppointmentDetailBody({
         <>
           <AppointmentDetailCard appointment={appointment} />
           <AppointmentReferenceCard reference={reference} />
+          <MobileButton title="Чат із майстром" onPress={() => router.push(`/appointment/${id}/chat`)} />
         </>
       ) : null}
     </>

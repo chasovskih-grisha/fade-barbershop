@@ -7,7 +7,13 @@ import { OfflineBanner } from '../states/OfflineBanner';
 // Один каркас для всіх сторінок sites; сторінки не будують навігацію самі.
 // Офлайн-стан живе тут (T-4513), бо це властивість сесії гостя, а не сторінки.
 
-export function PublicShell({ children }: { children: ReactNode }) {
+export function PublicShell({
+  children,
+  bookingOpen = true,
+}: {
+  children: ReactNode;
+  bookingOpen?: boolean;
+}) {
   return (
     <div className="flex min-h-screen flex-col bg-surface-base">
       <a
@@ -16,7 +22,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
       >
         Перейти до основного вмісту
       </a>
-      <SiteHeader />
+      <SiteHeader bookingOpen={bookingOpen} />
       <OfflineBanner />
       <main id="main" className="flex-1">
         {children}

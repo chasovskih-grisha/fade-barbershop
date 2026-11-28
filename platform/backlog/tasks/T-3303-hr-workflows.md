@@ -1,6 +1,6 @@
 # T-3303 · HR-процеси
 
-- **Stage**: M6 (phase 40) · **Tags**: hr, backend, frontend · **Complexity**: middle · **Depends on**: T-3300, T-3301
+- **Stage**: M6 (phase 40) · **Tags**: hr, backend · **Complexity**: middle · **Depends on**: T-3300, T-3301
 - **StoryPoints**: 10
 
 ## What

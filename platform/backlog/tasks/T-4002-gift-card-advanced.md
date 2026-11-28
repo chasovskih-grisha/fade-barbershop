@@ -1,6 +1,6 @@
 # T-4002 · Розширені подарункові сертифікати
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, marketing · **Complexity**: middle · **Depends on**: T-210
+- **Stage**: M6 (phase 40) · **Tags**: backend, marketing · **Complexity**: middle · **Depends on**: T-210
 - **StoryPoints**: 12
 
 ## What

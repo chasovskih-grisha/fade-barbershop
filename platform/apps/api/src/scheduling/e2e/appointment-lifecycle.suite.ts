@@ -1,7 +1,7 @@
 // Стенд lifecycle e2e: bootstrap SchedulingModule (+стамп адміна / cookie-parser),
 // сід фікстур, опційний перший запис і FK-чисте прибирання. Специфіка маршрутів
 // і тверджень — у самих спеках; сюїтові хелпери — appointment-lifecycle.fixtures.
-import type { INestApplication } from '@nestjs/common';
+import type { DynamicModule, INestApplication, Type } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
 import { SchedulingModule } from '../scheduling.module';
@@ -32,6 +32,12 @@ export interface LifecycleSuite {
 
 export interface LifecycleSuiteOptions {
   admin?: boolean;
+  /**
+   * Додаткові модулі до SchedulingModule. Потрібні сюїтам, чиї маршрути живуть
+   * у модулі, що імпортує SchedulingModule (напр. PaymentModule для T-4616a):
+   * інакше Nest їх не реєструє і supertest бачить 404.
+   */
+  modules?: (Type<unknown> | DynamicModule)[];
   /** UUID for the stamped admin actor; persistence columns require a real UUID. */
   adminId?: string;
   cookies?: boolean;
@@ -58,7 +64,9 @@ export async function lifecycleSuite(options: LifecycleSuiteOptions = {}): Promi
   };
 
   try {
-    const moduleRef = await Test.createTestingModule({ imports: [SchedulingModule] }).compile();
+    const moduleRef = await Test.createTestingModule({
+      imports: [SchedulingModule, ...(options.modules ?? [])],
+    }).compile();
     app = moduleRef.createNestApplication();
     if (options.admin) stampAdmin(app, options.adminId);
     if (options.cookies) app.use(cookieParser());

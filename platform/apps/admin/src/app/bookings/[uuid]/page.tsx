@@ -9,6 +9,7 @@ import { BookingHistoryCard } from './BookingHistoryCard';
 import { BookingPeopleCard } from './BookingPeopleCard';
 import { BookingReferenceCard } from './BookingReferenceCard';
 import { BookingSummaryCard } from './BookingSummaryCard';
+import { OnsitePaymentCard } from './OnsitePaymentCard';
 import { useBookingDetail } from './useBookingDetail';
 
 export default function BookingDetailPage() {
@@ -38,6 +39,7 @@ export default function BookingDetailPage() {
         <BookingSummaryCard detail={detail} />
         <BookingReferenceCard detail={detail} />
         <BookingPeopleCard detail={detail} />
+        <OnsitePaymentCard bookingId={detail.id} status={detail.status} />
         <div className="lg:col-span-2">
           <BookingHistoryCard detail={detail} />
         </div>

@@ -1,6 +1,6 @@
 # T-053w · Phantom Tailwind Classes Audit in Booking Screens — ESLint Gate no-phantom-classes/no-phantom-classes
 
-- **Stage**: M1 (phase 4) · **Tags**: frontend, quality, design · **Complexity**: junior · **Depends on**: T-004, T-053
+- **Stage**: M1 (phase 4) · **Tags**: frontend, quality · **Complexity**: junior · **Depends on**: T-004, T-053
 - **StoryPoints**: 3
 
 ## What

@@ -5,6 +5,8 @@ export type { ClassValue } from './cn';
 export { formatMoney } from './money';
 export { messageIds } from './fieldUtils';
 export { Button } from './Button';
+export { Dialog } from './Dialog';
+export type { DialogProps, DialogPlacement } from './Dialog';
 export type { ButtonProps, ButtonSize, ButtonVariant } from './Button';
 export { Field } from './Field';
 export type { FieldProps } from './Field';

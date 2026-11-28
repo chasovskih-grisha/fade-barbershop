@@ -20,3 +20,24 @@ export function todayHours(hours: OpeningHour[], now: Date = new Date()): string
   if (today.closed || !today.open || !today.close) return 'Вихідний';
   return `${today.open}–${today.close}`;
 }
+
+/** Хвилини доби з «HH:MM»; нечитабельний час — null, щоб не вигадувати стан. */
+const minutesOfDay = (time: string): number | null => {
+  const [hours, minutes] = time.split(':');
+  return hours && minutes ? Number(hours) * 60 + Number(minutes) : null;
+};
+
+/**
+ * Чи працює студія в момент `now` — лише коли запис має сьогоднішній інтервал.
+ * `null` — годин на сьогодні немає (дня немає в розкладі, вихідний, час не
+ * читається): картка тоді не додає стану, якого запис не знає.
+ */
+export function openNow(hours: OpeningHour[], now: Date = new Date()): boolean | null {
+  const today = hours.find((day) => day.dayOfWeek === domainDayIndex(now));
+  if (!today || today.closed || !today.open || !today.close) return null;
+  const opens = minutesOfDay(today.open);
+  const closes = minutesOfDay(today.close);
+  if (opens === null || closes === null) return null;
+  const minutes = now.getHours() * 60 + now.getMinutes();
+  return minutes >= opens && minutes < closes;
+}

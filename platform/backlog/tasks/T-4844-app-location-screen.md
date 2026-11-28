@@ -1,6 +1,6 @@
 # T-4844 · The app has a studio screen
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile, design · **Complexity**: middle · **Depends on**: T-070, T-4850, T-071
+- **Stage**: M5 (phase 30) · **Tags**: mobile, ux · **Complexity**: middle · **Depends on**: T-070, T-4850, T-071
 - **StoryPoints**: 5
 
 ## What

@@ -1,6 +1,6 @@
 # T-270az · Brands section shop.fade.com.ua
 
-- **Stage**: M5 (phase 27) · **Tags**: frontend, backend · **Complexity**: junior · **Depends on**: T-270c, T-270
+- **Stage**: M5 (phase 27) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-270c, T-270
 - **StoryPoints**: 3
 
 ## What

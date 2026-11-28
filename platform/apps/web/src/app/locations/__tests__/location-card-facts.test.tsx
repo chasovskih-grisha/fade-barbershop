@@ -96,4 +96,22 @@ describe('LocationCard — факты, которые знает запись (T
     expect(container.textContent).not.toContain('Wi-Fi');
     expect(container.textContent).not.toContain('09:00 — 21:00');
   });
+
+  it('speaks about the current state only from today’s recorded window', () => {
+    const open = render(<LocationCard location={{ ...base, hours: hours('09:00', '18:00') }} />);
+    expect(open.container.textContent).toContain('Відкрито зараз');
+    open.unmount();
+
+    const shut = render(<LocationCard location={{ ...base, hours: hours('09:00', '11:30') }} />);
+    expect(shut.container.textContent).toContain('Зачинено');
+    shut.unmount();
+
+    const dayOff = render(
+      <LocationCard
+        location={{ ...base, hours: [{ dayOfWeek: 2, open: null, close: null, closed: true }] }}
+      />
+    );
+    expect(dayOff.container.textContent).toContain('Сьогодні: Вихідний');
+    expect(dayOff.container.textContent).not.toContain('Зачинено');
+  });
 });

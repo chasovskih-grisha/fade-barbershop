@@ -1,6 +1,6 @@
 # T-4724c · Device row on the app profile
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4724a
+- **Stage**: M1 (phase 3) · **Tags**: mobile, ux · **Complexity**: junior · **Depends on**: T-4724a
 - **StoryPoints**: 3
 
 ## What
@@ -19,9 +19,9 @@ The app devices screen exists and the profile does not point at it.
 
 ## Done
 
-- [ ] The row opens the existing devices screen
-- [ ] It does not render the device list inline
+- [x] The row opens the existing devices screen
+- [x] It does not render the device list inline
 
 ## Risks
 
-- [ ] **A new devices route.** Use the screen that is already in the tree
+- [x] **A new devices route.** Use the screen that is already in the tree

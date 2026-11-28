@@ -1,6 +1,6 @@
 # T-4558 · Feedback & reviews: NPS, Google review request, escalation, analytics
 
-- **Stage**: M4 (phase 12-25) · **Tags**: backend, frontend, crm, marketing · **Complexity**: middle · **Depends on**: T-150, T-151, T-260, T-4555, T-4545
+- **Stage**: M4 (phase 12-25) · **Tags**: backend, crm, marketing · **Complexity**: middle · **Depends on**: T-150, T-151, T-260, T-4555, T-4545
 - **StoryPoints**: 8
 
 ## What

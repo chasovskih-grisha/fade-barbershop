@@ -1,6 +1,6 @@
 # T-052 · Generation History and Appointment Attachment
 
-- **Stage**: M1 (phase 10A) · **Tags**: backend, frontend · **Complexity**: middle · **Depends on**: T-050, T-051, T-043
+- **Stage**: M1 (phase 10A) · **Tags**: backend · **Complexity**: middle · **Depends on**: T-050, T-051, T-043
 - **StoryPoints**: 5
 
 ## What
@@ -20,3 +20,7 @@
 
 - [ ] **Migrations**: schema changes break existing data — migration with backfill plan
 - [ ] **Domain Events**: subscriptions are idempotent (pattern ADR 0009/0016)
+
+## Blocking evidence
+
+`apps/api/src/haircut-ai` stores no selection history: no route or table carries a saved AI variant, so the cabinet section would have nothing to list and no way to attach a variant to a booking (`REF-WEB-02`). It needs the AI selection persistence slice first.

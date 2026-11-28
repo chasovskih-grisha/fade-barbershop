@@ -1,6 +1,6 @@
 # T-4726c · Missing-name prompt on the app
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4726a, T-4719c
+- **Stage**: M1 (phase 3) · **Tags**: mobile, ux · **Complexity**: junior · **Depends on**: T-4726a, T-4719c
 - **StoryPoints**: 3
 
 ## What

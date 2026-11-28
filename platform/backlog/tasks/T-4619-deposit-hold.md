@@ -1,6 +1,6 @@
 # T-4619 · An unpaid deposit frees the chair
 
-- **Stage**: M2 (phase 8) · **Tags**: backend, frontend, billing, scheduling · **Complexity**: senior · **Depends on**: T-091, T-040
+- **Stage**: M2 (phase 8) · **Tags**: backend, billing, scheduling · **Complexity**: senior · **Depends on**: T-091, T-040
 - **StoryPoints**: 13
 
 ## What
@@ -31,13 +31,13 @@ The slot was never paid for. Leaving it blocked punishes the next guest. Chargin
 
 ## Done
 
-- [ ] Slices a and b are `done`
-- [ ] An unpaid visit older than 15 minutes is not occupying a chair
-- [ ] A captured payment still confirms the visit
+- [x] Slices a and b are `done`
+- [x] An unpaid visit older than 15 minutes is not occupying a chair
+- [x] A captured payment still confirms the visit
 
 ## Risks
 
-- [ ] **Late success.** A webhook that arrives after expiry must not mark the visit confirmed. If money actually moved, the refund path T-091 and T-094 already own applies. This epic does not invent a new refund provider
+- [x] **Late success.** A webhook that arrives after expiry must not mark the visit confirmed. If money actually moved, the refund path T-091 and T-094 already own applies. This epic does not invent a new refund provider — закрито `SettleWebhookCapture` (пізній capture → `expired` + `refundLateCapture`) і нагадуванням `deposit_hold.expiring` за 5 хвилин до дедлайну
 - [ ] **Walk-in.** Walk-in has no deposit (T-120). It never enters this hold
 
 ## Out of scope

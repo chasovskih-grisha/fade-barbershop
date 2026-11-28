@@ -1,6 +1,6 @@
 # T-4521 · Матриця «барбер × послуга» (спеціалізація)
 
-- **Stage**: M1 (phase 4) · **Tags**: backend, catalog, frontend · **Complexity**: middle · **Depends on**: T-040, T-023, T-4507
+- **Stage**: M1 (phase 4) · **Tags**: backend, catalog · **Complexity**: middle · **Depends on**: T-040, T-023, T-4507
 - **StoryPoints**: 8
 
 ## What
@@ -34,3 +34,9 @@
 
 1. **T-4521a · Модель матриці та фільтр слотів** *(middle, 4 SP)* — `BarberService`, дефолт «всі», фільтр availability і «Будь-який».
 2. **T-4521b · Адмін-UI матриці + вплив на флоу** *(middle, 4 SP)* — інтерфейс з T-4507, фільтр кроку 2, father-son спільні послуги.
+
+## Re-verified at 91202f68
+
+Umbrella still open at `91202f68`: its own review commit `7fb76813` shipped the matrix filter and
+tests, but slice T-4521b (`m1.md:224` → `todo`) still owns the admin drawer and the father-son
+overlap. Its `Done` list has «Адмін-UI матриці» unticked. Unblocks when T-4521b closes.

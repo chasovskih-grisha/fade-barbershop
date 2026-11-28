@@ -83,6 +83,15 @@ Client-side analytics are unreliable (AdBlock, ITP, network errors, app kill). S
 ## Risks
 
 - [ ] **Event ordering**: outbox guarantees at-least-once, not ordering. Amplitude sorts by `timestamp` — correct `event_time` is important (domain event timestamp, not processing time)
+
+## Audit 2026-11-24
+
+Reopened. The forwarding skeleton is real: `AmplitudeOutbox`, the 18-type map,
+HTTP transport, worker, retry/dead-letter store and unit tests exist. But
+`IdentityResolutionService` and the OTP-verify `identify` merge are absent, there
+is no full path integration test, and the failure path records an audit log rather
+than the promised external alert. The task-level Done list is otherwise checked only
+by implementation notes, not by end-to-end evidence.
 - [ ] **Schema drift**: domain event schema changes — versioning in `event_json._schema_version`, handler adapts
 - [ ] **PII leak**: domain events contain phone/email — service must sanitize before sending (only user_id/UUID)
 - [ ] **Costs**: Amplitude MTU (Monthly Tracked Users) — server events count too. Filter health-check/ping events

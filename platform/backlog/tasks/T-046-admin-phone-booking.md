@@ -1,6 +1,6 @@
 # T-046 · Admin Visit Creation (Phone Booking)
 
-- **Stage**: M2 (phase 5, together with CRM) · **Tags**: backend, frontend · **Complexity**: junior · **Depends on**: T-045 (calendar), T-060 (client card)
+- **Stage**: M2 (phase 5, together with CRM) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-045 (calendar), T-060 (client card)
 - **StoryPoints**: 3
 
 ## What
@@ -24,3 +24,7 @@ Phone booking is a significant part of the barbershop's operational reality; wit
 ## Current slice (2026-09-26, backend)
 
 - migration `20261102030000_booking_source`: nullable `clientId` (link to identity)
+
+## Status
+
+- 2026-11-25 — both Done criteria are in the tree and covered by tests: `apps/admin/src/app/clients/ClientsTable.test.tsx`, `apps/admin/src/app/clients/[id]/page.book.test.tsx`, `apps/admin/src/app/bookings/phone/page.preselect.test.tsx`. Index moved to `review`.

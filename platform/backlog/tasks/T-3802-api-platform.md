@@ -1,6 +1,6 @@
 # T-3802 · API Platform
 
-- **Stage**: M5 (phase 30) · **Tags**: backend, devops, integration · **Complexity**: senior · **Depends on**: T-002, T-300
+- **Stage**: M5 (phase 30) · **Tags**: backend, integration · **Complexity**: senior · **Depends on**: T-002, T-300
 - **StoryPoints**: 20
 
 ## What

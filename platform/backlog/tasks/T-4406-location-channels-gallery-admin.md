@@ -26,6 +26,14 @@ Locations require rich media presentations tailored to different client touchpoi
 - [ ] Public API endpoints returning channel-filtered location galleries
 - [ ] Image optimization pipeline (WebP conversion, responsive sizes)
 
+## Audit 2026-11-24
+
+Reopened. The admin has channel rows and URL/caption/sort-order photo rows, but
+`PhotoRow` edits a URL string: there is no upload, crop, tags, or per-photo
+channel flag. `LocationPhoto` has no object key or channel columns, the public
+DTO returns every photo without channel filtering, and there is no WebP/responsive
+pipeline. Only the small CRUD test exists; the Done claims are not met.
+
 ## Risks
 
 - [ ] **Storage bloat**: S3 bucket cleanup for deleted images — lifecycle rules and orphaned file garbage collection

@@ -9,6 +9,12 @@ import type {
   BookingPartyView,
 } from './admin-booking-detail.view';
 
+/** T-4419: тривалість і варіант читаються зі снепшоту запису, не з різниці часу. */
+const durationSnapshot = (row: BookingRow) => ({
+  agreedDuration: row.agreedDuration,
+  durationVariant: row.durationVariant,
+});
+
 // prettier-ignore
 export const mapBookingRow = (row: BookingRow) => ({
   id: row.id,
@@ -19,6 +25,7 @@ export const mapBookingRow = (row: BookingRow) => ({
   end: row.end.toISOString(),
   durationMinutes: Math.round((row.end.getTime() - row.start.getTime()) / 60000),
   agreedPrice: row.agreedPrice,
+  ...durationSnapshot(row),
   fulfillmentMode: row.fulfillmentMode,
   source: row.source ?? 'web',
   comment: row.appointmentComment,

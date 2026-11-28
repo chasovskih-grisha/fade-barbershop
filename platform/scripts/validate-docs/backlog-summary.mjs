@@ -4,7 +4,7 @@
 
 import { read, fail } from './context.mjs';
 
-const STATUSES = ['todo', 'in_progress', 'review', 'done', 'split'];
+const STATUSES = ['todo', 'in_progress', 'review', 'qa', 'done', 'split'];
 
 export const checkBacklogSummary = ({ rows, top, spByMilestone, totalSp }) => {
   const readme = read('backlog/README.md');

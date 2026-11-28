@@ -18,11 +18,11 @@ The studio page is where the guest decides to call or to open Instagram.
 
 ## Done
 
-- [ ] One phone number produces one `tel:` control
-- [ ] Instagram and Telegram render as named controls with their existing hrefs
-- [ ] A channel list with no entries omits the region
-- [ ] Targets meet the touch minimum in `docs/ux-guidelines.md`
-- [ ] A test covers phone-only, phone-plus-instagram, and empty
+- [x] One phone number produces one `tel:` control
+- [x] Instagram and Telegram render as named controls with their existing hrefs
+- [x] A channel list with no entries omits the region
+- [x] Targets meet the touch minimum in `docs/ux-guidelines.md`
+- [x] A test covers phone-only, phone-plus-instagram, and empty
 
 ## Risks
 

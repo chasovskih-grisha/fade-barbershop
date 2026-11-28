@@ -1,6 +1,6 @@
 # T-260 · Google Business Profile (конфігураційна)
 
-- **Stage**: M5 (phase 24; можлива ще до запуску) · **Tags**: integration · **Complexity**: junior · **Depends on**: T-021, T-080, T-4532
+- **Stage**: M5 (phase 24; можлива ще до запуску) · **Tags**: integration, backend · **Complexity**: junior · **Depends on**: T-021, T-080, T-4532
 - **StoryPoints**: 3
 
 ## What

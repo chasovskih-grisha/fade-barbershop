@@ -1,6 +1,6 @@
 # T-053v · Dark mode fade.com.ua/booking
 
-- **Stage**: M5 (phase 26) · **Tags**: frontend, design · **Complexity**: junior · **Depends on**: T-053c, T-4515
+- **Stage**: M5 (phase 26) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-053c, T-4515
 - **StoryPoints**: 3
 
 ## What

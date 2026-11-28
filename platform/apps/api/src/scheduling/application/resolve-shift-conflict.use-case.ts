@@ -3,6 +3,7 @@
 // слота/крісла, що й звичайний RescheduleAppointment (через нього ж), а cancel
 // іде через життєвий цикл Appointment. Конфлікт закривається в тій самій
 // транзакції, що й зміна візиту; повторний виклик для closed — no-op.
+import { BARBER_UNAVAILABLE_CANCEL_REASON } from '@fade/contracts';
 import { barbersForService } from '../domain/barber-service-matrix';
 import { InvalidSlotError } from '../domain/slot-validator';
 import { canReassignConflict, type ShiftConflictData } from '../domain/barber-unavailability';
@@ -11,7 +12,6 @@ import type {
   ShiftConflictRepository,
 } from '../domain/shift-conflict-ports';
 import type { BarberServiceAssignmentRepository } from '../domain/ports.barber-service-assignment';
-import { isDayOff, type DayOffRepository } from '../domain/day-off';
 import type { UnitOfWork } from '../../locations/domain/ports';
 import type { RescheduleCommand } from './reschedule-appointment.types';
 
@@ -20,8 +20,9 @@ export interface ResolveShiftConflictDeps {
   barberServices: Pick<BarberServiceAssignmentRepository, 'snapshotForLocation'>;
   /** T-4616a: reassignment must not land inside an unavailability interval. */
   unavailabilities: Pick<BarberUnavailabilityRepository, 'covers'>;
-  /** Leave/day-off is optional until its durable adapter is wired. */
-  dayOffs?: DayOffRepository;
+  // Відпустка (T-4447) не потребує окремої перевірки тут: за планом `DayOff`
+  // стає інтервалом недоступності, а його ловить `unavailabilities.covers()`.
+  // Окрема гілка по `DayOff` не мала ні таблиці, ні адаптера — і не потрібна.
   reschedule: { handle(cmd: RescheduleCommand): Promise<void> };
   cancel: {
     cancel(cmd: {
@@ -156,7 +157,7 @@ export class ResolveShiftConflict {
         appointmentId: conflict.appointmentId,
         actorId,
         actorRole: 'admin',
-        reason: 'barber unavailable',
+        reason: BARBER_UNAVAILABLE_CANCEL_REASON,
       });
       return [conflict.bookingId];
     }
@@ -169,7 +170,7 @@ export class ResolveShiftConflict {
         appointmentId,
         actorId,
         actorRole: 'admin',
-        reason: 'barber unavailable',
+        reason: BARBER_UNAVAILABLE_CANCEL_REASON,
       });
     }
     return bookingIds;
@@ -194,12 +195,6 @@ export class ResolveShiftConflict {
       })
     ) {
       throw InvalidSlotError.of('Barber is unavailable for this slot');
-    }
-    if (this.deps.dayOffs) {
-      const dayOffs = await this.deps.dayOffs.findByBarberId(cmd.barberId);
-      if (isDayOff(dayOffs, cmd.date)) {
-        throw InvalidSlotError.of('Barber is on leave for this date');
-      }
     }
   }
 

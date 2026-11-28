@@ -9,6 +9,7 @@ import { PrismaService } from '../../shared/prisma/prisma.service';
 import { SetAppointmentReference } from '../application/set-appointment-reference.use-case';
 import { RescheduleAppointment } from '../application/reschedule-appointment.use-case';
 import { ClientAppointmentsController } from './client-appointments.controller';
+import { PrismaAppointmentHistoryRepository } from './prisma-appointment-history.repository';
 import { WEB_SESSION_TOKEN as TOKEN, prismaForClient } from './client-web-session.fakes';
 
 describe('редагування референсу клієнтом (REF-WEB-04)', () => {
@@ -22,6 +23,10 @@ describe('редагування референсу клієнтом (REF-WEB-04
         { provide: SetAppointmentReference, useValue: { handle } },
         { provide: RescheduleAppointment, useValue: { handle: jest.fn() } },
         { provide: PrismaService, useValue: prismaForClient(owns) },
+        {
+          provide: PrismaAppointmentHistoryRepository,
+          useValue: { findByAppointmentId: jest.fn(async () => []) },
+        },
       ],
     }).compile();
     const created = moduleRef.createNestApplication();

@@ -19,14 +19,15 @@
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns=/e2e/ --passWithNoTests",
-    "test:functional": "jest --testPathPattern=e2e\\.spec\\.ts$ --testPathIgnorePatterns='/node_modules/|fresh-bootstrap' --forceExit --passWithNoTests",
+    "test:functional": "FADE_E2E_ISOLATED=1 RATE_LIMIT_ADMIN_LOGIN_MAX=1000 jest --testPathPattern='e2e\\.spec\\.ts$' --testPathIgnorePatterns='/node_modules/|fresh-bootstrap' --forceExit --passWithNoTests",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "seed:admin": "ts-node src/seed-admin.ts",
     "seed:admin-roles": "ts-node src/seed-admin-roles.ts",
     "seed:customers": "ts-node src/seed-customers.ts",
     "seed:appointments": "ts-node scripts/seed-appointments.ts",
-    "seed:smoke": "pnpm exec prisma migrate reset --force --skip-seed && pnpm exec ts-node scripts/seed-dev.ts && pnpm exec ts-node src/seed-customers.ts && pnpm exec ts-node scripts/seed-appointments.ts && pnpm exec ts-node src/seed-admin.ts"
+    "seed:smoke": "pnpm exec prisma migrate reset --force --skip-seed && pnpm exec ts-node scripts/seed-dev.ts && pnpm exec ts-node src/seed-customers.ts && pnpm exec ts-node scripts/seed-appointments.ts && pnpm exec ts-node src/seed-admin.ts",
+    "pretest:functional": "node scripts/e2e-db.cjs prepare"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1141.0",

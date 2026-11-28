@@ -1,6 +1,6 @@
 # T-270ae · Subscriptions shop.fade.com.ua
 
-- **Stage**: M6 (phase 40) · **Tags**: frontend, backend · **Complexity**: senior · **Depends on**: T-270c, T-270
+- **Stage**: M6 (phase 40) · **Tags**: frontend · **Complexity**: senior · **Depends on**: T-270c, T-270
 - **StoryPoints**: 8
 
 ## What

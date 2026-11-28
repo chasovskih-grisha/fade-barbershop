@@ -1,6 +1,6 @@
 # T-4525c · Навігація і стани локації (3/13)
 
-- **Stage**: M3 (phase 14) · **Tags**: frontend, design · **Complexity**: junior · **Depends on**: T-4525a, T-4525b
+- **Stage**: M3 (phase 14) · **Tags**: frontend · **Complexity**: junior · **Depends on**: T-4525a, T-4525b
 - **StoryPoints**: 3
 
 ## What

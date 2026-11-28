@@ -1,6 +1,6 @@
 # T-270g · Shop Payment Integration
 
-- **Stage**: M4 (phase 22) · **Tags**: shop, billing, backend, frontend · **Complexity**: senior · **Depends on**: T-270, T-275
+- **Stage**: M4 (phase 22) · **Tags**: shop, billing, frontend · **Complexity**: senior · **Depends on**: T-270, T-275
 - **StoryPoints**: 8
 
 ## What

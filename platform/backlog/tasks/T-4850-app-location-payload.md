@@ -1,6 +1,6 @@
 # T-4850 · The app reads the public location the website already reads
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, mobile · **Complexity**: middle · **Depends on**: T-030, T-070
+- **Stage**: M5 (phase 30) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-030, T-070
 - **StoryPoints**: 5
 
 ## What

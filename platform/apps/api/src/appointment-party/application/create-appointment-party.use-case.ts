@@ -5,6 +5,8 @@ import { PartyLeg } from '../domain/party-leg.entity';
 import { AppointmentPartyRepository } from './ports';
 import { AppointmentPartyCreated } from '../domain/appointment-party.events';
 import { assertAndBuildSlots } from './create-appointment-party-slots';
+import { barbersOutsideService } from '../../scheduling/domain/barber-service-matrix';
+import type { BarberServiceAssignmentSnapshot } from '../../scheduling/domain/ports.barber-service-assignment';
 
 interface CreateAppointmentPartyInput {
   locationId: string;
@@ -23,8 +25,16 @@ interface CreateAppointmentPartyInput {
  * Use‑case: create an appointment party.
  * Validates business rules (PARTY‑003…005).
  */
+/** Порт матриці «барбер × послуга»: партія перевіряє його, якщо він підключений. */
+export interface PartyServiceMatrixPort {
+  snapshotForLocation(locationId: string): Promise<BarberServiceAssignmentSnapshot>;
+}
+
 export class CreateAppointmentParty {
-  constructor(private readonly repo: AppointmentPartyRepository) {}
+  constructor(
+    private readonly repo: AppointmentPartyRepository,
+    private readonly deps: { matrix?: PartyServiceMatrixPort } = {}
+  ) {}
 
   async execute(input: CreateAppointmentPartyInput): Promise<AppointmentPartyCreated> {
     if (!input.locationId.trim() || !input.serviceId.trim())
@@ -33,6 +43,7 @@ export class CreateAppointmentParty {
       throw new Error('Agreed price must be a positive integer');
     this.assertBarbersForMode(input);
     this.assertLegsMatchBarbers(input);
+    await this.assertBarbersPerformService(input);
 
     const slots = assertAndBuildSlots(input);
 
@@ -52,6 +63,20 @@ export class CreateAppointmentParty {
 
     await this.repo.save(appointmentParty);
     return new AppointmentPartyCreated(appointmentParty);
+  }
+
+  // T-4521/T-044: батько і син стоять лише в барберів, які виконують послугу
+  // партії в цій локації. Порожня матриця — дефолт «усі» (як у слотах і записі).
+  private async assertBarbersPerformService(input: CreateAppointmentPartyInput): Promise<void> {
+    if (!this.deps.matrix) return;
+    const snapshot = await this.deps.matrix.snapshotForLocation(input.locationId);
+    const missing = barbersOutsideService(snapshot.matrix, {
+      locationId: input.locationId,
+      serviceId: input.serviceId,
+      barberIds: input.barberIds,
+    });
+    if (missing.length > 0)
+      throw new Error(`Barber does not perform this service (T-4521): ${missing.join(', ')}`);
   }
 
   private assertBarbersForMode(input: CreateAppointmentPartyInput): void {

@@ -18,13 +18,26 @@ export function dayStart(date: string): Date {
 
 export async function resolveDuration(
   deps: AvailableSlotsDeps,
-  input: { locationId: string; serviceId: string; fulfillmentMode?: string }
+  input: { locationId: string; serviceId: string; fulfillmentMode?: string; variantLabel?: string }
 ): Promise<number> {
   const services = await deps.serviceRepo.catalogForLocation(input.locationId);
   const service = services.find((s) => s.id === input.serviceId);
   if (!service) throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
+  // T-4419: обраний варіант задає тривалість; без нього — базова (як раніше).
+  const variant =
+    input.variantLabel === undefined
+      ? undefined
+      : service.variants?.find((candidate) => candidate.label === input.variantLabel);
+  if (input.variantLabel !== undefined && !variant) {
+    throw new HttpException(
+      `Unknown duration variant: ${input.variantLabel}`,
+      HttpStatus.BAD_REQUEST
+    );
+  }
   const duration =
-    input.fulfillmentMode === 'parallel' ? service.parallelDuration : service.duration;
+    input.fulfillmentMode === 'parallel'
+      ? (variant?.parallelDuration ?? service.parallelDuration)
+      : (variant?.duration ?? service.duration);
   if (duration == null)
     throw new HttpException('Fulfillment mode not supported', HttpStatus.BAD_REQUEST);
   // 15-min grid alignment (50 min -> 60 min): otherwise SlotValidator rejects

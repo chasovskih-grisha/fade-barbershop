@@ -1,6 +1,6 @@
 # T-2500f · Global JS/TS and ESLint Refactoring (8/40)
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, frontend, quality · **Complexity**: senior · **Depends on**: T-2500a
+- **Stage**: M6 (phase 40) · **Tags**: backend, quality · **Complexity**: senior · **Depends on**: T-2500a
 - **StoryPoints**: 8
 
 ## What

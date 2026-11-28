@@ -1,22 +1,29 @@
 import { render, screen } from '@testing-library/react';
 import BarbersPage from '../page';
-import * as staffApi from '@/lib/api/staff';
+import * as directoryApi from '@/lib/api/studio-directory';
 
-jest.mock('@/lib/api/staff');
+jest.mock('@/lib/api/studio-directory');
 
 describe('BarbersPage', () => {
   it('renders barbers list when available', async () => {
-    jest.spyOn(staffApi, 'getBarbers').mockResolvedValueOnce({
+    jest.spyOn(directoryApi, 'getBarbersByStudio').mockResolvedValueOnce({
       state: 'ok',
       data: [
         {
-          id: 'barber-1',
-          userId: 'user-1',
-          slug: 'alex',
-          name: 'Олександр',
-          role: 'barber',
-          active: true,
-          photoUrl: null,
+          code: 'KYI-01',
+          name: 'Fade Kyiv',
+          city: 'Київ',
+          barbers: [
+            {
+              id: 'barber-1',
+              userId: 'user-1',
+              slug: 'alex',
+              name: 'Олександр',
+              role: 'barber',
+              active: true,
+              photoUrl: null,
+            },
+          ],
         },
       ],
     });
@@ -37,7 +44,7 @@ describe('BarbersPage', () => {
   });
 
   it('renders empty state when no barbers', async () => {
-    jest.spyOn(staffApi, 'getBarbers').mockResolvedValueOnce({
+    jest.spyOn(directoryApi, 'getBarbersByStudio').mockResolvedValueOnce({
       state: 'empty',
     });
 

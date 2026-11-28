@@ -1,6 +1,6 @@
 # T-4855 · The barber pages use the night system
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, design · **Complexity**: middle · **Depends on**: T-004
+- **Stage**: M5 (phase 30) · **Tags**: frontend · **Complexity**: middle · **Depends on**: T-004
 - **StoryPoints**: 5
 
 ## What
@@ -20,6 +20,18 @@ These two routes are the people of the brand, and they are the pages currently b
 - `apps/web/src/app/barbers/BarberCard.tsx`
 - `apps/web/src/app/barbers/[slug]/BarberDetailContent.tsx`
 
+## Implementation plan
+
+Paths:
+- apps/web/src/app/barbers/BarberCard.tsx
+- apps/web/src/app/barbers/BarbersClient.tsx
+- apps/web/src/app/barbers/BarbersMasterclassVIPShowcase.tsx
+- apps/web/src/app/barbers/[slug]/BarberDetailContent.tsx
+- apps/web/src/app/barbers/__tests__/night-system.test.ts
+
+Checks:
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/night-system.test.ts`
+
 ## Done
 
 - [ ] Neither route uses a gradient, a blur orb, `animate-pulse`, or `accent-blue` as decoration
@@ -34,3 +46,7 @@ These two routes are the people of the brand, and they are the pages currently b
 
 - Retheming the product (T-2100)
 - Booking-screen phantom classes (T-053w)
+
+## QA
+
+- `npx jest --config apps/web/jest.config.js --runTestsByPath apps/web/src/app/barbers/__tests__/night-system.test.ts` exit 0

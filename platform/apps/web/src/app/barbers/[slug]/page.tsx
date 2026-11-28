@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getBarberBySlug } from '@/lib/api/staff';
+import { getServices } from '@/lib/api/catalog';
 import { pageMetadata } from '@/lib/metadata';
 import { BarberDetailContent } from './BarberDetailContent';
+import { BarberInactive } from './BarberInactive';
 
 export async function generateMetadata({
   params,
@@ -11,7 +13,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const result = await getBarberBySlug(slug);
-  if (result.state !== 'ok') {
+  // Вимкнений майстер існує, але не приймає записів — у пошук не потрапляє (T-4865a).
+  if (result.state !== 'ok' || !result.data.active) {
     return pageMetadata({
       title: 'Майстер не знайдений',
       path: `/barbers/${slug}`,
@@ -27,11 +30,18 @@ export async function generateMetadata({
 
 export default async function BarberDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
-  const result = await getBarberBySlug(resolvedParams.slug);
+  // Послуги з цінами локації (T-4477a) вантажаться паралельно з профілем:
+  // збій каталогу не робить сторінку майстра порожньою (T-4860).
+  const [result, services] = await Promise.all([
+    getBarberBySlug(resolvedParams.slug),
+    getServices(),
+  ]);
 
   if (result.state !== 'ok') {
     notFound();
   }
 
-  return <BarberDetailContent barber={result.data} />;
+  if (!result.data.active) return <BarberInactive name={result.data.name} />;
+
+  return <BarberDetailContent barber={result.data} services={services} />;
 }

@@ -1,11 +1,14 @@
 'use client';
 
 import { Card, Field, Button } from '@fade/ui';
+import { ThisDeviceRow } from './ThisDeviceRow';
+import type { ThisDevice } from './useThisDevice';
 
 export function AccountProfileCard({
   name,
   phone,
   visitCount,
+  device,
   saving,
   canSave,
   error,
@@ -18,6 +21,8 @@ export function AccountProfileCard({
   phone: string;
   /** Минулі візити з того самого списку, що вантажить кабінет; null — запит упав (T-4734b). */
   visitCount: number | null;
+  /** Канал поточної сесії та кількість інших пристроїв (T-4724b). */
+  device: ThisDevice;
   saving: boolean;
   canSave: boolean;
   error?: string | null;
@@ -63,6 +68,7 @@ export function AccountProfileCard({
           </div>
         </Field>
       </div>
+      <ThisDeviceRow device={device} />
       <div className="flex gap-2 pt-2">
         <Button size="md" onClick={onSave} disabled={!canSave} className="w-fit">
           Зберегти ім&apos;я

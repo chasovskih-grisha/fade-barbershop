@@ -71,7 +71,7 @@ export class PrismaBookingRepository implements BookingRepository {
 
   // prettier-ignore
   private restore(row: {
-    id: string; barberId: string; locationId: string; serviceId: string | null; agreedPrice: number | null; agreedDuration: number | null;
+    id: string; barberId: string; locationId: string; serviceId: string | null; agreedPrice: number | null; agreedDuration: number | null; durationVariant: string | null;
     appliedDiscounts: Prisma.JsonValue | null; finalPrice: number | null;
     fulfillmentMode: string | null; start: Date; end: Date; version: number; haircutReferenceId: string | null; appointmentComment: string | null;
     clientId: string | null; source: string | null;
@@ -87,6 +87,7 @@ export class PrismaBookingRepository implements BookingRepository {
       appliedDiscounts: discountsOf(row.appliedDiscounts),
       finalPrice: row.finalPrice,
       agreedDuration: row.agreedDuration,
+      durationVariant: row.durationVariant,
       fulfillmentMode: row.fulfillmentMode as 'sequential' | 'parallel' | null,
       start: row.start,
       end: row.end,

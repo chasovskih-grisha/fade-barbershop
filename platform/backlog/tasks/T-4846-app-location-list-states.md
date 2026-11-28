@@ -1,6 +1,6 @@
 # T-4846 · The app location list has a skeleton, an empty line, and an error
 
-- **Stage**: M5 (phase 30) · **Tags**: frontend, ux, mobile · **Complexity**: junior · **Depends on**: T-4843, T-4513
+- **Stage**: M5 (phase 30) · **Tags**: mobile, ux · **Complexity**: junior · **Depends on**: T-4843, T-4513
 - **StoryPoints**: 3
 
 ## What
@@ -19,6 +19,19 @@ A failed network currently looks like the company has no studios.
 - `apps/mobile/src/app/index-home.tsx`
 - T-4429 (offline cache is separate)
 
+## Implementation plan
+
+Paths:
+- apps/mobile/src/lib/use-startup-data.ts
+- apps/mobile/src/app/index-home.tsx
+- apps/mobile/src/app/home-sections.tsx
+- apps/mobile/src/app/home-section-states.tsx
+- apps/mobile/src/app/home-skeletons.tsx
+- apps/mobile/src/app/index-home.states.test.tsx
+
+Checks:
+- `npx jest --config apps/mobile/jest.config.js --runTestsByPath apps/mobile/src/app/index-home.states.test.tsx`
+
 ## Done
 
 - [ ] Loading shows skeleton cards, not the word «Завантаження...»
@@ -35,3 +48,18 @@ A failed network currently looks like the company has no studios.
 
 - The offline cache (T-4429)
 - Website empty and error states (T-4513, done)
+
+## Implementation notes
+
+- apps/mobile/src/app/home-section-states.tsx
+- apps/mobile/src/app/home-sections.tsx
+- apps/mobile/src/app/home-skeletons.tsx
+- apps/mobile/src/app/index-home.states.test.tsx
+- apps/mobile/src/app/index-home.test.tsx
+- apps/mobile/src/app/index-home.tsx
+- apps/mobile/src/lib/use-startup-data.test.tsx
+- apps/mobile/src/lib/use-startup-data.ts
+
+## QA
+
+- `npx jest --config apps/mobile/jest.config.js --runTestsByPath apps/mobile/src/app/index-home.states.test.tsx` exit 0

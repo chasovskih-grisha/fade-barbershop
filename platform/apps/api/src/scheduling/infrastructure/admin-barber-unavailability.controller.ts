@@ -146,12 +146,26 @@ export class AdminBarberUnavailabilityController {
     return { ...result, settlements: await this.settleCancelled(result.cancelledBookingIds) };
   }
 
+  /** Кожна нога — окремо: візити вже скасовані й закомічені, тож збій
+   * settlement по одному не може лишити решту без відповіді (500 на всі). */
   private async settleCancelled(appointmentIds: string[]): Promise<BarberCancelSettlementResult[]> {
     const settlements: BarberCancelSettlementResult[] = [];
     for (const appointmentId of appointmentIds) {
-      settlements.push(await this.cancellationMoney.settle({ appointmentId }));
+      settlements.push(await this.settleOne(appointmentId));
     }
     return settlements;
+  }
+
+  private async settleOne(appointmentId: string): Promise<BarberCancelSettlementResult> {
+    try {
+      return await this.cancellationMoney.settle({ appointmentId });
+    } catch (error) {
+      return {
+        outcome: 'refund_failed',
+        holdReleased: false,
+        failureReason: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 
   private async call<T>(work: () => Promise<T>): Promise<T> {

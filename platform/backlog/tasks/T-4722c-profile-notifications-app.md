@@ -1,6 +1,6 @@
 # T-4722c · The same switches on the app profile
 
-- **Stage**: M1 (phase 3) · **Tags**: frontend, ux, mobile · **Complexity**: middle · **Depends on**: T-4722a
+- **Stage**: M1 (phase 3) · **Tags**: mobile, ux · **Complexity**: middle · **Depends on**: T-4722a
 - **StoryPoints**: 5
 
 ## What

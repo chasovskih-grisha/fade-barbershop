@@ -1,6 +1,6 @@
 # T-3402 · Каталог товарів
 
-- **Stage**: M6 (phase 40) · **Tags**: backend, retail, frontend · **Complexity**: middle · **Depends on**: T-270
+- **Stage**: M6 (phase 40) · **Tags**: backend, retail · **Complexity**: middle · **Depends on**: T-270
 - **StoryPoints**: 12
 
 ## What

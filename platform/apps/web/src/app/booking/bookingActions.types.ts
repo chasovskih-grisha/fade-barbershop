@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 import type { ReferenceSource } from './submitBooking';
 import type { AvailableSlotDto, LocationDto, ServiceDto } from './types';
+import type { ConfirmedBooking } from './bookingApi';
 
 export type Setters = {
   setStep: Dispatch<SetStateAction<number>>;
@@ -13,6 +14,7 @@ export type Setters = {
   setSelectedVariantObjectKey: Dispatch<SetStateAction<string | null>>;
   setUploadedPhoto: Dispatch<SetStateAction<string | null>>;
   setBookingId: Dispatch<SetStateAction<string>>;
+  setDeposit: Dispatch<SetStateAction<ConfirmedBooking['deposit'] | null>>;
   setSubmitting: Dispatch<SetStateAction<boolean>>;
   setError: Dispatch<SetStateAction<string>>;
 };

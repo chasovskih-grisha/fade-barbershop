@@ -23,3 +23,11 @@ Task T-4418 in review failed `pnpm --filter api test:unit` during QA check.
 
 Checks:
 - `pnpm --filter api test:unit`
+
+## Implementation notes
+
+- 2026-11-25: `BookingModule` did not register `PrismaBarberUnavailabilityRepository`, so
+  `CLIENT_BOOKINGS_IO` could not resolve its tenth dependency and `booking.module.spec.ts`
+  failed. The adapter is now a provider of `BookingModule`; that suite passes.
+- Still red in the same suite (outside this task's fix): `t-174-batch-slot-selection.spec.ts`
+  and `payment.controller.spec.ts`. Task stays `in_progress`.

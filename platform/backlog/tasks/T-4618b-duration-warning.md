@@ -1,6 +1,6 @@
 # T-4618b · Duration edit warns about existing visits
 
-- **Stage**: M1 (phase 4) · **Tags**: frontend, backend, catalog · **Complexity**: junior · **Depends on**: T-4618a, T-024
+- **Stage**: M1 (phase 4) · **Tags**: frontend, catalog · **Complexity**: junior · **Depends on**: T-4618a, T-024
 - **StoryPoints**: 5
 
 ## What

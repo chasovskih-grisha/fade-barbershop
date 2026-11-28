@@ -1,4 +1,9 @@
-import { BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import type { PrismaService } from '../../shared/prisma/prisma.service';
 import { dayOfWeekIndex } from '../../scheduling/domain/day-of-week';
 import {
@@ -77,6 +82,9 @@ export function toPartyHttpError(error: unknown): never {
     code === 'P2002'
   )
     throw new HttpException(message, HttpStatus.CONFLICT);
+  // T-4521/T-044: барбер не виконує послугу партії — запит валідний, стан ні.
+  if (/does not perform this service/i.test(message))
+    throw new UnprocessableEntityException(message);
   if (
     /PARTY-|required|must be|invalid|exactly|positive integer|same start|one slot|two slots/i.test(
       message
